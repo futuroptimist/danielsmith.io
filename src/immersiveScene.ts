@@ -2401,9 +2401,24 @@ export function initializeImmersiveScene(
     camera,
     guidedTourPreference,
   });
+  const isBlockingPoiDetailPanel = (): boolean =>
+    (hudPanelCoordinator?.getActivePanel() ?? null) === 'settings';
+  const isControlsPanelOpen = (): boolean =>
+    (hudPanelCoordinator?.getActivePanel() ?? null) === 'controls';
+  const hasMobileKeyboardPoiTarget = (): boolean =>
+    isControlsPanelOpen() && currentHoveredPoi !== null;
   const canShowPoiDetailOverlay = (layoutOverride?: HudLayout): boolean =>
-    (hudPanelCoordinator?.getActivePanel() ?? null) === null &&
-    (!isMobilePoiLayout(layoutOverride) || currentSelectedPoi !== null);
+    !isBlockingPoiDetailPanel() &&
+    (!isMobilePoiLayout(layoutOverride) ||
+      currentSelectedPoi !== null ||
+      hasMobileKeyboardPoiTarget());
+  const syncCombinedPoiPanelState = (poiDetailVisible: boolean) => {
+    const root = document.documentElement;
+    const controlsOpen =
+      (hudPanelCoordinator?.getActivePanel() ?? null) === 'controls';
+    root.toggleAttribute('data-hud-controls-open', controlsOpen);
+    root.toggleAttribute('data-poi-detail-visible', poiDetailVisible);
+  };
   const isPoiVisibleOnActiveFloor = (poi: PoiDefinition | null): boolean =>
     poi !== null && floorVisibilityController.isPoiVisibleOnActiveFloor(poi);
   const getFloorVisiblePoi = (
@@ -2446,13 +2461,17 @@ export function initializeImmersiveScene(
       canShowDetail && !isMobilePoiLayout(layoutOverride)
         ? getFloorVisiblePoi(currentHoveredPoi)
         : null;
+    const mobileKeyboardTarget = isMobilePoiLayout(layoutOverride)
+      ? (currentHoveredPoi ?? currentSelectedPoi)
+      : currentSelectedPoi;
     const showSelected = canShowDetail
-      ? getFloorVisiblePoi(currentSelectedPoi)
+      ? getFloorVisiblePoi(mobileKeyboardTarget)
       : null;
     poiTooltipOverlay.setHovered(showHover);
     poiTooltipOverlay.setSelected(showSelected);
     poiWorldTooltip.setHovered(resolveWorldTooltipTarget(showHover));
     poiWorldTooltip.setSelected(resolveWorldTooltipTarget(showSelected));
+    syncCombinedPoiPanelState(showHover !== null || showSelected !== null);
   };
   const clearPoiDetailState = (
     inputMethod: 'keyboard' | 'pointer' | 'touch' = 'pointer'
@@ -3250,7 +3269,10 @@ export function initializeImmersiveScene(
   const removeSelectionStateListener =
     poiInteractionManager.addSelectionStateListener((poi, context) => {
       currentSelectedPoi = poi;
-      if (poi) {
+      if (
+        poi &&
+        (hudPanelCoordinator?.getActivePanel() ?? null) === 'settings'
+      ) {
         hudPanelCoordinator?.closeAllPanels();
       }
       poiTooltipOverlay.setSelected(
@@ -4137,10 +4159,11 @@ export function initializeImmersiveScene(
     textButton: textModeButton,
     onTextMode: activateTextMode,
     onActivePanelChange: (panel) => {
-      if (panel !== null) {
+      if (panel === 'settings') {
         clearPoiDetailState();
       }
       updatePassivePoiRecommendationPolicy();
+      syncPoiDetailOverlay();
     },
   });
   let interactablePoi: PoiInstance | null = null;
@@ -6624,6 +6647,8 @@ export function initializeImmersiveScene(
     if (hudPanelCoordinator) {
       hudPanelCoordinator.dispose();
       hudPanelCoordinator = null;
+      document.documentElement.removeAttribute('data-hud-controls-open');
+      document.documentElement.removeAttribute('data-poi-detail-visible');
     }
     if (responsiveControlOverlay) {
       responsiveControlOverlay.dispose();
