@@ -86,7 +86,7 @@ interactable. Pick an explicit `colliderPolicy`:
 
 ## Add semantic room connections
 
-Use `roomConnections` only for semantic adjacency, navigation, narration, or
+Use `roomConnections` only for semantic adjacency, navigation, caption context, or
 editor affordances. A room connection does not create or remove wall geometry or
 colliders. If the connection needs an opening, edit the wall run/gap or delete
 that wall source data. If it needs a visible threshold or door, add a scene

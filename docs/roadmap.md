@@ -379,16 +379,12 @@ Focus: unify user controls and ensure graceful fallback experiences.
        and auto-resumes after the next pointer/key interaction to respect autoplay policies.
    - ✅ In-world visual cues for discovered content (e.g., glowing trims, checkmarks).
      - ✅ Visited POIs now reveal holographic checkmark badges that hover above each pedestal.
-   - ✅ Guided tour toggle lets players pause highlight recommendations while keeping reset tools.
-     - ✅ Idle monitor now waits roughly four seconds of inactivity before surfacing the next
-       highlight so overlays stay quiet while the player is actively moving or interacting.
+   - ✅ POI progress stays lightweight and focused on discovered exhibits without retired
+     recommendation controls in Settings.
    - ✅ Visited POI progress persists across reloads, powering halo highlights and tooltip badges.
    - ✅ Accessibility HUD now remembers ambient audio volume tweaks between play sessions.
-   - ✅ Guided tour overlay surfaces the next recommended POI whenever the player is idle.
-   - ✅ Guided tour reset utility now lets the HUD restart the curated path on demand so
-     visitors can replay the experience during sessions or demos.
-     - ✅ Guided tour reset control now flags pending resets with `aria-busy` so screen readers
-       announce progress while the tour refreshes.
+   - ✅ POI overlays now focus on hovered, selected, and visited exhibit states so ordinary
+     detail discovery stays clear without idle recommendation prompts.
 
 ## Phase 4 – Accessibility & Internationalization
 
@@ -519,8 +515,8 @@ Ideas to evaluate after the core experience is stable:
   windows, slowing or accelerating pulse programs according to the calendar.
   - ✅ Backyard lanterns now inherit seasonal palettes and expose a runtime retint hook so the
     greenhouse walkway glow matches the active preset.
-- ✅ Procedural storytelling AI that narrates the journey between POIs.
-  - ✅ Procedural narrator now weaves journey beats into the HUD story log whenever new exhibits are discovered.
+- ✅ Exhibit captions and POI metadata keep project context available without a separate
+  journey story log.
 - ✅ Integration with GitHub API for live repo stats and contribution heatmaps.
   - ✅ Live GitHub star counts now stream into POI metric panels via the repo stats service.
 - ✅ Exportable "press kit" mode now packages screenshots, POI blurbs, and metrics for media kits.

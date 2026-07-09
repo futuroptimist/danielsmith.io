@@ -232,6 +232,34 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('omits removed retired-tour settings from current settings copy', () => {
+    const staleSettingsTerms = [
+      'Narra' + 'tion',
+      'Guided ' + 'Tour',
+      'tour ' + 'reset',
+      'guided ' + 'highlight',
+      'next ' + 'recommended',
+    ];
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const helpModal = getHelpModalStrings(locale);
+      const settingsCopy = [
+        helpModal.heading,
+        helpModal.description,
+        helpModal.settings.heading,
+        helpModal.settings.description,
+        ...helpModal.sections.flatMap((section) => [
+          section.title,
+          ...section.items.flatMap((item) => [item.label, item.description]),
+        ]),
+      ].join('\n');
+
+      for (const term of staleSettingsTerms) {
+        expect(settingsCopy, `${locale} settings copy`).not.toContain(term);
+      }
+    }
+  });
+
   it('renders matching shared static control rows in Controls and Settings for every locale', () => {
     for (const locale of AVAILABLE_LOCALES) {
       const controlsPopover = renderRepresentativeControlsPopover(locale);
