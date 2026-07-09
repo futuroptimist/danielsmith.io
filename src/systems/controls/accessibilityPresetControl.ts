@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { AccessibilityPresetId } from '../../ui/accessibility/presetManager';
 
 export interface AccessibilityPresetOption {
@@ -13,6 +14,7 @@ export interface AccessibilityPresetControlOptions {
   setActivePreset: (preset: AccessibilityPresetId) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
 }
 
 export interface AccessibilityPresetControlHandle {
@@ -39,6 +41,7 @@ export function createAccessibilityPresetControl({
   setActivePreset,
   title = 'Accessibility presets',
   description = 'Tune motion assists and HUD contrast.',
+  selectedAnnouncementTemplate = '{label} preset selected.',
 }: AccessibilityPresetControlOptions): AccessibilityPresetControlHandle {
   if (!options.length) {
     throw new Error(
@@ -96,7 +99,9 @@ export function createAccessibilityPresetControl({
     });
     const activeLabel =
       options.find((option) => option.id === active)?.label ?? active;
-    updateLiveRegion(`${activeLabel} preset selected.`);
+    updateLiveRegion(
+      formatMessage(selectedAnnouncementTemplate, { label: activeLabel })
+    );
   };
 
   const setPending = (value: boolean) => {

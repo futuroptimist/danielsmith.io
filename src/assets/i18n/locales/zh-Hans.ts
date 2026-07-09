@@ -299,6 +299,93 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       fpsDescriptionEnabled: '显示用于沉浸式诊断的非交互 stats.js FPS 面板。',
       fpsDescriptionDisabled: '隐藏 stats.js FPS 面板，同时保留诊断功能。',
     },
+    settingsControls: {
+      graphicsQuality: {
+        title: '图形质量',
+        description: '选择适合设备性能的预设。',
+        selectedAnnouncementTemplate: '已选择 {label} 预设。',
+        presets: {
+          cinematic: {
+            label: '电影级',
+            description: '完整后处理、高细节模型、电影级辉光与照明。',
+          },
+          balanced: {
+            label: '平衡',
+            description: '中等辉光、降低分辨率和适合笔记本的中等细节模型。',
+          },
+          performance: {
+            label: '性能',
+            description:
+              '关闭辉光、降低分辨率，并使用最低细节模型优先保证 FPS。',
+          },
+        },
+      },
+      accessibilityPresets: {
+        title: '无障碍预设',
+        description: '调整动态辅助和 HUD 对比度。',
+        selectedAnnouncementTemplate: '已选择 {label} 预设。',
+        presets: {
+          standard: { label: '标准', description: '默认视觉与音频平衡。' },
+          calm: {
+            label: '柔和',
+            description: '降低辉光、LED 光晕和环境音频，体验更平缓。',
+          },
+          'high-contrast': {
+            label: '高对比度',
+            description: '增强 HUD 可读性，同时保留动态提示。',
+          },
+          photosensitive: {
+            label: '光敏安全',
+            description: '关闭辉光、调暗发光材质，并提高 HUD 对比度。',
+          },
+        },
+      },
+      motionBlur: {
+        label: '运动模糊强度',
+        description: '调整快速相机和角色移动产生的拖尾效果。',
+        groupLabel: '运动模糊控制',
+        hudLabel: '运动模糊强度滑块。',
+        values: {
+          off: '关闭',
+          lowTemplate: '{percent}% · 低拖尾',
+          mediumTemplate: '{percent}% · 中拖尾',
+          highTemplate: '{percent}% · 高拖尾',
+        },
+      },
+      avatarVariants: {
+        selectedAnnouncementTemplate: '已选择 {label} 角色。',
+        swatchTitleTemplate: '{label} {role}',
+        options: {
+          portfolio: {
+            label: '作品集',
+            description: '带霓虹面罩高光的标志性暮色套装。',
+          },
+          casual: {
+            label: '休闲',
+            description: '带青绿色点缀的日落连帽衫，适合轻松浏览。',
+          },
+          formal: {
+            label: '正式',
+            description: '炭黑西装外套配金色饰边，适合演示场景。',
+          },
+        },
+      },
+      avatarAccessories: {
+        enabledAnnouncementTemplate: '已启用 {label}。',
+        disabledAnnouncementTemplate: '已停用 {label}。',
+        options: {
+          'wrist-console': {
+            label: '腕部控制台',
+            description: '可穿戴遥测腕带，会同步 HUD 诊断信息。',
+          },
+          'holo-drone': {
+            label: '全息无人机',
+            description: '肩部侦察无人机，带柔和环绕光效。',
+          },
+        },
+      },
+    },
+
     softwareRendererWarning: {
       fallbackRendererLabel: '软件 WebGL 渲染器',
       title: '检测到软件渲染',

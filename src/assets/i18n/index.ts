@@ -34,6 +34,7 @@ import type {
   HudCustomizationStrings,
   SiteStrings,
   SoftwareRendererWarningStrings,
+  SettingsControlsStrings,
 } from './types';
 
 export type LocaleToggleResolvedStrings = LocaleToggleStrings;
@@ -404,6 +405,12 @@ export function getHudCustomizationStrings(
   input?: LocaleInput
 ): HudCustomizationStrings {
   return getLocaleStrings(input).hud.customization;
+}
+
+export function getSettingsControlsStrings(
+  input?: LocaleInput
+): SettingsControlsStrings {
+  return cloneValue(getLocaleStrings(input).hud.settingsControls);
 }
 
 export function getModeToggleStrings(

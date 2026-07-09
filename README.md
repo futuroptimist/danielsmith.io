@@ -223,7 +223,10 @@ Launch screenshot workflow refresh and commit it after merge.
   extrudes nightly commit streaks into illuminated shelving mosaics with sync signage overhead.
 - **Localization** – UI chrome and POI copy are centralized in `src/assets/i18n/index.ts`, letting future
   locales load structured strings while keeping Vitest coverage in
-  `src/tests/i18n.test.ts` to guard against regressions. HUD overlays and the
+  `src/tests/i18n.test.ts` to guard against regressions. New HUD panels and Settings
+  controls must add typed i18n entries for every supported locale, keep
+  `en-x-pseudo` wrapped, and include at least pseudo-locale plus `zh-Hans`
+  assertions before shipping. HUD overlays and the
   text fallback tag their containers with locale direction and script metadata so
   RTL and CJK languages flow correctly. English, Mandarin Chinese (`zh-Hans`),
   Japanese, Arabic, Spanish, Portuguese, German, and Hungarian are available in
