@@ -102,87 +102,24 @@ describe('createAvatarAccessoryControl', () => {
     ).toThrow('Avatar accessory control requires at least one option.');
   });
 
-  it('renders presets and applies loadouts', async () => {
+  it('renders only accessory checkboxes without loadouts', () => {
     const container = document.createElement('div');
-    document.body.appendChild(container);
 
-    let presetSnapshot = [
-      {
-        id: 'minimalist' as const,
-        label: 'Minimal',
-        description: 'No accessories.',
-        unlocked: true,
-        applied: true,
-      },
-      {
-        id: 'scout-drone' as const,
-        label: 'Scout drone',
-        description: 'Deploy the drone companion.',
-        unlocked: false,
-        applied: false,
-      },
-    ];
-
-    const applySpy = vi.fn();
-
-    const handle = createAvatarAccessoryControl({
+    createAvatarAccessoryControl({
       container,
       options: OPTIONS,
       isAccessoryEnabled: () => false,
       setAccessoryEnabled: () => undefined,
-      presets: {
-        getPresets: () => presetSnapshot,
-        applyPreset: (id) => {
-          applySpy(id);
-          return new Promise<void>((resolve) => {
-            setTimeout(() => {
-              presetSnapshot = presetSnapshot.map((preset) =>
-                preset.id === id
-                  ? { ...preset, unlocked: true, applied: true }
-                  : { ...preset, applied: false }
-              );
-              resolve();
-            }, 0);
-          });
-        },
-      },
     });
 
-    const presetButtons = container.querySelectorAll<HTMLButtonElement>(
-      '.avatar-accessories__preset-button'
-    );
-    expect(presetButtons).toHaveLength(2);
-    expect(presetButtons[1].disabled).toBe(true);
     expect(
-      container.querySelector(
-        '.avatar-accessories__preset[data-state="locked"] .avatar-accessories__preset-description'
-      )?.textContent
-    ).toContain('(locked)');
-
-    presetSnapshot = [
-      presetSnapshot[0],
-      { ...presetSnapshot[1], unlocked: true },
-    ];
-    handle.refresh();
-
-    expect(presetButtons[1].disabled).toBe(false);
-    presetButtons[1].click();
-    expect(applySpy).toHaveBeenCalledWith('scout-drone');
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    handle.refresh();
-
-    expect(presetButtons[1].getAttribute('aria-pressed')).toBe('true');
+      container.querySelectorAll('.avatar-accessories__checkbox')
+    ).toHaveLength(2);
+    expect(container.textContent).toContain('Wrist console');
+    expect(container.textContent).toContain('Holographic drone');
+    expect(container.textContent).not.toContain('Loadouts');
     expect(
-      container.querySelector('.avatar-accessories__status')?.textContent
-    ).toContain('loadout equipped');
-    expect(
-      container.querySelector(
-        '.avatar-accessories__preset[data-state="active"] .avatar-accessories__preset-description'
-      )?.textContent
-    ).not.toContain('(locked)');
-
-    handle.dispose();
-    container.remove();
+      container.querySelector('.avatar-accessories__preset-group')
+    ).toBeNull();
   });
 });
