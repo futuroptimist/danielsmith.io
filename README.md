@@ -233,9 +233,9 @@ Launch screenshot workflow refresh and commit it after merge.
   Translations are AI-assisted and community-reviewable. If you speak one of the
   supported languages and spot awkward phrasing, corrections are welcome through
   issues or pull requests.
-- **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
+- **Audio captions** – A subtitles overlay now calls out ambient beds with
   cooldown-aware timing so visitors who mute audio or rely on captions still catch the
-  story beats.
+  environmental story beats.
 - **Backyard installations** – The dusk courtyard now features a DSPACE-inspired model rocket on a
   lit launch pad with a safety halo, tying the exterior exhibits into the narrative while the nav
   colliders keep players clear of the ignition zone.

@@ -4,7 +4,6 @@ import { getPoiOverlayChromeStrings } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
 import { PoiTooltipOverlay } from '../scene/poi/tooltipOverlay';
 import type { PoiDefinition } from '../scene/poi/types';
-import { GuidedTourPreference } from '../systems/guidedTour/preference';
 import { InteractionTimeline } from '../ui/accessibility/interactionTimeline';
 
 class TimelineHarness {
@@ -73,7 +72,6 @@ describe('PoiTooltipOverlay', () => {
   let container: HTMLElement;
   let overlay: PoiTooltipOverlay;
   let timelineHarness: TimelineHarness;
-  let preference: GuidedTourPreference;
 
   const basePoi: PoiDefinition = {
     id: 'futuroptimist-living-room-tv',
@@ -98,34 +96,19 @@ describe('PoiTooltipOverlay', () => {
     status: 'prototype',
   };
 
-  const createPreference = () =>
-    new GuidedTourPreference({
-      storage: {
-        getItem: () => null,
-        setItem: () => {
-          /* noop */
-        },
-      },
-      windowTarget: window,
-      defaultEnabled: true,
-    });
-
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
     timelineHarness = new TimelineHarness();
-    preference = createPreference();
     overlay = new PoiTooltipOverlay({
       container,
       interactionTimeline: timelineHarness.timeline,
-      guidedTourPreference: preference,
     });
   });
 
   afterEach(() => {
     overlay.dispose();
     timelineHarness.dispose();
-    preference.dispose();
     container.remove();
   });
 
@@ -208,7 +191,6 @@ describe('PoiTooltipOverlay', () => {
     overlay = new PoiTooltipOverlay({
       container,
       interactionTimeline: timelineHarness.timeline,
-      guidedTourPreference: preference,
       locale: 'en-US',
       getDebugDetails: () => ({
         anchor: { x: -8.735, y: 0, z: -22.924 },
@@ -255,21 +237,11 @@ describe('PoiTooltipOverlay', () => {
     );
   });
 
-  it('shows debug details for selected and recommended card states', () => {
+  it('shows debug details for selected card state', () => {
     overlay.setDebugDetailsEnabled(true);
     overlay.setSelected(basePoi, { inputMethod: 'pointer' });
-    let root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
     expect(root.dataset.state).toBe('selected');
-    expect(root.querySelector('[data-poi-debug]')).toHaveProperty(
-      'hidden',
-      false
-    );
-
-    overlay.setSelected(null);
-    overlay.setRecommendation(basePoi);
-    overlay.setIdleState(true);
-    root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(root.dataset.state).toBe('recommended');
     expect(root.querySelector('[data-poi-debug]')).toHaveProperty(
       'hidden',
       false
@@ -291,14 +263,11 @@ describe('PoiTooltipOverlay', () => {
     const onDismiss = vi.fn();
     overlay.dispose();
     timelineHarness.dispose();
-    preference.dispose();
     timelineHarness = new TimelineHarness();
-    preference = createPreference();
     overlay = new PoiTooltipOverlay({
       container,
       onDismiss,
       interactionTimeline: timelineHarness.timeline,
-      guidedTourPreference: preference,
     });
     overlay.setSelected(basePoi, { inputMethod: 'pointer' });
 
@@ -324,14 +293,11 @@ describe('PoiTooltipOverlay', () => {
     const onDismiss = vi.fn();
     overlay.dispose();
     timelineHarness.dispose();
-    preference.dispose();
     timelineHarness = new TimelineHarness();
-    preference = createPreference();
     overlay = new PoiTooltipOverlay({
       container,
       onDismiss,
       interactionTimeline: timelineHarness.timeline,
-      guidedTourPreference: preference,
     });
 
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
@@ -382,18 +348,15 @@ describe('PoiTooltipOverlay', () => {
     expect(closeButton?.tabIndex).toBe(-1);
   });
 
-  it('enables the close button for hovered and passive recommendations', () => {
+  it('enables the close button for hovered POIs', () => {
     const onDismiss = vi.fn();
     overlay.dispose();
     timelineHarness.dispose();
-    preference.dispose();
     timelineHarness = new TimelineHarness();
-    preference = createPreference();
     overlay = new PoiTooltipOverlay({
       container,
       onDismiss,
       interactionTimeline: timelineHarness.timeline,
-      guidedTourPreference: preference,
     });
 
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
@@ -411,19 +374,6 @@ describe('PoiTooltipOverlay', () => {
     closeButton?.click();
 
     expect(onDismiss).toHaveBeenCalledTimes(1);
-
-    overlay.setHovered(null);
-    overlay.setIdleState(true);
-    overlay.setRecommendation(basePoi);
-
-    expect(root.dataset.state).toBe('recommended');
-    expect(closeButton?.hidden).toBe(false);
-    expect(closeButton?.disabled).toBe(false);
-    expect(closeButton?.tabIndex).toBe(0);
-
-    closeButton?.click();
-
-    expect(onDismiss).toHaveBeenCalledTimes(2);
   });
 
   it('can hide after dismiss clears selected state through the public API', () => {
@@ -632,7 +582,6 @@ describe('PoiTooltipOverlay', () => {
       const localizedPoi = poi!;
       overlay.setStrings(getPoiOverlayChromeStrings(locale));
       overlay.setVisitedPoiIds(new Set([localizedPoi.id]));
-      overlay.setRecommendation(localizedPoi);
       overlay.setSelected(localizedPoi);
 
       const root = container.querySelector(
@@ -673,7 +622,6 @@ describe('PoiTooltipOverlay', () => {
     const zhPoi = poi!;
     overlay.setStrings(getPoiOverlayChromeStrings('zh-Hans'));
     overlay.setVisitedPoiIds(new Set([zhPoi.id]));
-    overlay.setRecommendation(zhPoi);
     overlay.setSelected(zhPoi);
 
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
@@ -848,9 +796,7 @@ describe('PoiTooltipOverlay', () => {
   it('supports custom discovery formatter and politeness levels', () => {
     overlay.dispose();
     timelineHarness.dispose();
-    preference.dispose();
     timelineHarness = new TimelineHarness();
-    preference = createPreference();
     overlay = new PoiTooltipOverlay({
       container,
       discoveryAnnouncer: {
@@ -858,7 +804,6 @@ describe('PoiTooltipOverlay', () => {
         format: (poi) => `${poi.title} ready for inspection`,
       },
       interactionTimeline: timelineHarness.timeline,
-      guidedTourPreference: preference,
     });
 
     overlay.setSelected(basePoi);
@@ -870,135 +815,6 @@ describe('PoiTooltipOverlay', () => {
     expect(liveRegion.textContent).toBe(
       `${basePoi.title} ready for inspection`
     );
-  });
-
-  it('surfaces the recommendation overlay when idle', () => {
-    overlay.setIdleState(true);
-    overlay.setRecommendation(basePoi);
-
-    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(root.dataset.state).toBe('recommended');
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
-    expect(root.getAttribute('aria-hidden')).toBe('false');
-
-    const title = root.querySelector('.poi-tooltip-overlay__title');
-    expect(title?.textContent).toBe(basePoi.title);
-
-    const badge = root.querySelector(
-      '.poi-tooltip-overlay__recommendation'
-    ) as HTMLSpanElement;
-    expect(badge.hidden).toBe(false);
-    expect(badge.textContent).toBe('Next highlight');
-  });
-
-  it('keeps fresh idle sessions hidden until guided tour is enabled', () => {
-    overlay.dispose();
-    preference.dispose();
-    preference = new GuidedTourPreference({
-      storage: {
-        getItem: () => null,
-        setItem: () => {
-          /* noop */
-        },
-      },
-      windowTarget: window,
-    });
-    overlay = new PoiTooltipOverlay({
-      container,
-      interactionTimeline: timelineHarness.timeline,
-      guidedTourPreference: preference,
-    });
-
-    overlay.setIdleState(true);
-    overlay.setRecommendation(basePoi);
-
-    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(preference.isEnabled()).toBe(false);
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
-    expect(root.dataset.state).toBe('hidden');
-
-    preference.setEnabled(true, 'api');
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
-    expect(root.dataset.state).toBe('recommended');
-  });
-
-  it('does not surface passive recommendations when disabled', () => {
-    overlay.setPassiveRecommendationsEnabled(false);
-    overlay.setIdleState(true);
-    overlay.setRecommendation(basePoi);
-
-    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
-    expect(root.dataset.state).toBe('hidden');
-    expect(root.getAttribute('aria-hidden')).toBe('true');
-  });
-
-  it('keeps explicit selection visible when passive recommendations are disabled', () => {
-    overlay.setPassiveRecommendationsEnabled(false);
-    overlay.setIdleState(true);
-    overlay.setRecommendation(basePoi);
-    overlay.setSelected(basePoi);
-
-    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(root.dataset.state).toBe('selected');
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
-    expect(root.getAttribute('aria-hidden')).toBe('false');
-
-    const title = root.querySelector('.poi-tooltip-overlay__title');
-    expect(title?.textContent).toBe(basePoi.title);
-  });
-
-  it('shows a badge when the recommended POI is selected', () => {
-    overlay.setIdleState(true);
-    overlay.setRecommendation(basePoi);
-    overlay.setSelected(basePoi);
-
-    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(root.dataset.state).toBe('selected');
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
-
-    const recommendationBadge = root.querySelector(
-      '.poi-tooltip-overlay__recommendation'
-    ) as HTMLSpanElement;
-    expect(recommendationBadge.hidden).toBe(false);
-    expect(recommendationBadge.textContent).toBe('Next highlight');
-
-    overlay.setSelected(null);
-    expect(root.dataset.state).toBe('recommended');
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
-  });
-
-  it('hides recommendation badges when guided tour mode is disabled', () => {
-    overlay.setIdleState(true);
-    preference.setEnabled(false, 'api');
-    overlay.setRecommendation(basePoi);
-    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
-
-    overlay.setSelected(basePoi);
-
-    expect(root.dataset.guidedTour).toBe('off');
-    const badge = root.querySelector(
-      '.poi-tooltip-overlay__recommendation'
-    ) as HTMLSpanElement;
-    expect(badge.hidden).toBe(true);
-
-    preference.setEnabled(true, 'api');
-    expect(root.dataset.guidedTour).toBe('on');
-    expect(badge.hidden).toBe(false);
-  });
-
-  it('suppresses recommendation overlays until the player becomes idle', () => {
-    overlay.setRecommendation(basePoi);
-
-    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(false);
-    expect(root.dataset.state).toBe('hidden');
-
-    overlay.setIdleState(true);
-
-    expect(root.classList.contains('poi-tooltip-overlay--visible')).toBe(true);
-    expect(root.dataset.state).toBe('recommended');
   });
 
   it('ignores updates after disposal', () => {
@@ -1026,16 +842,13 @@ describe('PoiTooltipOverlay', () => {
   it('ignores discovery announcements when the formatter returns an empty string', () => {
     overlay.dispose();
     timelineHarness.dispose();
-    preference.dispose();
     timelineHarness = new TimelineHarness();
-    preference = createPreference();
     overlay = new PoiTooltipOverlay({
       container,
       discoveryAnnouncer: {
         format: () => '   ',
       },
       interactionTimeline: timelineHarness.timeline,
-      guidedTourPreference: preference,
     });
 
     overlay.setSelected({ ...basePoi, summary: '' });

@@ -3,10 +3,6 @@ import {
   getPoiOverlayChromeStrings,
   type PoiOverlayChromeStrings,
 } from '../../assets/i18n';
-import {
-  GuidedTourPreference,
-  defaultGuidedTourPreference,
-} from '../../systems/guidedTour/preference';
 import type { InteractionTimeline } from '../../ui/accessibility/interactionTimeline';
 
 import type { PoiSelectionContext } from './interactionManager';
@@ -32,7 +28,6 @@ export interface PoiTooltipOverlayOptions {
     politeness?: 'polite' | 'assertive';
   };
   interactionTimeline?: InteractionTimeline;
-  guidedTourPreference?: GuidedTourPreference;
   getDebugDetails?: PoiDebugDetailsProvider;
   locale?: string;
 }
@@ -70,24 +65,18 @@ export class PoiTooltipOverlay {
   private readonly closeButton: HTMLButtonElement;
   private readonly liveRegion: HTMLElement;
   private readonly interactionTimeline: InteractionTimeline | null;
-  private readonly guidedTourPreference: GuidedTourPreference;
   private readonly instanceId: string;
   private discoveryFormatter: DiscoveryFormatter;
   private discoveryPoliteness: 'polite' | 'assertive';
   private readonly discoveredPoiIds = new Set<string>();
   private hovered: PoiDefinition | null = null;
   private selected: PoiDefinition | null = null;
-  private recommendation: PoiDefinition | null = null;
   private renderState: RenderState = {
     poiId: null,
     poiRef: null,
     contentKey: null,
   };
   private visitedPoiIds: ReadonlySet<string> = new Set();
-  private guidedTourEnabled = true;
-  private passiveRecommendationsEnabled = true;
-  private isIdle = false;
-  private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
   private readonly onDismiss: (() => void) | null;
   private readonly getDebugDetails: PoiDebugDetailsProvider;
@@ -101,7 +90,6 @@ export class PoiTooltipOverlay {
       onDismiss,
       discoveryAnnouncer,
       interactionTimeline,
-      guidedTourPreference = defaultGuidedTourPreference,
       getDebugDetails = defaultDebugDetailsProvider,
     } = options;
     const documentTarget = container.ownerDocument ?? document;
@@ -113,7 +101,6 @@ export class PoiTooltipOverlay {
     this.discoveryFormatter =
       discoveryAnnouncer?.format ?? defaultDiscoveryFormatter;
     this.interactionTimeline = interactionTimeline ?? null;
-    this.guidedTourPreference = guidedTourPreference;
     this.onDismiss = onDismiss ?? null;
     this.getDebugDetails = getDebugDetails;
     this.locale = locale;
@@ -218,14 +205,6 @@ export class PoiTooltipOverlay {
     applyVisuallyHiddenStyles(this.liveRegion);
     container.appendChild(this.liveRegion);
     this.setFocusContainment(false);
-
-    this.unsubscribeGuidedTour = this.guidedTourPreference.subscribe(
-      (enabled) => {
-        this.guidedTourEnabled = enabled;
-        this.root.dataset.guidedTour = enabled ? 'on' : 'off';
-        this.update();
-      }
-    );
   }
 
   setStrings(strings: PoiOverlayChromeStrings, locale?: string): void {
@@ -250,14 +229,6 @@ export class PoiTooltipOverlay {
     this.update();
   }
 
-  setIdleState(idle: boolean) {
-    if (this.isIdle === idle) {
-      return;
-    }
-    this.isIdle = idle;
-    this.update();
-  }
-
   setHovered(poi: PoiDefinition | null) {
     this.hovered = poi;
     this.update();
@@ -279,19 +250,6 @@ export class PoiTooltipOverlay {
     this.update();
   }
 
-  setRecommendation(poi: PoiDefinition | null) {
-    this.recommendation = poi;
-    this.update();
-  }
-
-  setPassiveRecommendationsEnabled(enabled: boolean): void {
-    if (this.passiveRecommendationsEnabled === enabled) {
-      return;
-    }
-    this.passiveRecommendationsEnabled = enabled;
-    this.update();
-  }
-
   setVisitedPoiIds(ids: ReadonlySet<string>) {
     this.visitedPoiIds = ids;
     ids.forEach((id) => this.discoveredPoiIds.add(id));
@@ -301,8 +259,7 @@ export class PoiTooltipOverlay {
   notifyPoiUpdated(poiId: string) {
     if (
       (this.hovered && this.hovered.id === poiId) ||
-      (this.selected && this.selected.id === poiId) ||
-      (this.recommendation && this.recommendation.id === poiId)
+      (this.selected && this.selected.id === poiId)
     ) {
       this.update();
     }
@@ -319,10 +276,6 @@ export class PoiTooltipOverlay {
   dispose() {
     this.root.remove();
     this.liveRegion.remove();
-    if (this.unsubscribeGuidedTour) {
-      this.unsubscribeGuidedTour();
-      this.unsubscribeGuidedTour = null;
-    }
   }
 
   private update() {
@@ -330,14 +283,7 @@ export class PoiTooltipOverlay {
       return;
     }
 
-    const recommendation = this.recommendation;
-    const idleRecommendation =
-      this.guidedTourEnabled &&
-      this.passiveRecommendationsEnabled &&
-      this.isIdle
-        ? recommendation
-        : null;
-    const poi = this.hovered ?? this.selected ?? idleRecommendation;
+    const poi = this.hovered ?? this.selected;
     if (!poi) {
       this.root.classList.remove('poi-tooltip-overlay--visible');
       this.root.dataset.state = 'hidden';
@@ -353,11 +299,7 @@ export class PoiTooltipOverlay {
       return;
     }
 
-    const state: 'hovered' | 'selected' | 'recommended' = this.hovered
-      ? 'hovered'
-      : this.selected
-        ? 'selected'
-        : 'recommended';
+    const state: 'hovered' | 'selected' = this.hovered ? 'hovered' : 'selected';
     this.root.dataset.state = state;
     this.root.classList.add('poi-tooltip-overlay--visible');
     this.setFocusContainment(true);
@@ -365,12 +307,7 @@ export class PoiTooltipOverlay {
 
     const visited = this.visitedPoiIds.has(poi.id);
     this.visitedBadge.hidden = !visited;
-    const showRecommendationBadge =
-      (state === 'recommended' && Boolean(idleRecommendation)) ||
-      (state === 'selected' &&
-        this.guidedTourEnabled &&
-        recommendation?.id === poi.id);
-    this.recommendationBadge.hidden = !showRecommendationBadge;
+    this.recommendationBadge.hidden = true;
 
     const nextContentKey = getPoiRenderContentKey(poi);
     const shouldRenderPoi =
@@ -423,9 +360,7 @@ export class PoiTooltipOverlay {
     }
   }
 
-  private syncCloseButtonState(
-    state: 'hovered' | 'selected' | 'recommended' | 'hidden'
-  ) {
+  private syncCloseButtonState(state: 'hovered' | 'selected' | 'hidden') {
     const canDismiss = state !== 'hidden' && this.onDismiss !== null;
     this.closeButton.hidden = !canDismiss;
     this.closeButton.disabled = !canDismiss;

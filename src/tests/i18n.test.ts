@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   AVAILABLE_LOCALES,
   formatMessage,
-  getAudioSubtitleStrings,
   getControlOverlayStrings,
   getDebugCoordinatesStrings,
   getDebugCollidersStrings,
@@ -14,11 +13,7 @@ import {
   getModeToggleStrings,
   getLocaleScript,
   getLocaleStrings,
-  getNarrationToggleStrings,
-  getTourGuideToggleStrings,
-  getTourResetControlStrings,
   isI18nDebugEnabled,
-  getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getPoiCopy,
   getSelectableLocales,
@@ -1090,30 +1085,6 @@ describe('i18n utilities', () => {
     }
   });
 
-  it('localizes narration controls and subtitle labels for Latin locales', () => {
-    expect(getAudioSubtitleStrings('es').dismissLabels.poi).toBe(
-      'Descartar narración'
-    );
-    expect(getAudioSubtitleStrings('pt').labels.ambient).toBe('Áudio ambiente');
-    expect(getNarrationToggleStrings('de').labelEnabled).toBe('Erzählung ein');
-    expect(getNarrationToggleStrings('hu').descriptionDisabled).toContain(
-      'rejtve maradnak'
-    );
-  });
-
-  it('localizes guided tour controls for Mandarin and pseudo locale', () => {
-    expect(getTourGuideToggleStrings('zh-Hans').labelEnabled).toBe(
-      '导览已开启'
-    );
-    expect(getTourResetControlStrings('zh-Hans').heading).toBe('导览');
-    expect(getTourGuideToggleStrings('en-x-pseudo').labelEnabled).toBe(
-      '⟦Guided tour on⟧'
-    );
-    expect(getTourResetControlStrings('en-x-pseudo').label).toBe(
-      '⟦Restart guided tour⟧'
-    );
-  });
-
   it('builds mode announcer messages from localized HUD and fallback copy', () => {
     const english = getModeAnnouncerStrings('en');
     expect(english.immersiveReady).toBe(
@@ -1130,39 +1101,6 @@ describe('i18n utilities', () => {
     expect(
       getSiteStrings('en').textFallback.reasonDescriptions.manual
     ).not.toBe('Mutated');
-  });
-
-  it('exposes narrative log strings with localized announcements', () => {
-    const english = getPoiNarrativeLogStrings('en');
-    expect(english.heading).toBe('Creator story log');
-    expect(
-      formatMessage(english.visitedLabelTemplate, { time: '3:30 PM' })
-    ).toBe('Visited at 3:30 PM');
-
-    const pseudo = getPoiNarrativeLogStrings('en-x-pseudo');
-    expect(pseudo.heading).toBe('⟦Creator story log⟧');
-    expect(pseudo.defaultVisitedLabel).toBe('⟦Visited⟧');
-    expect(
-      formatMessage(pseudo.liveAnnouncementTemplate, { title: 'Story' })
-    ).toBe('⟦Story added to the creator story log.⟧');
-
-    const arabic = getPoiNarrativeLogStrings('ar');
-    expect(arabic.heading).toBe('سجل القصة');
-    expect(formatMessage(arabic.visitedLabelTemplate, { time: '٣:٣٠ م' })).toBe(
-      'تمت الزيارة في ٣:٣٠ م'
-    );
-
-    const japanese = getPoiNarrativeLogStrings('ja');
-    expect(japanese.heading).toBe('クリエイターストーリーログ');
-    expect(
-      formatMessage(japanese.visitedLabelTemplate, { time: '15:30' })
-    ).toBe('15:30 に訪問');
-
-    const chinese = getPoiNarrativeLogStrings('zh-Hans');
-    expect(chinese.heading).toBe('创作者故事日志');
-    expect(formatMessage(chinese.visitedLabelTemplate, { time: '15:30' })).toBe(
-      '访问时间 15:30'
-    );
   });
 
   it('provides localized copy for POIs with English fallback', () => {
