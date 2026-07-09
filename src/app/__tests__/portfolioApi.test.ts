@@ -45,15 +45,11 @@ describe('portfolioApi namespace helpers', () => {
     const nextAudio = {
       getState: () => ({ preferenceEnabled: true }),
     } as Window['portfolio']['audio'];
-    const narration = {
-      getState: () => ({ visible: false }),
-    } as Window['portfolio']['narration'];
-    const targetWindow = createWindow({ audio: firstAudio, narration });
+    const targetWindow = createWindow({ audio: firstAudio });
 
     setPortfolioSection('audio', nextAudio, targetWindow);
 
     expect(targetWindow.portfolio?.audio).toBe(nextAudio);
-    expect(targetWindow.portfolio?.narration).toBe(narration);
   });
 
   it('recreates the namespace when window.portfolio is a falsy non-object value', () => {
@@ -116,15 +112,11 @@ describe('portfolioApi namespace helpers', () => {
     const audio = {
       getState: () => ({ preferenceEnabled: true }),
     } as Window['portfolio']['audio'];
-    const narration = {
-      getState: () => ({ visible: false }),
-    } as Window['portfolio']['narration'];
-    const targetWindow = createWindow({ audio, narration });
+    const targetWindow = createWindow({ audio });
 
     clearPortfolioSection('audio', targetWindow);
 
     expect(targetWindow.portfolio?.audio).toBeUndefined();
-    expect(targetWindow.portfolio?.narration).toBe(narration);
   });
 
   it('does not create an empty namespace when clearing a missing portfolio API', () => {

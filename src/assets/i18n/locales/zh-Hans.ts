@@ -257,18 +257,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       selectedAnnouncementTemplate: '已选择 {label}。',
       failureAnnouncementTemplate: '无法切换到 {target}。保持 {current}。',
     },
-    tourGuideToggle: {
-      labelEnabled: '导览已开启',
-      labelDisabled: '导览已关闭',
-      descriptionEnabled: '高亮沉浸式导览中下一个推荐展品。',
-      descriptionDisabled: '导览高亮已隐藏，直到你重新开启。',
-    },
-    narrationToggle: {
-      labelEnabled: '旁白已开启',
-      labelDisabled: '旁白已关闭',
-      descriptionEnabled: '未来展品时刻会显示旁白弹窗和字幕。',
-      descriptionDisabled: '旁白弹窗和字幕保持隐藏，直到你开启。',
-    },
     debugCoordinates: {
       labelEnabled: '调试坐标已开启',
       labelDisabled: '调试坐标已关闭',
@@ -311,24 +299,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       fpsDescriptionEnabled: '显示用于沉浸式诊断的非交互 stats.js FPS 面板。',
       fpsDescriptionDisabled: '隐藏 stats.js FPS 面板，同时保留诊断功能。',
     },
-    tourReset: {
-      heading: '导览',
-      resetKey: 'g',
-      label: '重新开始导览',
-      description: '清除已访问的 POI，并重放精选路径。',
-      emptyLabel: '导览已就绪',
-      emptyDescription: '探索展品后即可解锁导览重置。',
-      pendingLabel: '正在重置导览…',
-      pendingDescription: '正在重置导览…',
-      restartPromptTemplate: '按 {key} 重新开始。',
-      guidedTourDescription: '空闲时显示推荐展品。',
-      guidedTourLabelOn: '导览高亮：开',
-      guidedTourLabelOff: '导览高亮：关',
-      toggleAnnouncementOn: '导览高亮已开启。激活可关闭推荐。',
-      toggleAnnouncementOff: '导览高亮已关闭。激活可开启推荐。',
-      toggleTitleOn: '关闭导览高亮',
-      toggleTitleOff: '开启导览高亮',
-    },
     softwareRendererWarning: {
       fallbackRendererLabel: '软件 WebGL 渲染器',
       title: '检测到软件渲染',
@@ -370,50 +340,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
       discoveryAnnouncementTemplate: '已发现 {title}。{summary}',
-    },
-    narrativeLog: {
-      heading: '创作者故事日志',
-      visitedHeading: '已访问展品',
-      empty: '访问展品即可解锁记录创作者展示的叙事条目。',
-      defaultVisitedLabel: '已访问',
-      visitedLabelTemplate: '访问时间 {time}',
-      liveAnnouncementTemplate: '{title} 已加入创作者故事日志。',
-      journey: {
-        heading: '旅程节点',
-        empty: '探索新展品以编织旅程叙事。',
-        entryLabelTemplate: '{from} → {to}',
-        sameRoomTemplate:
-          '在{room}的{descriptor}中，故事从 {fromPoi} 转向 {toPoi}。',
-        crossRoomTemplate:
-          '离开{fromRoom}的{fromDescriptor}后，旅程进入{toRoom}的{toDescriptor}，聚焦 {toPoi}。',
-        crossSectionTemplate:
-          '穿过门槛{direction}，路径进入{toRoom}的{toDescriptor}，抵达 {toPoi}。',
-        fallbackTemplate: '叙事流向 {toPoi}。',
-        announcementTemplate: '旅程更新 — {label}：{story}',
-        directions: { indoors: '回到室内', outdoors: '走向户外' },
-      },
-      rooms: {
-        livingRoom: {
-          label: '客厅',
-          descriptor: '电影感休息区',
-          zone: 'interior',
-        },
-        studio: {
-          label: '工作室',
-          descriptor: '自动化实验室',
-          zone: 'interior',
-        },
-        kitchen: {
-          label: '厨房实验室',
-          descriptor: '烹饪机器人翼区',
-          zone: 'interior',
-        },
-        backyard: {
-          label: '后院观测台',
-          descriptor: '暮光花园',
-          zone: 'exterior',
-        },
-      },
     },
     helpModal: {
       heading: '设置与帮助',
@@ -479,7 +405,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       links: [
         { label: 'YouTube', href: 'https://www.youtube.com/@futuroptimist' },
       ],
-      narration: { caption: '客厅电视点亮 Futuroptimist 的脚本时间线。' },
       interactionPrompt: '查看 {title}',
     },
     'tokenplace-studio-cluster': {
@@ -508,7 +433,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
           href: 'https://github.com/futuroptimist/token.place',
         },
       ],
-      narration: { caption: '令牌集群脉冲显示密文路由，没有泄露明文。' },
     },
     'gabriel-studio-sentry': {
       title: 'Gabriel',
@@ -568,7 +492,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
           href: 'https://github.com/futuroptimist/flywheel',
         },
       ],
-      narration: { caption: 'Flywheel 动能中枢启动，聚焦自动化提示和工具链。' },
       interactionPrompt: '启动 {title} 系统',
     },
     'jobbot-studio-terminal': {
@@ -602,7 +525,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
           href: 'https://github.com/futuroptimist/jobbot3000',
         },
       ],
-      narration: { caption: 'Jobbot 全息终端以闪烁覆盖层流式展示自动化遥测。' },
     },
     'axel-studio-tracker': {
       title: 'Axel',
@@ -812,7 +734,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         },
         { label: '文档', href: 'https://democratized.space/docs' },
       ],
-      narration: { caption: '后院火箭投射 DSPACE 探索路线。' },
     },
     'pr-reaper-backyard-console': {
       title: 'pr-reaper',

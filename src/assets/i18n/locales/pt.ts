@@ -34,21 +34,12 @@ export const PT_OVERRIDES = buildLatinLocaleOverrides({
     live: 'Ao vivo',
     textMode: 'Mudar para modo texto',
     tryImmersive: 'Tentar imersivo novamente',
-    guidedTour: 'Visita guiada',
-    guidedTourOn: 'Visita guiada ativada',
-    guidedTourOff: 'Visita guiada desativada',
     audioOn: 'Áudio: ligado',
     audioOff: 'Áudio: desligado',
     audioSubtitleAmbientLabel: 'Áudio ambiente',
-    audioSubtitlePoiLabel: 'Narração',
+    audioSubtitlePoiLabel: 'Legenda',
     audioSubtitleDismissAmbient: 'Dispensar legenda',
     audioSubtitleDismissPoi: 'Dispensar narração',
-    narrationToggleLabelEnabled: 'Narração ativada',
-    narrationToggleLabelDisabled: 'Narração desativada',
-    narrationToggleDescriptionEnabled:
-      'Pop-ups e legendas de narração aparecem em futuros momentos da exibição.',
-    narrationToggleDescriptionDisabled:
-      'Pop-ups e legendas de narração ficam ocultos até você ativá-los.',
     debugCoordinatesLabelEnabled: 'Coordenadas de depuração ativadas',
     debugCoordinatesLabelDisabled: 'Coordenadas de depuração desativadas',
     debugCoordinatesDescriptionEnabled:

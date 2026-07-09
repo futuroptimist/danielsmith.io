@@ -35,8 +35,8 @@ export interface AudioSubtitlesOptions {
   documentTarget?: Document;
   /**
    * Messages at or above this priority temporarily upgrade the live region to
-   * assertive so screen readers announce critical narration immediately.
-   * Defaults to 5 to match POI narration priority levels.
+   * assertive so screen readers announce critical captions immediately.
+   * Defaults to 5 to match high-priority caption levels.
    */
   assertivePriorityThreshold?: number;
 }
@@ -54,12 +54,12 @@ interface NormalizedAudioSubtitleMessage extends AudioSubtitleMessage {
 
 const DEFAULT_LABELS: Record<AudioSubtitleSource, string> = {
   ambient: 'Ambient audio',
-  poi: 'Narration',
+  poi: 'Caption',
 };
 
 const DEFAULT_DISMISS_LABELS: Record<AudioSubtitleSource, string> = {
   ambient: 'Dismiss caption',
-  poi: 'Dismiss narration',
+  poi: 'Dismiss caption',
 };
 
 export function createAudioSubtitles({

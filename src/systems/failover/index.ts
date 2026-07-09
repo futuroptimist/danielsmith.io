@@ -7,7 +7,6 @@ import {
   getModeToggleStrings,
   resolveLocale,
   getPoiCopy,
-  getPoiNarrativeLogStrings,
   getSiteStrings,
   type SiteTextFallbackStrings,
 } from '../../assets/i18n';
@@ -636,7 +635,7 @@ function buildTextPortfolioGroups(
 ): TextPortfolioRoomGroup[] {
   const poiDefinitions = getPoiDefinitions();
   const poiCopy = getPoiCopy(localeHint);
-  const narrativeRooms = getPoiNarrativeLogStrings(localeHint).rooms;
+  const narrativeRooms: Record<string, { label?: string }> = {};
   const roomLookup = new Map(
     FLOOR_PLAN.rooms.map((room) => [room.id, room.name])
   );

@@ -3,10 +3,6 @@ import {
   getPoiOverlayChromeStrings,
   type PoiOverlayChromeStrings,
 } from '../../assets/i18n';
-import {
-  GuidedTourPreference,
-  defaultGuidedTourPreference,
-} from '../../systems/guidedTour/preference';
 import type { InteractionTimeline } from '../../ui/accessibility/interactionTimeline';
 
 import type { PoiSelectionContext } from './interactionManager';
@@ -32,7 +28,6 @@ export interface PoiTooltipOverlayOptions {
     politeness?: 'polite' | 'assertive';
   };
   interactionTimeline?: InteractionTimeline;
-  guidedTourPreference?: GuidedTourPreference;
   getDebugDetails?: PoiDebugDetailsProvider;
   locale?: string;
 }
@@ -70,7 +65,6 @@ export class PoiTooltipOverlay {
   private readonly closeButton: HTMLButtonElement;
   private readonly liveRegion: HTMLElement;
   private readonly interactionTimeline: InteractionTimeline | null;
-  private readonly guidedTourPreference: GuidedTourPreference;
   private readonly instanceId: string;
   private discoveryFormatter: DiscoveryFormatter;
   private discoveryPoliteness: 'polite' | 'assertive';
@@ -84,10 +78,8 @@ export class PoiTooltipOverlay {
     contentKey: null,
   };
   private visitedPoiIds: ReadonlySet<string> = new Set();
-  private guidedTourEnabled = true;
   private passiveRecommendationsEnabled = true;
   private isIdle = false;
-  private unsubscribeGuidedTour: (() => void) | null = null;
   private focusOnNextUpdate = false;
   private readonly onDismiss: (() => void) | null;
   private readonly getDebugDetails: PoiDebugDetailsProvider;
@@ -101,7 +93,6 @@ export class PoiTooltipOverlay {
       onDismiss,
       discoveryAnnouncer,
       interactionTimeline,
-      guidedTourPreference = defaultGuidedTourPreference,
       getDebugDetails = defaultDebugDetailsProvider,
     } = options;
     const documentTarget = container.ownerDocument ?? document;
@@ -113,7 +104,6 @@ export class PoiTooltipOverlay {
     this.discoveryFormatter =
       discoveryAnnouncer?.format ?? defaultDiscoveryFormatter;
     this.interactionTimeline = interactionTimeline ?? null;
-    this.guidedTourPreference = guidedTourPreference;
     this.onDismiss = onDismiss ?? null;
     this.getDebugDetails = getDebugDetails;
     this.locale = locale;
@@ -218,14 +208,6 @@ export class PoiTooltipOverlay {
     applyVisuallyHiddenStyles(this.liveRegion);
     container.appendChild(this.liveRegion);
     this.setFocusContainment(false);
-
-    this.unsubscribeGuidedTour = this.guidedTourPreference.subscribe(
-      (enabled) => {
-        this.guidedTourEnabled = enabled;
-        this.root.dataset.guidedTour = enabled ? 'on' : 'off';
-        this.update();
-      }
-    );
   }
 
   setStrings(strings: PoiOverlayChromeStrings, locale?: string): void {
@@ -319,10 +301,6 @@ export class PoiTooltipOverlay {
   dispose() {
     this.root.remove();
     this.liveRegion.remove();
-    if (this.unsubscribeGuidedTour) {
-      this.unsubscribeGuidedTour();
-      this.unsubscribeGuidedTour = null;
-    }
   }
 
   private update() {
@@ -332,11 +310,7 @@ export class PoiTooltipOverlay {
 
     const recommendation = this.recommendation;
     const idleRecommendation =
-      this.guidedTourEnabled &&
-      this.passiveRecommendationsEnabled &&
-      this.isIdle
-        ? recommendation
-        : null;
+      this.passiveRecommendationsEnabled && this.isIdle ? recommendation : null;
     const poi = this.hovered ?? this.selected ?? idleRecommendation;
     if (!poi) {
       this.root.classList.remove('poi-tooltip-overlay--visible');
@@ -367,9 +341,7 @@ export class PoiTooltipOverlay {
     this.visitedBadge.hidden = !visited;
     const showRecommendationBadge =
       (state === 'recommended' && Boolean(idleRecommendation)) ||
-      (state === 'selected' &&
-        this.guidedTourEnabled &&
-        recommendation?.id === poi.id);
+      (state === 'selected' && recommendation?.id === poi.id);
     this.recommendationBadge.hidden = !showRecommendationBadge;
 
     const nextContentKey = getPoiRenderContentKey(poi);

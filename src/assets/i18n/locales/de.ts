@@ -34,21 +34,12 @@ export const DE_OVERRIDES = buildLatinLocaleOverrides({
     live: 'Live',
     textMode: 'Zum Textmodus wechseln',
     tryImmersive: 'Immersiv erneut versuchen',
-    guidedTour: 'Geführte Tour',
-    guidedTourOn: 'Geführte Tour an',
-    guidedTourOff: 'Geführte Tour aus',
     audioOn: 'Audio: an',
     audioOff: 'Audio: aus',
     audioSubtitleAmbientLabel: 'Ambient-Audio',
-    audioSubtitlePoiLabel: 'Erzählung',
+    audioSubtitlePoiLabel: 'Untertitel',
     audioSubtitleDismissAmbient: 'Untertitel schließen',
-    audioSubtitleDismissPoi: 'Erzählung schließen',
-    narrationToggleLabelEnabled: 'Erzählung ein',
-    narrationToggleLabelDisabled: 'Erzählung aus',
-    narrationToggleDescriptionEnabled:
-      'Erzähl-Pop-ups und Untertitel erscheinen bei künftigen Exponatmomenten.',
-    narrationToggleDescriptionDisabled:
-      'Erzähl-Pop-ups und Untertitel bleiben verborgen, bis du sie einschaltest.',
+    audioSubtitleDismissPoi: 'Untertitel schließen',
     debugCoordinatesLabelEnabled: 'Debug-Koordinaten ein',
     debugCoordinatesLabelDisabled: 'Debug-Koordinaten aus',
     debugCoordinatesDescriptionEnabled:
