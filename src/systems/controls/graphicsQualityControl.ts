@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { GraphicsQualityLevel } from '../../scene/graphics/qualityManager';
 
 export interface GraphicsQualityControlPreset {
@@ -13,6 +14,7 @@ export interface GraphicsQualityControlOptions {
   setActiveLevel: (level: GraphicsQualityLevel) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
 }
 
 export interface GraphicsQualityControlHandle {
@@ -39,6 +41,7 @@ export function createGraphicsQualityControl({
   setActiveLevel,
   title = 'Graphics quality',
   description = 'Pick a preset that matches your device performance.',
+  selectedAnnouncementTemplate = '{label} preset selected.',
 }: GraphicsQualityControlOptions): GraphicsQualityControlHandle {
   if (!presets.length) {
     throw new Error('Graphics quality control requires at least one preset.');
@@ -94,7 +97,9 @@ export function createGraphicsQualityControl({
       }
     });
     updateLiveRegion(
-      `${presets.find((preset) => preset.id === active)?.label ?? active} preset selected.`
+      formatMessage(selectedAnnouncementTemplate, {
+        label: presets.find((preset) => preset.id === active)?.label ?? active,
+      })
     );
   };
 

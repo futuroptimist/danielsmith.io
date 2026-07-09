@@ -64,6 +64,7 @@ import {
   getModeAnnouncerStrings,
   getModeToggleStrings,
   getPoiOverlayChromeStrings,
+  getSettingsControlsStrings,
   getSiteStrings,
   getSoftwareRendererWarningStrings,
   getSelectableLocales,
@@ -1228,6 +1229,7 @@ export function initializeImmersiveScene(
   let poiOverlayStrings = getPoiOverlayChromeStrings(locale);
   let debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
   let debugCollidersStrings = getDebugCollidersStrings(locale);
+  let settingsControlsStrings = getSettingsControlsStrings(locale);
   let softwareRendererWarningStrings =
     getSoftwareRendererWarningStrings(locale);
   let lowFpsRecoveryStrings = getLowFpsRecoveryStrings(locale);
@@ -3612,7 +3614,10 @@ export function initializeImmersiveScene(
         ? ({ container: customizationContainer, title, description }) =>
             createAvatarVariantControl({
               container: customizationContainer,
-              options: AVATAR_VARIANTS,
+              options: AVATAR_VARIANTS.map((variant) => ({
+                ...variant,
+                ...settingsControlsStrings.avatarVariants.options[variant.id],
+              })),
               getActiveVariant: () =>
                 avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID,
               setActiveVariant: (variant) => {
@@ -3620,13 +3625,23 @@ export function initializeImmersiveScene(
               },
               title,
               description,
+              selectedAnnouncementTemplate:
+                settingsControlsStrings.avatarVariants
+                  .selectedAnnouncementTemplate,
+              swatchTitleTemplate:
+                settingsControlsStrings.avatarVariants.swatchTitleTemplate,
             })
         : undefined,
       createAccessoryControl: hasAccessoryControl
         ? ({ container: customizationContainer, title, description }) =>
             createAvatarAccessoryControl({
               container: customizationContainer,
-              options: avatarAccessorySuite!.definitions,
+              options: avatarAccessorySuite!.definitions.map((accessory) => ({
+                ...accessory,
+                ...settingsControlsStrings.avatarAccessories.options[
+                  accessory.id
+                ],
+              })),
               isAccessoryEnabled: (id) =>
                 avatarAccessoryManager?.isEnabled(id) ?? false,
               setAccessoryEnabled: (id, enabled) => {
@@ -3634,6 +3649,12 @@ export function initializeImmersiveScene(
               },
               title,
               description,
+              enabledAnnouncementTemplate:
+                settingsControlsStrings.avatarAccessories
+                  .enabledAnnouncementTemplate,
+              disabledAnnouncementTemplate:
+                settingsControlsStrings.avatarAccessories
+                  .disabledAnnouncementTemplate,
             })
         : undefined,
     });
@@ -3908,6 +3929,76 @@ export function initializeImmersiveScene(
   };
   updateHelpButtonLabel();
 
+  const refreshSettingsControlStrings = () => {
+    const updateOption = (
+      root: HTMLElement | null | undefined,
+      id: string,
+      selectors: { title: string; description: string },
+      copy: { label: string; description: string }
+    ) => {
+      if (!root) {
+        return;
+      }
+      const input = root.querySelector<HTMLInputElement>(
+        `input[value="${id}"]`
+      );
+      input?.setAttribute('aria-label', copy.label);
+      const option = input?.closest('label') ?? null;
+      option
+        ?.querySelector<HTMLElement>(selectors.title)
+        ?.replaceChildren(copy.label);
+      option
+        ?.querySelector<HTMLElement>(selectors.description)
+        ?.replaceChildren(copy.description);
+    };
+
+    if (graphicsQualityControl?.element) {
+      graphicsQualityControl.element.querySelector<HTMLElement>(
+        '.graphics-quality__title'
+      )!.textContent = settingsControlsStrings.graphicsQuality.title;
+      graphicsQualityControl.element.querySelector<HTMLElement>(
+        '.graphics-quality__description'
+      )!.textContent = settingsControlsStrings.graphicsQuality.description;
+      for (const [id, copy] of Object.entries(
+        settingsControlsStrings.graphicsQuality.presets
+      )) {
+        updateOption(
+          graphicsQualityControl.element,
+          id,
+          {
+            title: '.graphics-quality__option-title',
+            description: '.graphics-quality__option-description',
+          },
+          copy
+        );
+      }
+      graphicsQualityControl.refresh();
+    }
+
+    if (accessibilityControlHandle?.element) {
+      accessibilityControlHandle.element.querySelector<HTMLElement>(
+        '.accessibility-presets__title'
+      )!.textContent = settingsControlsStrings.accessibilityPresets.title;
+      accessibilityControlHandle.element.querySelector<HTMLElement>(
+        '.accessibility-presets__description'
+      )!.textContent = settingsControlsStrings.accessibilityPresets.description;
+      for (const [id, copy] of Object.entries(
+        settingsControlsStrings.accessibilityPresets.presets
+      )) {
+        updateOption(
+          accessibilityControlHandle.element,
+          id,
+          {
+            title: '.accessibility-presets__option-title',
+            description: '.accessibility-presets__option-description',
+          },
+          copy
+        );
+      }
+      accessibilityControlHandle.refresh();
+    }
+  };
+
   const applyLocaleUpdate = (nextLocale: Locale) => {
     if (locale === nextLocale) {
       return;
@@ -3935,6 +4026,7 @@ export function initializeImmersiveScene(
     audioSubtitleStrings = getAudioSubtitleStrings(locale);
     debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
     debugCollidersStrings = getDebugCollidersStrings(locale);
+    settingsControlsStrings = getSettingsControlsStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
     softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
@@ -3995,6 +4087,7 @@ export function initializeImmersiveScene(
     softwareRendererWarning?.setStrings(softwareRendererWarningStrings);
     helpModal.setContent(helpModalStrings);
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
+    refreshSettingsControlStrings();
     localeToggleControl?.setStrings(localeToggleStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
     audioSubtitles?.setLabels(audioSubtitleStrings);
@@ -5394,6 +5487,11 @@ export function initializeImmersiveScene(
 
   motionBlurControl = createMotionBlurControl({
     container: hudSettingsStack,
+    label: settingsControlsStrings.motionBlur.label,
+    description: settingsControlsStrings.motionBlur.description,
+    groupLabel: settingsControlsStrings.motionBlur.groupLabel,
+    hudLabel: settingsControlsStrings.motionBlur.hudLabel,
+    valueStrings: settingsControlsStrings.motionBlur.values,
     getIntensity: () =>
       accessibilityPresetManager?.getBaseMotionBlurIntensity() ??
       motionBlurController?.getIntensity() ??
@@ -5493,11 +5591,14 @@ export function initializeImmersiveScene(
 
   accessibilityControlHandle = createAccessibilityPresetControl({
     container: hudSettingsStack,
-    options: ACCESSIBILITY_PRESETS.map(({ id, label, description }) => ({
+    options: ACCESSIBILITY_PRESETS.map(({ id }) => ({
       id,
-      label,
-      description,
+      ...settingsControlsStrings.accessibilityPresets.presets[id],
     })),
+    title: settingsControlsStrings.accessibilityPresets.title,
+    description: settingsControlsStrings.accessibilityPresets.description,
+    selectedAnnouncementTemplate:
+      settingsControlsStrings.accessibilityPresets.selectedAnnouncementTemplate,
     getActivePreset: () =>
       accessibilityPresetManager?.getPreset() ?? ACCESSIBILITY_PRESETS[0].id,
     setActivePreset: (preset) => {
@@ -5516,7 +5617,14 @@ export function initializeImmersiveScene(
 
   graphicsQualityControl = createGraphicsQualityControl({
     container: hudSettingsStack,
-    presets: GRAPHICS_QUALITY_PRESETS,
+    presets: GRAPHICS_QUALITY_PRESETS.map((preset) => ({
+      ...preset,
+      ...settingsControlsStrings.graphicsQuality.presets[preset.id],
+    })),
+    title: settingsControlsStrings.graphicsQuality.title,
+    description: settingsControlsStrings.graphicsQuality.description,
+    selectedAnnouncementTemplate:
+      settingsControlsStrings.graphicsQuality.selectedAnnouncementTemplate,
     getActiveLevel: () =>
       graphicsQualityManager?.getLevel() ?? GRAPHICS_QUALITY_PRESETS[0].id,
     setActiveLevel: (level) => {

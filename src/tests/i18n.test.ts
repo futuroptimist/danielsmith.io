@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -18,6 +20,7 @@ import {
   getPoiCopy,
   getSelectableLocales,
   getSiteStrings,
+  getSettingsControlsStrings,
   getSoftwareRendererWarningStrings,
   resolveInitialLocale,
   resolveLocale,
@@ -204,6 +207,106 @@ describe('i18n utilities', () => {
     expect(getLocaleScript('de')).toBe('latin');
     expect(getLocaleScript('hu')).toBe('latin');
     expect(getLocaleScript(undefined)).toBe('latin');
+  });
+
+  it('localizes Settings controls for every locale and regresses zh-Hans English literals', () => {
+    const forbiddenZhHans = new Set([
+      'Accessibility Presets',
+      'Standard',
+      'Calm',
+      'High contrast',
+      'Photosensitive safe',
+      'Graphics Quality',
+      'Customization',
+      'Accessories',
+    ]);
+
+    for (const locale of AVAILABLE_LOCALES) {
+      const settings = getSettingsControlsStrings(locale);
+      expect(settings.graphicsQuality.title.trim()).not.toBe('');
+      expect(settings.accessibilityPresets.title.trim()).not.toBe('');
+      expect(settings.motionBlur.label.trim()).not.toBe('');
+      expect(settings.avatarVariants.options.portfolio.label.trim()).not.toBe(
+        ''
+      );
+      expect(
+        settings.avatarAccessories.options['wrist-console'].label.trim()
+      ).not.toBe('');
+    }
+
+    const zhHans = getLocaleStrings('zh-Hans');
+    const zhHansLabels = [
+      zhHans.hud.settingsControls.accessibilityPresets.title,
+      zhHans.hud.settingsControls.accessibilityPresets.presets.standard.label,
+      zhHans.hud.settingsControls.accessibilityPresets.presets.calm.label,
+      zhHans.hud.settingsControls.accessibilityPresets.presets['high-contrast']
+        .label,
+      zhHans.hud.settingsControls.accessibilityPresets.presets.photosensitive
+        .label,
+      zhHans.hud.settingsControls.graphicsQuality.title,
+      zhHans.hud.customization.heading,
+      zhHans.hud.customization.accessories.title,
+    ];
+    for (const label of zhHansLabels) {
+      expect(forbiddenZhHans.has(label), `${label} should be localized`).toBe(
+        false
+      );
+    }
+  });
+
+  it('pseudo-localizes Settings control labels while preserving key glyphs elsewhere', () => {
+    const pseudo = getSettingsControlsStrings('en-x-pseudo');
+    expect(pseudo.graphicsQuality.title).toMatch(/^⟦.*⟧$/);
+    expect(pseudo.accessibilityPresets.presets.standard.label).toMatch(
+      /^⟦.*⟧$/
+    );
+    expect(pseudo.avatarAccessories.options['holo-drone'].description).toMatch(
+      /^⟦.*⟧$/
+    );
+    expect(
+      getControlOverlayStrings('en-x-pseudo').items.keyboardMove.keys
+    ).toBe(getControlOverlayStrings('en').items.keyboardMove.keys);
+  });
+
+  it('guards future HUD panels against obvious hardcoded English UI strings', () => {
+    const guardedFiles = [
+      'src/systems/controls/accessibilityPresetControl.ts',
+      'src/systems/controls/avatarAccessoryControl.ts',
+      'src/systems/controls/avatarVariantControl.ts',
+      'src/systems/controls/graphicsQualityControl.ts',
+      'src/systems/controls/motionBlurControl.ts',
+      'src/ui/hud/customizationSection.ts',
+      'src/ui/hud/controlOverlay.ts',
+      'src/ui/hud/helpModal.ts',
+      'src/ui/hud/responsiveControlOverlay.ts',
+      'src/ui/accessibility/modeAnnouncer.ts',
+      'src/ui/accessibility/hudFocusAnnouncer.ts',
+      'src/ui/softwareRendererWarning.ts',
+      'src/scene/poi/tooltipOverlay.ts',
+      'src/scene/poi/worldTooltip.ts',
+    ];
+    const forbiddenPatterns = [
+      /textContent\s*=\s*['"][A-Za-z][^'"]{2,}['"]/,
+      /setAttribute\(\s*['"](?:aria-label|title)['"]\s*,\s*['"][A-Za-z][^'"]{2,}['"]\s*\)/,
+    ];
+
+    for (const file of guardedFiles) {
+      const source = readFileSync(file, 'utf8')
+        // Allowlist: production controls keep English defaults only for direct unit-test fixtures;
+        // immersiveScene passes localized copy in normal app flows.
+        .replace(/= '([^']+)'/g, '= __ALLOWED_TEST_DEFAULT__')
+        // Allowlist: close icons and separators are not prose.
+        .replace(
+          /textContent = ['"][×·]['"]/g,
+          'textContent = __ALLOWED_GLYPH__'
+        );
+      for (const pattern of forbiddenPatterns) {
+        expect(
+          source.match(pattern),
+          `${file} contains a hardcoded UI string`
+        ).toBeNull();
+      }
+    }
   });
 
   it('keeps Settings controls rows in sync with the canonical help rows for every locale', () => {

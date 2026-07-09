@@ -195,6 +195,54 @@ export interface LocaleOptionStrings {
   direction: LocaleDirection;
 }
 
+export interface LocalizedOptionStrings {
+  label: string;
+  description: string;
+}
+
+export interface SettingsControlsStrings {
+  graphicsQuality: {
+    title: string;
+    description: string;
+    selectedAnnouncementTemplate: string;
+    presets: Record<
+      'cinematic' | 'balanced' | 'performance',
+      LocalizedOptionStrings
+    >;
+  };
+  accessibilityPresets: {
+    title: string;
+    description: string;
+    selectedAnnouncementTemplate: string;
+    presets: Record<
+      'standard' | 'calm' | 'high-contrast' | 'photosensitive',
+      LocalizedOptionStrings
+    >;
+  };
+  motionBlur: {
+    label: string;
+    description: string;
+    groupLabel: string;
+    hudLabel: string;
+    values: {
+      off: string;
+      lowTemplate: string;
+      mediumTemplate: string;
+      highTemplate: string;
+    };
+  };
+  avatarVariants: {
+    selectedAnnouncementTemplate: string;
+    swatchTitleTemplate: string;
+    options: Record<'portfolio' | 'casual' | 'formal', LocalizedOptionStrings>;
+  };
+  avatarAccessories: {
+    enabledAnnouncementTemplate: string;
+    disabledAnnouncementTemplate: string;
+    options: Record<'wrist-console' | 'holo-drone', LocalizedOptionStrings>;
+  };
+}
+
 export interface DebugCoordinatesStrings {
   labelEnabled: string;
   labelDisabled: string;
@@ -388,6 +436,7 @@ export interface LocaleStrings {
     localeToggle: LocaleToggleStrings;
     debugCoordinates: DebugCoordinatesStrings;
     debugColliders: DebugCollidersStrings;
+    settingsControls: SettingsControlsStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     lowFpsRecovery: LowFpsRecoveryStrings;
     helpModal: HelpModalStrings;

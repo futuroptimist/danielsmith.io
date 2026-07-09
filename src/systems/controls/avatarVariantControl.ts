@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { PortfolioMannequinPalette } from '../../scene/avatar/mannequin';
 import type { AvatarVariantId } from '../../scene/avatar/variants';
 
@@ -15,6 +16,8 @@ export interface AvatarVariantControlOptions {
   setActiveVariant: (variant: AvatarVariantId) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
+  swatchTitleTemplate?: string;
 }
 
 export interface AvatarVariantControlHandle {
@@ -41,6 +44,8 @@ export function createAvatarVariantControl({
   setActiveVariant,
   title = 'Avatar style',
   description = 'Switch outfits for the mannequin explorer.',
+  selectedAnnouncementTemplate = '{label} avatar selected.',
+  swatchTitleTemplate = '{label} {role}',
 }: AvatarVariantControlOptions): AvatarVariantControlHandle {
   if (!options.length) {
     throw new Error('Avatar variant control requires at least one option.');
@@ -96,7 +101,9 @@ export function createAvatarVariantControl({
     });
     const activeLabel =
       options.find((option) => option.id === active)?.label ?? active;
-    updateLiveRegion(`${activeLabel} avatar selected.`);
+    updateLiveRegion(
+      formatMessage(selectedAnnouncementTemplate, { label: activeLabel })
+    );
   };
 
   const setPending = (value: boolean) => {
@@ -176,7 +183,10 @@ export function createAvatarVariantControl({
       const swatch = document.createElement('span');
       swatch.className = `avatar-variants__swatch avatar-variants__swatch--${role}`;
       swatch.style.setProperty('--avatar-variant-color', color);
-      swatch.title = `${option.label} ${role}`;
+      swatch.title = formatMessage(swatchTitleTemplate, {
+        label: option.label,
+        role,
+      });
       return swatch;
     };
 
