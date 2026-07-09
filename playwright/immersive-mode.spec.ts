@@ -153,4 +153,104 @@ test.describe('immersive experience', () => {
     // After closing help modal, overlay remains hidden until the tour is enabled.
     await expect(poiOverlay).toHaveAttribute('data-state', 'hidden');
   });
+  test('cycles POI details while Controls is open', async ({ page }) => {
+    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+
+    const controlsPopover = page.locator('[data-role="controls-popover"]');
+    const poiOverlay = page.locator('.poi-tooltip-overlay');
+    const poiTitle = page.locator('.poi-tooltip-overlay__title');
+
+    await page.keyboard.press('c');
+    await expect(controlsPopover).toBeVisible();
+
+    await page.keyboard.press('e');
+    await expect(controlsPopover).toBeVisible();
+    await expect(poiOverlay).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-hud-controls-open',
+      ''
+    );
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-poi-detail-visible',
+      ''
+    );
+    const nextTitle = await poiTitle.textContent();
+
+    await page.keyboard.press('q');
+    await expect(controlsPopover).toBeVisible();
+    await expect(poiOverlay).toBeVisible();
+    await expect(poiTitle).not.toHaveText(nextTitle ?? '');
+  });
+
+  test('fits Controls and POI details together on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 740 });
+    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await page.waitForFunction(
+      () => document.documentElement.dataset.hudLayout === 'mobile',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+
+    const controlsPopover = page.locator('[data-role="controls-popover"]');
+    const poiOverlay = page.locator('.poi-tooltip-overlay');
+
+    await page.keyboard.press('c');
+    for (let index = 0; index < 4; index += 1) {
+      await page.keyboard.press('e');
+      if (await poiOverlay.isVisible()) {
+        break;
+      }
+    }
+
+    await expect(controlsPopover).toBeVisible();
+    await expect(poiOverlay).toBeVisible();
+
+    const boxes = await page.evaluate(() => {
+      const controls = document.querySelector<HTMLElement>(
+        '[data-role="controls-popover"]'
+      );
+      const poi = document.querySelector<HTMLElement>('.poi-tooltip-overlay');
+      if (!controls || !poi) {
+        return null;
+      }
+      const controlsBox = controls.getBoundingClientRect();
+      const poiBox = poi.getBoundingClientRect();
+      return {
+        viewportHeight: window.innerHeight,
+        controls: {
+          top: controlsBox.top,
+          bottom: controlsBox.bottom,
+          height: controlsBox.height,
+        },
+        poi: {
+          top: poiBox.top,
+          bottom: poiBox.bottom,
+          height: poiBox.height,
+        },
+      };
+    });
+
+    if (!boxes) {
+      throw new Error('Expected Controls and POI overlays to be mounted.');
+    }
+    expect(boxes.controls.bottom).toBeLessThanOrEqual(boxes.poi.top + 1);
+    expect(boxes.controls.height).toBeLessThanOrEqual(
+      boxes.viewportHeight * 0.5
+    );
+    expect(boxes.poi.height).toBeLessThanOrEqual(boxes.viewportHeight * 0.5);
+    expect(boxes.controls.top).toBeGreaterThan(0);
+    expect(boxes.poi.bottom).toBeLessThan(boxes.viewportHeight);
+    expect(boxes.controls.top).toBeGreaterThan(4);
+    expect(boxes.viewportHeight - boxes.poi.bottom).toBeGreaterThan(4);
+  });
 });

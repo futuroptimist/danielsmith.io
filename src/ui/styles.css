@@ -1677,6 +1677,33 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   margin-block-start: -0.2rem;
 }
 
+:root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible] {
+  --hud-combined-panel-gutter: max(0.75rem, env(safe-area-inset-left, 0px));
+  --hud-combined-panel-height: min(42dvh, calc((100dvh - 5.5rem) / 2));
+}
+
+:root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
+  .overlay {
+  left: var(--hud-combined-panel-gutter);
+  right: var(--hud-combined-panel-gutter);
+  max-width: none;
+}
+
+:root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
+  .overlay__popover {
+  width: auto;
+  max-height: var(--hud-combined-panel-height);
+}
+
+:root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
+  .poi-tooltip-overlay {
+  top: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  left: var(--hud-combined-panel-gutter);
+  right: var(--hud-combined-panel-gutter);
+  max-height: var(--hud-combined-panel-height);
+}
+
 :root[data-accessibility-motion='reduced'] .audio-hud,
 :root[data-accessibility-motion='reduced'] .motion-blur-control,
 :root[data-accessibility-motion='reduced'] .graphics-quality,
