@@ -442,7 +442,6 @@ export const AR_OVERRIDES: LocaleOverrides = {
               description: 'استخدم زر وضع النص أو اضغط T في أي وقت.',
             },
             {
-              id: 'motion-blur',
               label: 'شريط ضباب الحركة',
               description: 'عدّل شدة الضباب من إعدادات الحركة.',
             },

@@ -146,7 +146,6 @@ export interface ModeAnnouncerStrings {
 }
 
 export interface HelpModalItemStrings {
-  id?: string;
   label: string;
   description: string;
 }

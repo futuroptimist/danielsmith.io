@@ -15,22 +15,21 @@ export interface AvatarAccessoryControlOptions {
     id: AvatarAccessoryId,
     enabled: boolean
   ) => void | Promise<void>;
-  readonly title?: string;
-  readonly description?: string;
-  readonly enabledAnnouncementTemplate?: string;
-  readonly disabledAnnouncementTemplate?: string;
+  readonly strings: AvatarAccessoryControlStrings;
+}
+
+export interface AvatarAccessoryControlStrings {
+  title: string;
+  description: string;
+  options: ReadonlyArray<AvatarAccessoryControlOption>;
+  enabledAnnouncementTemplate: string;
+  disabledAnnouncementTemplate: string;
 }
 
 export interface AvatarAccessoryControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
-  setStrings(strings: {
-    title: string;
-    description: string;
-    options: ReadonlyArray<AvatarAccessoryControlOption>;
-    enabledAnnouncementTemplate: string;
-    disabledAnnouncementTemplate: string;
-  }): void;
+  setStrings(strings: AvatarAccessoryControlStrings): void;
   dispose(): void;
 }
 
@@ -50,10 +49,7 @@ export function createAvatarAccessoryControl({
   options,
   isAccessoryEnabled,
   setAccessoryEnabled,
-  title = 'Accessories',
-  description = 'Toggle companion gear for the avatar.',
-  enabledAnnouncementTemplate = '{label} enabled.',
-  disabledAnnouncementTemplate = '{label} disabled.',
+  strings,
 }: AvatarAccessoryControlOptions): AvatarAccessoryControlHandle {
   if (!options.length) {
     throw new Error('Avatar accessory control requires at least one option.');
@@ -68,11 +64,11 @@ export function createAvatarAccessoryControl({
   const heading = document.createElement('h2');
   heading.className = 'avatar-accessories__title';
   heading.id = `${controlId}-title`;
-  heading.textContent = title;
+  heading.textContent = strings.title;
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'avatar-accessories__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = strings.description;
 
   const list = document.createElement('div');
   list.className = 'avatar-accessories__options';
@@ -88,7 +84,9 @@ export function createAvatarAccessoryControl({
   wrapper.append(list, liveRegion);
   container.appendChild(wrapper);
 
-  let localizedOptions = [...options];
+  let enabledAnnouncementTemplate = strings.enabledAnnouncementTemplate;
+  let disabledAnnouncementTemplate = strings.disabledAnnouncementTemplate;
+  let localizedOptions = [...strings.options];
   const checkboxes: HTMLInputElement[] = [];
   const optionLabels = new Map<AvatarAccessoryId, HTMLElement>();
 

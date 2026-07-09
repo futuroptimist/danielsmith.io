@@ -18,5 +18,6 @@ describe('i18n hardcoded UI string guard', () => {
     expect(result.stderr).toContain('setAttribute literal');
     expect(result.stderr).toContain('dataset.hudAnnounce literal');
     expect(result.stderr).toContain('localized property literal');
+    expect(result.stderr).toContain('localized default initializer');
   });
 });

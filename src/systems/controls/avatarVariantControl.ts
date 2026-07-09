@@ -14,9 +14,7 @@ export interface AvatarVariantControlOptions {
   options: ReadonlyArray<AvatarVariantControlOption>;
   getActiveVariant: () => AvatarVariantId;
   setActiveVariant: (variant: AvatarVariantId) => void | Promise<void>;
-  title?: string;
-  description?: string;
-  selectedAnnouncementTemplate?: string;
+  strings: AvatarVariantControlStrings;
 }
 
 export type AvatarVariantControlStringOption = Pick<
@@ -24,15 +22,17 @@ export type AvatarVariantControlStringOption = Pick<
   'id' | 'label' | 'description'
 >;
 
+export interface AvatarVariantControlStrings {
+  title: string;
+  description: string;
+  options: ReadonlyArray<AvatarVariantControlStringOption>;
+  selectedAnnouncementTemplate: string;
+}
+
 export interface AvatarVariantControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
-  setStrings(strings: {
-    title: string;
-    description: string;
-    options: ReadonlyArray<AvatarVariantControlStringOption>;
-    selectedAnnouncementTemplate: string;
-  }): void;
+  setStrings(strings: AvatarVariantControlStrings): void;
   dispose(): void;
 }
 
@@ -52,9 +52,7 @@ export function createAvatarVariantControl({
   options,
   getActiveVariant,
   setActiveVariant,
-  title = 'Avatar style',
-  selectedAnnouncementTemplate = '{label} avatar selected.',
-  description = 'Switch outfits for the mannequin explorer.',
+  strings,
 }: AvatarVariantControlOptions): AvatarVariantControlHandle {
   if (!options.length) {
     throw new Error('Avatar variant control requires at least one option.');
@@ -69,11 +67,11 @@ export function createAvatarVariantControl({
   const heading = document.createElement('h2');
   heading.className = 'avatar-variants__title';
   heading.id = `${controlId}-title`;
-  heading.textContent = title;
+  heading.textContent = strings.title;
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'avatar-variants__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = strings.description;
 
   const optionsList = document.createElement('div');
   optionsList.className = 'avatar-variants__options';
@@ -91,7 +89,10 @@ export function createAvatarVariantControl({
   const paletteById = new Map(
     options.map((option) => [option.id, option.palette])
   );
-  let localizedOptions: AvatarVariantControlStringOption[] = [...options];
+  let selectedAnnouncementTemplate = strings.selectedAnnouncementTemplate;
+  let localizedOptions: AvatarVariantControlStringOption[] = [
+    ...strings.options,
+  ];
   const inputs: HTMLInputElement[] = [];
   const optionLabels = new Map<string, HTMLElement>();
   const optionSwatches = new Map<string, HTMLElement[]>();

@@ -36,6 +36,17 @@ const OPTIONS = [
   },
 ] as const;
 
+const STRINGS = {
+  title: 'Avatar style',
+  description: 'Switch outfits for the mannequin explorer.',
+  options: OPTIONS.map(({ id, label, description }) => ({
+    id,
+    label,
+    description,
+  })),
+  selectedAnnouncementTemplate: '{label} avatar selected.',
+} as const;
+
 describe('createAvatarVariantControl', () => {
   it('renders options, exposes swatches, and manages async selection', async () => {
     const container = document.createElement('div');
@@ -47,6 +58,7 @@ describe('createAvatarVariantControl', () => {
     const handle = createAvatarVariantControl({
       container,
       options: OPTIONS,
+      strings: STRINGS,
       getActiveVariant: () => active,
       setActiveVariant: (next) => {
         active = next;
@@ -102,6 +114,7 @@ describe('createAvatarVariantControl', () => {
     const handle = createAvatarVariantControl({
       container,
       options: OPTIONS,
+      strings: STRINGS,
       getActiveVariant: () => 'portfolio',
       setActiveVariant: () => undefined,
     });
@@ -133,6 +146,7 @@ describe('createAvatarVariantControl', () => {
     createAvatarVariantControl({
       container,
       options: OPTIONS,
+      strings: STRINGS,
       getActiveVariant: () => active,
       setActiveVariant: (variant) => {
         active = variant;
@@ -165,6 +179,7 @@ describe('createAvatarVariantControl', () => {
       createAvatarVariantControl({
         container,
         options: [],
+        strings: { ...STRINGS, options: [] },
         getActiveVariant: () => 'portfolio',
         setActiveVariant: () => undefined,
       })

@@ -12,20 +12,20 @@ export interface GraphicsQualityControlOptions {
   presets: ReadonlyArray<GraphicsQualityControlPreset>;
   getActiveLevel: () => GraphicsQualityLevel;
   setActiveLevel: (level: GraphicsQualityLevel) => void | Promise<void>;
-  title?: string;
-  description?: string;
-  selectedAnnouncementTemplate?: string;
+  strings: GraphicsQualityControlStrings;
+}
+
+export interface GraphicsQualityControlStrings {
+  title: string;
+  description: string;
+  options: ReadonlyArray<GraphicsQualityControlPreset>;
+  selectedAnnouncementTemplate: string;
 }
 
 export interface GraphicsQualityControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
-  setStrings(strings: {
-    title: string;
-    description: string;
-    options: ReadonlyArray<GraphicsQualityControlPreset>;
-    selectedAnnouncementTemplate: string;
-  }): void;
+  setStrings(strings: GraphicsQualityControlStrings): void;
   dispose(): void;
 }
 
@@ -45,9 +45,7 @@ export function createGraphicsQualityControl({
   presets,
   getActiveLevel,
   setActiveLevel,
-  title = 'Graphics quality',
-  selectedAnnouncementTemplate = '{label} preset selected.',
-  description = 'Pick a preset that matches your device performance.',
+  strings,
 }: GraphicsQualityControlOptions): GraphicsQualityControlHandle {
   if (!presets.length) {
     throw new Error('Graphics quality control requires at least one preset.');
@@ -61,11 +59,11 @@ export function createGraphicsQualityControl({
 
   const heading = document.createElement('h2');
   heading.className = 'graphics-quality__title';
-  heading.textContent = title;
+  heading.textContent = strings.title;
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'graphics-quality__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = strings.description;
 
   const optionList = document.createElement('div');
   optionList.className = 'graphics-quality__options';
@@ -82,7 +80,8 @@ export function createGraphicsQualityControl({
   wrapper.append(heading, descriptionParagraph, optionList, liveRegion);
   container.appendChild(wrapper);
 
-  let localizedOptions = [...presets];
+  let selectedAnnouncementTemplate = strings.selectedAnnouncementTemplate;
+  let localizedOptions = [...strings.options];
   const inputs: HTMLInputElement[] = [];
   const labels = new Map<string, HTMLElement>();
 

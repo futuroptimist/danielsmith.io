@@ -448,7 +448,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
               description: '随时使用屏幕上的文本模式按钮或按 T。',
             },
             {
-              id: 'motion-blur',
               label: '运动模糊滑块',
               description: '在设置 → 运动模糊中调整拖影强度。',
             },

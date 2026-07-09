@@ -12,20 +12,20 @@ export interface AccessibilityPresetControlOptions {
   options: readonly AccessibilityPresetOption[];
   getActivePreset: () => AccessibilityPresetId;
   setActivePreset: (preset: AccessibilityPresetId) => void | Promise<void>;
-  title?: string;
-  description?: string;
-  selectedAnnouncementTemplate?: string;
+  strings: AccessibilityPresetControlStrings;
+}
+
+export interface AccessibilityPresetControlStrings {
+  title: string;
+  description: string;
+  options: ReadonlyArray<AccessibilityPresetOption>;
+  selectedAnnouncementTemplate: string;
 }
 
 export interface AccessibilityPresetControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
-  setStrings(strings: {
-    title: string;
-    description: string;
-    options: ReadonlyArray<AccessibilityPresetOption>;
-    selectedAnnouncementTemplate: string;
-  }): void;
+  setStrings(strings: AccessibilityPresetControlStrings): void;
   dispose(): void;
 }
 
@@ -45,9 +45,7 @@ export function createAccessibilityPresetControl({
   options,
   getActivePreset,
   setActivePreset,
-  title = 'Accessibility presets',
-  selectedAnnouncementTemplate = '{label} preset selected.',
-  description = 'Tune motion assists and HUD contrast.',
+  strings,
 }: AccessibilityPresetControlOptions): AccessibilityPresetControlHandle {
   if (!options.length) {
     throw new Error(
@@ -64,11 +62,11 @@ export function createAccessibilityPresetControl({
   const heading = document.createElement('h2');
   heading.className = 'accessibility-presets__title';
   heading.id = `${controlId}-title`;
-  heading.textContent = title;
+  heading.textContent = strings.title;
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'accessibility-presets__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = strings.description;
 
   const list = document.createElement('div');
   list.className = 'accessibility-presets__options';
@@ -83,7 +81,8 @@ export function createAccessibilityPresetControl({
   wrapper.append(heading, descriptionParagraph, list, liveRegion);
   container.appendChild(wrapper);
 
-  let localizedOptions = [...options];
+  let selectedAnnouncementTemplate = strings.selectedAnnouncementTemplate;
+  let localizedOptions = [...strings.options];
   const inputs: HTMLInputElement[] = [];
   const optionLabels = new Map<string, HTMLElement>();
 

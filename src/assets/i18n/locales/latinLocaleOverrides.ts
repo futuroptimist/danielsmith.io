@@ -701,7 +701,6 @@ function buildLatinHelpSections(
         { label: 'Low performance', description: copy.lowPerformance },
         { label: 'Manual toggle', description: copy.manualToggle },
         {
-          id: 'motion-blur',
           label: 'Motion blur slider',
           description: copy.motionBlur,
         },

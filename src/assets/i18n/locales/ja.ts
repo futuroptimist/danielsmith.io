@@ -458,7 +458,6 @@ export const JA_OVERRIDES: LocaleOverrides = {
                 'テキストモードボタンや T キーでいつでも切り替え可能です。',
             },
             {
-              id: 'motion-blur',
               label: 'モーションブラー',
               description: '設定メニューのモーションブラーで軌跡を調整します。',
             },

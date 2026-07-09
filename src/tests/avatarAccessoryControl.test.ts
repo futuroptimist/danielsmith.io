@@ -15,6 +15,13 @@ describe('createAvatarAccessoryControl', () => {
       description: 'Orbiting scout drone with ambient glow.',
     },
   ];
+  const strings = {
+    title: 'Accessories',
+    description: 'Toggle companion gear for the avatar.',
+    options: OPTIONS,
+    enabledAnnouncementTemplate: '{label} enabled.',
+    disabledAnnouncementTemplate: '{label} disabled.',
+  };
 
   it('renders checkboxes and manages async toggles', async () => {
     const container = document.createElement('div');
@@ -26,6 +33,7 @@ describe('createAvatarAccessoryControl', () => {
     const handle = createAvatarAccessoryControl({
       container,
       options: OPTIONS,
+      strings,
       isAccessoryEnabled: (id) => enabled.get(id) ?? false,
       setAccessoryEnabled: () =>
         new Promise<void>((resolve) => {
@@ -71,6 +79,7 @@ describe('createAvatarAccessoryControl', () => {
     createAvatarAccessoryControl({
       container,
       options: OPTIONS,
+      strings,
       isAccessoryEnabled: () => false,
       setAccessoryEnabled: () => {
         throw new Error('nope');
@@ -96,6 +105,7 @@ describe('createAvatarAccessoryControl', () => {
       createAvatarAccessoryControl({
         container,
         options: [],
+        strings: { ...strings, options: [] },
         isAccessoryEnabled: () => false,
         setAccessoryEnabled: () => undefined,
       })
@@ -109,6 +119,7 @@ describe('createAvatarAccessoryControl', () => {
     const handle = createAvatarAccessoryControl({
       container,
       options: OPTIONS,
+      strings,
       isAccessoryEnabled: () => false,
       setAccessoryEnabled: () => undefined,
     });

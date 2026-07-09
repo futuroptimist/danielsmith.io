@@ -32,6 +32,7 @@ const allowlist = [
 ];
 
 const propertyNames = [
+  'title',
   'label',
   'description',
   'heading',
@@ -53,6 +54,13 @@ const patterns = [
     name: 'localized property literal',
     regex: new RegExp(
       `\\b(?:${propertyNames.join('|')})\\s*:\\s*(['\"])([A-Za-z][^'\"]*)\\1`,
+      'g'
+    ),
+  },
+  {
+    name: 'localized default initializer',
+    regex: new RegExp(
+      `\\b(?:${propertyNames.join('|')})\\s*=\\s*(['\"])([A-Za-z][^'\"]*)\\1`,
       'g'
     ),
   },

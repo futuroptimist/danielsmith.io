@@ -3627,15 +3627,21 @@ export function initializeImmersiveScene(
                 palette,
                 ...hudCustomizationStrings.variants.options[id],
               })),
-              selectedAnnouncementTemplate:
-                hudCustomizationStrings.variants.selectedAnnouncementTemplate,
+              strings: {
+                title,
+                description,
+                options: AVATAR_VARIANTS.map(({ id }) => ({
+                  id,
+                  ...hudCustomizationStrings.variants.options[id],
+                })),
+                selectedAnnouncementTemplate:
+                  hudCustomizationStrings.variants.selectedAnnouncementTemplate,
+              },
               getActiveVariant: () =>
                 avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID,
               setActiveVariant: (variant) => {
                 avatarVariantManager?.setVariant(variant);
               },
-              title,
-              description,
             })
         : undefined,
       createAccessoryControl: hasAccessoryControl
@@ -3646,18 +3652,25 @@ export function initializeImmersiveScene(
                 id,
                 ...hudCustomizationStrings.accessories.options[id],
               })),
-              enabledAnnouncementTemplate:
-                hudCustomizationStrings.accessories.enabledAnnouncementTemplate,
-              disabledAnnouncementTemplate:
-                hudCustomizationStrings.accessories
-                  .disabledAnnouncementTemplate,
+              strings: {
+                title,
+                description,
+                options: avatarAccessorySuite!.definitions.map(({ id }) => ({
+                  id,
+                  ...hudCustomizationStrings.accessories.options[id],
+                })),
+                enabledAnnouncementTemplate:
+                  hudCustomizationStrings.accessories
+                    .enabledAnnouncementTemplate,
+                disabledAnnouncementTemplate:
+                  hudCustomizationStrings.accessories
+                    .disabledAnnouncementTemplate,
+              },
               isAccessoryEnabled: (id) =>
                 avatarAccessoryManager?.isEnabled(id) ?? false,
               setAccessoryEnabled: (id, enabled) => {
                 avatarAccessoryManager?.setEnabled(id, enabled);
               },
-              title,
-              description,
             })
         : undefined,
     });
@@ -5542,10 +5555,16 @@ export function initializeImmersiveScene(
       id,
       ...accessibilityPresetStrings.options[id],
     })),
-    title: accessibilityPresetStrings.title,
-    description: accessibilityPresetStrings.description,
-    selectedAnnouncementTemplate:
-      accessibilityPresetStrings.selectedAnnouncementTemplate,
+    strings: {
+      title: accessibilityPresetStrings.title,
+      description: accessibilityPresetStrings.description,
+      options: ACCESSIBILITY_PRESETS.map(({ id }) => ({
+        id,
+        ...accessibilityPresetStrings.options[id],
+      })),
+      selectedAnnouncementTemplate:
+        accessibilityPresetStrings.selectedAnnouncementTemplate,
+    },
     getActivePreset: () =>
       accessibilityPresetManager?.getPreset() ?? ACCESSIBILITY_PRESETS[0].id,
     setActivePreset: (preset) => {
@@ -5568,10 +5587,16 @@ export function initializeImmersiveScene(
       id,
       ...graphicsQualityStrings.options[id],
     })),
-    title: graphicsQualityStrings.title,
-    description: graphicsQualityStrings.description,
-    selectedAnnouncementTemplate:
-      graphicsQualityStrings.selectedAnnouncementTemplate,
+    strings: {
+      title: graphicsQualityStrings.title,
+      description: graphicsQualityStrings.description,
+      options: GRAPHICS_QUALITY_PRESETS.map(({ id }) => ({
+        id,
+        ...graphicsQualityStrings.options[id],
+      })),
+      selectedAnnouncementTemplate:
+        graphicsQualityStrings.selectedAnnouncementTemplate,
+    },
     getActiveLevel: () =>
       graphicsQualityManager?.getLevel() ?? GRAPHICS_QUALITY_PRESETS[0].id,
     setActiveLevel: (level) => {
