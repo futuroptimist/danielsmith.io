@@ -106,9 +106,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/avatar/mannequin.ts',
       'src/scene/avatar/accessories.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     reason:
-      'Overworld mannequin arm and floor-clearance polish reviewed; the tabletop still uses its dedicated live miniature avatar instead of cloning this mesh.',
+      'Avatar accessory display labels moved to i18n only; overworld player geometry remains unchanged.',
   },
   {
     id: 'poi:markers-labels',
@@ -201,9 +201,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:avatar:variants',
     kind: 'excluded',
     sourceFiles: ['src/scene/avatar/variants.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Avatar variant display labels moved to i18n only; palettes and miniature geometry remain unchanged.',
   },
   {
     id: 'audit:src:scene:level:backyardCollisionPolicies',

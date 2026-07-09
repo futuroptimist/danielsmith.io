@@ -83,11 +83,11 @@
       "id": "audit:src:scene:avatar:variants",
       "sourceFiles": ["src/scene/avatar/variants.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "83fc6f50468393806df0e2b38f5c0d54ff4ce4d4ab83b854f26ebec0541b213a",
+      "syncRevision": 2,
+      "syncNote": "Avatar variant display labels moved to i18n only; palettes and miniature geometry remain unchanged.",
+      "sourceFingerprint": "cfda01227259342c62755c7b4d3f8b04b3729f1cc1acc63a0bb8f9eae6f454f6",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "14bcd80a8cbf6503ae662133a518c3c3159ce5cd9421e9b373dfc01eb783d33d"
+      "metadataFingerprint": "8456a4cc12d0dbb8432eed7e8f13943d99f91c8448ec1c902f0efa4f512b8d86"
     },
     {
       "id": "audit:src:scene:level:backyardCollisionPolicies",
@@ -376,11 +376,11 @@
         "src/scene/avatar/mannequin.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Overworld mannequin arm and floor-clearance polish reviewed; the tabletop still uses its dedicated live miniature avatar instead of cloning this mesh.",
-      "sourceFingerprint": "02f58a444b64fc1926e66e73cd7d6b8ac20ea18e09a822e9e2c8518d2f4d42a9",
+      "syncRevision": 3,
+      "syncNote": "Avatar accessory display labels moved to i18n only; overworld player geometry remains unchanged.",
+      "sourceFingerprint": "fa872088ed6d6536cf96b07f5355ed95cdfcec5d60f9a74cf9917aa4a74a0d36",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "275a12021d87b998e6eedecde61bcfc0e097bfb4276aa042a73ffe7900b0a89a"
+      "metadataFingerprint": "48f4c25e8865df5d61469cda72c60d98122935cdf988007d10025ec337d5d918"
     },
     {
       "id": "debug:visualizers",
