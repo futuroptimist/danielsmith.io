@@ -74,6 +74,116 @@ test.describe('keyboard traversal macro', () => {
     await page.keyboard.press('Escape');
     await expect(helpBackdrop).toBeHidden();
   });
+
+  test('cycles POIs while Controls remains open on desktop and mobile', async ({
+    page,
+  }) => {
+    test.slow();
+    await waitForImmersiveReady(page);
+
+    const controlsPopover = page.locator('[data-role="controls-popover"]');
+    const tooltip = page.locator('.poi-tooltip-overlay');
+    const tooltipTitle = tooltip.locator('.poi-tooltip-overlay__title');
+
+    await page.keyboard.press('KeyC');
+    await expect(controlsPopover).toBeVisible();
+
+    await page.keyboard.press('KeyE');
+    await expect(controlsPopover).toBeVisible();
+    await expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-controls-panel-open',
+      ''
+    );
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-poi-detail-visible',
+      ''
+    );
+    const firstTitle = (await tooltipTitle.textContent())?.trim() ?? '';
+    expect(firstTitle.length).toBeGreaterThan(0);
+
+    await page.keyboard.press('KeyE');
+    await expect(controlsPopover).toBeVisible();
+    const secondTitle = (await tooltipTitle.textContent())?.trim() ?? '';
+    expect(secondTitle.length).toBeGreaterThan(0);
+    expect(secondTitle).not.toEqual(firstTitle);
+
+    await page.keyboard.press('KeyQ');
+    await expect(controlsPopover).toBeVisible();
+    await expect(tooltipTitle).toHaveText(firstTitle);
+  });
+
+  test('shares mobile viewport between Controls and POI detail panels', async ({
+    page,
+  }) => {
+    test.slow();
+    await page.setViewportSize({ width: 375, height: 667 });
+    await waitForImmersiveReady(page);
+
+    const controlsPopover = page.locator('[data-role="controls-popover"]');
+    const tooltip = page.locator('.poi-tooltip-overlay');
+
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-hud-layout',
+      'mobile'
+    );
+    await page.keyboard.press('KeyC');
+    await page.keyboard.press('KeyE');
+
+    await expect(controlsPopover).toBeVisible();
+    await expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+
+    const boxes = await page.evaluate(() => {
+      const controls = document.querySelector<HTMLElement>(
+        '[data-role="controls-popover"]'
+      );
+      const tooltip = document.querySelector<HTMLElement>(
+        '.poi-tooltip-overlay'
+      );
+      const canvas = document.querySelector<HTMLCanvasElement>('canvas');
+      if (!controls || !tooltip || !canvas) {
+        return null;
+      }
+      const toBox = (rect: DOMRect) => ({
+        left: rect.left,
+        right: rect.right,
+        top: rect.top,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+      });
+      const controlRect = controls.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const overlapX = Math.max(
+        0,
+        Math.min(controlRect.right, tooltipRect.right) -
+          Math.max(controlRect.left, tooltipRect.left)
+      );
+      const overlapY = Math.max(
+        0,
+        Math.min(controlRect.bottom, tooltipRect.bottom) -
+          Math.max(controlRect.top, tooltipRect.top)
+      );
+      return {
+        controls: toBox(controlRect),
+        tooltip: toBox(tooltipRect),
+        overlapArea: overlapX * overlapY,
+        viewport: { width: window.innerWidth, height: window.innerHeight },
+        canvas: toBox(canvas.getBoundingClientRect()),
+      };
+    });
+
+    expect(boxes).not.toBeNull();
+    expect(boxes!.overlapArea).toBeLessThan(24);
+    expect(boxes!.controls.height).toBeLessThanOrEqual(
+      boxes!.viewport.height * 0.5
+    );
+    expect(boxes!.tooltip.height).toBeLessThanOrEqual(
+      boxes!.viewport.height * 0.5
+    );
+    expect(boxes!.canvas.width * boxes!.canvas.height).toBeGreaterThan(0);
+  });
+
   test('keeps POI tooltip details in overlay and one title-only in-world cue', async ({
     page,
   }) => {

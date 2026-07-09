@@ -1432,6 +1432,8 @@ export function initializeImmersiveScene(
     ) {
       return;
     }
+    document.documentElement.removeAttribute('data-controls-panel-open');
+    document.documentElement.removeAttribute('data-poi-detail-visible');
     immersiveLifecycle = 'disposing';
     if (inputLatencyTelemetry) {
       inputLatencyTelemetry.report('dispose-partial');
@@ -2402,8 +2404,21 @@ export function initializeImmersiveScene(
     guidedTourPreference,
   });
   const canShowPoiDetailOverlay = (layoutOverride?: HudLayout): boolean =>
-    (hudPanelCoordinator?.getActivePanel() ?? null) === null &&
+    (hudPanelCoordinator?.getActivePanel() ?? null) !== 'settings' &&
     (!isMobilePoiLayout(layoutOverride) || currentSelectedPoi !== null);
+  const syncCombinedHudPanelState = () => {
+    const root = document.documentElement;
+    const activePanel = hudPanelCoordinator?.getActivePanel() ?? null;
+    root.toggleAttribute(
+      'data-controls-panel-open',
+      activePanel === 'controls'
+    );
+    root.toggleAttribute(
+      'data-poi-detail-visible',
+      getFloorVisiblePoi(currentSelectedPoi) !== null ||
+        (!isMobilePoiLayout() && getFloorVisiblePoi(currentHoveredPoi) !== null)
+    );
+  };
   const isPoiVisibleOnActiveFloor = (poi: PoiDefinition | null): boolean =>
     poi !== null && floorVisibilityController.isPoiVisibleOnActiveFloor(poi);
   const getFloorVisiblePoi = (
@@ -2451,6 +2466,7 @@ export function initializeImmersiveScene(
       : null;
     poiTooltipOverlay.setHovered(showHover);
     poiTooltipOverlay.setSelected(showSelected);
+    syncCombinedHudPanelState();
     poiWorldTooltip.setHovered(resolveWorldTooltipTarget(showHover));
     poiWorldTooltip.setSelected(resolveWorldTooltipTarget(showSelected));
   };
@@ -3251,7 +3267,12 @@ export function initializeImmersiveScene(
     poiInteractionManager.addSelectionStateListener((poi, context) => {
       currentSelectedPoi = poi;
       if (poi) {
-        hudPanelCoordinator?.closeAllPanels();
+        const activePanel = hudPanelCoordinator?.getActivePanel() ?? null;
+        if (
+          !(activePanel === 'controls' && context?.inputMethod === 'keyboard')
+        ) {
+          hudPanelCoordinator?.closeAllPanels();
+        }
       }
       poiTooltipOverlay.setSelected(
         canShowPoiDetailOverlay()
@@ -4137,10 +4158,13 @@ export function initializeImmersiveScene(
     textButton: textModeButton,
     onTextMode: activateTextMode,
     onActivePanelChange: (panel) => {
-      if (panel !== null) {
+      if (panel === 'settings') {
         clearPoiDetailState();
+      } else {
+        syncPoiDetailOverlay();
       }
       updatePassivePoiRecommendationPolicy();
+      syncCombinedHudPanelState();
     },
   });
   let interactablePoi: PoiInstance | null = null;
@@ -5659,6 +5683,7 @@ export function initializeImmersiveScene(
     onLayoutChange: (layout) => {
       responsiveControlOverlay?.setLayout(layout);
       updatePassivePoiRecommendationPolicy(layout);
+      syncCombinedHudPanelState();
     },
   });
   if (hudLayoutManager) {
@@ -6486,6 +6511,8 @@ export function initializeImmersiveScene(
     if (immersiveDisposed) {
       return;
     }
+    document.documentElement.removeAttribute('data-controls-panel-open');
+    document.documentElement.removeAttribute('data-poi-detail-visible');
     immersiveLifecycle = 'disposing';
     if (inputLatencyTelemetry) {
       inputLatencyTelemetry.report('dispose');

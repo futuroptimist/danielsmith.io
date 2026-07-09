@@ -293,11 +293,11 @@
       "id": "audit:src:scene:poi:interactionManager",
       "sourceFiles": ["src/scene/poi/interactionManager.ts"],
       "proxyFiles": [],
-      "syncRevision": 5,
-      "syncNote": "POI keyboard gating changed only runtime input handling; no miniature geometry impact.",
-      "sourceFingerprint": "fa20edd49bc6d89de0613f498ced9ee24dfc988f49f703b7cbe504c18a6e5f55",
+      "syncRevision": 6,
+      "syncNote": "POI keyboard cycling now selects details while Controls is open; no miniature geometry impact.",
+      "sourceFingerprint": "ca39bcf174ad2305fb73dbf22e2ed7d4eb4f02068b3f17a3bc67f94a0f306d4f",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "f161b16b55ea43e5d46f8a32e9b1290ee5efb4a95734d8a25b6ef94ac1605565"
+      "metadataFingerprint": "7a49eb55350086d51cf304266fceaeb86f4556fa7df2d313b126f07256b4aca6"
     },
     {
       "id": "audit:src:scene:poi:modelTriangles",
