@@ -27,8 +27,11 @@ import {
   resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
+import {
+  getControlHelpRows,
+  getControlItemRows,
+} from '../assets/i18n/controlItems';
 import { getPoiDefinitions } from '../scene/poi/registry';
-import { getControlItemRows } from '../ui/hud/controlItems';
 
 it('provides POI debug detail labels for every locale', () => {
   for (const locale of AVAILABLE_LOCALES) {
@@ -148,11 +151,9 @@ describe('i18n utilities', () => {
     expect(getLocaleScript(undefined)).toBe('latin');
   });
 
-  it('keeps Settings controls rows in sync with the Controls popover for every locale', () => {
+  it('keeps Settings controls rows in sync with the canonical help rows for every locale', () => {
     for (const locale of AVAILABLE_LOCALES) {
-      const overlayRows = getControlItemRows(
-        getControlOverlayStrings(locale)
-      ).map(({ keys, description }) => ({ label: keys, description }));
+      const helpRows = getControlHelpRows(getControlOverlayStrings(locale));
       const controlsSection = getHelpModalStrings(locale).sections.find(
         (section) => section.id === 'controls'
       );
@@ -161,7 +162,7 @@ describe('i18n utilities', () => {
         controlsSection,
         `${locale} exposes a Settings controls section`
       ).toBeDefined();
-      expect(controlsSection?.items).toEqual(overlayRows);
+      expect(controlsSection?.items).toEqual(helpRows);
     }
   });
 

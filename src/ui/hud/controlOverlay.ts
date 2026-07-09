@@ -1,6 +1,6 @@
 import type { ControlOverlayStrings } from '../../assets/i18n';
+import { getControlItemRows } from '../../assets/i18n/controlItems';
 
-import { getControlItemRows } from './controlItems';
 import { formatMenuButtonTitle } from './menuButtonTitle';
 
 const CONTROL_HEADING_SELECTOR = '[data-control-text="heading"]';
