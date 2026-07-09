@@ -4,6 +4,7 @@ interface TogglePanelHandle {
   open(): void;
   close(): void;
   toggle(force?: boolean): void;
+  releaseButtonFocusOnNextOpen?(): void;
   isOpen(): boolean;
 }
 
@@ -129,7 +130,10 @@ export function createHudPanelCoordinator({
     onTextMode();
   };
 
-  const handleControlsClick = () => {
+  const handleControlsClick = (event: MouseEvent) => {
+    if (!controls.isOpen() && event.detail > 0) {
+      controls.releaseButtonFocusOnNextOpen?.();
+    }
     toggleControls();
   };
 

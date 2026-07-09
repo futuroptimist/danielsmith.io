@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { applyImmersiveControlOverlayAccessibility } from '../immersiveScene';
 import { applyControlOverlayAccessibility } from '../ui/hud/controlOverlayAccessibility';
 
 afterEach(() => {
@@ -21,6 +22,21 @@ describe('applyControlOverlayAccessibility', () => {
     expect(container.tabIndex).toBe(-1);
     expect(container.getAttribute('aria-labelledby')).toBe('custom-heading');
     expect(heading.id).toBe('custom-heading');
+  });
+
+  it('does not focus the overlay unless requested', () => {
+    const container = document.createElement('div');
+    const heading = document.createElement('p');
+    document.body.appendChild(container);
+
+    applyControlOverlayAccessibility({
+      container,
+      heading,
+      documentTarget: document,
+      focusOnInit: false,
+    });
+
+    expect(document.activeElement).toBe(document.body);
   });
 
   it('falls back to a generated heading id and preserves existing focus', () => {
@@ -89,7 +105,7 @@ describe('applyControlOverlayAccessibility', () => {
     expect([...describedByIds].sort()).toEqual(expectedIds.sort());
   });
 
-  it('focuses the overlay when no other target is active', () => {
+  it('focuses the overlay when opt-in focus is requested and no other target is active', () => {
     const container = document.createElement('div');
     const heading = document.createElement('p');
     document.body.appendChild(container);
@@ -102,5 +118,35 @@ describe('applyControlOverlayAccessibility', () => {
     });
 
     expect(document.activeElement).toBe(container);
+  });
+});
+
+describe('applyImmersiveControlOverlayAccessibility', () => {
+  it('leaves body focused during normal immersive HUD setup while preserving semantics', () => {
+    const container = document.createElement('div');
+    const heading = document.createElement('p');
+    const controlsButton = document.createElement('button');
+    const helpButton = document.createElement('button');
+    document.body.append(container, controlsButton, helpButton);
+
+    applyImmersiveControlOverlayAccessibility({
+      container,
+      heading,
+      controlsButton,
+      helpButton,
+      documentTarget: document,
+    });
+
+    expect(container.getAttribute('role')).toBe('region');
+    expect(container.tabIndex).toBe(-1);
+    expect(container.getAttribute('aria-labelledby')).toBe(
+      'control-overlay-controls'
+    );
+    expect(controlsButton.id).toBe('control-overlay-controls');
+    expect(helpButton.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(container.getAttribute('aria-describedby')).toBe(
+      'control-overlay-help'
+    );
+    expect(document.activeElement).toBe(document.body);
   });
 });

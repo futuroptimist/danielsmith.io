@@ -507,6 +507,7 @@ import {
   createHudCustomizationSection,
   type HudCustomizationHandle,
 } from './ui/hud/customizationSection';
+import { canHandleGameplayShortcut } from './ui/hud/gameplayShortcutGating';
 import { createHelpModal } from './ui/hud/helpModal';
 import {
   attachHelpModalController,
@@ -542,6 +543,30 @@ import {
   shouldDisablePerformanceFailover,
 } from './ui/immersiveUrl';
 import { createSoftwareRendererWarning } from './ui/softwareRendererWarning';
+
+interface ImmersiveControlOverlayAccessibilityOptions {
+  container: HTMLElement;
+  heading?: HTMLElement | null;
+  controlsButton?: HTMLButtonElement | null;
+  helpButton?: HTMLButtonElement | null;
+  documentTarget?: Document;
+}
+
+export const applyImmersiveControlOverlayAccessibility = ({
+  container,
+  heading,
+  controlsButton,
+  helpButton,
+  documentTarget,
+}: ImmersiveControlOverlayAccessibilityOptions) => {
+  applyControlOverlayAccessibility({
+    container,
+    heading,
+    controlsButton,
+    helpButton,
+    documentTarget,
+  });
+};
 
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
 const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
@@ -3210,6 +3235,11 @@ export function initializeImmersiveScene(
     {
       isPoiEnabled: (poi) =>
         floorVisibilityController.isPoiVisibleOnActiveFloor(poi.definition),
+      shouldHandleKeyboardEvent: (event) =>
+        canHandleGameplayShortcut(
+          event,
+          hudPanelCoordinator?.getActivePanel() ?? null
+        ),
     },
     poiAnalytics
   );
@@ -3774,13 +3804,15 @@ export function initializeImmersiveScene(
       })
     : null;
   if (controlOverlay) {
-    applyControlOverlayAccessibility({
+    // Normal desktop immersive startup must not focus Controls: doing so creates
+    // the initial visual HUD highlight. Semantic metadata still applies here;
+    // focusOnInit remains reserved for explicit opt-in accessibility flows.
+    applyImmersiveControlOverlayAccessibility({
       container: controlOverlay,
       heading: controlOverlayHeading,
       controlsButton,
       helpButton,
       documentTarget: document,
-      focusOnInit: true,
     });
   }
   responsiveControlOverlay = controlOverlay
@@ -5229,7 +5261,8 @@ export function initializeImmersiveScene(
   updateCameraProjection(aspect);
 
   const handleKeyboardZoom = (event: KeyboardEvent) => {
-    if ((hudPanelCoordinator?.getActivePanel() ?? null) !== null) {
+    const activePanel = hudPanelCoordinator?.getActivePanel() ?? null;
+    if (!canHandleGameplayShortcut(event, activePanel)) {
       return;
     }
     const direction = getKeyboardZoomDirection(event);

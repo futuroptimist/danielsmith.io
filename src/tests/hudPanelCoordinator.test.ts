@@ -67,6 +67,52 @@ describe('createHudPanelCoordinator', () => {
     coordinator.dispose();
   });
 
+  it('marks pointer-opened Controls so managed overlays can release trigger focus', () => {
+    const controls = {
+      ...createPanel(),
+      releaseButtonFocusOnNextOpen: vi.fn(),
+    };
+    const settings = createPanel();
+    const controlsButton = document.createElement('button');
+    const coordinator = createHudPanelCoordinator({
+      controls,
+      settings,
+      controlsButton,
+      onTextMode: vi.fn(),
+    });
+
+    controlsButton.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, detail: 1 })
+    );
+
+    expect(controls.releaseButtonFocusOnNextOpen).toHaveBeenCalledTimes(1);
+    expect(controls.isOpen()).toBe(true);
+
+    coordinator.dispose();
+  });
+
+  it('does not mark keyboard-opened Controls for focus release', () => {
+    const controls = {
+      ...createPanel(),
+      releaseButtonFocusOnNextOpen: vi.fn(),
+    };
+    const settings = createPanel();
+    const controlsButton = document.createElement('button');
+    const coordinator = createHudPanelCoordinator({
+      controls,
+      settings,
+      controlsButton,
+      onTextMode: vi.fn(),
+    });
+
+    controlsButton.click();
+
+    expect(controls.releaseButtonFocusOnNextOpen).not.toHaveBeenCalled();
+    expect(controls.isOpen()).toBe(true);
+
+    coordinator.dispose();
+  });
+
   it('closes panels before triggering the Text action', () => {
     const events: string[] = [];
     let controlsOpen = false;
