@@ -1,5 +1,6 @@
 import type { ControlOverlayStrings } from '../../assets/i18n';
 
+import { CONTROL_ITEM_IDS } from './controlItems';
 import { formatMenuButtonTitle } from './menuButtonTitle';
 
 const CONTROL_HEADING_SELECTOR = '[data-control-text="heading"]';
@@ -62,14 +63,7 @@ export function applyControlOverlayStrings(
     );
   };
 
-  applyItem('keyboardMove');
-  applyItem('pointerDrag');
-  applyItem('pointerZoom');
-  applyItem('keyboardZoom');
-  applyItem('touchDrag');
-  applyItem('touchPinch');
-  applyItem('cyclePoi');
-  applyItem('toggleTextMode');
+  CONTROL_ITEM_IDS.forEach(applyItem);
 
   const interactItem = container.querySelector<HTMLElement>(
     '[data-control-item="interact"]'
