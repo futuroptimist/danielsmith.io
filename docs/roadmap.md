@@ -514,8 +514,6 @@ Focus: replace the placeholder sphere with a stylized protagonist.
    - ✅ Customization menu now surfaces wrist console and holographic drone toggles in the
      HUD settings stack.
 
-- ✅ Accessory presets now unlock through POI progression with narrative-reactive gear swaps.
-
 ## Phase 6 – Beyond
 
 Ideas to evaluate after the core experience is stable:
