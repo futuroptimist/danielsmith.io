@@ -238,6 +238,39 @@ export interface DebugCollidersStrings {
   fpsDescriptionDisabled: string;
 }
 
+export interface SettingsControlsStrings {
+  graphicsQuality: {
+    title: string;
+    description: string;
+    selectedAnnouncementTemplate: string;
+    presets: Record<string, { label: string; description: string }>;
+  };
+  accessibilityPresets: {
+    title: string;
+    description: string;
+    selectedAnnouncementTemplate: string;
+    presets: Record<string, { label: string; description: string }>;
+  };
+  avatarVariants: Record<string, { label: string; description: string }>;
+  avatarAccessories: {
+    enabledAnnouncementTemplate: string;
+    disabledAnnouncementTemplate: string;
+    options: Record<string, { label: string; description: string }>;
+  };
+  motionBlur: {
+    label: string;
+    description: string;
+    groupLabel: string;
+    sliderAnnouncement: string;
+    values: {
+      off: string;
+      lowTemplate: string;
+      mediumTemplate: string;
+      highTemplate: string;
+    };
+  };
+}
+
 export interface SoftwareRendererWarningStrings {
   fallbackRendererLabel: string;
   title: string;
@@ -388,6 +421,7 @@ export interface LocaleStrings {
     localeToggle: LocaleToggleStrings;
     debugCoordinates: DebugCoordinatesStrings;
     debugColliders: DebugCollidersStrings;
+    settingsControls: SettingsControlsStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     lowFpsRecovery: LowFpsRecoveryStrings;
     helpModal: HelpModalStrings;

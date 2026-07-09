@@ -32,6 +32,7 @@ import type {
   PoiCopy,
   PoiOverlayChromeStrings,
   HudCustomizationStrings,
+  SettingsControlsStrings,
   SiteStrings,
   SoftwareRendererWarningStrings,
 } from './types';
@@ -492,4 +493,10 @@ export function getLowFpsRecoveryStrings(
   input?: LocaleInput
 ): LowFpsRecoveryStrings {
   return cloneValue(getLocaleStrings(input).hud.lowFpsRecovery);
+}
+
+export function getSettingsControlsStrings(
+  input?: LocaleInput
+): SettingsControlsStrings {
+  return cloneValue(getLocaleStrings(input).hud.settingsControls);
 }

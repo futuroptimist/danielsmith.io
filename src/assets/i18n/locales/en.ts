@@ -380,6 +380,100 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         'Hides the stats.js FPS panel while keeping diagnostics available.',
     },
 
+    settingsControls: {
+      graphicsQuality: {
+        title: 'Graphics Quality',
+        description: 'Pick a preset that matches your device performance.',
+        selectedAnnouncementTemplate: '{label} preset selected.',
+        presets: {
+          cinematic: {
+            label: 'Cinematic',
+            description:
+              'Full post-processing, highest-detail 3D models, cinematic bloom and lighting.',
+          },
+          balanced: {
+            label: 'Balanced',
+            description:
+              'Moderate bloom, reduced resolution, and medium-detail 3D models for laptops.',
+          },
+          performance: {
+            label: 'Performance',
+            description:
+              'Disables bloom, lowers resolution, and uses lowest-detail 3D models to prioritize FPS.',
+          },
+        },
+      },
+      accessibilityPresets: {
+        title: 'Accessibility Presets',
+        description: 'Tune motion assists and HUD contrast.',
+        selectedAnnouncementTemplate: '{label} preset selected.',
+        presets: {
+          standard: {
+            label: 'Standard',
+            description: 'Default visuals and audio balance.',
+          },
+          calm: {
+            label: 'Calm',
+            description:
+              'Softens bloom, LED glow, and ambient audio for a gentler pass.',
+          },
+          'high-contrast': {
+            label: 'High contrast',
+            description:
+              'Boosts HUD readability while keeping motion cues active.',
+          },
+          photosensitive: {
+            label: 'Photosensitive safe',
+            description:
+              'Disables bloom, dulls emissives, and boosts HUD contrast.',
+          },
+        },
+      },
+      avatarVariants: {
+        portfolio: {
+          label: 'Portfolio',
+          description: 'Signature dusk suit with neon visor highlights.',
+        },
+        casual: {
+          label: 'Casual',
+          description:
+            'Sunset hoodie with teal accents for relaxed walkthroughs.',
+        },
+        formal: {
+          label: 'Formal',
+          description: 'Charcoal blazer with gilded trims for keynote demos.',
+        },
+      },
+      avatarAccessories: {
+        enabledAnnouncementTemplate: '{label} enabled.',
+        disabledAnnouncementTemplate: '{label} disabled.',
+        options: {
+          'wrist-console': {
+            label: 'Wrist console',
+            description:
+              'Wearable telemetry cuff that mirrors HUD diagnostics.',
+          },
+          'holo-drone': {
+            label: 'Holographic drone',
+            description: 'Shoulder scout drone with a gentle orbiting glow.',
+          },
+        },
+      },
+      motionBlur: {
+        label: 'Motion blur intensity',
+        description:
+          'Adjust the trail effect applied to fast camera and avatar movement.',
+        groupLabel: 'Motion blur controls',
+        sliderAnnouncement: 'Motion blur intensity slider.',
+        values: {
+          off: 'Off',
+          lowTemplate: '{value}% · Low trails',
+          mediumTemplate: '{value}% · Medium trails',
+          highTemplate: '{value}% · High trails',
+        },
+      },
+    },
+
     lowFpsRecovery: {
       title: 'Low frame rate detected',
       body: 'Immersive mode is running slowly. You can lower graphics or switch to non-immersive mode.',

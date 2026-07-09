@@ -57,6 +57,7 @@ import {
   getDebugCollidersStrings,
   getHelpModalStrings,
   getHudCustomizationStrings,
+  getSettingsControlsStrings,
   getLocaleDirection,
   getLowFpsRecoveryStrings,
   getLocaleScript,
@@ -1221,6 +1222,7 @@ export function initializeImmersiveScene(
   let controlOverlayStrings = getControlOverlayStrings(locale);
   let helpModalStrings = getHelpModalStrings(locale);
   let hudCustomizationStrings = getHudCustomizationStrings(locale);
+  let settingsControlsStrings = getSettingsControlsStrings(locale);
   let localeToggleStrings = getLocaleToggleStrings(locale);
   let modeToggleStrings = getModeToggleStrings(locale);
   let audioHudStrings = getAudioHudControlStrings(locale);
@@ -3599,6 +3601,84 @@ export function initializeImmersiveScene(
       element.hidden = true;
     });
   };
+  const localizeAvatarVariants = () =>
+    AVATAR_VARIANTS.map((variant) => ({
+      ...variant,
+      ...(settingsControlsStrings.avatarVariants[variant.id] ?? {}),
+    }));
+
+  const localizeAvatarAccessories = () =>
+    avatarAccessorySuite!.definitions.map((accessory) => ({
+      ...accessory,
+      ...(settingsControlsStrings.avatarAccessories.options[accessory.id] ??
+        {}),
+    }));
+
+  const syncOptionCopy = (
+    element: HTMLElement | undefined | null,
+    options: Record<string, { label: string; description: string }>,
+    selectors: { title: string; description: string }
+  ) => {
+    element
+      ?.querySelectorAll<HTMLInputElement>('input[value]')
+      .forEach((input) => {
+        const option = options[input.value];
+        if (!option) {
+          return;
+        }
+        input.setAttribute('aria-label', option.label);
+        const label = input.closest('label');
+        label?.querySelector(selectors.title)?.replaceChildren(option.label);
+        label
+          ?.querySelector(selectors.description)
+          ?.replaceChildren(option.description);
+      });
+  };
+
+  const refreshLocalizedSettingsControls = () => {
+    const graphics = settingsControlsStrings.graphicsQuality;
+    const graphicsElement = graphicsQualityControl?.element;
+    graphicsElement
+      ?.querySelector('.graphics-quality__title')
+      ?.replaceChildren(graphics.title);
+    graphicsElement
+      ?.querySelector('.graphics-quality__description')
+      ?.replaceChildren(graphics.description);
+    syncOptionCopy(graphicsElement, graphics.presets, {
+      title: '.graphics-quality__option-title',
+      description: '.graphics-quality__option-description',
+    });
+
+    const accessibility = settingsControlsStrings.accessibilityPresets;
+    const accessibilityElement = accessibilityControlHandle?.element;
+    accessibilityElement
+      ?.querySelector('.accessibility-presets__title')
+      ?.replaceChildren(accessibility.title);
+    accessibilityElement
+      ?.querySelector('.accessibility-presets__description')
+      ?.replaceChildren(accessibility.description);
+    syncOptionCopy(accessibilityElement, accessibility.presets, {
+      title: '.accessibility-presets__option-title',
+      description: '.accessibility-presets__option-description',
+    });
+
+    syncOptionCopy(
+      hudCustomizationSection?.element,
+      settingsControlsStrings.avatarVariants,
+      {
+        title: '.avatar-variants__option-title',
+        description: '.avatar-variants__option-description',
+      }
+    );
+    syncOptionCopy(
+      hudCustomizationSection?.element,
+      settingsControlsStrings.avatarAccessories.options,
+      {
+        title: '.avatar-accessories__option-title',
+        description: '.avatar-accessories__option-description',
+      }
+    );
+  };
 
   const hasVariantControl = Boolean(avatarVariantManager);
   const hasAccessoryControl = Boolean(
@@ -3612,7 +3692,7 @@ export function initializeImmersiveScene(
         ? ({ container: customizationContainer, title, description }) =>
             createAvatarVariantControl({
               container: customizationContainer,
-              options: AVATAR_VARIANTS,
+              options: localizeAvatarVariants(),
               getActiveVariant: () =>
                 avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID,
               setActiveVariant: (variant) => {
@@ -3626,7 +3706,7 @@ export function initializeImmersiveScene(
         ? ({ container: customizationContainer, title, description }) =>
             createAvatarAccessoryControl({
               container: customizationContainer,
-              options: avatarAccessorySuite!.definitions,
+              options: localizeAvatarAccessories(),
               isAccessoryEnabled: (id) =>
                 avatarAccessoryManager?.isEnabled(id) ?? false,
               setAccessoryEnabled: (id, enabled) => {
@@ -3634,6 +3714,12 @@ export function initializeImmersiveScene(
               },
               title,
               description,
+              enabledAnnouncementTemplate:
+                settingsControlsStrings.avatarAccessories
+                  .enabledAnnouncementTemplate,
+              disabledAnnouncementTemplate:
+                settingsControlsStrings.avatarAccessories
+                  .disabledAnnouncementTemplate,
             })
         : undefined,
     });
@@ -3929,6 +4015,7 @@ export function initializeImmersiveScene(
     controlOverlayStrings = getControlOverlayStrings(locale);
     helpModalStrings = getHelpModalStrings(locale);
     hudCustomizationStrings = getHudCustomizationStrings(locale);
+    settingsControlsStrings = getSettingsControlsStrings(locale);
     localeToggleStrings = getLocaleToggleStrings(locale);
     modeToggleStrings = getModeToggleStrings(locale);
     audioHudStrings = getAudioHudControlStrings(locale);
@@ -3995,6 +4082,7 @@ export function initializeImmersiveScene(
     softwareRendererWarning?.setStrings(softwareRendererWarningStrings);
     helpModal.setContent(helpModalStrings);
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
+    refreshLocalizedSettingsControls();
     localeToggleControl?.setStrings(localeToggleStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
     audioSubtitles?.setLabels(audioSubtitleStrings);
@@ -5398,6 +5486,7 @@ export function initializeImmersiveScene(
       accessibilityPresetManager?.getBaseMotionBlurIntensity() ??
       motionBlurController?.getIntensity() ??
       0,
+    strings: settingsControlsStrings.motionBlur,
     setIntensity: (intensity) => {
       if (accessibilityPresetManager) {
         accessibilityPresetManager.setBaseMotionBlurIntensity(intensity);
@@ -5493,16 +5582,21 @@ export function initializeImmersiveScene(
 
   accessibilityControlHandle = createAccessibilityPresetControl({
     container: hudSettingsStack,
-    options: ACCESSIBILITY_PRESETS.map(({ id, label, description }) => ({
+    options: ACCESSIBILITY_PRESETS.map(({ id }) => ({
       id,
-      label,
-      description,
+      label: settingsControlsStrings.accessibilityPresets.presets[id].label,
+      description:
+        settingsControlsStrings.accessibilityPresets.presets[id].description,
     })),
     getActivePreset: () =>
       accessibilityPresetManager?.getPreset() ?? ACCESSIBILITY_PRESETS[0].id,
     setActivePreset: (preset) => {
       accessibilityPresetManager?.setPreset(preset);
     },
+    title: settingsControlsStrings.accessibilityPresets.title,
+    description: settingsControlsStrings.accessibilityPresets.description,
+    selectedAnnouncementTemplate:
+      settingsControlsStrings.accessibilityPresets.selectedAnnouncementTemplate,
   });
   registerHudControlElement(accessibilityControlHandle?.element ?? null);
 
@@ -5516,12 +5610,21 @@ export function initializeImmersiveScene(
 
   graphicsQualityControl = createGraphicsQualityControl({
     container: hudSettingsStack,
-    presets: GRAPHICS_QUALITY_PRESETS,
+    presets: GRAPHICS_QUALITY_PRESETS.map((preset) => ({
+      ...preset,
+      label: settingsControlsStrings.graphicsQuality.presets[preset.id].label,
+      description:
+        settingsControlsStrings.graphicsQuality.presets[preset.id].description,
+    })),
     getActiveLevel: () =>
       graphicsQualityManager?.getLevel() ?? GRAPHICS_QUALITY_PRESETS[0].id,
     setActiveLevel: (level) => {
       graphicsQualityManager?.setLevel(level);
     },
+    title: settingsControlsStrings.graphicsQuality.title,
+    description: settingsControlsStrings.graphicsQuality.description,
+    selectedAnnouncementTemplate:
+      settingsControlsStrings.graphicsQuality.selectedAnnouncementTemplate,
   });
   registerHudControlElement(graphicsQualityControl?.element ?? null);
   applySettingsControlOrder({

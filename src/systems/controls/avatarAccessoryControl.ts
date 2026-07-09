@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { AvatarAccessoryId } from '../../scene/avatar/accessories';
 
 export interface AvatarAccessoryControlOption {
@@ -16,6 +17,8 @@ export interface AvatarAccessoryControlOptions {
   ) => void | Promise<void>;
   readonly title?: string;
   readonly description?: string;
+  readonly enabledAnnouncementTemplate?: string;
+  readonly disabledAnnouncementTemplate?: string;
 }
 
 export interface AvatarAccessoryControlHandle {
@@ -40,8 +43,10 @@ export function createAvatarAccessoryControl({
   options,
   isAccessoryEnabled,
   setAccessoryEnabled,
-  title = 'Accessories',
-  description = 'Toggle companion gear for the avatar.',
+  title,
+  description,
+  enabledAnnouncementTemplate = '{label} enabled.',
+  disabledAnnouncementTemplate = '{label} disabled.',
 }: AvatarAccessoryControlOptions): AvatarAccessoryControlHandle {
   if (!options.length) {
     throw new Error('Avatar accessory control requires at least one option.');
@@ -56,11 +61,11 @@ export function createAvatarAccessoryControl({
   const heading = document.createElement('h2');
   heading.className = 'avatar-accessories__title';
   heading.id = `${controlId}-title`;
-  heading.textContent = title;
+  heading.textContent = title ?? '';
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'avatar-accessories__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = description ?? '';
 
   const list = document.createElement('div');
   list.className = 'avatar-accessories__options';
@@ -134,7 +139,14 @@ export function createAvatarAccessoryControl({
             updateSelection();
             const option = options.find((entry) => entry.id === id);
             const label = option?.label ?? id;
-            updateLiveRegion(`${label} ${enabled ? 'enabled' : 'disabled'}.`);
+            updateLiveRegion(
+              formatMessage(
+                enabled
+                  ? enabledAnnouncementTemplate
+                  : disabledAnnouncementTemplate,
+                { label }
+              )
+            );
           })
           .catch(handleError);
       } else {
@@ -142,7 +154,14 @@ export function createAvatarAccessoryControl({
         updateSelection();
         const option = options.find((entry) => entry.id === id);
         const label = option?.label ?? id;
-        updateLiveRegion(`${label} ${enabled ? 'enabled' : 'disabled'}.`);
+        updateLiveRegion(
+          formatMessage(
+            enabled
+              ? enabledAnnouncementTemplate
+              : disabledAnnouncementTemplate,
+            { label }
+          )
+        );
       }
     } catch (error) {
       handleError(error);
