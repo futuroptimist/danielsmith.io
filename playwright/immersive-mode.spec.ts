@@ -179,12 +179,14 @@ test.describe('immersive experience', () => {
       'data-poi-detail-visible',
       ''
     );
-    const nextTitle = await poiTitle.textContent();
+    await expect(poiTitle).not.toHaveText('');
+    const nextTitle = (await poiTitle.textContent())?.trim() ?? '';
+    expect(nextTitle.length).toBeGreaterThan(0);
 
     await page.keyboard.press('q');
     await expect(controlsPopover).toBeVisible();
     await expect(poiOverlay).toBeVisible();
-    await expect(poiTitle).not.toHaveText(nextTitle ?? '');
+    await expect(poiTitle).not.toHaveText(nextTitle);
   });
 
   test('fits Controls and POI details together on mobile', async ({ page }) => {

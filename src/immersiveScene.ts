@@ -2462,7 +2462,7 @@ export function initializeImmersiveScene(
         ? getFloorVisiblePoi(currentHoveredPoi)
         : null;
     const mobileKeyboardTarget = isMobilePoiLayout(layoutOverride)
-      ? (currentSelectedPoi ?? currentHoveredPoi)
+      ? (currentHoveredPoi ?? currentSelectedPoi)
       : currentSelectedPoi;
     const showSelected = canShowDetail
       ? getFloorVisiblePoi(mobileKeyboardTarget)
