@@ -277,11 +277,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     audioSubtitles: {
       labels: {
         ambient: 'Ambient audio',
-        poi: 'Narration',
+        poi: 'Caption',
       },
       dismissLabels: {
         ambient: 'Dismiss caption',
-        poi: 'Dismiss narration',
+        poi: 'Dismiss caption',
       },
     },
     audioControl: {
@@ -326,22 +326,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       selectedAnnouncementTemplate: '{label} locale selected.',
       failureAnnouncementTemplate:
         'Unable to switch to {target}. Staying on {current} locale.',
-    },
-    tourGuideToggle: {
-      labelEnabled: 'Guided tour on',
-      labelDisabled: 'Guided tour off',
-      descriptionEnabled:
-        'Highlights the next recommended exhibit in the immersive tour.',
-      descriptionDisabled:
-        'Guided tour highlights are hidden until you turn them back on.',
-    },
-    narrationToggle: {
-      labelEnabled: 'Narration on',
-      labelDisabled: 'Narration off',
-      descriptionEnabled:
-        'Narration popups and captions are shown for future exhibit moments.',
-      descriptionDisabled:
-        'Narration popups and captions stay hidden until you turn them on.',
     },
     debugCoordinates: {
       labelEnabled: 'Debug coordinates on',
@@ -394,26 +378,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         'Shows a non-interactive stats.js FPS panel for immersive diagnostics.',
       fpsDescriptionDisabled:
         'Hides the stats.js FPS panel while keeping diagnostics available.',
-    },
-    tourReset: {
-      heading: 'Guided tour',
-      resetKey: 'g',
-      label: 'Restart guided tour',
-      description: 'Clear visited POIs and replay the curated path.',
-      emptyLabel: 'Guided tour ready',
-      emptyDescription: 'Explore exhibits to unlock the guided tour reset.',
-      pendingLabel: 'Resetting tour…',
-      pendingDescription: 'Resetting the guided tour…',
-      restartPromptTemplate: 'Press {key} to restart.',
-      guidedTourDescription: 'Show recommended exhibits when idle.',
-      guidedTourLabelOn: 'Guided tour highlights: On',
-      guidedTourLabelOff: 'Guided tour highlights: Off',
-      toggleAnnouncementOn:
-        'Guided tour highlights enabled. Activate to disable recommendations.',
-      toggleAnnouncementOff:
-        'Guided tour highlights disabled. Activate to enable recommendations.',
-      toggleTitleOn: 'Disable guided tour highlights',
-      toggleTitleOff: 'Enable guided tour highlights',
     },
 
     lowFpsRecovery: {
@@ -471,54 +435,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
       discoveryAnnouncementTemplate: '{title} discovered. {summary}',
-    },
-    narrativeLog: {
-      heading: 'Creator story log',
-      visitedHeading: 'Visited exhibits',
-      empty:
-        'Visit exhibits to unlock narrative entries chronicling the creator showcase.',
-      defaultVisitedLabel: 'Visited',
-      visitedLabelTemplate: 'Visited at {time}',
-      liveAnnouncementTemplate: '{title} added to the creator story log.',
-      journey: {
-        heading: 'Journey beats',
-        empty: 'Explore new exhibits to weave journey narration.',
-        entryLabelTemplate: '{from} → {to}',
-        sameRoomTemplate:
-          'Within the {room} {descriptor}, the story shifts from {fromPoi} toward {toPoi}.',
-        crossRoomTemplate:
-          'Leaving the {fromRoom} {fromDescriptor}, the journey drifts into the {toRoom} {toDescriptor} to spotlight {toPoi}.',
-        crossSectionTemplate:
-          'Stepping {direction} through the threshold, the path flows into the {toRoom} {toDescriptor} to reach {toPoi}.',
-        fallbackTemplate: 'The narrative flows toward {toPoi}.',
-        announcementTemplate: 'Journey update — {label}: {story}',
-        directions: {
-          indoors: 'back inside',
-          outdoors: 'outdoors',
-        },
-      },
-      rooms: {
-        livingRoom: {
-          label: 'living room',
-          descriptor: 'cinematic lounge',
-          zone: 'interior',
-        },
-        studio: {
-          label: 'studio',
-          descriptor: 'automation lab',
-          zone: 'interior',
-        },
-        kitchen: {
-          label: 'kitchen lab',
-          descriptor: 'culinary robotics wing',
-          zone: 'interior',
-        },
-        backyard: {
-          label: 'backyard observatory',
-          descriptor: 'dusk-lit garden',
-          zone: 'exterior',
-        },
-      },
     },
     helpModal: {
       heading: 'Settings & Help',
@@ -604,10 +520,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'GitHub', href: 'https://github.com/futuroptimist' },
         { label: 'YouTube', href: 'https://www.youtube.com/@futuroptimist' },
       ],
-      narration: {
-        caption:
-          'Futuroptimist media wall radiates highlight reels across the living room.',
-      },
     },
     'tokenplace-studio-cluster': {
       title: 'token.place',
@@ -712,10 +624,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           href: 'https://github.com/futuroptimist/flywheel',
         },
       ],
-      narration: {
-        caption:
-          'Flywheel kinetic hub whirs alive, spotlighting automation prompts and tooling.',
-      },
       interactionPrompt: 'Engage {title} systems',
     },
     'jobbot-studio-terminal': {
@@ -753,10 +661,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           href: 'https://github.com/futuroptimist/jobbot3000',
         },
       ],
-      narration: {
-        caption:
-          'Jobbot holographic terminal streams automation telemetry in shimmering overlays.',
-      },
     },
     'axel-studio-tracker': {
       title: 'Axel',
@@ -987,11 +891,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
         { label: 'Docs', href: 'https://democratized.space/docs' },
       ],
-      narration: {
-        caption:
-          'dSpace launch pad crackles with countdown energy beside the backyard path.',
-        durationMs: 6000,
-      },
       interactionPrompt: 'Launch {title} countdown',
     },
     'pr-reaper-backyard-console': {
@@ -1062,11 +961,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       links: [
         { label: 'GitHub', href: 'https://github.com/futuroptimist/sugarkube' },
       ],
-      narration: {
-        caption:
-          'Sugarkube greenhouse cycles soft grow lights and koi pond ambience in sync.',
-        durationMs: 6500,
-      },
     },
   },
 };

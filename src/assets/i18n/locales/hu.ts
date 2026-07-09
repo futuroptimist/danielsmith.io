@@ -34,21 +34,12 @@ export const HU_OVERRIDES = buildLatinLocaleOverrides({
     live: 'Élő',
     textMode: 'Váltás szöveges módra',
     tryImmersive: 'Immerszív mód újrapróbálása',
-    guidedTour: 'Vezetett túra',
-    guidedTourOn: 'Vezetett túra be',
-    guidedTourOff: 'Vezetett túra ki',
     audioOn: 'Hang: be',
     audioOff: 'Hang: ki',
     audioSubtitleAmbientLabel: 'Környezeti hang',
-    audioSubtitlePoiLabel: 'Narráció',
+    audioSubtitlePoiLabel: 'Felirat',
     audioSubtitleDismissAmbient: 'Felirat elvetése',
-    audioSubtitleDismissPoi: 'Narráció elvetése',
-    narrationToggleLabelEnabled: 'Narráció bekapcsolva',
-    narrationToggleLabelDisabled: 'Narráció kikapcsolva',
-    narrationToggleDescriptionEnabled:
-      'A narrációs felugrók és feliratok megjelennek a következő kiállítási pillanatoknál.',
-    narrationToggleDescriptionDisabled:
-      'A narrációs felugrók és feliratok rejtve maradnak, amíg be nem kapcsolod őket.',
+    audioSubtitleDismissPoi: 'Felirat elvetése',
     debugCoordinatesLabelEnabled: 'Hibakeresési koordináták be',
     debugCoordinatesLabelDisabled: 'Hibakeresési koordináták ki',
     debugCoordinatesDescriptionEnabled:

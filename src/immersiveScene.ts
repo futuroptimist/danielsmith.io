@@ -63,13 +63,9 @@ import {
   getLocaleToggleStrings,
   getModeAnnouncerStrings,
   getModeToggleStrings,
-  getNarrationToggleStrings,
-  getPoiNarrativeLogStrings,
   getPoiOverlayChromeStrings,
   getSiteStrings,
   getSoftwareRendererWarningStrings,
-  getTourGuideToggleStrings,
-  getTourResetControlStrings,
   getSelectableLocales,
   isI18nDebugEnabled,
   resolveInitialLocale,
@@ -227,7 +223,6 @@ import {
   wireGitHubRepoMetrics,
   type GitHubRepoMetricsController,
 } from './scene/poi/githubMetrics';
-import { GuidedTourChannel } from './scene/poi/guidedTourChannel';
 import { PoiInteractionManager } from './scene/poi/interactionManager';
 import {
   createPoiInstances,
@@ -248,7 +243,6 @@ import {
   injectTextPortfolioStructuredData,
 } from './scene/poi/structuredData';
 import { PoiTooltipOverlay } from './scene/poi/tooltipOverlay';
-import { PoiTourGuide } from './scene/poi/tourGuide';
 import type { PoiDefinition, PoiId } from './scene/poi/types';
 import { updateVisitedBadge } from './scene/poi/visitedBadge';
 import { PoiVisitedState } from './scene/poi/visitedState';
@@ -409,18 +403,6 @@ import {
   createMotionBlurControl,
   type MotionBlurControlHandle,
 } from './systems/controls/motionBlurControl';
-import {
-  createNarrationToggleControl,
-  type NarrationToggleControlHandle,
-} from './systems/controls/narrationToggleControl';
-import {
-  createTourGuideToggleControl,
-  type TourGuideToggleControlHandle,
-} from './systems/controls/tourGuideToggleControl';
-import {
-  createTourResetControl,
-  type TourResetControlHandle,
-} from './systems/controls/tourResetControl';
 import { VirtualJoystick } from './systems/controls/VirtualJoystick';
 import {
   createManualModeToggle,
@@ -433,7 +415,6 @@ import {
 } from './systems/failover/modePreference';
 import { createPerformanceFailoverHandler } from './systems/failover/performanceFailover';
 import { createGitHubRepoStatsService } from './systems/github/repoStats';
-import { GuidedTourPreference } from './systems/guidedTour/preference';
 import {
   createAnalyticsGlowRhythm,
   type AnalyticsGlowRhythmHandle,
@@ -463,11 +444,6 @@ import {
   type StairBehavior,
   type StairGeometry,
 } from './systems/movement/stairs';
-import {
-  NARRATION_PREFERENCE_STORAGE_KEY,
-  NarrationPreference,
-} from './systems/narrative/narrationPreference';
-import { ProceduralNarrator } from './systems/narrative/proceduralNarrator';
 import { createNavMesh, type NavMesh } from './systems/navigation/navMesh';
 import {
   createInputLatencyTelemetry,
@@ -518,10 +494,6 @@ import {
   type MovementLegendHandle,
 } from './ui/hud/movementLegend';
 import {
-  createPoiNarrativeLog,
-  type PoiNarrativeLogHandle,
-} from './ui/hud/poiNarrativeLog';
-import {
   createResponsiveControlOverlay,
   type ResponsiveControlOverlayHandle,
 } from './ui/hud/responsiveControlOverlay';
@@ -561,7 +533,6 @@ export const applyImmersiveControlOverlayAccessibility = ({
 };
 
 const LOCALE_STORAGE_KEY = 'danielsmith.io:locale';
-const GUIDED_TOUR_STORAGE_KEY = 'danielsmith.io:guided-tour-enabled';
 const DEBUG_COORDINATES_STORAGE_KEY = 'danielsmith.io::debugCoordinates::v1';
 const DEBUG_COLLIDERS_STORAGE_KEY = 'danielsmith.io::debugColliders::v1';
 const DEBUG_COLLIDER_IDS_STORAGE_KEY = 'danielsmith.io::debugColliderIds::v1';
@@ -1040,8 +1011,6 @@ export function initializeImmersiveScene(
 
   let inputLatencyTelemetry: InputLatencyTelemetryHandle | null = null;
   let manualModeToggle: ManualModeToggleHandle | null = null;
-  let tourGuideToggleControl: TourGuideToggleControlHandle | null = null;
-  let tourResetControl: TourResetControlHandle | null = null;
   let hudLayoutManager: HudLayoutManagerHandle | null = null;
   let responsiveControlOverlay: ResponsiveControlOverlayHandle | null = null;
   let hudPanelCoordinator: HudPanelCoordinatorHandle | null = null;
@@ -1052,7 +1021,6 @@ export function initializeImmersiveScene(
   let lowFpsRecoveryMonitor: LowFpsRecoveryMonitor | null = null;
   let beforeUnloadHandler: (() => void) | null = null;
   let audioHudHandle: AudioHudControlHandle | null = null;
-  let narrationToggleControl: NarrationToggleControlHandle | null = null;
   let motionBlurControl: MotionBlurControlHandle | null = null;
   let audioSubtitles: AudioSubtitlesHandle | null = null;
   let ambientCaptionBridge: AmbientCaptionBridge | null = null;
@@ -1097,15 +1065,9 @@ export function initializeImmersiveScene(
   };
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let helpModalController: HelpModalControllerHandle | null = null;
-  let poiNarrativeLog: PoiNarrativeLogHandle | null = null;
-  let proceduralNarrator: ProceduralNarrator | null = null;
   let localeToggleControl: LocaleToggleControlHandle | null = null;
-  let guidedTourChannel: GuidedTourChannel | null = null;
   let idleMonitor: IdleMonitor | null = null;
   let removeIdleSubscription: (() => void) | null = null;
-  let removeGuidedTourSubscription: (() => void) | null = null;
-  let removeGuidedTourPreferenceSubscription: (() => void) | null = null;
-  let removeNarrationPreferenceSubscription: (() => void) | null = null;
   let githubRepoMetrics: GitHubRepoMetricsController | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
@@ -1208,38 +1170,6 @@ export function initializeImmersiveScene(
     };
   };
 
-  const isNarrationEnabled = () => narrationPreference.isEnabled();
-
-  const getNarrationDebugState = () => ({
-    preferenceEnabled: narrationPreference.isEnabled(),
-    activeStorageKey: narrationPreference.getStorageKey(),
-    storageKeyVersion:
-      narrationPreference.getStorageKey() === NARRATION_PREFERENCE_STORAGE_KEY
-        ? 'v1'
-        : 'custom',
-    currentSubtitle: audioSubtitles?.getCurrent()?.text ?? null,
-    currentSubtitleId: audioSubtitles?.getCurrent()?.id ?? null,
-    currentSubtitleSource: audioSubtitles?.getCurrent()?.source ?? null,
-    queueLength: audioSubtitles?.getQueueLength() ?? 0,
-    visible: audioSubtitles?.isVisible() ?? false,
-    dismissCount: audioSubtitles?.getDismissCount() ?? 0,
-    lastDismissedAt: audioSubtitles?.getLastDismissedAt() ?? null,
-  });
-
-  const showNarrationSubtitle = (
-    message: Parameters<AudioSubtitlesHandle['show']>[0]
-  ) => {
-    if (!isNarrationEnabled()) {
-      return;
-    }
-    audioSubtitles?.show(message);
-  };
-
-  const clearNarrationSubtitles = () => {
-    audioSubtitles?.clear();
-    ambientCaptionBridge?.clear();
-  };
-
   let localeStorage: Storage | undefined;
   try {
     localeStorage = window.localStorage;
@@ -1262,16 +1192,6 @@ export function initializeImmersiveScene(
     windowTarget: window,
     documentTarget: document,
     budgetMs: INPUT_LATENCY_P95_BUDGET_MS,
-  });
-
-  const guidedTourPreference = new GuidedTourPreference({
-    storageKey: GUIDED_TOUR_STORAGE_KEY,
-    windowTarget: window,
-    defaultEnabled: false,
-  });
-  const narrationPreference = new NarrationPreference({
-    windowTarget: window,
-    defaultEnabled: false,
   });
 
   const detectedLanguage =
@@ -1308,13 +1228,9 @@ export function initializeImmersiveScene(
   let modeToggleStrings = getModeToggleStrings(locale);
   let audioHudStrings = getAudioHudControlStrings(locale);
   let audioSubtitleStrings = getAudioSubtitleStrings(locale);
-  let narrativeLogStrings = getPoiNarrativeLogStrings(locale);
   let poiOverlayStrings = getPoiOverlayChromeStrings(locale);
-  let tourGuideToggleStrings = getTourGuideToggleStrings(locale);
-  let narrationToggleStrings = getNarrationToggleStrings(locale);
   let debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
   let debugCollidersStrings = getDebugCollidersStrings(locale);
-  let tourResetControlStrings = getTourResetControlStrings(locale);
   let softwareRendererWarningStrings =
     getSoftwareRendererWarningStrings(locale);
   let lowFpsRecoveryStrings = getLowFpsRecoveryStrings(locale);
@@ -1476,13 +1392,6 @@ export function initializeImmersiveScene(
     );
   };
   syncModeAnnouncerStrings();
-  let narrativeTimeFormatter = new Intl.DateTimeFormat(
-    locale === 'en-x-pseudo' ? 'en' : locale,
-    {
-      hour: 'numeric',
-      minute: '2-digit',
-    }
-  );
 
   const searchParams = new URLSearchParams(window.location.search);
   const disablePerformanceFailover =
@@ -2359,8 +2268,6 @@ export function initializeImmersiveScene(
   const interactionTimeline = new InteractionTimeline();
   let currentHoveredPoi: PoiDefinition | null = null;
   let currentSelectedPoi: PoiDefinition | null = null;
-  let currentGuidedTourRecommendation: PoiDefinition | null = null;
-  let dismissedPassiveRecommendationPoiId: string | null = null;
   let poiInteractionManager: PoiInteractionManager | null = null;
   const isMobilePoiLayout = (layoutOverride?: HudLayout): boolean =>
     (layoutOverride ?? hudLayoutManager?.getLayout()) === 'mobile';
@@ -2372,7 +2279,6 @@ export function initializeImmersiveScene(
       modelTriangles: getPoiModelTriangleCount(definition.id) ?? 0,
     }),
     interactionTimeline,
-    guidedTourPreference,
     discoveryAnnouncer: {
       format: (poi, strings) =>
         formatMessage(strings.discoveryAnnouncementTemplate, {
@@ -2388,7 +2294,6 @@ export function initializeImmersiveScene(
   const poiWorldTooltip = new PoiWorldTooltip({
     parent: scene,
     camera,
-    guidedTourPreference,
   });
   const isBlockingPoiDetailPanel = (): boolean =>
     (hudPanelCoordinator?.getActivePanel() ?? null) === 'settings';
@@ -2413,37 +2318,6 @@ export function initializeImmersiveScene(
   const getFloorVisiblePoi = (
     poi: PoiDefinition | null
   ): PoiDefinition | null => (isPoiVisibleOnActiveFloor(poi) ? poi : null);
-  const getVisiblePoiRecommendation = (): PoiDefinition | null => {
-    if (
-      currentGuidedTourRecommendation &&
-      currentGuidedTourRecommendation.id !==
-        dismissedPassiveRecommendationPoiId &&
-      floorVisibilityController.isPoiVisibleOnActiveFloor(
-        currentGuidedTourRecommendation
-      )
-    ) {
-      return currentGuidedTourRecommendation;
-    }
-    return null;
-  };
-  const syncPoiRecommendation = () => {
-    const visibleRecommendation = getVisiblePoiRecommendation();
-    poiTooltipOverlay.setRecommendation(visibleRecommendation);
-    poiWorldTooltip.setRecommendation(
-      resolveWorldTooltipTarget(visibleRecommendation)
-    );
-  };
-  const suppressActivePoiRecommendation = (poi: PoiDefinition | null) => {
-    if (
-      poi === null ||
-      currentGuidedTourRecommendation === null ||
-      currentGuidedTourRecommendation.id !== poi.id
-    ) {
-      return;
-    }
-    dismissedPassiveRecommendationPoiId = poi.id;
-    syncPoiRecommendation();
-  };
   const syncPoiDetailOverlay = (layoutOverride?: HudLayout) => {
     const canShowDetail = canShowPoiDetailOverlay(layoutOverride);
     const showHover =
@@ -2474,9 +2348,6 @@ export function initializeImmersiveScene(
   const dismissActivePoiDetail = (
     inputMethod: 'keyboard' | 'pointer' | 'touch' = 'pointer'
   ) => {
-    const activePoi =
-      currentSelectedPoi ?? currentHoveredPoi ?? getVisiblePoiRecommendation();
-    suppressActivePoiRecommendation(activePoi);
     clearPoiDetailState(inputMethod);
     hudPanelCoordinator?.closeAllPanels();
   };
@@ -2506,9 +2377,6 @@ export function initializeImmersiveScene(
   setPortfolioSection('audio', {
     getState: getAudioDebugState,
   });
-  setPortfolioSection('narration', {
-    getState: getNarrationDebugState,
-  });
   const wirePoiGitHubMetrics = () => {
     githubRepoMetrics?.dispose();
     githubRepoMetrics = wireGitHubRepoMetrics({
@@ -2530,27 +2398,6 @@ export function initializeImmersiveScene(
   };
   wirePoiGitHubMetrics();
   const poiVisitedState = new PoiVisitedState();
-  const poiTourGuide = new PoiTourGuide({
-    definitions: poiDefinitions,
-    visitedState: poiVisitedState,
-    priorityOrder: [
-      'futuroptimist-living-room-tv',
-      'tokenplace-studio-cluster',
-      'gabriel-studio-sentry',
-      'flywheel-studio-flywheel',
-      'jobbot-studio-terminal',
-      'axel-studio-tracker',
-      'gitshelves-living-room-installation',
-      'danielsmith-portfolio-table',
-      'f2clipboard-kitchen-console',
-      'sigma-kitchen-workbench',
-      'wove-kitchen-loom',
-      'pr-reaper-backyard-console',
-      'dspace-backyard-rocket',
-      'sugarkube-backyard-greenhouse',
-    ],
-  });
-
   const resolveWorldTooltipTarget = (
     poi: PoiDefinition | null
   ): PoiWorldTooltipTarget | null => {
@@ -2631,9 +2478,6 @@ export function initializeImmersiveScene(
   };
   ensurePoiApi();
 
-  let visitedInitialized = false;
-  let previousVisited = new Set<string>();
-
   const handleVisitedUpdate = (visited: ReadonlySet<string>) => {
     for (const poi of poiInstances) {
       const isVisited = visited.has(poi.definition.id);
@@ -2642,86 +2486,10 @@ export function initializeImmersiveScene(
       }
     }
     poiTooltipOverlay.setVisitedPoiIds(visited);
-    let hasRemovedVisits = false;
-    for (const id of previousVisited) {
-      if (!visited.has(id)) {
-        hasRemovedVisits = true;
-        break;
-      }
-    }
-    if (poiNarrativeLog) {
-      const visitedDefinitions = Array.from(visited)
-        .map((id) => poiDefinitionsById.get(id as PoiId))
-        .filter((definition): definition is PoiDefinition =>
-          Boolean(definition)
-        );
-
-      poiNarrativeLog.syncVisited(visitedDefinitions, {
-        visitedLabel: narrativeLogStrings.defaultVisitedLabel,
-      });
-
-      if (!visitedInitialized) {
-        proceduralNarrator?.primeVisited(visitedDefinitions);
-      } else {
-        if (hasRemovedVisits) {
-          poiNarrativeLog.clearJourneys();
-          proceduralNarrator?.primeVisited(visitedDefinitions);
-        }
-        for (const id of visited) {
-          if (previousVisited.has(id)) {
-            continue;
-          }
-          const definition = poiDefinitionsById.get(id as PoiId);
-          if (!definition) {
-            continue;
-          }
-          proceduralNarrator?.handleVisit(definition);
-          const timeLabel = narrativeTimeFormatter.format(new Date());
-          const visitedLabel = formatMessage(
-            narrativeLogStrings.visitedLabelTemplate,
-            { time: timeLabel }
-          );
-          poiNarrativeLog.recordVisit(definition, {
-            visitedLabel,
-          });
-        }
-      }
-    }
-    previousVisited = new Set(visited);
-    visitedInitialized = true;
   };
 
   const removeVisitedSubscription =
     poiVisitedState.subscribe(handleVisitedUpdate);
-  const initialGuidedTourEnabled = guidedTourPreference.isEnabled();
-  guidedTourChannel = new GuidedTourChannel({
-    source: poiTourGuide,
-    enabled: initialGuidedTourEnabled,
-  });
-  removeNarrationPreferenceSubscription = narrationPreference.subscribe(
-    ({ enabled }) => {
-      narrationToggleControl?.setEnabled(enabled);
-      if (!enabled) {
-        clearNarrationSubtitles();
-      }
-    }
-  );
-  removeGuidedTourPreferenceSubscription = guidedTourPreference.subscribe(
-    (enabled) => {
-      guidedTourChannel?.setEnabled(enabled);
-      tourGuideToggleControl?.setEnabled(enabled);
-    }
-  );
-  removeGuidedTourSubscription = guidedTourChannel.subscribe(
-    (recommendation) => {
-      if (recommendation?.id !== dismissedPassiveRecommendationPoiId) {
-        dismissedPassiveRecommendationPoiId = null;
-      }
-      currentGuidedTourRecommendation = recommendation;
-      syncPoiRecommendation();
-    }
-  );
-
   const futuroptimistPoi = poiInstances.find(
     (poi) => poi.definition.id === 'futuroptimist-living-room-tv'
   );
@@ -3276,15 +3044,6 @@ export function initializeImmersiveScene(
     (poi) => {
       idleMonitor?.reportActivity();
       poiVisitedState.markVisited(poi.id);
-      if (poi.narration?.caption) {
-        showNarrationSubtitle({
-          id: `poi-${poi.id}`,
-          text: poi.narration.caption,
-          source: 'poi',
-          durationMs: poi.narration.durationMs,
-          priority: 5,
-        });
-      }
     }
   );
   poiInteractionManager.start();
@@ -3863,14 +3622,6 @@ export function initializeImmersiveScene(
     });
   };
 
-  poiNarrativeLog = createPoiNarrativeLog({
-    container: helpModal.element,
-    strings: narrativeLogStrings,
-  });
-  proceduralNarrator = new ProceduralNarrator({
-    log: poiNarrativeLog,
-    definitions: poiDefinitions,
-  });
   const hasVariantControl = Boolean(avatarVariantManager);
   const hasAccessoryControl = Boolean(
     avatarAccessoryManager && avatarAccessorySuite
@@ -4205,14 +3956,10 @@ export function initializeImmersiveScene(
     modeToggleStrings = getModeToggleStrings(locale);
     audioHudStrings = getAudioHudControlStrings(locale);
     audioSubtitleStrings = getAudioSubtitleStrings(locale);
-    narrationToggleStrings = getNarrationToggleStrings(locale);
     debugCoordinatesStrings = getDebugCoordinatesStrings(locale);
     debugCollidersStrings = getDebugCollidersStrings(locale);
     helpModalController?.setAnnouncements(helpModalStrings.announcements);
-    narrativeLogStrings = getPoiNarrativeLogStrings(locale);
     poiOverlayStrings = getPoiOverlayChromeStrings(locale);
-    tourGuideToggleStrings = getTourGuideToggleStrings(locale);
-    tourResetControlStrings = getTourResetControlStrings(locale);
     softwareRendererWarningStrings = getSoftwareRendererWarningStrings(locale);
     lowFpsRecoveryStrings = getLowFpsRecoveryStrings(locale);
     if (lowFpsRecoveryPopup && !lowFpsRecoveryPopup.hidden) {
@@ -4220,17 +3967,12 @@ export function initializeImmersiveScene(
     }
     siteStrings = getSiteStrings(locale);
     syncModeAnnouncerStrings();
-    narrativeTimeFormatter = new Intl.DateTimeFormat(
-      locale === 'en-x-pseudo' ? 'en' : locale,
-      { hour: 'numeric', minute: '2-digit' }
-    );
     interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
     interactDescriptionFallback = controlOverlayStrings.interact.description;
     helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
 
     const selectedId = currentSelectedPoi?.id ?? null;
     const hoveredId = currentHoveredPoi?.id ?? null;
-    const recommendationId = currentGuidedTourRecommendation?.id ?? null;
     poiDefinitions = getPoiDefinitions(locale);
     poiDefinitionsById = new Map(
       poiDefinitions.map((definition) => [definition.id, definition] as const)
@@ -4247,11 +3989,6 @@ export function initializeImmersiveScene(
     currentHoveredPoi = hoveredId
       ? (poiDefinitionsById.get(hoveredId) ?? null)
       : null;
-    currentGuidedTourRecommendation = recommendationId
-      ? (poiDefinitionsById.get(recommendationId) ?? null)
-      : null;
-    poiTourGuide.setDefinitions(poiDefinitions);
-    proceduralNarrator?.setDefinitions(poiDefinitions);
     wirePoiGitHubMetrics();
     injectPoiStructuredData(poiDefinitions, {
       siteName: siteStrings.name,
@@ -4282,29 +4019,14 @@ export function initializeImmersiveScene(
     helpModal.setContent(helpModalStrings);
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     localeToggleControl?.setStrings(localeToggleStrings);
-    poiNarrativeLog?.setStrings(narrativeLogStrings);
     poiTooltipOverlay.setStrings(poiOverlayStrings, locale);
     audioSubtitles?.setLabels(audioSubtitleStrings);
-    narrationToggleControl?.setStrings(narrationToggleStrings);
     refreshDebugCoordinatesStrings();
     refreshDebugCollidersStrings();
-    tourGuideToggleControl?.setStrings(tourGuideToggleStrings);
-    tourResetControl?.setStrings(tourResetControlStrings);
     updateHelpButtonLabel();
     localeToggleControl?.refresh();
-    syncPoiRecommendation();
     syncPoiDetailOverlay();
     refreshInteractablePoiPrompt();
-
-    const visitedSnapshot = poiVisitedState.snapshot();
-    const visitedDefinitions = Array.from(visitedSnapshot)
-      .map((id) => poiDefinitionsById.get(id as PoiId))
-      .filter((definition): definition is PoiDefinition => Boolean(definition));
-    if (visitedDefinitions.length > 0 && poiNarrativeLog) {
-      poiNarrativeLog.syncVisited(visitedDefinitions, {
-        visitedLabel: narrativeLogStrings.defaultVisitedLabel,
-      });
-    }
   };
 
   const canonicalLocaleOptions = getLocaleToggleStrings('en').options;
@@ -4377,7 +4099,6 @@ export function initializeImmersiveScene(
     floorVisibilityController.setActiveFloorId(next);
     poiWorldTooltip.setActiveFloorId(next);
     syncPoiDetailOverlay();
-    syncPoiRecommendation();
     document.documentElement.dataset.activeFloor = next;
     colliderVisualizer.setActiveFloor(next);
   };
@@ -5418,9 +5139,6 @@ export function initializeImmersiveScene(
     labels: audioSubtitleStrings.labels,
     dismissLabels: audioSubtitleStrings.dismissLabels,
   });
-  if (!narrationPreference.isEnabled()) {
-    clearNarrationSubtitles();
-  }
 
   if (!ambientAudioController) {
     const audioBeds: AmbientAudioBedDefinition[] = [];
@@ -5554,7 +5272,7 @@ export function initializeImmersiveScene(
       ambientCaptionBridge = new AmbientCaptionBridge({
         controller: ambientAudioController,
         subtitles: {
-          show: (message) => showNarrationSubtitle(message),
+          show: (message) => audioSubtitles?.show(message),
           clear: (messageId) => audioSubtitles?.clear(messageId),
           dismissAll: () => audioSubtitles?.dismissAll(),
           dispose: () => audioSubtitles?.dispose(),
@@ -5594,37 +5312,6 @@ export function initializeImmersiveScene(
       onToggle: activateTextMode,
     });
     registerHudControlElement(manualModeToggle?.element ?? null);
-
-    narrationToggleControl = createNarrationToggleControl({
-      container: hudSettingsStack,
-      initialEnabled: narrationPreference.isEnabled(),
-      onToggle: (enabled) => {
-        narrationPreference.setEnabled(enabled, 'control');
-      },
-      strings: narrationToggleStrings,
-    });
-    registerHudControlElement(narrationToggleControl?.element ?? null);
-
-    tourGuideToggleControl = createTourGuideToggleControl({
-      container: hudSettingsStack,
-      initialEnabled: guidedTourPreference.isEnabled(),
-      onToggle: (enabled) => {
-        guidedTourPreference.setEnabled(enabled, 'control');
-      },
-      strings: tourGuideToggleStrings,
-    });
-    registerHudControlElement(tourGuideToggleControl?.element ?? null);
-
-    tourResetControl = createTourResetControl({
-      container: hudSettingsStack,
-      subscribeVisited: (listener) => poiVisitedState.subscribe(listener),
-      onReset: () => {
-        poiVisitedState.reset();
-      },
-      strings: tourResetControlStrings,
-      guidedTourPreference,
-    });
-    registerHudControlElement(tourResetControl?.element ?? null);
   }
 
   let composer: EffectComposer | null = null;
@@ -6508,21 +6195,6 @@ export function initializeImmersiveScene(
     removeSelectionStateListener();
     removeSelectionListener();
     removeVisitedSubscription();
-    if (removeGuidedTourSubscription) {
-      removeGuidedTourSubscription();
-      removeGuidedTourSubscription = null;
-    }
-    if (removeGuidedTourPreferenceSubscription) {
-      removeGuidedTourPreferenceSubscription();
-      removeGuidedTourPreferenceSubscription = null;
-    }
-    if (removeNarrationPreferenceSubscription) {
-      removeNarrationPreferenceSubscription();
-      removeNarrationPreferenceSubscription = null;
-    }
-    guidedTourChannel?.dispose();
-    guidedTourChannel = null;
-    guidedTourPreference.dispose();
     if (githubRepoMetrics) {
       githubRepoMetrics.dispose();
       githubRepoMetrics = null;
@@ -6530,22 +6202,9 @@ export function initializeImmersiveScene(
     interactionTimeline.dispose();
     poiTooltipOverlay.dispose();
     poiWorldTooltip.dispose();
-    poiTourGuide.dispose();
     if (manualModeToggle) {
       manualModeToggle.dispose();
       manualModeToggle = null;
-    }
-    if (narrationToggleControl) {
-      narrationToggleControl.dispose();
-      narrationToggleControl = null;
-    }
-    if (tourGuideToggleControl) {
-      tourGuideToggleControl.dispose();
-      tourGuideToggleControl = null;
-    }
-    if (tourResetControl) {
-      tourResetControl.dispose();
-      tourResetControl = null;
     }
     if (ambientAudioPreferenceBinding) {
       ambientAudioPreferenceBinding.dispose();
@@ -6677,9 +6336,6 @@ export function initializeImmersiveScene(
     if (window.portfolio?.audio) {
       clearPortfolioSection('audio');
     }
-    if (window.portfolio?.narration) {
-      clearPortfolioSection('narration');
-    }
     if (window.portfolio?.debugColliders) {
       clearPortfolioSection('debugColliders');
     }
@@ -6730,15 +6386,6 @@ export function initializeImmersiveScene(
     colliderVisualizer.dispose();
     solidVisualizer.dispose();
     movementLegend?.dispose();
-    narrationPreference.dispose();
-    if (proceduralNarrator) {
-      proceduralNarrator.dispose();
-      proceduralNarrator = null;
-    }
-    if (poiNarrativeLog) {
-      poiNarrativeLog.dispose();
-      poiNarrativeLog = null;
-    }
     if (helpModalController) {
       helpModalController.dispose();
       helpModalController = null;

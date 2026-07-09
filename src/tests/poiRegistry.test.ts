@@ -151,16 +151,6 @@ describe('POI registry', () => {
     }
     mutated.links?.push({ label: 'Temp', href: '#' });
 
-    const flywheel = firstCall.find(
-      (poi) => poi.id === 'flywheel-studio-flywheel'
-    );
-    const flywheelBaseline = secondCall.find(
-      (poi) => poi.id === 'flywheel-studio-flywheel'
-    );
-    if (flywheel?.narration) {
-      flywheel.narration.caption = 'Altered caption';
-    }
-
     const thirdCall = getPoiDefinitionsByRoom('studio');
     const refreshed = thirdCall[0];
     expect(refreshed.title).toBe(originalTitle);
@@ -168,13 +158,6 @@ describe('POI registry', () => {
     expect(refreshed.footprint.width).toBe(originalFootprintWidth);
     expect(refreshed.metrics?.[0]?.value).toBe(originalMetricValue);
     expect(refreshed.links?.length ?? 0).toBe(originalLinksLength);
-
-    const refreshedFlywheel = thirdCall.find(
-      (poi) => poi.id === 'flywheel-studio-flywheel'
-    );
-    expect(refreshedFlywheel?.narration?.caption).toBe(
-      flywheelBaseline?.narration?.caption
-    );
   });
 
   it('returns an empty array when a room has no registered POIs', () => {
