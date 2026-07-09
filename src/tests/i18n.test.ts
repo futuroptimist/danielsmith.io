@@ -456,7 +456,7 @@ describe('i18n utilities', () => {
     const spanishHelp = getHelpModalStrings('es');
     expect(spanishHelp.sections[0]?.title).toBe('Movimiento y cámara');
     expect(spanishHelp.sections[0]?.items[3]?.description).toBe(
-      'Acerca o aleja sin rueda de ratón.'
+      getControlOverlayStrings('es').items.keyboardZoom.description
     );
     const germanHelp = getHelpModalStrings('de');
     expect(germanHelp.sections[2]?.title).toBe('Barrierefreiheit & Fallback');

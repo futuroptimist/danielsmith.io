@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { getControlOverlayStrings } from '../assets/i18n';
+import {
+  AVAILABLE_LOCALES,
+  getControlOverlayStrings,
+  getHelpModalStrings,
+} from '../assets/i18n';
+import { CONTROL_ITEM_IDS } from '../ui/hud/controlItems';
 import { applyControlOverlayStrings } from '../ui/hud/controlOverlay';
+import { createHelpModal } from '../ui/hud/helpModal';
 
 describe('applyControlOverlayStrings', () => {
   it('updates heading, list items, and interact defaults', () => {
@@ -81,5 +87,51 @@ describe('applyControlOverlayStrings', () => {
     expect(toggle?.dataset.hudAnnounce).toBe(
       strings.mobileToggle.expandAnnouncement
     );
+  });
+
+  it('renders the same ordered controls rows in the popover and Settings for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const overlay = document.createElement('div');
+      overlay.innerHTML = `
+        <p class="overlay__heading" data-control-text="heading">Placeholder</p>
+        <ul class="overlay__list" data-role="control-list">
+          ${CONTROL_ITEM_IDS.map(
+            (id) => `
+              <li class="overlay__item" data-control-item="${id}">
+                <span class="overlay__keys"></span>
+                <span class="overlay__description"></span>
+              </li>`
+          ).join('')}
+        </ul>
+      `;
+      applyControlOverlayStrings(overlay, getControlOverlayStrings(locale));
+
+      const popoverRows = Array.from(
+        overlay.querySelectorAll<HTMLElement>('[data-control-item]')
+      ).map((item) => ({
+        label: item.querySelector('.overlay__keys')?.textContent ?? '',
+        description:
+          item.querySelector('.overlay__description')?.textContent ?? '',
+      }));
+
+      const modalHost = document.createElement('div');
+      const modal = createHelpModal({
+        container: modalHost,
+        content: getHelpModalStrings(locale),
+      });
+      const settingsRows = Array.from(
+        modal.element.querySelectorAll<HTMLElement>(
+          '#help-modal-section-movement .help-modal__item'
+        )
+      ).map((item) => ({
+        label: item.querySelector('.help-modal__item-label')?.textContent ?? '',
+        description:
+          item.querySelector('.help-modal__item-description')?.textContent ??
+          '',
+      }));
+
+      expect(settingsRows, locale).toEqual(popoverRows);
+      modal.dispose();
+    }
   });
 });
