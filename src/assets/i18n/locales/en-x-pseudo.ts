@@ -472,6 +472,20 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       },
       selectedAnnouncementTemplate: wrap('{label} preset selected.'),
     },
+    motionBlur: {
+      heading: '⟦Mõtiõn blür ínténsity⟧',
+      description:
+        '⟦Adjust the trail effect applied to fast camera and avatar movement.⟧',
+      groupAriaLabel: '⟦Mõtiõn blür controls⟧',
+      sliderAnnouncement: '⟦Mõtiõn blür ínténsity changed.⟧',
+      values: {
+        off: '⟦Off⟧',
+        lowTemplate: '⟦{percent}% · Low trails⟧',
+        mediumTemplate: '⟦{percent}% · Medium trails⟧',
+        highTemplate: '⟦{percent}% · High trails⟧',
+      },
+    },
+
     softwareRendererWarning: {
       fallbackRendererLabel: wrap('software WebGL renderer'),
       title: wrap('Software rendering detected'),

@@ -9,12 +9,10 @@ import {
 } from '../scene/graphics/qualityManager';
 
 describe('createGraphicsQualityManager', () => {
-  it('documents model detail in every preset description', () => {
+  it('keeps preset definitions limited to behavioral model data', () => {
     expect(
-      GRAPHICS_QUALITY_PRESETS.every((preset) =>
-        /detail 3D models|3D model detail|detail 3D model/i.test(
-          preset.description
-        )
+      GRAPHICS_QUALITY_PRESETS.every(
+        (preset) => !('label' in preset) && !('description' in preset)
       )
     ).toBe(true);
   });

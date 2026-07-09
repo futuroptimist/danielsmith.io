@@ -196,6 +196,19 @@ export interface PresetControlStrings<OptionId extends string> {
   selectedAnnouncementTemplate: string;
 }
 
+export interface MotionBlurControlStrings {
+  heading: string;
+  description: string;
+  groupAriaLabel: string;
+  sliderAnnouncement: string;
+  values: {
+    off: string;
+    lowTemplate: string;
+    mediumTemplate: string;
+    highTemplate: string;
+  };
+}
+
 export interface HudCustomizationStrings {
   heading: string;
   description: string;
@@ -413,6 +426,7 @@ export interface LocaleStrings {
     accessibilityPresets: PresetControlStrings<
       'standard' | 'calm' | 'high-contrast' | 'photosensitive'
     >;
+    motionBlur: MotionBlurControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     lowFpsRecovery: LowFpsRecoveryStrings;
     helpModal: HelpModalStrings;

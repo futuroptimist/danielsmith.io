@@ -369,6 +369,19 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       selectedAnnouncementTemplate: '已选择 {label} 预设。',
     },
+    motionBlur: {
+      heading: '运动模糊强度',
+      description: '调整快速镜头和角色移动时的拖影效果。',
+      groupAriaLabel: '运动模糊控件',
+      sliderAnnouncement: '运动模糊强度已更改。',
+      values: {
+        off: '关闭',
+        lowTemplate: '{percent}% · 低拖影',
+        mediumTemplate: '{percent}% · 中拖影',
+        highTemplate: '{percent}% · 高拖影',
+      },
+    },
+
     softwareRendererWarning: {
       fallbackRendererLabel: '软件 WebGL 渲染器',
       title: '检测到软件渲染',

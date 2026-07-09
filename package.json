@@ -32,7 +32,7 @@
     "miniature:manifest:update": "tsx scripts/miniatureManifest.ts --update",
     "smoke:promotion": "node scripts/run-promotion-smoke.cjs",
     "perf:budget": "playwright test playwright/immersive-performance.spec.ts",
-    "check:static": "npm run lint && npm run typecheck && npm run test:ci",
+    "check:static": "npm run i18n:guard && npm run lint && npm run typecheck && npm run test:ci",
     "i18n:guard": "node scripts/check-hardcoded-ui-strings.cjs"
   },
   "dependencies": {

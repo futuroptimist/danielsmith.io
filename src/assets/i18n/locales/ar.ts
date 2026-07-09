@@ -203,6 +203,19 @@ export const AR_OVERRIDES: LocaleOverrides = {
       },
       selectedAnnouncementTemplate: 'تم اختيار إعداد {label}.',
     },
+    motionBlur: {
+      heading: 'شدة ضبابية الحركة',
+      description: 'اضبط أثر المسارات أثناء حركة الكاميرا أو الشخصية بسرعة.',
+      groupAriaLabel: 'عناصر ضبابية الحركة',
+      sliderAnnouncement: 'تغيّرت شدة ضبابية الحركة.',
+      values: {
+        off: 'إيقاف',
+        lowTemplate: '{percent}% · مسارات منخفضة',
+        mediumTemplate: '{percent}% · مسارات متوسطة',
+        highTemplate: '{percent}% · مسارات عالية',
+      },
+    },
+
     controlOverlay: {
       heading: 'عناصر التحكم',
       items: {

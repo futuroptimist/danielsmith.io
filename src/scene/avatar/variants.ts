@@ -4,16 +4,12 @@ export type AvatarVariantId = 'portfolio' | 'casual' | 'formal';
 
 export interface AvatarVariantDefinition {
   id: AvatarVariantId;
-  label: string;
-  description: string;
   palette: PortfolioMannequinPalette;
 }
 
 export const AVATAR_VARIANTS: readonly AvatarVariantDefinition[] = [
   {
     id: 'portfolio',
-    label: 'Portfolio',
-    description: 'Signature dusk suit with neon visor highlights.',
     palette: {
       base: '#283347',
       accent: '#57d7ff',
@@ -22,8 +18,6 @@ export const AVATAR_VARIANTS: readonly AvatarVariantDefinition[] = [
   },
   {
     id: 'casual',
-    label: 'Casual',
-    description: 'Sunset hoodie with teal accents for relaxed walkthroughs.',
     palette: {
       base: '#2a343d',
       accent: '#36d1b5',
@@ -32,8 +26,6 @@ export const AVATAR_VARIANTS: readonly AvatarVariantDefinition[] = [
   },
   {
     id: 'formal',
-    label: 'Formal',
-    description: 'Charcoal blazer with gilded trims for keynote demos.',
     palette: {
       base: '#1f242b',
       accent: '#ffd166',

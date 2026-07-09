@@ -517,22 +517,9 @@ interface ImmersiveControlOverlayAccessibilityOptions {
 }
 
 function getMotionBlurControlCopy(
-  helpModalStrings: ReturnType<typeof getHelpModalStrings>
+  hudStrings: ReturnType<typeof getLocaleStrings>['hud']
 ) {
-  const accessibilitySection = helpModalStrings.sections.find(
-    (section) => section.id === 'accessibility'
-  );
-  const motionBlurItem = accessibilitySection?.items.find(
-    (item) => item.id === 'motion-blur'
-  );
-  return {
-    label: motionBlurItem?.label ?? helpModalStrings.settings.heading,
-    description:
-      motionBlurItem?.description ?? helpModalStrings.settings.description,
-    groupLabel: motionBlurItem?.label ?? helpModalStrings.settings.heading,
-    sliderAnnouncement:
-      motionBlurItem?.description ?? helpModalStrings.settings.description,
-  };
+  return hudStrings.motionBlur;
 }
 
 export const applyImmersiveControlOverlayAccessibility = ({
@@ -3486,22 +3473,22 @@ export function initializeImmersiveScene(
         avatarVariantManager?.setVariant(variant);
       },
       listVariants() {
-        return AVATAR_VARIANTS.map(({ id, label, description }) => ({
+        const variantStrings =
+          getLocaleStrings(locale).hud.customization.variants;
+        return AVATAR_VARIANTS.map(({ id }) => ({
           id,
-          label,
-          description,
+          ...variantStrings.options[id],
         }));
       },
       listAccessories() {
+        const accessoryStrings =
+          getLocaleStrings(locale).hud.customization.accessories;
         return (
-          avatarAccessorySuite?.definitions.map(
-            ({ id, label, description }) => ({
-              id,
-              label,
-              description,
-              enabled: avatarAccessoryManager?.isEnabled(id) ?? false,
-            })
-          ) ?? []
+          avatarAccessorySuite?.definitions.map(({ id }) => ({
+            id,
+            ...accessoryStrings.options[id],
+            enabled: avatarAccessoryManager?.isEnabled(id) ?? false,
+          })) ?? []
         );
       },
       getAccessories(): AvatarAccessoryState[] {
@@ -4032,7 +4019,9 @@ export function initializeImmersiveScene(
     }
     manualModeToggle?.setStrings(modeToggleStrings);
     audioHudHandle?.setStrings(audioHudStrings);
-    motionBlurControl?.setStrings(getMotionBlurControlCopy(helpModalStrings));
+    motionBlurControl?.setStrings(
+      getMotionBlurControlCopy(getLocaleStrings(locale).hud)
+    );
     softwareRendererWarning?.setStrings(softwareRendererWarningStrings);
     helpModal.setContent(helpModalStrings);
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
@@ -5453,7 +5442,7 @@ export function initializeImmersiveScene(
       accessibilityPresetManager?.getBaseMotionBlurIntensity() ??
       motionBlurController?.getIntensity() ??
       0,
-    ...getMotionBlurControlCopy(helpModalStrings),
+    strings: getMotionBlurControlCopy(getLocaleStrings(locale).hud),
     setIntensity: (intensity) => {
       if (accessibilityPresetManager) {
         accessibilityPresetManager.setBaseMotionBlurIntensity(intensity);

@@ -355,6 +355,15 @@ const settingsCopies = {
     photosensitiveDesc:
       'Desactiva bloom, atenúa emisivos y aumenta contraste del HUD.',
     selected: 'Preajuste {label} seleccionado.',
+    motionBlurHeading: 'Intensidad de desenfoque de movimiento',
+    motionBlurDescription:
+      'Ajusta las estelas de cámara y avatar en movimiento rápido.',
+    motionBlurGroup: 'Controles de desenfoque de movimiento',
+    motionBlurAnnouncement: 'Intensidad de desenfoque de movimiento cambiada.',
+    motionBlurOff: 'Desactivado',
+    motionBlurLow: '{percent}% · Estelas bajas',
+    motionBlurMedium: '{percent}% · Estelas medias',
+    motionBlurHigh: '{percent}% · Estelas altas',
   },
   pt: {
     graphicsTitle: 'Qualidade gráfica',
@@ -383,6 +392,15 @@ const settingsCopies = {
     photosensitiveDesc:
       'Desativa bloom, reduz emissivos e aumenta contraste do HUD.',
     selected: 'Predefinição {label} selecionada.',
+    motionBlurHeading: 'Intensidade do desfoque de movimento',
+    motionBlurDescription:
+      'Ajuste os rastros de câmera e avatar em movimento rápido.',
+    motionBlurGroup: 'Controles de desfoque de movimento',
+    motionBlurAnnouncement: 'Intensidade do desfoque de movimento alterada.',
+    motionBlurOff: 'Desligado',
+    motionBlurLow: '{percent}% · Rastros baixos',
+    motionBlurMedium: '{percent}% · Rastros médios',
+    motionBlurHigh: '{percent}% · Rastros altos',
   },
   de: {
     graphicsTitle: 'Grafikqualität',
@@ -408,6 +426,15 @@ const settingsCopies = {
     photosensitiveDesc:
       'Deaktiviert Bloom, dämpft Emissives und erhöht HUD-Kontrast.',
     selected: 'Preset {label} ausgewählt.',
+    motionBlurHeading: 'Bewegungsunschärfe-Intensität',
+    motionBlurDescription:
+      'Passe Spuren bei schnellen Kamera- und Avatarbewegungen an.',
+    motionBlurGroup: 'Steuerung für Bewegungsunschärfe',
+    motionBlurAnnouncement: 'Bewegungsunschärfe-Intensität geändert.',
+    motionBlurOff: 'Aus',
+    motionBlurLow: '{percent}% · Niedrige Spuren',
+    motionBlurMedium: '{percent}% · Mittlere Spuren',
+    motionBlurHigh: '{percent}% · Hohe Spuren',
   },
   hu: {
     graphicsTitle: 'Grafikai minőség',
@@ -433,6 +460,15 @@ const settingsCopies = {
     photosensitiveDesc:
       'Kikapcsolja a bloomot, tompítja az emisszív fényeket és növeli a kontrasztot.',
     selected: '{label} előbeállítás kiválasztva.',
+    motionBlurHeading: 'Mozgáselmosás erőssége',
+    motionBlurDescription:
+      'Állítsd a gyors kamera- és avatarmozgás csóvahatását.',
+    motionBlurGroup: 'Mozgáselmosás vezérlők',
+    motionBlurAnnouncement: 'Mozgáselmosás erőssége módosítva.',
+    motionBlurOff: 'Ki',
+    motionBlurLow: '{percent}% · Gyenge csóvák',
+    motionBlurMedium: '{percent}% · Közepes csóvák',
+    motionBlurHigh: '{percent}% · Erős csóvák',
   },
 } as const;
 
@@ -557,6 +593,18 @@ function buildSettingsHud(
         },
       },
       selectedAnnouncementTemplate: copy.selected,
+    },
+    motionBlur: {
+      heading: copy.motionBlurHeading,
+      description: copy.motionBlurDescription,
+      groupAriaLabel: copy.motionBlurGroup,
+      sliderAnnouncement: copy.motionBlurAnnouncement,
+      values: {
+        off: copy.motionBlurOff,
+        lowTemplate: copy.motionBlurLow,
+        mediumTemplate: copy.motionBlurMedium,
+        highTemplate: copy.motionBlurHigh,
+      },
     },
     customization: {
       heading: customizationCopy.heading,

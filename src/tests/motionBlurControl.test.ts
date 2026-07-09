@@ -2,6 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createMotionBlurControl } from '../systems/controls/motionBlurControl';
 
+const STRINGS = {
+  heading: 'Motion blur intensity',
+  description: 'Adjust trails.',
+  groupAriaLabel: 'Motion blur controls',
+  sliderAnnouncement: 'Motion blur changed.',
+  values: {
+    off: 'Off',
+    lowTemplate: '{percent}% · Low trails',
+    mediumTemplate: '{percent}% · Medium trails',
+    highTemplate: '{percent}% · High trails',
+  },
+};
+
 describe('createMotionBlurControl', () => {
   let container: HTMLDivElement;
 
@@ -22,6 +35,7 @@ describe('createMotionBlurControl', () => {
       setIntensity: vi.fn((value: number) => {
         intensity = value;
       }),
+      strings: STRINGS,
     });
 
     const slider = container.querySelector<HTMLInputElement>(
@@ -54,6 +68,7 @@ describe('createMotionBlurControl', () => {
       container,
       getIntensity: () => intensity,
       setIntensity,
+      strings: STRINGS,
     });
 
     const slider = container.querySelector<HTMLInputElement>(

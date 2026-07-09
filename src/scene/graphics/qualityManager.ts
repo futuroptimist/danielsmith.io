@@ -2,8 +2,6 @@ export type GraphicsQualityLevel = 'cinematic' | 'balanced' | 'performance';
 
 export interface GraphicsQualityPresetDefinition {
   id: GraphicsQualityLevel;
-  label: string;
-  description: string;
   pixelRatioScale: number;
   exposure: number;
   bloom: {
@@ -22,9 +20,6 @@ export const GRAPHICS_QUALITY_PRESETS: readonly GraphicsQualityPresetDefinition[
   [
     {
       id: 'cinematic',
-      label: 'Cinematic',
-      description:
-        'Full post-processing, highest-detail 3D models, cinematic bloom and lighting.',
       pixelRatioScale: 1,
       exposure: 1.1,
       bloom: {
@@ -40,9 +35,6 @@ export const GRAPHICS_QUALITY_PRESETS: readonly GraphicsQualityPresetDefinition[
     },
     {
       id: 'balanced',
-      label: 'Balanced',
-      description:
-        'Moderate bloom, reduced resolution, and medium-detail 3D models for laptops.',
       pixelRatioScale: 0.85,
       exposure: 1.02,
       bloom: {
@@ -58,9 +50,6 @@ export const GRAPHICS_QUALITY_PRESETS: readonly GraphicsQualityPresetDefinition[
     },
     {
       id: 'performance',
-      label: 'Performance',
-      description:
-        'Disables bloom, lowers resolution, and uses lowest-detail 3D models to prioritize FPS.',
       pixelRatioScale: 0.7,
       exposure: 0.96,
       bloom: {

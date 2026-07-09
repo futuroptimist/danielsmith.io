@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { getLocaleStrings } from '../assets/i18n';
 import {
   GRAPHICS_QUALITY_PRESETS,
   type GraphicsQualityLevel,
@@ -7,13 +8,11 @@ import {
 import { createGraphicsQualityControl } from '../systems/controls/graphicsQualityControl';
 
 describe('createGraphicsQualityControl', () => {
-  const presets = GRAPHICS_QUALITY_PRESETS.map(
-    ({ id, label, description }) => ({
-      id,
-      label,
-      description,
-    })
-  );
+  const graphicsStrings = getLocaleStrings('en').hud.graphicsQuality;
+  const presets = GRAPHICS_QUALITY_PRESETS.map(({ id }) => ({
+    id,
+    ...graphicsStrings.options[id],
+  }));
 
   it('renders presets, updates state, and handles refreshes', async () => {
     const container = document.createElement('div');

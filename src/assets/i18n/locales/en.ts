@@ -466,6 +466,19 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       },
       selectedAnnouncementTemplate: '{label} preset selected.',
     },
+    motionBlur: {
+      heading: 'Motion blur intensity',
+      description:
+        'Adjust the trail effect applied to fast camera and avatar movement.',
+      groupAriaLabel: 'Motion blur controls',
+      sliderAnnouncement: 'Motion blur intensity changed.',
+      values: {
+        off: 'Off',
+        lowTemplate: '{percent}% · Low trails',
+        mediumTemplate: '{percent}% · Medium trails',
+        highTemplate: '{percent}% · High trails',
+      },
+    },
     softwareRendererWarning: {
       fallbackRendererLabel: 'software WebGL renderer',
       title: 'Software rendering detected',

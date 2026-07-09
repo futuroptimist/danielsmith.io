@@ -88,6 +88,9 @@ export function createAvatarVariantControl({
   wrapper.append(heading, descriptionParagraph, optionsList, liveRegion);
   container.appendChild(wrapper);
 
+  const paletteById = new Map(
+    options.map((option) => [option.id, option.palette])
+  );
   let localizedOptions: AvatarVariantControlStringOption[] = [...options];
   const inputs: HTMLInputElement[] = [];
   const optionLabels = new Map<string, HTMLElement>();
@@ -199,9 +202,9 @@ export function createAvatarVariantControl({
     };
 
     swatches.append(
-      createSwatch(option.palette.base, 'base'),
-      createSwatch(option.palette.accent, 'accent'),
-      createSwatch(option.palette.trim, 'trim')
+      createSwatch(paletteById.get(option.id)?.base ?? '#000000', 'base'),
+      createSwatch(paletteById.get(option.id)?.accent ?? '#000000', 'accent'),
+      createSwatch(paletteById.get(option.id)?.trim ?? '#000000', 'trim')
     );
 
     details.append(titleSpan, descriptionSpan, swatches);

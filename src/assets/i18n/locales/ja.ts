@@ -206,6 +206,19 @@ export const JA_OVERRIDES: LocaleOverrides = {
       },
       selectedAnnouncementTemplate: '{label} プリセットを選択しました。',
     },
+    motionBlur: {
+      heading: 'モーションブラー強度',
+      description: 'カメラやアバターが速く動くときの残像効果を調整します。',
+      groupAriaLabel: 'モーションブラー操作',
+      sliderAnnouncement: 'モーションブラー強度を変更しました。',
+      values: {
+        off: 'オフ',
+        lowTemplate: '{percent}% · 低い残像',
+        mediumTemplate: '{percent}% · 中程度の残像',
+        highTemplate: '{percent}% · 高い残像',
+      },
+    },
+
     controlOverlay: {
       heading: '操作',
       items: {
