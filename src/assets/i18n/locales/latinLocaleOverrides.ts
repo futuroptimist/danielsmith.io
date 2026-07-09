@@ -117,6 +117,7 @@ const localizedTemplates: Record<
     cyclePoi: string;
     interactDefault: string;
     interactDescription: string;
+    lightingDebug: string;
     interactDefaultPrompt: string;
     interactInspectPrompt: string;
     interactActivatePrompt: string;
@@ -163,6 +164,7 @@ const localizedTemplates: Record<
     cyclePoi: 'Recorrer POI',
     interactDefault: 'Entrar',
     interactDescription: 'Interactuar',
+    lightingDebug: 'Alternar vista de depuración de iluminación',
     interactDefaultPrompt: 'Interactuar con {title}',
     interactInspectPrompt: 'Inspeccionar {title}',
     interactActivatePrompt: 'Activar {title}',
@@ -211,6 +213,7 @@ const localizedTemplates: Record<
     cyclePoi: 'Percorrer POIs',
     interactDefault: 'Entrar',
     interactDescription: 'Interagir',
+    lightingDebug: 'Alternar visualização de depuração de iluminação',
     interactDefaultPrompt: 'Interagir com {title}',
     interactInspectPrompt: 'Inspecionar {title}',
     interactActivatePrompt: 'Ativar {title}',
@@ -260,6 +263,7 @@ const localizedTemplates: Record<
     cyclePoi: 'POIs wechseln',
     interactDefault: 'Öffnen',
     interactDescription: 'Interagieren',
+    lightingDebug: 'Beleuchtungs-Debugansicht umschalten',
     interactDefaultPrompt: 'Mit {title} interagieren',
     interactInspectPrompt: '{title} ansehen',
     interactActivatePrompt: '{title} aktivieren',
@@ -308,6 +312,7 @@ const localizedTemplates: Record<
     cyclePoi: 'POI-k váltása',
     interactDefault: 'Megnyitás',
     interactDescription: 'Interakció',
+    lightingDebug: 'Világítási hibakereső nézet váltása',
     interactDefaultPrompt: 'Interakció: {title}',
     interactInspectPrompt: '{title} megtekintése',
     interactActivatePrompt: '{title} aktiválása',
@@ -568,6 +573,7 @@ export function buildLatinLocaleOverrides(
             description: templates.cyclePoi,
           },
           toggleTextMode: { description: s.textMode },
+          lightingDebug: { description: templates.lightingDebug },
         },
         interact: {
           defaultLabel: templates.interactDefault,

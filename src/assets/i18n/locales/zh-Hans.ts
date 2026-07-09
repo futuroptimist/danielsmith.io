@@ -155,6 +155,10 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         touchPinch: { keys: '捏合', description: '缩放' },
         cyclePoi: { keys: 'Q / E', description: '切换 POI' },
         toggleTextMode: { keys: 'T', description: '切换到文本模式' },
+        lightingDebug: {
+          keys: 'Shift + L',
+          description: '切换灯光调试视图',
+        },
       },
       interact: {
         defaultLabel: '回车',

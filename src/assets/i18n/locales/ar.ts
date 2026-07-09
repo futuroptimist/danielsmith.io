@@ -193,6 +193,10 @@ export const AR_OVERRIDES: LocaleOverrides = {
           keys: 'T',
           description: 'التحويل إلى العرض النصي',
         },
+        lightingDebug: {
+          keys: 'Shift + L',
+          description: 'تبديل عرض تصحيح الإضاءة',
+        },
       },
       interact: {
         defaultLabel: 'Enter',

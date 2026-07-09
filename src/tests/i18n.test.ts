@@ -253,6 +253,22 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('localizes the lighting debug row without non-English English fallback copy', () => {
+    const englishLightingDebug =
+      getControlOverlayStrings('en').items.lightingDebug;
+
+    for (const locale of ['ar', 'ja', 'zh-Hans', 'es', 'pt', 'de', 'hu']) {
+      const localizedLightingDebug =
+        getControlOverlayStrings(locale).items.lightingDebug;
+
+      expect(localizedLightingDebug.keys).toBe(englishLightingDebug.keys);
+      expect(localizedLightingDebug.description).not.toBe(
+        englishLightingDebug.description
+      );
+      expect(localizedLightingDebug.description.trim()).not.toBe('');
+    }
+  });
+
   it('pseudo-localizes rendered controls descriptions while preserving key labels', () => {
     const englishPopoverRows = getRenderedControlRows(
       renderRepresentativeControlsPopover('en')

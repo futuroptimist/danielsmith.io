@@ -194,6 +194,10 @@ export const JA_OVERRIDES: LocaleOverrides = {
           keys: 'T',
           description: 'テキストモードに切り替え',
         },
+        lightingDebug: {
+          keys: 'Shift + L',
+          description: 'ライティングデバッグ表示を切り替え',
+        },
       },
       interact: {
         defaultLabel: 'Enter',
