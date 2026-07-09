@@ -13,21 +13,11 @@
       "id": "audit:src:scene:avatar:accessoryManager",
       "sourceFiles": ["src/scene/avatar/accessoryManager.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "07acbf5ecd37834fff72f3079b941c63fa120aad9dae1b1bc1afe21f2848ef57",
+      "syncRevision": 2,
+      "syncNote": "Loadout-only accessory state was removed; checkbox-driven accessory geometry remains covered by shared component entries.",
+      "sourceFingerprint": "5e1282cee0c0490173d2e7ee469d6ce11fcab5cd02ab48aaf2ffa917aec0a331",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "46a6b21bece2321bdeeb5293ebc243d87eda58affcd80136d1be671ccbe86448"
-    },
-    {
-      "id": "audit:src:scene:avatar:accessoryPresets",
-      "sourceFiles": ["src/scene/avatar/accessoryPresets.ts"],
-      "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "343e2c04f978b7f16f70004b705cbcb7aefea423a00bfab997fe7c0c36196d8c",
-      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "9fc81bd840f1931e57d78c58a8455b7e8efa3fc24c0facb071035b02274e823f"
+      "metadataFingerprint": "25256a837828f15d2c9157691786fa4fca679dd706f3c3a714f6162653be3517"
     },
     {
       "id": "audit:src:scene:avatar:assetPipeline",
