@@ -9,6 +9,9 @@ export function applySettingsControlOrder({
   graphicsQuality,
   customization,
 }: SettingsControlOrderOptions): void {
+  warnIfAnchorIsDetached(container, graphicsQuality, 'Graphics Quality');
+  warnIfAnchorIsDetached(container, customization, 'Customization');
+
   const currentChildren = Array.from(container.children).filter(
     (child): child is HTMLElement => child instanceof HTMLElement
   );
@@ -25,4 +28,16 @@ export function applySettingsControlOrder({
       container.appendChild(child);
     }
   });
+}
+
+function warnIfAnchorIsDetached(
+  container: HTMLElement,
+  anchor: HTMLElement | null | undefined,
+  label: string
+): void {
+  if (anchor && anchor.parentElement !== container) {
+    console.warn(
+      `${label} settings control must be registered before applying Settings ordering.`
+    );
+  }
 }

@@ -17,7 +17,7 @@
       "syncNote": "Accessory manager now tracks checkbox state only; preset bundle APIs were removed without changing miniature geometry.",
       "sourceFingerprint": "47fe00b5857b3c84792439d1e8d0b4d5ba80de5f6a6ee6146d36a5079a43e9ba",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "9973736f62d4aa948a063cf1eb215d31746c6b2dd222e7721618541e4774a0e5"
+      "metadataFingerprint": "b671b8f4830cf87da36e29937ffd882d5ea9f437de2c773b14cf67268e0fd5b0"
     },
     {
       "id": "audit:src:scene:avatar:assetPipeline",
