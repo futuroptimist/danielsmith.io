@@ -714,12 +714,15 @@ describe('PoiInteractionManager', () => {
     keyboardManager.dispose();
   });
 
-  it('keeps Controls-open POI cycling independent from button focus release', () => {
+  it('cycles POIs while focus remains inside the Controls overlay', () => {
     manager.dispose();
     let activePanel: 'controls' | null = 'controls';
+    const controlsOverlay = document.createElement('div');
+    controlsOverlay.id = 'control-overlay';
     const controlsButton = document.createElement('button');
     controlsButton.type = 'button';
-    document.body.appendChild(controlsButton);
+    controlsOverlay.appendChild(controlsButton);
+    document.body.appendChild(controlsOverlay);
     controlsButton.focus();
 
     const keyboardManager = new PoiInteractionManager(
@@ -735,7 +738,7 @@ describe('PoiInteractionManager', () => {
     keyboardManager.start();
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
-    expect(poi.focusTarget).toBe(0);
+    expect(poi.focusTarget).toBe(1);
     expect(activePanel).toBe('controls');
 
     controlsButton.blur();
@@ -748,7 +751,7 @@ describe('PoiInteractionManager', () => {
     expect(poi.focusTarget).toBe(1);
     expect(activePanel).toBe('controls');
 
-    controlsButton.remove();
+    controlsOverlay.remove();
     keyboardManager.dispose();
   });
 

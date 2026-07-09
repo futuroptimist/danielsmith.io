@@ -2401,9 +2401,28 @@ export function initializeImmersiveScene(
     camera,
     guidedTourPreference,
   });
+  const isControlsPanelActive = (): boolean =>
+    (hudPanelCoordinator?.getActivePanel() ?? null) === 'controls';
   const canShowPoiDetailOverlay = (layoutOverride?: HudLayout): boolean =>
-    (hudPanelCoordinator?.getActivePanel() ?? null) === null &&
-    (!isMobilePoiLayout(layoutOverride) || currentSelectedPoi !== null);
+    (hudPanelCoordinator?.getActivePanel() ?? null) !== 'settings' &&
+    (!isMobilePoiLayout(layoutOverride) ||
+      currentSelectedPoi !== null ||
+      isControlsPanelActive());
+  const syncCombinedHudState = (layoutOverride?: HudLayout) => {
+    const activePanel = hudPanelCoordinator?.getActivePanel() ?? null;
+    const hasVisiblePoiDetail = canShowPoiDetailOverlay(layoutOverride)
+      ? getFloorVisiblePoi(currentHoveredPoi) !== null ||
+        getFloorVisiblePoi(currentSelectedPoi) !== null
+      : false;
+    document.documentElement.dataset.hudControlsOpen = String(
+      activePanel === 'controls'
+    );
+    document.documentElement.dataset.poiDetailVisible =
+      String(hasVisiblePoiDetail);
+    document.documentElement.dataset.hudCombinedPanels = String(
+      activePanel === 'controls' && hasVisiblePoiDetail
+    );
+  };
   const isPoiVisibleOnActiveFloor = (poi: PoiDefinition | null): boolean =>
     poi !== null && floorVisibilityController.isPoiVisibleOnActiveFloor(poi);
   const getFloorVisiblePoi = (
@@ -2443,7 +2462,8 @@ export function initializeImmersiveScene(
   const syncPoiDetailOverlay = (layoutOverride?: HudLayout) => {
     const canShowDetail = canShowPoiDetailOverlay(layoutOverride);
     const showHover =
-      canShowDetail && !isMobilePoiLayout(layoutOverride)
+      canShowDetail &&
+      (!isMobilePoiLayout(layoutOverride) || isControlsPanelActive())
         ? getFloorVisiblePoi(currentHoveredPoi)
         : null;
     const showSelected = canShowDetail
@@ -2453,6 +2473,7 @@ export function initializeImmersiveScene(
     poiTooltipOverlay.setSelected(showSelected);
     poiWorldTooltip.setHovered(resolveWorldTooltipTarget(showHover));
     poiWorldTooltip.setSelected(resolveWorldTooltipTarget(showSelected));
+    syncCombinedHudState(layoutOverride);
   };
   const clearPoiDetailState = (
     inputMethod: 'keyboard' | 'pointer' | 'touch' = 'pointer'
@@ -4137,8 +4158,10 @@ export function initializeImmersiveScene(
     textButton: textModeButton,
     onTextMode: activateTextMode,
     onActivePanelChange: (panel) => {
-      if (panel !== null) {
+      if (panel === 'settings') {
         clearPoiDetailState();
+      } else {
+        syncPoiDetailOverlay();
       }
       updatePassivePoiRecommendationPolicy();
     },
@@ -6817,6 +6840,9 @@ export function initializeImmersiveScene(
     sugarkubeDeployment = null;
     clearPoiModelRoots();
     clearPoiVisualAnchors();
+    delete document.documentElement.dataset.hudControlsOpen;
+    delete document.documentElement.dataset.poiDetailVisible;
+    delete document.documentElement.dataset.hudCombinedPanels;
     disposePrReaperInstallationBuild();
     gabrielSentry = null;
     gitshelvesInstallation = null;

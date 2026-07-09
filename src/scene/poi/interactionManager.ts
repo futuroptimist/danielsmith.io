@@ -350,9 +350,23 @@ export class PoiInteractionManager {
       return;
     }
 
+    const { key } = event;
+    const normalizedKey = key.toLowerCase();
+
+    const isCycleKey =
+      key === 'ArrowRight' ||
+      key === 'ArrowLeft' ||
+      normalizedKey === 'e' ||
+      normalizedKey === 'q';
+
     const activeElement = (this.domElement.ownerDocument ?? document)
       .activeElement;
-    const hasHudFocus = activeElement?.id === 'control-overlay';
+    const hasHudFocus =
+      activeElement instanceof Element &&
+      activeElement.closest('#control-overlay') !== null;
+    if (hasHudFocus && !isCycleKey) {
+      return;
+    }
     if (
       activeElement &&
       activeElement !== this.domElement &&
@@ -362,15 +376,6 @@ export class PoiInteractionManager {
     ) {
       return;
     }
-
-    const { key } = event;
-    const normalizedKey = key.toLowerCase();
-
-    const isCycleKey =
-      key === 'ArrowRight' ||
-      key === 'ArrowLeft' ||
-      normalizedKey === 'e' ||
-      normalizedKey === 'q';
 
     if (isCycleKey) {
       this.cancelScheduledHoverPick();
