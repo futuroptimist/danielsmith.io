@@ -30,7 +30,6 @@ type PoiStaticDefinition = Omit<
   | 'outcome'
   | 'metrics'
   | 'links'
-  | 'narration'
   | 'pedestal'
   | 'interactionPrompt'
 > & { pedestal?: PoiPedestalStaticConfig };
@@ -284,7 +283,6 @@ function localizeBaseDefinitions(input?: LocaleInput): PoiDefinition[] {
         source: metric.source ? { ...metric.source } : undefined,
       })),
       links: copy.links?.map((link) => ({ ...link })),
-      narration: copy.narration ? { ...copy.narration } : undefined,
       interactionPrompt,
     } satisfies PoiDefinition;
   });
@@ -317,7 +315,6 @@ function clonePoi(definition: PoiDefinition): PoiDefinition {
       source: metric.source ? { ...metric.source } : undefined,
     })),
     links: definition.links?.map((link) => ({ ...link })),
-    narration: definition.narration ? { ...definition.narration } : undefined,
     pedestal: definition.pedestal ? { ...definition.pedestal } : undefined,
   } satisfies PoiDefinition;
 }
