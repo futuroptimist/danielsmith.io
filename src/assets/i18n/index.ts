@@ -27,17 +27,13 @@ import type {
   ModeAnnouncerStrings,
   ModeToggleResolvedStrings,
   MovementLegendStrings,
-  NarrationToggleStrings,
   DebugCoordinatesStrings,
   DebugCollidersStrings,
   PoiCopy,
-  PoiNarrativeLogStrings,
   PoiOverlayChromeStrings,
   HudCustomizationStrings,
   SiteStrings,
   SoftwareRendererWarningStrings,
-  TourGuideToggleStrings,
-  TourResetControlStrings,
 } from './types';
 
 export type LocaleToggleResolvedStrings = LocaleToggleStrings;
@@ -470,26 +466,8 @@ export function getModeAnnouncerStrings(
   } satisfies ModeAnnouncerStrings;
 }
 
-export function getPoiNarrativeLogStrings(
-  input?: LocaleInput
-): PoiNarrativeLogStrings {
-  return getLocaleStrings(input).hud.narrativeLog;
-}
-
 export function getSiteStrings(input?: LocaleInput): SiteStrings {
   return getLocaleStrings(input).site;
-}
-
-export function getTourGuideToggleStrings(
-  input?: LocaleInput
-): TourGuideToggleStrings {
-  return cloneValue(getLocaleStrings(input).hud.tourGuideToggle);
-}
-
-export function getNarrationToggleStrings(
-  input?: LocaleInput
-): NarrationToggleStrings {
-  return cloneValue(getLocaleStrings(input).hud.narrationToggle);
 }
 
 export function getDebugCoordinatesStrings(
@@ -502,12 +480,6 @@ export function getDebugCollidersStrings(
   input?: LocaleInput
 ): DebugCollidersStrings {
   return cloneValue(getLocaleStrings(input).hud.debugColliders);
-}
-
-export function getTourResetControlStrings(
-  input?: LocaleInput
-): TourResetControlStrings {
-  return cloneValue(getLocaleStrings(input).hud.tourReset);
 }
 
 export function getSoftwareRendererWarningStrings(

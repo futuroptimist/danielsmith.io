@@ -7,7 +7,6 @@ import {
   getModeToggleStrings,
   resolveLocale,
   getPoiCopy,
-  getPoiNarrativeLogStrings,
   getSiteStrings,
   type SiteTextFallbackStrings,
 } from '../../assets/i18n';
@@ -636,14 +635,13 @@ function buildTextPortfolioGroups(
 ): TextPortfolioRoomGroup[] {
   const poiDefinitions = getPoiDefinitions();
   const poiCopy = getPoiCopy(localeHint);
-  const narrativeRooms = getPoiNarrativeLogStrings(localeHint).rooms;
   const roomLookup = new Map(
     FLOOR_PLAN.rooms.map((room) => [room.id, room.name])
   );
   const groups = new Map<string, TextPortfolioRoomGroup>();
 
   FLOOR_PLAN.rooms.forEach((room) => {
-    const label = narrativeRooms?.[room.id]?.label ?? room.name;
+    const label = room.name;
     groups.set(room.id, { roomId: room.id, roomLabel: label, pois: [] });
   });
 
@@ -651,9 +649,7 @@ function buildTextPortfolioGroups(
     let group = groups.get(definition.roomId);
     if (!group) {
       const fallbackLabel =
-        narrativeRooms?.[definition.roomId]?.label ??
-        roomLookup.get(definition.roomId) ??
-        definition.roomId;
+        roomLookup.get(definition.roomId) ?? definition.roomId;
       group = { roomId: definition.roomId, roomLabel: fallbackLabel, pois: [] };
       groups.set(definition.roomId, group);
     }

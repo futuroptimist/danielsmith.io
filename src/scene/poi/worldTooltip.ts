@@ -11,15 +11,11 @@ import {
   Vector3,
 } from 'three';
 
-import {
-  GuidedTourPreference,
-  defaultGuidedTourPreference,
-} from '../../systems/guidedTour/preference';
 import type { FloorId } from '../../systems/movement/stairs';
 
 import type { PoiDefinition } from './types';
 
-type PoiWorldTooltipMode = 'hovered' | 'selected' | 'recommended';
+type PoiWorldTooltipMode = 'hovered' | 'selected';
 
 export interface PoiWorldTooltipTarget {
   poi: PoiDefinition;
@@ -38,7 +34,6 @@ export interface PoiWorldTooltipOptions {
   scaleDistance?: number;
   minScale?: number;
   maxScale?: number;
-  guidedTourPreference?: GuidedTourPreference;
   minimumFacingDot?: number;
 }
 
@@ -93,29 +88,16 @@ export class PoiWorldTooltip {
 
   private readonly minimumFacingDot: number;
 
-  private readonly guidedTourPreference: GuidedTourPreference;
-
   private readonly opacityByMode: Record<PoiWorldTooltipMode, number> = {
     hovered: 0.85,
     selected: 1,
-    recommended: 0.72,
   };
 
   private hovered: PoiWorldTooltipTarget | null = null;
 
   private selected: PoiWorldTooltipTarget | null = null;
 
-  private recommendation: PoiWorldTooltipTarget | null = null;
-
-  private guidedTourEnabled = true;
-
-  private passiveRecommendationsEnabled = true;
-
-  private idle = false;
-
   private activeFloorId: FloorId = 'ground';
-
-  private unsubscribeGuidedTour: (() => void) | null = null;
 
   private readonly targetPosition = new Vector3();
 
@@ -151,8 +133,6 @@ export class PoiWorldTooltip {
     this.minScale = options.minScale ?? 0.75;
     this.maxScale = options.maxScale ?? 1.85;
     this.minimumFacingDot = options.minimumFacingDot ?? 0.05;
-    this.guidedTourPreference =
-      options.guidedTourPreference ?? defaultGuidedTourPreference;
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = 1024;
@@ -188,15 +168,6 @@ export class PoiWorldTooltip {
     this.group.add(this.mesh);
 
     options.parent.add(this.group);
-
-    this.unsubscribeGuidedTour = this.guidedTourPreference.subscribe(
-      (enabled) => {
-        this.guidedTourEnabled = enabled;
-        if (!enabled && !this.hovered && !this.selected) {
-          this.fadeOut(0);
-        }
-      }
-    );
   }
 
   setHovered(target: PoiWorldTooltipTarget | null): void {
@@ -207,10 +178,6 @@ export class PoiWorldTooltip {
     this.selected = target;
   }
 
-  setRecommendation(target: PoiWorldTooltipTarget | null): void {
-    this.recommendation = target;
-  }
-
   setActiveFloorId(floorId: FloorId): void {
     if (this.activeFloorId === floorId) {
       return;
@@ -219,42 +186,16 @@ export class PoiWorldTooltip {
     this.fadeOut(0);
   }
 
-  setPassiveRecommendationsEnabled(enabled: boolean): void {
-    if (this.passiveRecommendationsEnabled === enabled) {
-      return;
-    }
-    this.passiveRecommendationsEnabled = enabled;
-    if (!enabled && !this.hovered && !this.selected) {
-      this.fadeOut(0);
-    }
-  }
-
-  setIdleState(idle: boolean): void {
-    if (this.idle === idle) {
-      return;
-    }
-    this.idle = idle;
-    if (!idle && !this.hovered && !this.selected) {
-      this.fadeOut(0);
-    }
-  }
-
   update(delta: number): void {
     if (this.disposed) {
       return;
     }
-    const recommendation =
-      this.guidedTourEnabled && this.passiveRecommendationsEnabled && this.idle
-        ? this.recommendation
-        : null;
-    const active = this.selected ?? this.hovered ?? recommendation;
+    const active = this.selected ?? this.hovered;
     const mode: PoiWorldTooltipMode | null = this.selected
       ? 'selected'
       : this.hovered
         ? 'hovered'
-        : recommendation
-          ? 'recommended'
-          : null;
+        : null;
 
     if (!active || !mode || !this.isTargetOnActiveFloor(active)) {
       this.fadeOut(delta);
@@ -338,18 +279,12 @@ export class PoiWorldTooltip {
     if (this.disposed) {
       return;
     }
-    const recommendation =
-      this.guidedTourEnabled && this.passiveRecommendationsEnabled && this.idle
-        ? this.recommendation
-        : null;
-    const activeTarget = this.selected ?? this.hovered ?? recommendation;
+    const activeTarget = this.selected ?? this.hovered;
     const mode: PoiWorldTooltipMode | null = this.selected
       ? 'selected'
       : this.hovered
         ? 'hovered'
-        : recommendation
-          ? 'recommended'
-          : null;
+        : null;
     if (activeTarget && mode && activeTarget.poi.id === poiId) {
       const contentKey = getPoiRenderContentKey(activeTarget.poi);
       this.renderTooltip(activeTarget.poi, mode);
@@ -369,15 +304,10 @@ export class PoiWorldTooltip {
     this.disposed = true;
     this.hovered = null;
     this.selected = null;
-    this.recommendation = null;
     this.group.removeFromParent();
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
     this.texture.dispose();
-    if (this.unsubscribeGuidedTour) {
-      this.unsubscribeGuidedTour();
-      this.unsubscribeGuidedTour = null;
-    }
   }
 
   getState(): TooltipStateSnapshot {

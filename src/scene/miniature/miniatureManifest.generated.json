@@ -270,16 +270,6 @@
       "metadataFingerprint": "c344e1cfcc6c5b4477ef25ea9140d0cb808c7abdcfcba7deb9abc1b0511b0777"
     },
     {
-      "id": "audit:src:scene:poi:guidedTourChannel",
-      "sourceFiles": ["src/scene/poi/guidedTourChannel.ts"],
-      "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "a5971bb82bbfcb93a823dfb403e2503ecae83d67e771bd9c4688ba313705faba",
-      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "659c5f673e6eef65406d86149a5ddccdd38f4c41141d6003e87fd0c51cd9a086"
-    },
-    {
       "id": "audit:src:scene:poi:interactionManager",
       "sourceFiles": ["src/scene/poi/interactionManager.ts"],
       "proxyFiles": [],
@@ -323,21 +313,11 @@
       "id": "audit:src:scene:poi:tooltipOverlay",
       "sourceFiles": ["src/scene/poi/tooltipOverlay.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "414f76c1d2dbeeda79e90700ff706db899245adb42deb368bffefd244df11335",
+      "syncRevision": 2,
+      "syncNote": "Guided tour recommendation rendering was removed from the DOM overlay; it remains non-miniature UI chrome.",
+      "sourceFingerprint": "3c6864b59d8cf0c49e1e59c2f5d403c4bcc3a1f34d6b14453cd5bd4add3bacee",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "f1569422851af7b9f1dcd5476bc8bf41dc4422703c967c5f5fe02d91d34672fb"
-    },
-    {
-      "id": "audit:src:scene:poi:tourGuide",
-      "sourceFiles": ["src/scene/poi/tourGuide.ts"],
-      "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "ada60e8191b993d39bfd254743bd9225f666f72eb99318cc1b552fe81b8fb3de",
-      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "6d5c4cb1ce85dc2a40a961361b7541be9da6f1feac469c73b0d53deda5557f8a"
+      "metadataFingerprint": "7fdecf3955ebd3108d3bef0242aaa8696c88d9732eed9dea61ff99ac5eeacd5d"
     },
     {
       "id": "audit:src:scene:poi:validation",
@@ -662,11 +642,11 @@
         "src/scene/poi/worldTooltip.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.",
-      "sourceFingerprint": "658f98fa79aab337982dc5af8c6e1413cc9e38624e611fa7834cca62190967e0",
+      "syncRevision": 3,
+      "syncNote": "Guided tour recommendation rendering was removed from world tooltips; POI markers remain interaction UI, not miniature geometry.",
+      "sourceFingerprint": "91ee89df6f6cd9046ee6289f05b1322910afe96bb5d400035559ae2ff7fdb379",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "46c76af2493d95837914fa60b601c417c53a4134ff5dffb97d5c05fc67afdef0"
+      "metadataFingerprint": "7462e827a8a9293ce98fa7911653e2606a4f7815dd40092964958e9f18152909"
     },
     {
       "id": "poi:pr-reaper-backyard-console",
