@@ -440,6 +440,7 @@ export class PoiInteractionManager {
     const poi = enabledPoiInstances[nextIndex];
     this.keyboardIndex = this.poiInstances.indexOf(poi);
     this.setHovered(poi, 'keyboard');
+    this.setSelected(poi, 'keyboard');
   }
 
   private scheduleHoverPick(inputMethod: PoiSelectionInputMethod) {

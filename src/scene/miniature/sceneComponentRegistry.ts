@@ -368,9 +368,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:interactionManager',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/interactionManager.ts'],
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
-      'POI keyboard gating changed only runtime input handling; no miniature geometry impact.',
+      'POI keyboard cycling now selects details while Controls is open; no miniature geometry impact.',
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },

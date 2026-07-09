@@ -1669,6 +1669,55 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   overflow-y: auto;
 }
 
+:root[data-hud-layout='mobile'][data-controls-panel-open][data-poi-detail-visible]
+  .overlay__popover {
+  max-height: min(
+    34dvh,
+    calc(
+      (
+          100dvh - var(--hud-mobile-safe-zone) - env(safe-area-inset-top, 0px) -
+            4rem
+        ) /
+        2
+    )
+  );
+  overscroll-behavior: contain;
+}
+
+:root[data-hud-layout='mobile'][data-controls-panel-open][data-poi-detail-visible]
+  .poi-tooltip-overlay {
+  bottom: calc(var(--hud-mobile-safe-zone) + 0.75rem);
+  max-height: min(
+    34dvh,
+    calc(
+      (
+          100dvh - var(--hud-mobile-safe-zone) - env(safe-area-inset-top, 0px) -
+            4rem
+        ) /
+        2
+    )
+  );
+  overscroll-behavior: contain;
+}
+
+@supports not (height: 100dvh) {
+  :root[data-hud-layout='mobile'][data-controls-panel-open][data-poi-detail-visible]
+    .overlay__popover,
+  :root[data-hud-layout='mobile'][data-controls-panel-open][data-poi-detail-visible]
+    .poi-tooltip-overlay {
+    max-height: min(
+      34vh,
+      calc(
+        (
+            100vh - var(--hud-mobile-safe-zone) -
+              env(safe-area-inset-top, 0px) - 4rem
+          ) /
+          2
+      )
+    );
+  }
+}
+
 :root[data-hud-layout='mobile'] .poi-tooltip-overlay__heading-row {
   align-items: flex-start;
 }
