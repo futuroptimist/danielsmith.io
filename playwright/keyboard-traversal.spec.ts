@@ -13,6 +13,102 @@ async function waitForImmersiveReady(page: import('@playwright/test').Page) {
 }
 
 test.describe('keyboard traversal macro', () => {
+  test('cycles POIs while the Controls popover remains open', async ({
+    page,
+  }) => {
+    test.slow();
+    await waitForImmersiveReady(page);
+
+    const controlsPopover = page.locator('[data-role="controls-popover"]');
+    const tooltip = page.locator('.poi-tooltip-overlay');
+    const tooltipTitle = tooltip.locator('.poi-tooltip-overlay__title');
+
+    await page.keyboard.press('KeyC');
+    await expect(controlsPopover).toBeVisible();
+
+    await page.keyboard.press('KeyE');
+    await expect(controlsPopover).toBeVisible();
+    await expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-hud-combined-panels',
+      'true'
+    );
+    const firstTitle = (await tooltipTitle.textContent())?.trim() ?? '';
+    expect(firstTitle.length).toBeGreaterThan(0);
+
+    await page.keyboard.press('KeyE');
+    await expect(controlsPopover).toBeVisible();
+    const secondTitle = (await tooltipTitle.textContent())?.trim() ?? '';
+    expect(secondTitle.length).toBeGreaterThan(0);
+    expect(secondTitle).not.toEqual(firstTitle);
+
+    await page.keyboard.press('KeyQ');
+    await expect(controlsPopover).toBeVisible();
+    await expect(tooltipTitle).toHaveText(firstTitle);
+  });
+
+  test('fits Controls and POI details together on mobile', async ({ page }) => {
+    test.slow();
+    await page.setViewportSize({ width: 390, height: 700 });
+    await waitForImmersiveReady(page);
+
+    const controlsPopover = page.locator('[data-role="controls-popover"]');
+    const tooltip = page.locator('.poi-tooltip-overlay');
+
+    await page.keyboard.press('KeyC');
+    await page.keyboard.press('KeyE');
+
+    await expect(controlsPopover).toBeVisible();
+    await expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-hud-layout',
+      'mobile'
+    );
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-hud-combined-panels',
+      'true'
+    );
+
+    const boxes = await page.evaluate(() => {
+      const controls = document.querySelector('[data-role="controls-popover"]');
+      const tooltip = document.querySelector('.poi-tooltip-overlay');
+      const canvas = document.querySelector('canvas');
+      if (!controls || !tooltip || !canvas) {
+        return null;
+      }
+      const c = controls.getBoundingClientRect();
+      const t = tooltip.getBoundingClientRect();
+      const v = { width: window.innerWidth, height: window.innerHeight };
+      const overlapX = Math.max(
+        0,
+        Math.min(c.right, t.right) - Math.max(c.left, t.left)
+      );
+      const overlapY = Math.max(
+        0,
+        Math.min(c.bottom, t.bottom) - Math.max(c.top, t.top)
+      );
+      const overlapArea = overlapX * overlapY;
+      const canvasRect = canvas.getBoundingClientRect();
+      return {
+        controls: { top: c.top, bottom: c.bottom, height: c.height },
+        tooltip: { top: t.top, bottom: t.bottom, height: t.height },
+        viewport: v,
+        overlapArea,
+        canvas: { width: canvasRect.width, height: canvasRect.height },
+      };
+    });
+
+    expect(boxes).not.toBeNull();
+    expect(boxes!.overlapArea).toBeLessThan(24);
+    expect(boxes!.controls.height).toBeLessThanOrEqual(
+      boxes!.viewport.height * 0.5
+    );
+    expect(boxes!.tooltip.height).toBeLessThanOrEqual(
+      boxes!.viewport.height * 0.5
+    );
+    expect(boxes!.tooltip.top - boxes!.controls.bottom).toBeGreaterThan(16);
+    expect(boxes!.canvas.width * boxes!.canvas.height).toBeGreaterThan(0);
+  });
   test('cycles POIs and HUD overlays using keyboard input only', async ({
     page,
   }) => {

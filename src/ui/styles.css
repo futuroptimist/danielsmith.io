@@ -1655,6 +1655,27 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   max-height: min(26rem, calc(100vh - 7rem - env(safe-area-inset-top, 0px)));
 }
 
+:root[data-hud-layout='mobile'][data-hud-combined-panels='true'] .overlay {
+  --hud-combined-gutter: clamp(0.5rem, 2.5dvh, 0.875rem);
+  --hud-combined-panel-height: calc(
+    (
+        100dvh - var(--hud-mobile-safe-zone) - env(safe-area-inset-top, 0px) -
+          5.5rem
+      ) /
+      2
+  );
+  left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
+  right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
+  max-width: none;
+}
+
+:root[data-hud-layout='mobile'][data-hud-combined-panels='true']
+  .overlay__popover {
+  width: 100%;
+  max-height: max(8rem, min(36dvh, var(--hud-combined-panel-height)));
+  overflow-y: auto;
+}
+
 :root[data-hud-layout='mobile'] .overlay__keys {
   width: 8.5rem;
 }
@@ -1667,6 +1688,15 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   width: auto;
   max-height: min(24rem, calc(100vh - 7rem - var(--hud-mobile-safe-zone)));
   overflow-y: auto;
+}
+
+:root[data-hud-layout='mobile'][data-hud-combined-panels='true']
+  .poi-tooltip-overlay {
+  top: calc(50dvh + var(--hud-combined-gutter, 0.75rem));
+  bottom: calc(var(--hud-mobile-safe-zone) + 0.75rem);
+  left: calc(env(safe-area-inset-left, 0px) + 0.75rem);
+  right: calc(env(safe-area-inset-right, 0px) + 0.75rem);
+  max-height: calc(50dvh - var(--hud-mobile-safe-zone) - 1.5rem);
 }
 
 :root[data-hud-layout='mobile'] .poi-tooltip-overlay__heading-row {
