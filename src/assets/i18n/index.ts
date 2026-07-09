@@ -1,4 +1,5 @@
 import type { PoiId } from '../../scene/poi/types';
+import { getControlItemRows } from '../../ui/hud/controlItems';
 
 import { AR_OVERRIDES } from './locales/ar';
 import { DE_OVERRIDES } from './locales/de';
@@ -355,7 +356,23 @@ export function getControlOverlayStrings(
 }
 
 export function getHelpModalStrings(input?: LocaleInput): HelpModalStrings {
-  return getLocaleStrings(input).hud.helpModal;
+  const strings = getLocaleStrings(input);
+  const helpModal = strings.hud.helpModal;
+  const controlsSection = {
+    id: 'controls',
+    title: strings.hud.controlOverlay.heading,
+    items: getControlItemRows(strings.hud.controlOverlay, {
+      includeInteract: true,
+    }).map(({ keys, description }) => ({
+      label: keys,
+      description,
+    })),
+  };
+
+  return {
+    ...helpModal,
+    sections: Object.freeze([controlsSection, ...helpModal.sections]),
+  };
 }
 
 export function getMovementLegendStrings(

@@ -424,41 +424,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       sections: [
         {
-          id: 'movement',
-          title: '移动与相机',
-          items: [
-            { label: 'WASD / 方向键', description: '在家中移动探索者。' },
-            { label: '鼠标拖动', description: '平移等距相机。' },
-            { label: '滚轮', description: '调整缩放级别。' },
-            {
-              label: 'Shift + = / Shift + -',
-              description: '无需鼠标滚轮即可放大或缩小。',
-            },
-            { label: '触控摇杆', description: '拖动左垫移动，拖动右垫平移。' },
-            { label: '捏合', description: '在触控设备上缩放。' },
-          ],
-        },
-        {
-          id: 'interactions',
-          title: '交互',
-          items: [
-            {
-              label: '靠近发光 POI',
-              description:
-                '按交互键（Enter/Space/F）、轻点或点击以打开展品覆盖层。',
-            },
-            {
-              label: 'Q / E 或 ← / →',
-              description: '用键盘在兴趣点之间切换焦点。',
-            },
-            { label: 'T', description: '在沉浸模式和文本备用视图之间切换。' },
-            {
-              label: 'Shift + L',
-              description: '将电影感照明与调试通道进行比较。',
-            },
-          ],
-        },
-        {
           id: 'accessibility',
           title: '无障碍与备用方案',
           items: [

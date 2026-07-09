@@ -449,31 +449,6 @@ function buildLatinHelpSections(
 
   return [
     {
-      id: 'movement',
-      title: copy.movementTitle,
-      items: [
-        { label: 'WASD / Arrow keys', description: copy.move },
-        { label: 'Mouse drag', description: copy.drag },
-        { label: 'Scroll wheel', description: copy.wheel },
-        {
-          label: 'Shift + = / Shift + -',
-          description: copy.keyboardZoom,
-        },
-        { label: 'Touch joysticks', description: copy.touch },
-        { label: 'Pinch', description: copy.pinch },
-      ],
-    },
-    {
-      id: 'interactions',
-      title: copy.interactionsTitle,
-      items: [
-        { label: copy.poi, description: copy.poiDescription },
-        { label: 'Q / E or ← / →', description: copy.cycle },
-        { label: 'T', description: copy.textMode },
-        { label: 'Shift + L', description: copy.lighting },
-      ],
-    },
-    {
       id: 'accessibility',
       title: copy.accessibilityTitle,
       items: [

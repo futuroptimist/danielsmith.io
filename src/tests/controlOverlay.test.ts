@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { getControlOverlayStrings } from '../assets/i18n';
+import {
+  AVAILABLE_LOCALES,
+  getControlOverlayStrings,
+  getHelpModalStrings,
+} from '../assets/i18n';
 import { applyControlOverlayStrings } from '../ui/hud/controlOverlay';
+import { createHelpModal } from '../ui/hud/helpModal';
 
 describe('applyControlOverlayStrings', () => {
   it('updates heading, list items, and interact defaults', () => {
@@ -81,5 +86,62 @@ describe('applyControlOverlayStrings', () => {
     expect(toggle?.dataset.hudAnnounce).toBe(
       strings.mobileToggle.expandAnnouncement
     );
+  });
+});
+
+function buildControlOverlayContainer() {
+  const container = document.createElement('div');
+  container.innerHTML = `
+    <p data-control-text="heading"></p>
+    <ul>
+      <li data-control-item="keyboardMove"><span class="overlay__keys"></span><span class="overlay__description"></span></li>
+      <li data-control-item="pointerDrag"><span class="overlay__keys"></span><span class="overlay__description"></span></li>
+      <li data-control-item="pointerZoom"><span class="overlay__keys"></span><span class="overlay__description"></span></li>
+      <li data-control-item="keyboardZoom"><span class="overlay__keys"></span><span class="overlay__description"></span></li>
+      <li data-control-item="touchDrag"><span class="overlay__keys"></span><span class="overlay__description"></span></li>
+      <li data-control-item="touchPinch"><span class="overlay__keys"></span><span class="overlay__description"></span></li>
+      <li data-control-item="cyclePoi"><span class="overlay__keys"></span><span class="overlay__description"></span></li>
+      <li data-control-item="toggleTextMode"><span class="overlay__keys"></span><span class="overlay__description"></span></li>
+      <li data-control-item="interact"><span class="overlay__keys" data-role="interact-label"></span><span class="overlay__description" data-role="interact-description"></span></li>
+    </ul>
+  `;
+  return container;
+}
+
+function readOverlayRows(container: HTMLElement) {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>('[data-control-item]')
+  ).map((item) => ({
+    label: item.querySelector('.overlay__keys')?.textContent ?? '',
+    description: item.querySelector('.overlay__description')?.textContent ?? '',
+  }));
+}
+
+describe('shared controls copy', () => {
+  it('renders identical C popover and Settings controls rows for every locale', () => {
+    AVAILABLE_LOCALES.forEach((locale) => {
+      document.body.innerHTML = '';
+      const overlay = buildControlOverlayContainer();
+      applyControlOverlayStrings(overlay, getControlOverlayStrings(locale));
+
+      const helpModal = createHelpModal({
+        container: document.body,
+        content: getHelpModalStrings(locale),
+      });
+
+      const helpRows = Array.from(
+        helpModal.element.querySelectorAll<HTMLElement>(
+          '#help-modal-section-controls .help-modal__item'
+        )
+      ).map((item) => ({
+        label: item.querySelector('.help-modal__item-label')?.textContent ?? '',
+        description:
+          item.querySelector('.help-modal__item-description')?.textContent ??
+          '',
+      }));
+
+      expect(helpRows, locale).toEqual(readOverlayRows(overlay));
+      helpModal.dispose();
+    });
   });
 });

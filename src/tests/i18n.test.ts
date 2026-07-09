@@ -439,9 +439,10 @@ describe('i18n utilities', () => {
     expect(helpModal.announcements.close).toBe('⟦Help menu closed.⟧');
     expect(
       helpModal.sections
-        .find((section) => section.id === 'movement')
-        ?.items.some((item) => item.label.includes('Shift + ='))
-    ).toBe(true);
+        .find((section) => section.id === 'controls')
+        ?.items.find((item) => item.label === 'Shift + = / Shift + -')
+        ?.description
+    ).toBe('⟦Zoom in or out⟧');
     const arabicHelp = getHelpModalStrings('ar');
     expect(arabicHelp.heading).toBe('الإعدادات والمساعدة');
     expect(arabicHelp.announcements.open).toBe(
@@ -454,13 +455,13 @@ describe('i18n utilities', () => {
     );
 
     const spanishHelp = getHelpModalStrings('es');
-    expect(spanishHelp.sections[0]?.title).toBe('Movimiento y cámara');
+    expect(spanishHelp.sections[0]?.title).toBe('Controles');
     expect(spanishHelp.sections[0]?.items[3]?.description).toBe(
-      'Acerca o aleja sin rueda de ratón.'
+      'Acercar o alejar con el teclado'
     );
     const germanHelp = getHelpModalStrings('de');
-    expect(germanHelp.sections[2]?.title).toBe('Barrierefreiheit & Fallback');
-    expect(germanHelp.sections[2]?.items[3]?.description).toBe(
+    expect(germanHelp.sections[1]?.title).toBe('Barrierefreiheit & Fallback');
+    expect(germanHelp.sections[1]?.items[3]?.description).toBe(
       'Schalte mit der Audio-Schaltfläche um oder drücke M.'
     );
   });
