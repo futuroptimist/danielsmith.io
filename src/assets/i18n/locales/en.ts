@@ -425,7 +425,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     },
     poiOverlay: {
       visited: 'Visited',
-      nextHighlight: 'Next highlight',
       prototype: 'Prototype',
       live: 'Live',
       closeDetails: 'Close POI details',

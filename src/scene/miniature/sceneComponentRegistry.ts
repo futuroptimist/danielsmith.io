@@ -394,7 +394,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:tooltipOverlay',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/tooltipOverlay.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
+    syncNote:
+      'Review cleanup only restores scene disposal and removes stale overlay copy; miniature geometry is unchanged.',
     reason:
       'Guided-tour recommendation UI was removed from the DOM overlay; no miniature geometry proxy changes are required.',
   },

@@ -261,7 +261,6 @@ export interface LowFpsRecoveryStrings {
 
 export interface PoiOverlayChromeStrings {
   visited: string;
-  nextHighlight: string;
   prototype: string;
   live: string;
   closeDetails: string;

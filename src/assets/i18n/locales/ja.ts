@@ -266,11 +266,11 @@ export const JA_OVERRIDES: LocaleOverrides = {
     audioSubtitles: {
       labels: {
         ambient: '環境音',
-        poi: 'ナレーション',
+        poi: '優先キャプション',
       },
       dismissLabels: {
         ambient: '字幕を閉じる',
-        poi: 'ナレーションを閉じる',
+        poi: '優先キャプションを閉じる',
       },
     },
     debugCoordinates: {
@@ -324,7 +324,6 @@ export const JA_OVERRIDES: LocaleOverrides = {
     },
     poiOverlay: {
       visited: '訪問済み',
-      nextHighlight: '次のハイライト',
       prototype: 'プロトタイプ',
       live: '公開中',
       closeDetails: 'POI の詳細を閉じる',

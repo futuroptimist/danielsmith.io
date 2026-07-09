@@ -1065,8 +1065,6 @@ export function initializeImmersiveScene(
   let hudFocusAnnouncer: HudFocusAnnouncerHandle | null = null;
   let helpModalController: HelpModalControllerHandle | null = null;
   let localeToggleControl: LocaleToggleControlHandle | null = null;
-  let removeIdleSubscription: (() => void) | null = null;
-  let removeGuidedTourSubscription: (() => void) | null = null;
   let githubRepoMetrics: GitHubRepoMetricsController | null = null;
   let getAmbientAudioVolume = () =>
     ambientAudioController?.getMasterVolume() ?? 1;
@@ -6167,10 +6165,11 @@ export function initializeImmersiveScene(
     removeSelectionStateListener();
     removeSelectionListener();
     removeVisitedSubscription();
-    if (removeGuidedTourSubscription) {
-      removeGuidedTourSubscription();
-      removeGuidedTourSubscription = null;
-    }
+    interactionTimeline.dispose();
+    poiTooltipOverlay.dispose();
+    poiWorldTooltip.dispose();
+    githubRepoMetrics?.dispose();
+    githubRepoMetrics = null;
     if (manualModeToggle) {
       manualModeToggle.dispose();
       manualModeToggle = null;
@@ -6358,10 +6357,6 @@ export function initializeImmersiveScene(
     if (helpModalController) {
       helpModalController.dispose();
       helpModalController = null;
-    }
-    if (removeIdleSubscription) {
-      removeIdleSubscription();
-      removeIdleSubscription = null;
     }
     analyticsGlow.dispose();
     helpModal.dispose();

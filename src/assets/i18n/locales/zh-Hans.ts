@@ -215,11 +215,11 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     audioSubtitles: {
       labels: {
         ambient: '环境音频',
-        poi: '旁白',
+        poi: '优先字幕',
       },
       dismissLabels: {
         ambient: '关闭字幕',
-        poi: '关闭旁白',
+        poi: '关闭优先字幕',
       },
     },
     audioControl: {
@@ -330,7 +330,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     },
     poiOverlay: {
       visited: '已访问',
-      nextHighlight: '下一个亮点',
       prototype: '原型',
       live: '已上线',
       closeDetails: '关闭兴趣点详情',

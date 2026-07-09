@@ -31,7 +31,6 @@ interface LatinLocaleCopy {
     syncing: string;
     discovered: string;
     closePoi: string;
-    nextHighlight: string;
     related: string;
     prototype: string;
     live: string;
@@ -703,7 +702,6 @@ export function buildLatinLocaleOverrides(
               : copy.locale === 'pt'
                 ? 'Visitado'
                 : 'Visitado',
-        nextHighlight: s.nextHighlight,
         prototype: s.prototype,
         live: s.live,
         closeDetails: s.closePoi,

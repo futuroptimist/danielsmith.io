@@ -619,9 +619,9 @@ describe('i18n utilities', () => {
     expect(pseudo.closeDetails).toBe('⟦Close POI details⟧');
     expect(pseudo.relatedCaseStudies).toBe('⟦Related case studies⟧');
     expect(arabic.prototype).toBe('نموذج أولي');
-    expect(japanese.nextHighlight).toBe('次のハイライト');
-    expect(getPoiOverlayChromeStrings('zh-Hans').nextHighlight).toBe(
-      '下一个亮点'
+    expect(japanese.closeDetails).toBe('POI の詳細を閉じる');
+    expect(getPoiOverlayChromeStrings('zh-Hans').closeDetails).toBe(
+      '关闭兴趣点详情'
     );
   });
 
@@ -816,8 +816,8 @@ describe('i18n utilities', () => {
       'Tentar imersivo novamente'
     );
     expect(getHelpModalStrings('de').heading).toBe('Einstellungen & Hilfe');
-    expect(getPoiOverlayChromeStrings('hu').nextHighlight).toBe(
-      'Következő kiemelés'
+    expect(getPoiOverlayChromeStrings('hu').relatedCaseStudies).toBe(
+      'Kapcsolódó esettanulmányok'
     );
     expect(getPoiCopy('es')['tokenplace-studio-cluster'].summary).toContain(
       'peer-to-peer'

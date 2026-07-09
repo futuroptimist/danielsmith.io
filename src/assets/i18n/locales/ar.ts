@@ -265,11 +265,11 @@ export const AR_OVERRIDES: LocaleOverrides = {
     audioSubtitles: {
       labels: {
         ambient: 'الصوت المحيط',
-        poi: 'السرد',
+        poi: 'تسمية توضيحية ذات أولوية',
       },
       dismissLabels: {
         ambient: 'إغلاق التسمية التوضيحية',
-        poi: 'إغلاق السرد',
+        poi: 'إغلاق التسمية التوضيحية ذات الأولوية',
       },
     },
     debugCoordinates: {
@@ -324,7 +324,6 @@ export const AR_OVERRIDES: LocaleOverrides = {
     },
     poiOverlay: {
       visited: 'تمت الزيارة',
-      nextHighlight: 'المحطة التالية',
       prototype: 'نموذج أولي',
       live: 'مباشر',
       closeDetails: 'إغلاق تفاصيل نقطة الاهتمام',

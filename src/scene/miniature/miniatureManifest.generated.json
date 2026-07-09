@@ -313,11 +313,11 @@
       "id": "audit:src:scene:poi:tooltipOverlay",
       "sourceFiles": ["src/scene/poi/tooltipOverlay.ts"],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Guided-tour recommendation UI was removed from the DOM overlay; no miniature geometry proxy changes are required.",
-      "sourceFingerprint": "e59be336e843ea945e39f57d6b480f7ac3732f78caedf8233de22ce9130cbd14",
+      "syncRevision": 3,
+      "syncNote": "Review cleanup only restores scene disposal and removes stale overlay copy; miniature geometry is unchanged.",
+      "sourceFingerprint": "e646faf6bf9c5da92a54e2b02b1388b2611c525126a592486d9da8a3fcb50f8b",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "d049cbcff78d57719789e300b45ded2e53e790c65138a5c2eb2e6a8fa0dc18c2"
+      "metadataFingerprint": "4404dc24dec3a3836d93ea9d795c58ffdfe6ce929ce6bcae2100a11210c2e080"
     },
     {
       "id": "audit:src:scene:poi:validation",
