@@ -1694,6 +1694,14 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   left: var(--hud-combined-panel-gutter-left);
   right: var(--hud-combined-panel-gutter-right);
   max-width: none;
+  pointer-events: none;
+}
+
+:root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
+  .overlay__menu,
+:root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
+  .overlay__popover {
+  pointer-events: auto;
 }
 
 :root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]

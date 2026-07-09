@@ -4163,6 +4163,7 @@ export function initializeImmersiveScene(
         clearPoiDetailState();
       }
       updatePassivePoiRecommendationPolicy();
+      syncPoiDetailOverlay();
     },
   });
   let interactablePoi: PoiInstance | null = null;

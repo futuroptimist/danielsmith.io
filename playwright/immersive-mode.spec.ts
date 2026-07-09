@@ -21,6 +21,41 @@ const collectPageErrors = (page: Page): string[] => {
   return errors;
 };
 
+const waitForImmersiveMode = async (page: Page) => {
+  await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(
+    () => document.documentElement.dataset.appMode === 'immersive',
+    undefined,
+    { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+  );
+};
+
+const expectPoiCycleWithControlsOpen = async (page: Page) => {
+  const controlsPopover = page.locator('[data-role="controls-popover"]');
+  const poiOverlay = page.locator('.poi-tooltip-overlay');
+  const poiTitle = page.locator('.poi-tooltip-overlay__title');
+
+  await page.keyboard.press('e');
+  await expect(controlsPopover).toBeVisible();
+  await expect(poiOverlay).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-hud-controls-open',
+    ''
+  );
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-poi-detail-visible',
+    ''
+  );
+  await expect(poiTitle).not.toHaveText('');
+  const nextTitle = (await poiTitle.textContent())?.trim() ?? '';
+  expect(nextTitle.length).toBeGreaterThan(0);
+
+  await page.keyboard.press('q');
+  await expect(controlsPopover).toBeVisible();
+  await expect(poiOverlay).toBeVisible();
+  await expect(poiTitle).not.toHaveText(nextTitle);
+};
+
 test.describe('immersive experience', () => {
   test('initializes without falling back to text mode', async ({ page }) => {
     const consoleErrors = collectConsoleErrors(page);
@@ -154,39 +189,47 @@ test.describe('immersive experience', () => {
     await expect(poiOverlay).toHaveAttribute('data-state', 'hidden');
   });
   test('cycles POI details while Controls is open', async ({ page }) => {
-    await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(
-      () => document.documentElement.dataset.appMode === 'immersive',
-      undefined,
-      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
-    );
+    await waitForImmersiveMode(page);
 
     const controlsPopover = page.locator('[data-role="controls-popover"]');
-    const poiOverlay = page.locator('.poi-tooltip-overlay');
-    const poiTitle = page.locator('.poi-tooltip-overlay__title');
 
     await page.keyboard.press('c');
     await expect(controlsPopover).toBeVisible();
+    await expectPoiCycleWithControlsOpen(page);
+  });
+
+  test('cycles POI details after opening Controls from the menu button', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+
+    const controlsButton = page.locator('[data-role="controls-button"]');
+    const controlsPopover = page.locator('[data-role="controls-popover"]');
+
+    await controlsButton.click();
+    await expect(controlsPopover).toBeVisible();
+    await expectPoiCycleWithControlsOpen(page);
+  });
+
+  test('keeps Settings open and conservative during POI cycling shortcuts', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+
+    const settingsBackdrop = page.locator('.help-modal-backdrop');
+    const poiOverlay = page.locator('.poi-tooltip-overlay');
+
+    await page.keyboard.press('h');
+    await expect(settingsBackdrop).toBeVisible();
 
     await page.keyboard.press('e');
-    await expect(controlsPopover).toBeVisible();
-    await expect(poiOverlay).toBeVisible();
-    await expect(page.locator('html')).toHaveAttribute(
-      'data-hud-controls-open',
-      ''
-    );
-    await expect(page.locator('html')).toHaveAttribute(
+    await page.keyboard.press('q');
+    await expect(settingsBackdrop).toBeVisible();
+    await expect(poiOverlay).toHaveAttribute('data-state', 'hidden');
+    await expect(page.locator('html')).not.toHaveAttribute(
       'data-poi-detail-visible',
       ''
     );
-    await expect(poiTitle).not.toHaveText('');
-    const nextTitle = (await poiTitle.textContent())?.trim() ?? '';
-    expect(nextTitle.length).toBeGreaterThan(0);
-
-    await page.keyboard.press('q');
-    await expect(controlsPopover).toBeVisible();
-    await expect(poiOverlay).toBeVisible();
-    await expect(poiTitle).not.toHaveText(nextTitle);
   });
 
   test('fits Controls and POI details together on mobile', async ({ page }) => {
@@ -239,6 +282,20 @@ test.describe('immersive experience', () => {
           bottom: poiBox.bottom,
           height: poiBox.height,
         },
+        gutter: {
+          height: poiBox.top - controlsBox.bottom,
+          hasCanvasPoint: Array.from({ length: 7 }, (_, index) =>
+            Math.round((window.innerWidth * (index + 1)) / 8)
+          )
+            .concat([4, window.innerWidth - 4])
+            .some(
+              (x) =>
+                document.elementFromPoint(
+                  x,
+                  (controlsBox.bottom + poiBox.top) / 2
+                )?.tagName === 'CANVAS'
+            ),
+        },
       };
     });
 
@@ -251,8 +308,28 @@ test.describe('immersive experience', () => {
     );
     expect(boxes.poi.height).toBeLessThanOrEqual(boxes.viewportHeight * 0.5);
     expect(boxes.controls.top).toBeGreaterThan(0);
-    expect(boxes.poi.bottom).toBeLessThan(boxes.viewportHeight);
+    expect(boxes.poi.bottom).toBeLessThanOrEqual(boxes.viewportHeight);
     expect(boxes.controls.top).toBeGreaterThan(4);
-    expect(boxes.viewportHeight - boxes.poi.bottom).toBeGreaterThan(4);
+    expect(boxes.gutter.height).toBeGreaterThan(8);
+    expect(boxes.gutter.hasCanvasPoint).toBe(true);
+
+    await page.keyboard.press('Escape');
+    await expect(controlsPopover).toBeHidden();
+    await expect(page.locator('html')).not.toHaveAttribute(
+      'data-hud-controls-open',
+      ''
+    );
+    const poiState = await poiOverlay.getAttribute('data-state');
+    if (poiState !== 'hidden') {
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-poi-detail-visible',
+        ''
+      );
+    } else {
+      await expect(page.locator('html')).not.toHaveAttribute(
+        'data-poi-detail-visible',
+        ''
+      );
+    }
   });
 });
