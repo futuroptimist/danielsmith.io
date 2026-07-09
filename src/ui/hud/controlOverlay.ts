@@ -1,12 +1,11 @@
 import type { ControlOverlayStrings } from '../../assets/i18n';
 
+import { getResolvedControlItems } from './controlItems';
 import { formatMenuButtonTitle } from './menuButtonTitle';
 
 const CONTROL_HEADING_SELECTOR = '[data-control-text="heading"]';
 const CONTROL_KEYS_SELECTOR = '.overlay__keys';
 const CONTROL_DESCRIPTION_SELECTOR = '.overlay__description';
-const INTERACT_LABEL_SELECTOR = '[data-role="interact-label"]';
-const INTERACT_DESCRIPTION_SELECTOR = '[data-role="interact-description"]';
 const CONTROLS_BUTTON_SELECTOR = '[data-role="controls-button"]';
 const TEXT_MODE_BUTTON_SELECTOR = '[data-role="text-mode-button"]';
 const SETTINGS_BUTTON_SELECTOR = '[data-role="settings-button"]';
@@ -47,41 +46,17 @@ export function applyControlOverlayStrings(
     strings.heading
   );
 
-  const applyItem = (key: keyof ControlOverlayStrings['items']): void => {
+  for (const { id, label, description } of getResolvedControlItems(strings)) {
     const item = container.querySelector<HTMLElement>(
-      `[data-control-item="${key}"]`
+      `[data-control-item="${id}"]`
     );
     if (!item) {
-      return;
+      continue;
     }
-    const { keys, description } = strings.items[key];
-    setTextContent(item.querySelector(CONTROL_KEYS_SELECTOR), keys);
+    setTextContent(item.querySelector(CONTROL_KEYS_SELECTOR), label);
     setTextContent(
       item.querySelector(CONTROL_DESCRIPTION_SELECTOR),
       description
-    );
-  };
-
-  applyItem('keyboardMove');
-  applyItem('pointerDrag');
-  applyItem('pointerZoom');
-  applyItem('keyboardZoom');
-  applyItem('touchDrag');
-  applyItem('touchPinch');
-  applyItem('cyclePoi');
-  applyItem('toggleTextMode');
-
-  const interactItem = container.querySelector<HTMLElement>(
-    '[data-control-item="interact"]'
-  );
-  if (interactItem) {
-    setTextContent(
-      interactItem.querySelector(INTERACT_DESCRIPTION_SELECTOR),
-      strings.interact.description
-    );
-    setTextContent(
-      interactItem.querySelector(INTERACT_LABEL_SELECTOR),
-      strings.interact.defaultLabel
     );
   }
 

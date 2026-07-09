@@ -1,4 +1,5 @@
 import type { PoiId } from '../../scene/poi/types';
+import { getResolvedControlItems } from '../../ui/hud/controlItems';
 
 import { AR_OVERRIDES } from './locales/ar';
 import { DE_OVERRIDES } from './locales/de';
@@ -14,6 +15,7 @@ import type {
   AudioSubtitleStrings,
   ControlOverlayStrings,
   DeepPartial,
+  HelpModalSectionStrings,
   HelpModalStrings,
   Locale,
   LocaleInput,
@@ -354,8 +356,33 @@ export function getControlOverlayStrings(
   return getLocaleStrings(input).hud.controlOverlay;
 }
 
+const CONTROL_HELP_SECTION_ID = 'controls';
+const LEGACY_CONTROL_HELP_SECTION_IDS = new Set(['movement', 'interactions']);
+
+function getSharedControlHelpSection(
+  strings: LocaleStrings
+): HelpModalSectionStrings {
+  return {
+    id: CONTROL_HELP_SECTION_ID,
+    title: strings.hud.controlOverlay.heading,
+    items: getResolvedControlItems(strings.hud.controlOverlay).map(
+      ({ label, description }) => ({ label, description })
+    ),
+  };
+}
+
 export function getHelpModalStrings(input?: LocaleInput): HelpModalStrings {
-  return getLocaleStrings(input).hud.helpModal;
+  const strings = getLocaleStrings(input);
+  const helpModal = strings.hud.helpModal;
+  return {
+    ...helpModal,
+    sections: [
+      getSharedControlHelpSection(strings),
+      ...helpModal.sections.filter(
+        ({ id }) => !LEGACY_CONTROL_HELP_SECTION_IDS.has(id)
+      ),
+    ],
+  };
 }
 
 export function getMovementLegendStrings(
