@@ -565,6 +565,7 @@ export const applyImmersiveControlOverlayAccessibility = ({
     controlsButton,
     helpButton,
     documentTarget,
+    focusOnInit: true,
   });
 };
 

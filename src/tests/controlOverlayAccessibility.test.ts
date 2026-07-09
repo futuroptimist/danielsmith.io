@@ -122,7 +122,7 @@ describe('applyControlOverlayAccessibility', () => {
 });
 
 describe('applyImmersiveControlOverlayAccessibility', () => {
-  it('does not move focus during normal immersive HUD setup', () => {
+  it('focuses the visible Controls region during normal immersive HUD setup', () => {
     const container = document.createElement('div');
     const heading = document.createElement('p');
     const controlsButton = document.createElement('button');
@@ -138,6 +138,6 @@ describe('applyImmersiveControlOverlayAccessibility', () => {
     });
 
     expect(container.getAttribute('role')).toBe('region');
-    expect(document.activeElement).toBe(document.body);
+    expect(document.activeElement).toBe(container);
   });
 });
