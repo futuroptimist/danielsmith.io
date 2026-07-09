@@ -27,7 +27,71 @@ import {
   resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
+import {
+  CONTROL_ITEM_IDS,
+  getControlHelpRows,
+} from '../assets/i18n/controlItems';
 import { getPoiDefinitions } from '../scene/poi/registry';
+import { applyControlOverlayStrings } from '../ui/hud/controlOverlay';
+import { createHelpModal } from '../ui/hud/helpModal';
+
+const renderRepresentativeControlsPopover = (locale: string): HTMLElement => {
+  const container = document.createElement('div');
+  container.innerHTML = `
+    <p class="overlay__heading" data-control-text="heading">Placeholder</p>
+    <ul class="overlay__list" data-role="control-list">
+      ${CONTROL_ITEM_IDS.map(
+        (id) => `
+          <li class="overlay__item" data-control-item="${id}">
+            <span class="overlay__keys">Keys</span>
+            <span class="overlay__description">Description</span>
+          </li>
+        `
+      ).join('')}
+      <li
+        class="overlay__item"
+        data-control-item="poiInteract"
+        data-role="interact"
+        hidden
+      >
+        <span class="overlay__keys" data-role="interact-label">?</span>
+        <span class="overlay__description" data-role="interact-description">???</span>
+      </li>
+    </ul>
+  `;
+  applyControlOverlayStrings(container, getControlOverlayStrings(locale));
+  return container;
+};
+
+const getRenderedControlRows = (container: ParentNode) =>
+  Array.from(
+    container.querySelectorAll<HTMLElement>(
+      CONTROL_ITEM_IDS.map((id) => `[data-control-item="${id}"]`).join(',')
+    )
+  ).map((row) => ({
+    label: row.querySelector('.overlay__keys')?.textContent ?? '',
+    description: row.querySelector('.overlay__description')?.textContent ?? '',
+  }));
+
+const renderHelpModal = (locale: string): HTMLElement => {
+  const container = document.createElement('div');
+  const handle = createHelpModal({
+    container,
+    content: getHelpModalStrings(locale),
+  });
+  return handle.element;
+};
+
+const getRenderedSettingsControlRows = (container: ParentNode) =>
+  Array.from(
+    container.querySelectorAll<HTMLElement>(
+      '#help-modal-section-controls .help-modal__item'
+    )
+  ).map((row) => ({
+    label: row.querySelector('.help-modal__item-label')?.textContent ?? '',
+    description:
+      row.querySelector('.help-modal__item-description')?.textContent ?? '',
+  }));
 
 it('provides POI debug detail labels for every locale', () => {
   for (const locale of AVAILABLE_LOCALES) {
@@ -145,6 +209,90 @@ describe('i18n utilities', () => {
     expect(getLocaleScript('de')).toBe('latin');
     expect(getLocaleScript('hu')).toBe('latin');
     expect(getLocaleScript(undefined)).toBe('latin');
+  });
+
+  it('keeps Settings controls rows in sync with the canonical help rows for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const helpRows = getControlHelpRows(getControlOverlayStrings(locale));
+      const controlsSection = getHelpModalStrings(locale).sections.find(
+        (section) => section.id === 'controls'
+      );
+
+      expect(
+        controlsSection,
+        `${locale} exposes a Settings controls section`
+      ).toBeDefined();
+      expect(controlsSection?.items).toEqual(helpRows);
+    }
+  });
+
+  it('renders one Settings controls section without stale duplicate sections for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const helpModal = getHelpModalStrings(locale);
+      const sectionIds = helpModal.sections.map((section) => section.id);
+
+      expect(sectionIds.filter((id) => id === 'controls')).toHaveLength(1);
+      expect(sectionIds).not.toContain('movement');
+      expect(sectionIds).not.toContain('interactions');
+    }
+  });
+
+  it('renders matching shared static control rows in Controls and Settings for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const controlsPopover = renderRepresentativeControlsPopover(locale);
+      const helpModal = renderHelpModal(locale);
+
+      // The hidden POI interact prompt uses data-control-item="poiInteract" and
+      // is intentionally separate from the shared static controls legend.
+      expect(getRenderedControlRows(controlsPopover)).toEqual(
+        getRenderedSettingsControlRows(helpModal)
+      );
+      expect(getRenderedControlRows(controlsPopover)).toHaveLength(
+        CONTROL_ITEM_IDS.length
+      );
+    }
+  });
+
+  it('localizes the lighting debug row without non-English English fallback copy', () => {
+    const englishLightingDebug =
+      getControlOverlayStrings('en').items.lightingDebug;
+
+    for (const locale of ['ar', 'ja', 'zh-Hans', 'es', 'pt', 'de', 'hu']) {
+      const localizedLightingDebug =
+        getControlOverlayStrings(locale).items.lightingDebug;
+
+      expect(localizedLightingDebug.keys).toBe(englishLightingDebug.keys);
+      expect(localizedLightingDebug.description).not.toBe(
+        englishLightingDebug.description
+      );
+      expect(localizedLightingDebug.description.trim()).not.toBe('');
+    }
+  });
+
+  it('pseudo-localizes rendered controls descriptions while preserving key labels', () => {
+    const englishPopoverRows = getRenderedControlRows(
+      renderRepresentativeControlsPopover('en')
+    );
+    const pseudoPopoverRows = getRenderedControlRows(
+      renderRepresentativeControlsPopover('en-x-pseudo')
+    );
+    const englishSettingsRows = getRenderedSettingsControlRows(
+      renderHelpModal('en')
+    );
+    const pseudoSettingsRows = getRenderedSettingsControlRows(
+      renderHelpModal('en-x-pseudo')
+    );
+
+    expect(pseudoPopoverRows.map((row) => row.label)).toEqual(
+      englishPopoverRows.map((row) => row.label)
+    );
+    expect(pseudoSettingsRows.map((row) => row.label)).toEqual(
+      englishSettingsRows.map((row) => row.label)
+    );
+
+    for (const row of [...pseudoPopoverRows, ...pseudoSettingsRows]) {
+      expect(row.description).toMatch(/^⟦.*⟧$/);
+    }
   });
 
   it('formats template strings with provided values', () => {
@@ -439,7 +587,7 @@ describe('i18n utilities', () => {
     expect(helpModal.announcements.close).toBe('⟦Help menu closed.⟧');
     expect(
       helpModal.sections
-        .find((section) => section.id === 'movement')
+        .find((section) => section.id === 'controls')
         ?.items.some((item) => item.label.includes('Shift + ='))
     ).toBe(true);
     const arabicHelp = getHelpModalStrings('ar');
@@ -454,13 +602,13 @@ describe('i18n utilities', () => {
     );
 
     const spanishHelp = getHelpModalStrings('es');
-    expect(spanishHelp.sections[0]?.title).toBe('Movimiento y cámara');
+    expect(spanishHelp.sections[0]?.title).toBe('Controles');
     expect(spanishHelp.sections[0]?.items[3]?.description).toBe(
-      'Acerca o aleja sin rueda de ratón.'
+      'Acercar o alejar con el teclado'
     );
     const germanHelp = getHelpModalStrings('de');
-    expect(germanHelp.sections[2]?.title).toBe('Barrierefreiheit & Fallback');
-    expect(germanHelp.sections[2]?.items[3]?.description).toBe(
+    expect(germanHelp.sections[1]?.title).toBe('Barrierefreiheit & Fallback');
+    expect(germanHelp.sections[1]?.items[3]?.description).toBe(
       'Schalte mit der Audio-Schaltfläche um oder drücke M.'
     );
   });

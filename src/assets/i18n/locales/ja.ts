@@ -194,6 +194,10 @@ export const JA_OVERRIDES: LocaleOverrides = {
           keys: 'T',
           description: 'テキストモードに切り替え',
         },
+        lightingDebug: {
+          keys: 'Shift + L',
+          description: 'ライティングデバッグ表示を切り替え',
+        },
       },
       interact: {
         defaultLabel: 'Enter',
@@ -409,53 +413,6 @@ export const JA_OVERRIDES: LocaleOverrides = {
           'オーディオや映像、支援機能を調整します。ショートカットからいつでもアクセスできます。',
       },
       sections: [
-        {
-          id: 'movement',
-          title: '移動とカメラ',
-          items: [
-            {
-              label: 'WASD / 矢印キー',
-              description: 'ホーム内を移動します。',
-            },
-            {
-              label: 'マウスドラッグ',
-              description: 'アイソメ視点をパンします。',
-            },
-            { label: 'ホイール', description: 'ズームレベルを調整します。' },
-            {
-              label: 'Shift + = / Shift + -',
-              description: 'マウスホイールなしでズームします。',
-            },
-            {
-              label: 'タッチジョイスティック',
-              description: '左パッドで移動し、右パッドで視点をパンします。',
-            },
-            { label: 'ピンチ', description: 'タッチデバイスでズームします。' },
-          ],
-        },
-        {
-          id: 'interactions',
-          title: 'インタラクション',
-          items: [
-            {
-              label: '光る POI に近づく',
-              description:
-                'インタラクトキー (既定 Enter・スペース・F)、タップ、またはクリックで展示を開きます。',
-            },
-            {
-              label: 'Q / E または ← / →',
-              description: 'キーボードで POI のフォーカスを切り替えます。',
-            },
-            {
-              label: 'T',
-              description: '没入モードとテキストモードを切り替えます。',
-            },
-            {
-              label: 'Shift + L',
-              description: 'シネマティック照明とデバッグパスを比較します。',
-            },
-          ],
-        },
         {
           id: 'accessibility',
           title: 'アクセシビリティとフェイルオーバー',

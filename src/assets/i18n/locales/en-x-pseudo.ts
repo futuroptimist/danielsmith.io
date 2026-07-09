@@ -179,8 +179,23 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
   hud: {
     controlOverlay: {
       heading: wrap('Controls'),
+      items: {
+        keyboardMove: { description: wrap('Move') },
+        pointerDrag: { description: wrap('Drag to pan') },
+        pointerZoom: { description: wrap('Zoom') },
+        keyboardZoom: { description: wrap('Zoom in or out') },
+        touchDrag: {
+          description: wrap(
+            'Drag the left half to move and the right half to pan'
+          ),
+        },
+        touchPinch: { description: wrap('Zoom') },
+        cyclePoi: { description: wrap('Cycle POIs') },
+        toggleTextMode: { description: wrap('Switch to text mode') },
+        lightingDebug: { description: wrap('Toggle lighting debug view') },
+      },
       interact: {
-        defaultLabel: wrap('Enter'),
+        defaultLabel: 'Enter',
         description: wrap('Interact'),
         promptTemplates: {
           default: wrap('Interact with {title}'),
@@ -537,68 +552,6 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         ),
       },
       sections: [
-        {
-          id: 'movement',
-          title: wrap('Movement & Camera'),
-          items: [
-            {
-              label: wrap('WASD / Arrow keys'),
-              description: wrap('Roll the explorer around the home.'),
-            },
-            {
-              label: wrap('Mouse drag'),
-              description: wrap('Pan the isometric camera.'),
-            },
-            {
-              label: wrap('Scroll wheel'),
-              description: wrap('Adjust zoom level.'),
-            },
-            {
-              label: wrap('Shift + = / Shift + -'),
-              description: wrap('Zoom in or out without a mouse wheel.'),
-            },
-            {
-              label: wrap('Touch joysticks'),
-              description: wrap(
-                'Drag the left pad to move and the right pad to pan.'
-              ),
-            },
-            {
-              label: wrap('Pinch'),
-              description: wrap('Zoom on touch devices.'),
-            },
-          ],
-        },
-        {
-          id: 'interactions',
-          title: wrap('Interactions'),
-          items: [
-            {
-              label: wrap('Approach glowing POIs'),
-              description: wrap(
-                'Press your interact key (Enter/Space/F), tap, or click to open the exhibit overlay.'
-              ),
-            },
-            {
-              label: wrap('Q / E or ← / →'),
-              description: wrap(
-                'Cycle focus between points of interest with the keyboard.'
-              ),
-            },
-            {
-              label: wrap('T'),
-              description: wrap(
-                'Toggle between immersive mode and the text fallback.'
-              ),
-            },
-            {
-              label: wrap('Shift + L'),
-              description: wrap(
-                'Compare cinematic lighting with the debug pass.'
-              ),
-            },
-          ],
-        },
         {
           id: 'accessibility',
           title: wrap('Accessibility & Failover'),

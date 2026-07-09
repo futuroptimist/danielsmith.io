@@ -1,5 +1,6 @@
 import type { PoiId } from '../../scene/poi/types';
 
+import { getControlHelpRows } from './controlItems';
 import { AR_OVERRIDES } from './locales/ar';
 import { DE_OVERRIDES } from './locales/de';
 import { EN_LOCALE_STRINGS } from './locales/en';
@@ -96,6 +97,23 @@ function applyOverrides<T>(target: T, overrides: DeepPartial<T>): void {
   }
 }
 
+function syncHelpModalControlSection(strings: LocaleStrings): void {
+  const controlSection = {
+    id: 'controls',
+    title: strings.hud.controlOverlay.heading,
+    items: getControlHelpRows(strings.hud.controlOverlay),
+  };
+  strings.hud.helpModal.sections = [
+    controlSection,
+    ...strings.hud.helpModal.sections.filter(
+      (section) =>
+        section.id !== 'movement' &&
+        section.id !== 'interactions' &&
+        section.id !== 'controls'
+    ),
+  ];
+}
+
 function buildLocale(
   base: LocaleStrings,
   overrides: LocaleOverrides | undefined,
@@ -106,8 +124,11 @@ function buildLocale(
     applyOverrides(clone, overrides as DeepPartial<LocaleStrings>);
   }
   clone.locale = locale;
+  syncHelpModalControlSection(clone);
   return Object.freeze(clone);
 }
+
+const EN_LOCALE = buildLocale(EN_LOCALE_STRINGS, undefined, 'en');
 
 const MERGED_PSEUDO = buildLocale(
   EN_LOCALE_STRINGS,
@@ -128,7 +149,7 @@ const DE_LOCALE = buildLocale(EN_LOCALE_STRINGS, DE_OVERRIDES, 'de');
 const HU_LOCALE = buildLocale(EN_LOCALE_STRINGS, HU_OVERRIDES, 'hu');
 
 const localeCatalog: Record<Locale, LocaleStrings> = Object.freeze({
-  en: Object.freeze(cloneValue(EN_LOCALE_STRINGS)),
+  en: EN_LOCALE,
   'en-x-pseudo': MERGED_PSEUDO,
   ar: AR_LOCALE,
   ja: JA_LOCALE,

@@ -199,6 +199,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           keys: 'T',
           description: 'Switch to text mode',
         },
+        lightingDebug: {
+          keys: 'Shift + L',
+          description: 'Toggle lighting debug view',
+        },
       },
       interact: {
         defaultLabel: 'Enter',
@@ -532,53 +536,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         ].join(' '),
       },
       sections: [
-        {
-          id: 'movement',
-          title: 'Movement & Camera',
-          items: [
-            {
-              label: 'WASD / Arrow keys',
-              description: 'Roll the explorer around the home.',
-            },
-            { label: 'Mouse drag', description: 'Pan the isometric camera.' },
-            { label: 'Scroll wheel', description: 'Adjust zoom level.' },
-            {
-              label: 'Shift + = / Shift + -',
-              description: 'Zoom in or out without a mouse wheel.',
-            },
-            {
-              label: 'Touch joysticks',
-              description:
-                'Drag the left pad to move and the right pad to pan.',
-            },
-            { label: 'Pinch', description: 'Zoom on touch devices.' },
-          ],
-        },
-        {
-          id: 'interactions',
-          title: 'Interactions',
-          items: [
-            {
-              label: 'Approach glowing POIs',
-              description:
-                'Press your interact key (Enter/Space/F), tap, or click to open the exhibit overlay.',
-            },
-            {
-              label: 'Q / E or ← / →',
-              description:
-                'Cycle focus between points of interest with the keyboard.',
-            },
-            {
-              label: 'T',
-              description:
-                'Toggle between immersive mode and the text fallback.',
-            },
-            {
-              label: 'Shift + L',
-              description: 'Compare cinematic lighting with the debug pass.',
-            },
-          ],
-        },
         {
           id: 'accessibility',
           title: 'Accessibility & Failover',

@@ -193,6 +193,10 @@ export const AR_OVERRIDES: LocaleOverrides = {
           keys: 'T',
           description: 'التحويل إلى العرض النصي',
         },
+        lightingDebug: {
+          keys: 'Shift + L',
+          description: 'تبديل عرض تصحيح الإضاءة',
+        },
       },
       interact: {
         defaultLabel: 'Enter',
@@ -398,56 +402,6 @@ export const AR_OVERRIDES: LocaleOverrides = {
           'عدّل الصوت والجودة والخيارات المساعدة. تظل هذه الضوابط متاحة عبر لوحة المساعدة.',
       },
       sections: [
-        {
-          id: 'movement',
-          title: 'الحركة والكاميرا',
-          items: [
-            {
-              label: 'WASD / الأسهم',
-              description: 'حرك المستكشف في أرجاء المنزل.',
-            },
-            {
-              label: 'سحب الفأرة',
-              description: 'قم بتدوير الكاميرا متساوية القياس.',
-            },
-            { label: 'عجلة التمرير', description: 'اضبط مستوى التكبير.' },
-            {
-              label: 'Shift + = / Shift + -',
-              description: 'كبّر أو صغّر من دون عجلة فأرة.',
-            },
-            {
-              label: 'عصا اللمس',
-              description: 'اسحب اليسار للحركة واليمين للدوران.',
-            },
-            {
-              label: 'القرص',
-              description: 'تكبير أو تصغير على الأجهزة اللمسية.',
-            },
-          ],
-        },
-        {
-          id: 'interactions',
-          title: 'التفاعلات',
-          items: [
-            {
-              label: 'اقترب من نقاط الاهتمام المضيئة',
-              description:
-                'اضغط Enter/Space/F للتفاعل، أو المس/انقر لفتح بطاقة المعرض.',
-            },
-            {
-              label: 'Q / E أو ← / →',
-              description: 'بدّل التركيز بين نقاط الاهتمام بلوحة المفاتيح.',
-            },
-            {
-              label: 'T',
-              description: 'بدّل بين الوضع الغامر والنسخة النصية.',
-            },
-            {
-              label: 'Shift + L',
-              description: 'قارن الإضاءة السينمائية مع وضع التصحيح.',
-            },
-          ],
-        },
         {
           id: 'accessibility',
           title: 'إمكانية الوصول والطوارئ',
