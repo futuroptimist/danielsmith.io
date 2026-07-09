@@ -262,12 +262,49 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       variants: {
         title: wrap('Avatar style'),
         description: wrap('Switch outfits for the mannequin explorer.'),
+        options: {
+          portfolio: {
+            label: wrap('Portfolio'),
+            description: wrap(
+              'Signature dusk suit with neon visor highlights.'
+            ),
+          },
+          casual: {
+            label: wrap('Casual'),
+            description: wrap(
+              'Sunset hoodie with teal accents for relaxed walkthroughs.'
+            ),
+          },
+          formal: {
+            label: wrap('Formal'),
+            description: wrap(
+              'Charcoal blazer with gilded trims for keynote demos.'
+            ),
+          },
+        },
+        selectedAnnouncementTemplate: wrap('{label} avatar selected.'),
       },
       accessories: {
         title: wrap('Accessories'),
         description: wrap(
           'Toggle the wrist console or holographic drone companions.'
         ),
+        options: {
+          'wrist-console': {
+            label: wrap('Wrist console'),
+            description: wrap(
+              'Wearable telemetry cuff that mirrors HUD diagnostics.'
+            ),
+          },
+          'holo-drone': {
+            label: wrap('Holographic drone'),
+            description: wrap(
+              'Shoulder scout drone with a gentle orbiting glow.'
+            ),
+          },
+        },
+        enabledAnnouncementTemplate: wrap('{label} enabled.'),
+        disabledAnnouncementTemplate: wrap('{label} disabled.'),
       },
     },
     audioSubtitles: {
@@ -380,6 +417,60 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         '⟦Shows a non-interactive stats.js FPS panel for immersive diagnostics.⟧',
       fpsDescriptionDisabled:
         '⟦Hides the stats.js FPS panel while keeping diagnostics available.⟧',
+    },
+    graphicsQuality: {
+      title: wrap('Graphics Quality'),
+      description: wrap('Pick a preset that matches your device performance.'),
+      options: {
+        cinematic: {
+          label: wrap('Cinematic'),
+          description: wrap(
+            'Full post-processing, highest-detail 3D models, cinematic bloom and lighting.'
+          ),
+        },
+        balanced: {
+          label: wrap('Balanced'),
+          description: wrap(
+            'Moderate bloom, reduced resolution, and medium-detail 3D models for laptops.'
+          ),
+        },
+        performance: {
+          label: wrap('Performance'),
+          description: wrap(
+            'Disables bloom, lowers resolution, and uses lowest-detail 3D models to prioritize FPS.'
+          ),
+        },
+      },
+      selectedAnnouncementTemplate: wrap('{label} preset selected.'),
+    },
+    accessibilityPresets: {
+      title: wrap('Accessibility Presets'),
+      description: wrap('Tune motion assists and HUD contrast.'),
+      options: {
+        standard: {
+          label: wrap('Standard'),
+          description: wrap('Default visuals and audio balance.'),
+        },
+        calm: {
+          label: wrap('Calm'),
+          description: wrap(
+            'Softens bloom, LED glow, and ambient audio for a gentler pass.'
+          ),
+        },
+        'high-contrast': {
+          label: wrap('High contrast'),
+          description: wrap(
+            'Boosts HUD readability while keeping motion cues active.'
+          ),
+        },
+        photosensitive: {
+          label: wrap('Photosensitive safe'),
+          description: wrap(
+            'Disables bloom, dulls emissives, and boosts HUD contrast.'
+          ),
+        },
+      },
+      selectedAnnouncementTemplate: wrap('{label} preset selected.'),
     },
     softwareRendererWarning: {
       fallbackRendererLabel: wrap('software WebGL renderer'),

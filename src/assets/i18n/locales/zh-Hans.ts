@@ -206,10 +206,40 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     customization: {
       heading: '自定义',
       description: '调整当前任务中的人偶风格和伙伴装备。',
-      variants: { title: '头像风格', description: '为探索者人偶切换服装。' },
+      variants: {
+        title: '头像风格',
+        description: '为探索者人偶切换服装。',
+        options: {
+          portfolio: {
+            label: '作品集',
+            description: '带霓虹面罩高光的标志性暮色套装。',
+          },
+          casual: {
+            label: '休闲',
+            description: '带青绿色点缀的日落连帽衫，适合轻松浏览。',
+          },
+          formal: {
+            label: '正式',
+            description: '带金色饰边的炭黑西装外套，适合主题演示。',
+          },
+        },
+        selectedAnnouncementTemplate: '已选择 {label} 头像。',
+      },
       accessories: {
         title: '配件',
         description: '切换腕部控制台或全息无人机伙伴。',
+        options: {
+          'wrist-console': {
+            label: '腕部控制台',
+            description: '可穿戴遥测袖带，会映射 HUD 诊断。',
+          },
+          'holo-drone': {
+            label: '全息无人机',
+            description: '带柔和环绕光的肩部侦察无人机。',
+          },
+        },
+        enabledAnnouncementTemplate: '{label} 已启用。',
+        disabledAnnouncementTemplate: '{label} 已停用。',
       },
     },
     audioSubtitles: {
@@ -298,6 +328,46 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       fpsLabelDisabled: 'FPS 计数器已关闭',
       fpsDescriptionEnabled: '显示用于沉浸式诊断的非交互 stats.js FPS 面板。',
       fpsDescriptionDisabled: '隐藏 stats.js FPS 面板，同时保留诊断功能。',
+    },
+    graphicsQuality: {
+      title: '图形质量',
+      description: '选择匹配设备性能的预设。',
+      options: {
+        cinematic: {
+          label: '电影级',
+          description: '完整后期处理、最高细节 3D 模型、电影级辉光与灯光。',
+        },
+        balanced: {
+          label: '均衡',
+          description: '适合笔记本的适中辉光、降低分辨率和中等细节 3D 模型。',
+        },
+        performance: {
+          label: '性能优先',
+          description:
+            '关闭辉光、降低分辨率，并使用最低细节 3D 模型以优先保证 FPS。',
+        },
+      },
+      selectedAnnouncementTemplate: '已选择 {label} 预设。',
+    },
+    accessibilityPresets: {
+      title: '无障碍预设',
+      description: '调整运动辅助和 HUD 对比度。',
+      options: {
+        standard: { label: '标准', description: '默认视觉和音频平衡。' },
+        calm: {
+          label: '平静',
+          description: '柔化辉光、LED 光效和环境音频，带来更温和的浏览体验。',
+        },
+        'high-contrast': {
+          label: '高对比度',
+          description: '增强 HUD 可读性，同时保留运动提示。',
+        },
+        photosensitive: {
+          label: '光敏安全',
+          description: '关闭辉光、降低发光强度，并增强 HUD 对比度。',
+        },
+      },
+      selectedAnnouncementTemplate: '已选择 {label} 预设。',
     },
     softwareRendererWarning: {
       fallbackRendererLabel: '软件 WebGL 渲染器',

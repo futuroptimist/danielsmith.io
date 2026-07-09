@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { GraphicsQualityLevel } from '../../scene/graphics/qualityManager';
 
 export interface GraphicsQualityControlPreset {
@@ -13,11 +14,18 @@ export interface GraphicsQualityControlOptions {
   setActiveLevel: (level: GraphicsQualityLevel) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
 }
 
 export interface GraphicsQualityControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
+  setStrings(strings: {
+    title: string;
+    description: string;
+    options: ReadonlyArray<GraphicsQualityControlPreset>;
+    selectedAnnouncementTemplate: string;
+  }): void;
   dispose(): void;
 }
 
@@ -38,6 +46,7 @@ export function createGraphicsQualityControl({
   getActiveLevel,
   setActiveLevel,
   title = 'Graphics quality',
+  selectedAnnouncementTemplate = '{label} preset selected.',
   description = 'Pick a preset that matches your device performance.',
 }: GraphicsQualityControlOptions): GraphicsQualityControlHandle {
   if (!presets.length) {
@@ -73,6 +82,7 @@ export function createGraphicsQualityControl({
   wrapper.append(heading, descriptionParagraph, optionList, liveRegion);
   container.appendChild(wrapper);
 
+  let localizedOptions = [...presets];
   const inputs: HTMLInputElement[] = [];
   const labels = new Map<string, HTMLElement>();
 
@@ -94,7 +104,11 @@ export function createGraphicsQualityControl({
       }
     });
     updateLiveRegion(
-      `${presets.find((preset) => preset.id === active)?.label ?? active} preset selected.`
+      formatMessage(selectedAnnouncementTemplate, {
+        label:
+          localizedOptions.find((preset) => preset.id === active)?.label ??
+          active,
+      })
     );
   };
 
@@ -141,7 +155,7 @@ export function createGraphicsQualityControl({
     }
   };
 
-  presets.forEach((preset, index) => {
+  localizedOptions.forEach((preset, index) => {
     const optionLabel = document.createElement('label');
     optionLabel.className = 'graphics-quality__option';
     optionLabel.dataset.state = 'idle';
@@ -183,6 +197,29 @@ export function createGraphicsQualityControl({
   return {
     element: wrapper,
     refresh() {
+      updateSelection();
+    },
+    setStrings(nextStrings) {
+      localizedOptions = [...nextStrings.options];
+      heading.textContent = nextStrings.title;
+      descriptionParagraph.textContent = nextStrings.description;
+      selectedAnnouncementTemplate = nextStrings.selectedAnnouncementTemplate;
+      inputs.forEach((input) => {
+        const nextOption = localizedOptions.find(
+          (entry) => entry.id === input.value
+        );
+        if (!nextOption) {
+          return;
+        }
+        input.setAttribute('aria-label', nextOption.label);
+        const label = input.closest('label');
+        label
+          ?.querySelector('[class$="__option-title"]')
+          ?.replaceChildren(nextOption.label);
+        label
+          ?.querySelector('[class$="__option-description"]')
+          ?.replaceChildren(nextOption.description);
+      });
       updateSelection();
     },
     dispose() {

@@ -7,12 +7,21 @@ export interface MotionBlurControlOptions {
   step?: number;
   label?: string;
   description?: string;
+  groupLabel?: string;
+  sliderAnnouncement?: string;
+  valueFormatter?: (value: number) => string;
   windowTarget?: Window;
 }
 
 export interface MotionBlurControlHandle {
   readonly element: HTMLDivElement;
   refresh(): void;
+  setStrings(strings: {
+    label: string;
+    description?: string;
+    groupLabel?: string;
+    sliderAnnouncement?: string;
+  }): void;
   dispose(): void;
 }
 
@@ -54,12 +63,15 @@ export function createMotionBlurControl({
   step = DEFAULT_STEP,
   label = DEFAULT_LABEL,
   description = DEFAULT_DESCRIPTION,
+  groupLabel = label,
+  sliderAnnouncement = label,
+  valueFormatter = formatIntensity,
   windowTarget = window,
 }: MotionBlurControlOptions): MotionBlurControlHandle {
   const wrapper = document.createElement('div');
   wrapper.className = 'motion-blur-control';
   wrapper.setAttribute('role', 'group');
-  wrapper.setAttribute('aria-label', 'Motion blur controls');
+  wrapper.setAttribute('aria-label', groupLabel);
 
   const heading = document.createElement('div');
   heading.className = 'motion-blur-control__heading';
@@ -79,7 +91,7 @@ export function createMotionBlurControl({
   slider.max = '1';
   slider.step = step.toString();
   slider.setAttribute('aria-label', label);
-  slider.dataset.hudAnnounce = 'Motion blur intensity slider.';
+  slider.dataset.hudAnnounce = sliderAnnouncement;
 
   const valueText = document.createElement('span');
   valueText.className = 'motion-blur-control__value';
@@ -89,12 +101,11 @@ export function createMotionBlurControl({
   sliderLabel.appendChild(valueText);
   wrapper.appendChild(sliderLabel);
 
-  if (description) {
-    const descriptionText = document.createElement('p');
-    descriptionText.className = 'motion-blur-control__description';
-    descriptionText.textContent = description;
-    wrapper.appendChild(descriptionText);
-  }
+  const descriptionText = document.createElement('p');
+  descriptionText.className = 'motion-blur-control__description';
+  descriptionText.textContent = description;
+  descriptionText.hidden = !description;
+  wrapper.appendChild(descriptionText);
 
   container.appendChild(wrapper);
 
@@ -102,7 +113,7 @@ export function createMotionBlurControl({
     const clamped = clamp01(value);
     slider.value = clamped.toString();
     slider.setAttribute('aria-valuenow', clamped.toFixed(2));
-    const formatted = formatIntensity(clamped);
+    const formatted = valueFormatter(clamped);
     slider.setAttribute('aria-valuetext', formatted);
     valueText.textContent = formatted;
     wrapper.dataset.state = clamped <= 0.001 ? 'off' : 'on';
@@ -138,6 +149,18 @@ export function createMotionBlurControl({
   return {
     element: wrapper,
     refresh,
+    setStrings(nextStrings) {
+      heading.textContent = nextStrings.label;
+      descriptionText.textContent = nextStrings.description ?? '';
+      descriptionText.hidden = !nextStrings.description;
+      wrapper.setAttribute(
+        'aria-label',
+        nextStrings.groupLabel ?? nextStrings.label
+      );
+      slider.setAttribute('aria-label', nextStrings.label);
+      slider.dataset.hudAnnounce =
+        nextStrings.sliderAnnouncement ?? nextStrings.label;
+    },
     dispose() {
       slider.removeEventListener('input', handleInput);
       windowTarget.removeEventListener('keydown', handleKeydown);

@@ -221,6 +221,75 @@ describe('i18n utilities', () => {
     }
   });
 
+  it('localizes Settings preset and customization copy for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const { hud } = getLocaleStrings(locale);
+      const values = [
+        hud.graphicsQuality.title,
+        hud.graphicsQuality.description,
+        ...Object.values(hud.graphicsQuality.options).flatMap((option) => [
+          option.label,
+          option.description,
+        ]),
+        hud.accessibilityPresets.title,
+        hud.accessibilityPresets.description,
+        ...Object.values(hud.accessibilityPresets.options).flatMap((option) => [
+          option.label,
+          option.description,
+        ]),
+        hud.customization.heading,
+        hud.customization.description,
+        hud.customization.variants.title,
+        hud.customization.variants.description,
+        ...Object.values(hud.customization.variants.options).flatMap(
+          (option) => [option.label, option.description]
+        ),
+        hud.customization.accessories.title,
+        hud.customization.accessories.description,
+        ...Object.values(hud.customization.accessories.options).flatMap(
+          (option) => [option.label, option.description]
+        ),
+      ];
+
+      for (const value of values) {
+        expect(value.trim(), `${locale} settings string`).not.toBe('');
+      }
+    }
+  });
+
+  it('regresses previously English zh-Hans Settings strings', () => {
+    const { hud } = getLocaleStrings('zh-Hans');
+    expect(hud.accessibilityPresets.title).not.toBe('Accessibility Presets');
+    expect(hud.accessibilityPresets.options.standard.label).not.toBe(
+      'Standard'
+    );
+    expect(hud.accessibilityPresets.options.calm.label).not.toBe('Calm');
+    expect(hud.accessibilityPresets.options['high-contrast'].label).not.toBe(
+      'High contrast'
+    );
+    expect(hud.accessibilityPresets.options.photosensitive.label).not.toBe(
+      'Photosensitive safe'
+    );
+    expect(hud.graphicsQuality.title).not.toBe('Graphics Quality');
+    expect(hud.customization.heading).not.toBe('Customization');
+    expect(hud.customization.accessories.title).not.toBe('Accessories');
+  });
+
+  it('pseudo-localizes Settings labels while keeping input key glyphs stable', () => {
+    const pseudo = getLocaleStrings('en-x-pseudo');
+    expect(pseudo.hud.graphicsQuality.title).toMatch(/^⟦.*⟧$/);
+    expect(pseudo.hud.accessibilityPresets.options.standard.label).toMatch(
+      /^⟦.*⟧$/
+    );
+    expect(
+      pseudo.hud.customization.accessories.options['wrist-console'].label
+    ).toMatch(/^⟦.*⟧$/);
+    expect(pseudo.hud.controlOverlay.items.cyclePoi.keys).toBe('Q / E');
+    expect(pseudo.hud.controlOverlay.items.keyboardZoom.keys).toBe(
+      'Shift + = / Shift + -'
+    );
+  });
+
   it('renders one Settings controls section without stale duplicate sections for every locale', () => {
     for (const locale of AVAILABLE_LOCALES) {
       const helpModal = getHelpModalStrings(locale);

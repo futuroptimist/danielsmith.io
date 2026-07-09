@@ -102,6 +102,23 @@ export function createHudCustomizationSection({
       description.textContent = nextStrings.description ?? '';
       description.hidden = !nextStrings.description;
 
+      if (variantHandle && 'setStrings' in variantHandle) {
+        variantHandle.setStrings({
+          ...nextStrings.variants,
+          options: Array.from(
+            variantHandle.element.querySelectorAll<HTMLInputElement>(
+              '.avatar-variants__radio'
+            )
+          ).map((input) => ({
+            id: input.value as keyof typeof nextStrings.variants.options,
+            palette: { base: '', accent: '', trim: '' },
+            ...nextStrings.variants.options[
+              input.value as keyof typeof nextStrings.variants.options
+            ],
+          })),
+        });
+      }
+
       if (variantHandle?.element) {
         updateControlCopy(
           variantHandle.element,
@@ -112,6 +129,22 @@ export function createHudCustomizationSection({
             description: '.avatar-variants__description',
           }
         );
+      }
+
+      if (accessoryHandle && 'setStrings' in accessoryHandle) {
+        accessoryHandle.setStrings({
+          ...nextStrings.accessories,
+          options: Array.from(
+            accessoryHandle.element.querySelectorAll<HTMLInputElement>(
+              '.avatar-accessories__checkbox'
+            )
+          ).map((input) => ({
+            id: input.value as keyof typeof nextStrings.accessories.options,
+            ...nextStrings.accessories.options[
+              input.value as keyof typeof nextStrings.accessories.options
+            ],
+          })),
+        });
       }
 
       if (accessoryHandle?.element) {

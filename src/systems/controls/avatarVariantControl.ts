@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { PortfolioMannequinPalette } from '../../scene/avatar/mannequin';
 import type { AvatarVariantId } from '../../scene/avatar/variants';
 
@@ -15,11 +16,18 @@ export interface AvatarVariantControlOptions {
   setActiveVariant: (variant: AvatarVariantId) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
 }
 
 export interface AvatarVariantControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
+  setStrings(strings: {
+    title: string;
+    description: string;
+    options: ReadonlyArray<AvatarVariantControlOption>;
+    selectedAnnouncementTemplate: string;
+  }): void;
   dispose(): void;
 }
 
@@ -40,6 +48,7 @@ export function createAvatarVariantControl({
   getActiveVariant,
   setActiveVariant,
   title = 'Avatar style',
+  selectedAnnouncementTemplate = '{label} avatar selected.',
   description = 'Switch outfits for the mannequin explorer.',
 }: AvatarVariantControlOptions): AvatarVariantControlHandle {
   if (!options.length) {
@@ -74,6 +83,7 @@ export function createAvatarVariantControl({
   wrapper.append(heading, descriptionParagraph, optionsList, liveRegion);
   container.appendChild(wrapper);
 
+  let localizedOptions = [...options];
   const inputs: HTMLInputElement[] = [];
   const optionLabels = new Map<string, HTMLElement>();
 
@@ -95,8 +105,10 @@ export function createAvatarVariantControl({
       }
     });
     const activeLabel =
-      options.find((option) => option.id === active)?.label ?? active;
-    updateLiveRegion(`${activeLabel} avatar selected.`);
+      localizedOptions.find((option) => option.id === active)?.label ?? active;
+    updateLiveRegion(
+      formatMessage(selectedAnnouncementTemplate, { label: activeLabel })
+    );
   };
 
   const setPending = (value: boolean) => {
@@ -142,7 +154,7 @@ export function createAvatarVariantControl({
     }
   };
 
-  options.forEach((option, index) => {
+  localizedOptions.forEach((option, index) => {
     const label = document.createElement('label');
     label.className = 'avatar-variants__option';
     label.dataset.state = 'idle';
@@ -206,6 +218,29 @@ export function createAvatarVariantControl({
   return {
     element: wrapper,
     refresh() {
+      updateSelection();
+    },
+    setStrings(nextStrings) {
+      localizedOptions = [...nextStrings.options];
+      heading.textContent = nextStrings.title;
+      descriptionParagraph.textContent = nextStrings.description;
+      selectedAnnouncementTemplate = nextStrings.selectedAnnouncementTemplate;
+      inputs.forEach((input) => {
+        const nextOption = localizedOptions.find(
+          (entry) => entry.id === input.value
+        );
+        if (!nextOption) {
+          return;
+        }
+        input.setAttribute('aria-label', nextOption.label);
+        const label = input.closest('label');
+        label
+          ?.querySelector('[class$="__option-title"]')
+          ?.replaceChildren(nextOption.label);
+        label
+          ?.querySelector('[class$="__option-description"]')
+          ?.replaceChildren(nextOption.description);
+      });
       updateSelection();
     },
     dispose() {

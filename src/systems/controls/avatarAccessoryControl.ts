@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { AvatarAccessoryId } from '../../scene/avatar/accessories';
 
 export interface AvatarAccessoryControlOption {
@@ -16,11 +17,20 @@ export interface AvatarAccessoryControlOptions {
   ) => void | Promise<void>;
   readonly title?: string;
   readonly description?: string;
+  readonly enabledAnnouncementTemplate?: string;
+  readonly disabledAnnouncementTemplate?: string;
 }
 
 export interface AvatarAccessoryControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
+  setStrings(strings: {
+    title: string;
+    description: string;
+    options: ReadonlyArray<AvatarAccessoryControlOption>;
+    enabledAnnouncementTemplate: string;
+    disabledAnnouncementTemplate: string;
+  }): void;
   dispose(): void;
 }
 
@@ -42,6 +52,8 @@ export function createAvatarAccessoryControl({
   setAccessoryEnabled,
   title = 'Accessories',
   description = 'Toggle companion gear for the avatar.',
+  enabledAnnouncementTemplate = '{label} enabled.',
+  disabledAnnouncementTemplate = '{label} disabled.',
 }: AvatarAccessoryControlOptions): AvatarAccessoryControlHandle {
   if (!options.length) {
     throw new Error('Avatar accessory control requires at least one option.');
@@ -76,6 +88,7 @@ export function createAvatarAccessoryControl({
   wrapper.append(list, liveRegion);
   container.appendChild(wrapper);
 
+  let localizedOptions = [...options];
   const checkboxes: HTMLInputElement[] = [];
   const optionLabels = new Map<AvatarAccessoryId, HTMLElement>();
 
@@ -132,24 +145,38 @@ export function createAvatarAccessoryControl({
           .then(() => {
             setPending(false);
             updateSelection();
-            const option = options.find((entry) => entry.id === id);
+            const option = localizedOptions.find((entry) => entry.id === id);
             const label = option?.label ?? id;
-            updateLiveRegion(`${label} ${enabled ? 'enabled' : 'disabled'}.`);
+            updateLiveRegion(
+              formatMessage(
+                enabled
+                  ? enabledAnnouncementTemplate
+                  : disabledAnnouncementTemplate,
+                { label }
+              )
+            );
           })
           .catch(handleError);
       } else {
         setPending(false);
         updateSelection();
-        const option = options.find((entry) => entry.id === id);
+        const option = localizedOptions.find((entry) => entry.id === id);
         const label = option?.label ?? id;
-        updateLiveRegion(`${label} ${enabled ? 'enabled' : 'disabled'}.`);
+        updateLiveRegion(
+          formatMessage(
+            enabled
+              ? enabledAnnouncementTemplate
+              : disabledAnnouncementTemplate,
+            { label }
+          )
+        );
       }
     } catch (error) {
       handleError(error);
     }
   };
 
-  options.forEach((option, index) => {
+  localizedOptions.forEach((option, index) => {
     const label = document.createElement('label');
     label.className = 'avatar-accessories__option';
     label.dataset.state = 'idle';
@@ -193,6 +220,30 @@ export function createAvatarAccessoryControl({
   return {
     element: wrapper,
     refresh() {
+      updateSelection();
+    },
+    setStrings(nextStrings) {
+      localizedOptions = [...nextStrings.options];
+      heading.textContent = nextStrings.title;
+      descriptionParagraph.textContent = nextStrings.description;
+      enabledAnnouncementTemplate = nextStrings.enabledAnnouncementTemplate;
+      disabledAnnouncementTemplate = nextStrings.disabledAnnouncementTemplate;
+      checkboxes.forEach((checkbox) => {
+        const nextOption = localizedOptions.find(
+          (entry) => entry.id === checkbox.value
+        );
+        if (!nextOption) {
+          return;
+        }
+        checkbox.setAttribute('aria-label', nextOption.label);
+        const label = checkbox.closest('label');
+        label
+          ?.querySelector('.avatar-accessories__option-title')
+          ?.replaceChildren(nextOption.label);
+        label
+          ?.querySelector('.avatar-accessories__option-description')
+          ?.replaceChildren(nextOption.description);
+      });
       updateSelection();
     },
     dispose() {
