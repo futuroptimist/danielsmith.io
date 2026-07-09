@@ -28,6 +28,11 @@ export interface ControlHelpRow {
   description: string;
 }
 
+const pseudoWrapIfNeeded = (strings: ControlOverlayStrings, value: string) =>
+  strings.heading.startsWith('⟦') && strings.heading.endsWith('⟧')
+    ? `⟦${value}⟧`
+    : value;
+
 export function getControlHelpRows(
   strings: ControlOverlayStrings
 ): readonly ControlHelpRow[] {
@@ -42,7 +47,7 @@ export function getControlHelpRows(
     },
     {
       label: 'Shift + L',
-      description: 'Toggle lighting debug view',
+      description: pseudoWrapIfNeeded(strings, 'Toggle lighting debug view'),
     },
   ];
 }

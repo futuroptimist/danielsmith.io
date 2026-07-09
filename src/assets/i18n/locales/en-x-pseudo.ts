@@ -194,7 +194,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         toggleTextMode: { description: wrap('Switch to text mode') },
       },
       interact: {
-        defaultLabel: wrap('Enter'),
+        defaultLabel: 'Enter',
         description: wrap('Interact'),
         promptTemplates: {
           default: wrap('Interact with {title}'),

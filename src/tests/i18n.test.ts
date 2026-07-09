@@ -27,11 +27,87 @@ import {
   resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
-import {
-  getControlHelpRows,
-  getControlItemRows,
-} from '../assets/i18n/controlItems';
+import { getControlHelpRows } from '../assets/i18n/controlItems';
 import { getPoiDefinitions } from '../scene/poi/registry';
+import { applyControlOverlayStrings } from '../ui/hud/controlOverlay';
+import { createHelpModal } from '../ui/hud/helpModal';
+
+const CONTROL_OVERLAY_STATIC_ITEM_IDS = [
+  'keyboardMove',
+  'pointerDrag',
+  'pointerZoom',
+  'keyboardZoom',
+  'touchDrag',
+  'touchPinch',
+  'cyclePoi',
+  'toggleTextMode',
+] as const;
+
+const renderRepresentativeControlsPopover = (locale: string): HTMLElement => {
+  const container = document.createElement('div');
+  container.innerHTML = `
+    <p class="overlay__heading" data-control-text="heading">Placeholder</p>
+    <ul class="overlay__list" data-role="control-list">
+      ${CONTROL_OVERLAY_STATIC_ITEM_IDS.map(
+        (id) => `
+          <li class="overlay__item" data-control-item="${id}">
+            <span class="overlay__keys">Keys</span>
+            <span class="overlay__description">Description</span>
+          </li>
+        `
+      ).join('')}
+      <li
+        class="overlay__item"
+        data-control-item="interact"
+        data-role="interact"
+        hidden
+      >
+        <span class="overlay__keys" data-role="interact-label">?</span>
+        <span class="overlay__description" data-role="interact-description">???</span>
+      </li>
+    </ul>
+  `;
+  applyControlOverlayStrings(container, getControlOverlayStrings(locale));
+  return container;
+};
+
+const getRenderedControlRows = (container: ParentNode) =>
+  Array.from(
+    container.querySelectorAll<HTMLElement>(
+      CONTROL_OVERLAY_STATIC_ITEM_IDS.map(
+        (id) => `[data-control-item="${id}"]`
+      ).join(',')
+    )
+  ).map((row) => ({
+    label: row.querySelector('.overlay__keys')?.textContent ?? '',
+    description: row.querySelector('.overlay__description')?.textContent ?? '',
+  }));
+
+const renderHelpModal = (locale: string): HTMLElement => {
+  const container = document.createElement('div');
+  const handle = createHelpModal({
+    container,
+    content: getHelpModalStrings(locale),
+  });
+  return handle.element;
+};
+
+const getRenderedSettingsControlRows = (container: ParentNode) =>
+  Array.from(
+    container.querySelectorAll<HTMLElement>(
+      '#help-modal-section-controls .help-modal__item'
+    )
+  ).map((row) => ({
+    label: row.querySelector('.help-modal__item-label')?.textContent ?? '',
+    description:
+      row.querySelector('.help-modal__item-description')?.textContent ?? '',
+  }));
+
+const getStaticControlRowsFromSettings = (container: ParentNode) =>
+  getRenderedSettingsControlRows(container).slice(
+    0,
+    CONTROL_OVERLAY_STATIC_ITEM_IDS.length
+  );
 
 it('provides POI debug detail labels for every locale', () => {
   for (const locale of AVAILABLE_LOCALES) {
@@ -166,16 +242,55 @@ describe('i18n utilities', () => {
     }
   });
 
-  it('pseudo-localizes controls descriptions while preserving key labels', () => {
-    const englishRows = getControlItemRows(getControlOverlayStrings('en'));
-    const pseudoRows = getControlItemRows(
-      getControlOverlayStrings('en-x-pseudo')
+  it('renders one Settings controls section without stale duplicate sections for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const helpModal = getHelpModalStrings(locale);
+      const sectionIds = helpModal.sections.map((section) => section.id);
+
+      expect(sectionIds.filter((id) => id === 'controls')).toHaveLength(1);
+      expect(sectionIds).not.toContain('movement');
+      expect(sectionIds).not.toContain('interactions');
+    }
+  });
+
+  it('renders matching shared static control rows in Controls and Settings for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const controlsPopover = renderRepresentativeControlsPopover(locale);
+      const helpModal = renderHelpModal(locale);
+
+      // The hidden interact row is dynamic: applyControlOverlayStrings updates its
+      // fallback copy separately, while Settings includes it as a help-only row.
+      expect(getRenderedControlRows(controlsPopover)).toEqual(
+        getStaticControlRowsFromSettings(helpModal)
+      );
+      expect(getRenderedControlRows(controlsPopover)).toHaveLength(
+        CONTROL_OVERLAY_STATIC_ITEM_IDS.length
+      );
+    }
+  });
+
+  it('pseudo-localizes rendered controls descriptions while preserving key labels', () => {
+    const englishPopoverRows = getRenderedControlRows(
+      renderRepresentativeControlsPopover('en')
+    );
+    const pseudoPopoverRows = getRenderedControlRows(
+      renderRepresentativeControlsPopover('en-x-pseudo')
+    );
+    const englishSettingsRows = getRenderedSettingsControlRows(
+      renderHelpModal('en')
+    );
+    const pseudoSettingsRows = getRenderedSettingsControlRows(
+      renderHelpModal('en-x-pseudo')
     );
 
-    expect(pseudoRows.map((row) => row.keys)).toEqual(
-      englishRows.map((row) => row.keys)
+    expect(pseudoPopoverRows.map((row) => row.label)).toEqual(
+      englishPopoverRows.map((row) => row.label)
     );
-    for (const row of pseudoRows) {
+    expect(pseudoSettingsRows.map((row) => row.label)).toEqual(
+      englishSettingsRows.map((row) => row.label)
+    );
+
+    for (const row of [...pseudoPopoverRows, ...pseudoSettingsRows]) {
       expect(row.description).toMatch(/^⟦.*⟧$/);
     }
   });
