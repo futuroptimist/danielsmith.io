@@ -13,21 +13,11 @@
       "id": "audit:src:scene:avatar:accessoryManager",
       "sourceFiles": ["src/scene/avatar/accessoryManager.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "07acbf5ecd37834fff72f3079b941c63fa120aad9dae1b1bc1afe21f2848ef57",
+      "syncRevision": 2,
+      "syncNote": "Accessory loadout persistence was removed without changing miniature geometry.",
+      "sourceFingerprint": "0489091c516148aaea7f83cae329125783f721c5e53a61bdc826de33bd4fdd5b",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "46a6b21bece2321bdeeb5293ebc243d87eda58affcd80136d1be671ccbe86448"
-    },
-    {
-      "id": "audit:src:scene:avatar:accessoryPresets",
-      "sourceFiles": ["src/scene/avatar/accessoryPresets.ts"],
-      "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "343e2c04f978b7f16f70004b705cbcb7aefea423a00bfab997fe7c0c36196d8c",
-      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "9fc81bd840f1931e57d78c58a8455b7e8efa3fc24c0facb071035b02274e823f"
+      "metadataFingerprint": "28425f52b25a8cbbf9009b9d4146f8ad59a12a9cef28331aa48be370eb9f861a"
     },
     {
       "id": "audit:src:scene:avatar:assetPipeline",
