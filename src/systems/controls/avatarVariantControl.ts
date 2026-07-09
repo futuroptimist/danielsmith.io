@@ -15,6 +15,7 @@ export interface AvatarVariantControlOptions {
   setActiveVariant: (variant: AvatarVariantId) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
 }
 
 export interface AvatarVariantControlHandle {
@@ -40,6 +41,7 @@ export function createAvatarVariantControl({
   getActiveVariant,
   setActiveVariant,
   title = 'Avatar style',
+  selectedAnnouncementTemplate = '{label} avatar selected.',
   description = 'Switch outfits for the mannequin explorer.',
 }: AvatarVariantControlOptions): AvatarVariantControlHandle {
   if (!options.length) {
@@ -96,7 +98,9 @@ export function createAvatarVariantControl({
     });
     const activeLabel =
       options.find((option) => option.id === active)?.label ?? active;
-    updateLiveRegion(`${activeLabel} avatar selected.`);
+    updateLiveRegion(
+      selectedAnnouncementTemplate.replace('{label}', activeLabel)
+    );
   };
 
   const setPending = (value: boolean) => {

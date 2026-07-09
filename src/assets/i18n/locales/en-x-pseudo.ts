@@ -381,6 +381,125 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       fpsDescriptionDisabled:
         '⟦Hides the stats.js FPS panel while keeping diagnostics available.⟧',
     },
+    settingsControls: {
+      accessibilityPresets: {
+        title: wrap('Accessibility presets'),
+        description: wrap('Tune motion assists and HUD contrast.'),
+        selectedAnnouncementTemplate: wrap('{label} preset selected.'),
+        options: {
+          standard: {
+            label: wrap('Standard'),
+            description: wrap('Default visuals and audio balance.'),
+          },
+          calm: {
+            label: wrap('Calm'),
+            description: wrap(
+              'Softens bloom, LED glow, and ambient audio for a gentler pass.'
+            ),
+          },
+          'high-contrast': {
+            label: wrap('High contrast'),
+            description: wrap(
+              'Boosts HUD readability while keeping motion cues active.'
+            ),
+          },
+          photosensitive: {
+            label: wrap('Photosensitive safe'),
+            description: wrap(
+              'Disables bloom, dulls emissives, and boosts HUD contrast.'
+            ),
+          },
+        },
+      },
+      graphicsQuality: {
+        title: wrap('Graphics quality'),
+        description: wrap(
+          'Pick a preset that matches your device performance.'
+        ),
+        selectedAnnouncementTemplate: wrap('{label} preset selected.'),
+        options: {
+          cinematic: {
+            label: wrap('Cinematic'),
+            description: wrap(
+              'Full post-processing, highest-detail 3D models, cinematic bloom and lighting.'
+            ),
+          },
+          balanced: {
+            label: wrap('Balanced'),
+            description: wrap(
+              'Moderate bloom, reduced resolution, and medium-detail 3D models for laptops.'
+            ),
+          },
+          performance: {
+            label: wrap('Performance'),
+            description: wrap(
+              'Disables bloom, lowers resolution, and uses lowest-detail 3D models to prioritize FPS.'
+            ),
+          },
+        },
+      },
+      avatarVariants: {
+        title: wrap('Avatar style'),
+        description: wrap('Switch outfits for the mannequin explorer.'),
+        selectedAnnouncementTemplate: wrap('{label} avatar selected.'),
+        options: {
+          portfolio: {
+            label: wrap('Portfolio'),
+            description: wrap(
+              'Signature dusk suit with neon visor highlights.'
+            ),
+          },
+          casual: {
+            label: wrap('Casual'),
+            description: wrap(
+              'Sunset hoodie with teal accents for relaxed walkthroughs.'
+            ),
+          },
+          formal: {
+            label: wrap('Formal'),
+            description: wrap(
+              'Charcoal blazer with gilded trims for keynote demos.'
+            ),
+          },
+        },
+      },
+      avatarAccessories: {
+        title: wrap('Accessories'),
+        description: wrap(
+          'Toggle the wrist console or holographic drone companions.'
+        ),
+        enabledAnnouncementTemplate: wrap('{label} enabled.'),
+        disabledAnnouncementTemplate: wrap('{label} disabled.'),
+        options: {
+          'wrist-console': {
+            label: wrap('Wrist console'),
+            description: wrap(
+              'Wearable telemetry cuff that mirrors HUD diagnostics.'
+            ),
+          },
+          'holo-drone': {
+            label: wrap('Holographic drone'),
+            description: wrap(
+              'Shoulder scout drone with a gentle orbiting glow.'
+            ),
+          },
+        },
+      },
+      motionBlur: {
+        label: wrap('Motion blur intensity'),
+        description: wrap(
+          'Adjust the trail effect applied to fast camera and avatar movement.'
+        ),
+        groupAriaLabel: wrap('Motion blur controls'),
+        hudLabel: wrap('Motion blur intensity slider.'),
+        valueLabels: {
+          off: wrap('Off'),
+          lowTemplate: wrap('{percent}% · Low trails'),
+          mediumTemplate: wrap('{percent}% · Medium trails'),
+          highTemplate: wrap('{percent}% · High trails'),
+        },
+      },
+    },
     softwareRendererWarning: {
       fallbackRendererLabel: wrap('software WebGL renderer'),
       title: wrap('Software rendering detected'),

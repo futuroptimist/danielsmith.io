@@ -230,9 +230,12 @@ Launch screenshot workflow refresh and commit it after merge.
   the public language picker. The pseudo locale remains internal and only appears
   in development, with `?i18nDebug=1`, or after setting
   `localStorage['danielsmith.io::i18nDebug::v1']='1'` for translation QA.
-  Translations are AI-assisted and community-reviewable. If you speak one of the
-  supported languages and spot awkward phrasing, corrections are welcome through
-  issues or pull requests.
+  Translations are AI-assisted and community-reviewable. Future HUD panels and
+  settings must add all user-visible text to the i18n types and every supported
+  locale file before rendering it. At minimum, new panel tests should verify the
+  pseudo locale wraps user-facing strings and `zh-Hans` does not fall back to
+  English. If you speak one of the supported languages and spot awkward phrasing,
+  corrections are welcome through issues or pull requests.
 - **Audio captions** – A subtitles overlay now calls out ambient beds and POI narration with
   cooldown-aware timing so visitors who mute audio or rely on captions still catch the
   story beats.
