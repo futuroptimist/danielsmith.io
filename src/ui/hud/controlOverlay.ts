@@ -63,7 +63,7 @@ export function applyControlOverlayStrings(
   }
 
   const interactItem = container.querySelector<HTMLElement>(
-    '[data-control-item="interact"]'
+    '[data-role="interact"]'
   );
   if (interactItem) {
     setTextContent(

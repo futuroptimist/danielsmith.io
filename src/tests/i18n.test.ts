@@ -27,28 +27,20 @@ import {
   resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
-import { getControlHelpRows } from '../assets/i18n/controlItems';
+import {
+  CONTROL_ITEM_IDS,
+  getControlHelpRows,
+} from '../assets/i18n/controlItems';
 import { getPoiDefinitions } from '../scene/poi/registry';
 import { applyControlOverlayStrings } from '../ui/hud/controlOverlay';
 import { createHelpModal } from '../ui/hud/helpModal';
-
-const CONTROL_OVERLAY_STATIC_ITEM_IDS = [
-  'keyboardMove',
-  'pointerDrag',
-  'pointerZoom',
-  'keyboardZoom',
-  'touchDrag',
-  'touchPinch',
-  'cyclePoi',
-  'toggleTextMode',
-] as const;
 
 const renderRepresentativeControlsPopover = (locale: string): HTMLElement => {
   const container = document.createElement('div');
   container.innerHTML = `
     <p class="overlay__heading" data-control-text="heading">Placeholder</p>
     <ul class="overlay__list" data-role="control-list">
-      ${CONTROL_OVERLAY_STATIC_ITEM_IDS.map(
+      ${CONTROL_ITEM_IDS.map(
         (id) => `
           <li class="overlay__item" data-control-item="${id}">
             <span class="overlay__keys">Keys</span>
@@ -58,7 +50,7 @@ const renderRepresentativeControlsPopover = (locale: string): HTMLElement => {
       ).join('')}
       <li
         class="overlay__item"
-        data-control-item="interact"
+        data-control-item="poiInteract"
         data-role="interact"
         hidden
       >
@@ -74,9 +66,7 @@ const renderRepresentativeControlsPopover = (locale: string): HTMLElement => {
 const getRenderedControlRows = (container: ParentNode) =>
   Array.from(
     container.querySelectorAll<HTMLElement>(
-      CONTROL_OVERLAY_STATIC_ITEM_IDS.map(
-        (id) => `[data-control-item="${id}"]`
-      ).join(',')
+      CONTROL_ITEM_IDS.map((id) => `[data-control-item="${id}"]`).join(',')
     )
   ).map((row) => ({
     label: row.querySelector('.overlay__keys')?.textContent ?? '',
@@ -102,12 +92,6 @@ const getRenderedSettingsControlRows = (container: ParentNode) =>
     description:
       row.querySelector('.help-modal__item-description')?.textContent ?? '',
   }));
-
-const getStaticControlRowsFromSettings = (container: ParentNode) =>
-  getRenderedSettingsControlRows(container).slice(
-    0,
-    CONTROL_OVERLAY_STATIC_ITEM_IDS.length
-  );
 
 it('provides POI debug detail labels for every locale', () => {
   for (const locale of AVAILABLE_LOCALES) {
@@ -258,13 +242,13 @@ describe('i18n utilities', () => {
       const controlsPopover = renderRepresentativeControlsPopover(locale);
       const helpModal = renderHelpModal(locale);
 
-      // The hidden interact row is dynamic: applyControlOverlayStrings updates its
-      // fallback copy separately, while Settings includes it as a help-only row.
+      // The hidden POI interact prompt uses data-control-item="poiInteract" and
+      // is intentionally separate from the shared static controls legend.
       expect(getRenderedControlRows(controlsPopover)).toEqual(
-        getStaticControlRowsFromSettings(helpModal)
+        getRenderedSettingsControlRows(helpModal)
       );
       expect(getRenderedControlRows(controlsPopover)).toHaveLength(
-        CONTROL_OVERLAY_STATIC_ITEM_IDS.length
+        CONTROL_ITEM_IDS.length
       );
     }
   });

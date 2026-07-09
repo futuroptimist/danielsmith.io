@@ -192,6 +192,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         touchPinch: { description: wrap('Zoom') },
         cyclePoi: { description: wrap('Cycle POIs') },
         toggleTextMode: { description: wrap('Switch to text mode') },
+        lightingDebug: { description: wrap('Toggle lighting debug view') },
       },
       interact: {
         defaultLabel: 'Enter',

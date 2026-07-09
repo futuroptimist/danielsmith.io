@@ -199,6 +199,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           keys: 'T',
           description: 'Switch to text mode',
         },
+        lightingDebug: {
+          keys: 'Shift + L',
+          description: 'Toggle lighting debug view',
+        },
       },
       interact: {
         defaultLabel: 'Enter',

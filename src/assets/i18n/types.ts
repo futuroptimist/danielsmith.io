@@ -43,6 +43,7 @@ export interface ControlOverlayStrings {
     touchPinch: ControlOverlayItemStrings;
     cyclePoi: ControlOverlayItemStrings;
     toggleTextMode: ControlOverlayItemStrings;
+    lightingDebug: ControlOverlayItemStrings;
   };
   interact: {
     defaultLabel: string;

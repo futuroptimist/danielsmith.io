@@ -9,7 +9,9 @@ export const CONTROL_ITEM_IDS = [
   'touchPinch',
   'cyclePoi',
   'toggleTextMode',
-] as const satisfies readonly (keyof ControlOverlayStrings['items'])[];
+  'interact',
+  'lightingDebug',
+] as const;
 
 export type ControlItemId = (typeof CONTROL_ITEM_IDS)[number];
 
@@ -20,7 +22,16 @@ export interface ControlItemRow extends ControlOverlayItemStrings {
 export function getControlItemRows(
   strings: ControlOverlayStrings
 ): readonly ControlItemRow[] {
-  return CONTROL_ITEM_IDS.map((id) => ({ id, ...strings.items[id] }));
+  return CONTROL_ITEM_IDS.map((id) => {
+    if (id === 'interact') {
+      return {
+        id,
+        keys: strings.interact.defaultLabel,
+        description: strings.interact.description,
+      };
+    }
+    return { id, ...strings.items[id] };
+  });
 }
 
 export interface ControlHelpRow {
@@ -28,26 +39,11 @@ export interface ControlHelpRow {
   description: string;
 }
 
-const pseudoWrapIfNeeded = (strings: ControlOverlayStrings, value: string) =>
-  strings.heading.startsWith('⟦') && strings.heading.endsWith('⟧')
-    ? `⟦${value}⟧`
-    : value;
-
 export function getControlHelpRows(
   strings: ControlOverlayStrings
 ): readonly ControlHelpRow[] {
-  return [
-    ...getControlItemRows(strings).map(({ keys, description }) => ({
-      label: keys,
-      description,
-    })),
-    {
-      label: strings.interact.defaultLabel,
-      description: strings.interact.description,
-    },
-    {
-      label: 'Shift + L',
-      description: pseudoWrapIfNeeded(strings, 'Toggle lighting debug view'),
-    },
-  ];
+  return getControlItemRows(strings).map(({ keys, description }) => ({
+    label: keys,
+    description,
+  }));
 }
