@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { GraphicsQualityLevel } from '../../scene/graphics/qualityManager';
 
 export interface GraphicsQualityControlPreset {
@@ -13,6 +14,7 @@ export interface GraphicsQualityControlOptions {
   setActiveLevel: (level: GraphicsQualityLevel) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
 }
 
 export interface GraphicsQualityControlHandle {
@@ -37,8 +39,9 @@ export function createGraphicsQualityControl({
   presets,
   getActiveLevel,
   setActiveLevel,
-  title = 'Graphics quality',
-  description = 'Pick a preset that matches your device performance.',
+  title,
+  description,
+  selectedAnnouncementTemplate = '{label} preset selected.',
 }: GraphicsQualityControlOptions): GraphicsQualityControlHandle {
   if (!presets.length) {
     throw new Error('Graphics quality control requires at least one preset.');
@@ -52,11 +55,11 @@ export function createGraphicsQualityControl({
 
   const heading = document.createElement('h2');
   heading.className = 'graphics-quality__title';
-  heading.textContent = title;
+  heading.textContent = title ?? '';
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'graphics-quality__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = description ?? '';
 
   const optionList = document.createElement('div');
   optionList.className = 'graphics-quality__options';
@@ -94,7 +97,9 @@ export function createGraphicsQualityControl({
       }
     });
     updateLiveRegion(
-      `${presets.find((preset) => preset.id === active)?.label ?? active} preset selected.`
+      formatMessage(selectedAnnouncementTemplate, {
+        label: presets.find((preset) => preset.id === active)?.label ?? active,
+      })
     );
   };
 

@@ -1,3 +1,6 @@
+import { formatMessage, getSettingsControlsStrings } from '../../assets/i18n';
+import type { SettingsControlsStrings } from '../../assets/i18n/types';
+
 export interface MotionBlurControlOptions {
   container: HTMLElement;
   /** Returns the base motion blur intensity between 0 and 1. */
@@ -7,6 +10,7 @@ export interface MotionBlurControlOptions {
   step?: number;
   label?: string;
   description?: string;
+  strings?: SettingsControlsStrings['motionBlur'];
   windowTarget?: Window;
 }
 
@@ -16,9 +20,6 @@ export interface MotionBlurControlHandle {
   dispose(): void;
 }
 
-const DEFAULT_LABEL = 'Motion blur intensity';
-const DEFAULT_DESCRIPTION =
-  'Adjust the trail effect applied to fast camera and avatar movement.';
 const DEFAULT_STEP = 0.05;
 
 function clamp01(value: number): number {
@@ -34,17 +35,26 @@ function clamp01(value: number): number {
   return value;
 }
 
-function formatIntensity(value: number): string {
+function formatIntensity(
+  value: number,
+  strings: SettingsControlsStrings['motionBlur']
+): string {
   if (value <= 0.001) {
-    return 'Off';
+    return strings.values.off;
   }
   if (value < 0.34) {
-    return `${Math.round(value * 100)}% · Low trails`;
+    return formatMessage(strings.values.lowTemplate, {
+      value: `${Math.round(value * 100)}`,
+    });
   }
   if (value < 0.67) {
-    return `${Math.round(value * 100)}% · Medium trails`;
+    return formatMessage(strings.values.mediumTemplate, {
+      value: `${Math.round(value * 100)}`,
+    });
   }
-  return `${Math.round(value * 100)}% · High trails`;
+  return formatMessage(strings.values.highTemplate, {
+    value: `${Math.round(value * 100)}`,
+  });
 }
 
 export function createMotionBlurControl({
@@ -52,18 +62,23 @@ export function createMotionBlurControl({
   getIntensity,
   setIntensity,
   step = DEFAULT_STEP,
-  label = DEFAULT_LABEL,
-  description = DEFAULT_DESCRIPTION,
+  label,
+  description,
+  strings: providedStrings,
   windowTarget = window,
 }: MotionBlurControlOptions): MotionBlurControlHandle {
   const wrapper = document.createElement('div');
   wrapper.className = 'motion-blur-control';
   wrapper.setAttribute('role', 'group');
-  wrapper.setAttribute('aria-label', 'Motion blur controls');
+  const strings = providedStrings ?? getSettingsControlsStrings().motionBlur;
+  const resolvedLabel = label ?? strings.label;
+  const resolvedDescription = description ?? strings.description;
+
+  wrapper.setAttribute('aria-label', strings.groupLabel);
 
   const heading = document.createElement('div');
   heading.className = 'motion-blur-control__heading';
-  heading.textContent = label;
+  heading.textContent = resolvedLabel;
   wrapper.appendChild(heading);
 
   const sliderLabel = document.createElement('label');
@@ -78,8 +93,8 @@ export function createMotionBlurControl({
   slider.min = '0';
   slider.max = '1';
   slider.step = step.toString();
-  slider.setAttribute('aria-label', label);
-  slider.dataset.hudAnnounce = 'Motion blur intensity slider.';
+  slider.setAttribute('aria-label', resolvedLabel);
+  slider.dataset.hudAnnounce = strings.sliderAnnouncement;
 
   const valueText = document.createElement('span');
   valueText.className = 'motion-blur-control__value';
@@ -89,10 +104,10 @@ export function createMotionBlurControl({
   sliderLabel.appendChild(valueText);
   wrapper.appendChild(sliderLabel);
 
-  if (description) {
+  if (resolvedDescription) {
     const descriptionText = document.createElement('p');
     descriptionText.className = 'motion-blur-control__description';
-    descriptionText.textContent = description;
+    descriptionText.textContent = resolvedDescription;
     wrapper.appendChild(descriptionText);
   }
 
@@ -102,7 +117,7 @@ export function createMotionBlurControl({
     const clamped = clamp01(value);
     slider.value = clamped.toString();
     slider.setAttribute('aria-valuenow', clamped.toFixed(2));
-    const formatted = formatIntensity(clamped);
+    const formatted = formatIntensity(clamped, strings);
     slider.setAttribute('aria-valuetext', formatted);
     valueText.textContent = formatted;
     wrapper.dataset.state = clamped <= 0.001 ? 'off' : 'on';

@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { AccessibilityPresetId } from '../../ui/accessibility/presetManager';
 
 export interface AccessibilityPresetOption {
@@ -13,6 +14,7 @@ export interface AccessibilityPresetControlOptions {
   setActivePreset: (preset: AccessibilityPresetId) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
 }
 
 export interface AccessibilityPresetControlHandle {
@@ -37,8 +39,9 @@ export function createAccessibilityPresetControl({
   options,
   getActivePreset,
   setActivePreset,
-  title = 'Accessibility presets',
-  description = 'Tune motion assists and HUD contrast.',
+  title,
+  description,
+  selectedAnnouncementTemplate = '{label} preset selected.',
 }: AccessibilityPresetControlOptions): AccessibilityPresetControlHandle {
   if (!options.length) {
     throw new Error(
@@ -55,11 +58,11 @@ export function createAccessibilityPresetControl({
   const heading = document.createElement('h2');
   heading.className = 'accessibility-presets__title';
   heading.id = `${controlId}-title`;
-  heading.textContent = title;
+  heading.textContent = title ?? '';
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'accessibility-presets__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = description ?? '';
 
   const list = document.createElement('div');
   list.className = 'accessibility-presets__options';
@@ -96,7 +99,9 @@ export function createAccessibilityPresetControl({
     });
     const activeLabel =
       options.find((option) => option.id === active)?.label ?? active;
-    updateLiveRegion(`${activeLabel} preset selected.`);
+    updateLiveRegion(
+      formatMessage(selectedAnnouncementTemplate, { label: activeLabel })
+    );
   };
 
   const setPending = (value: boolean) => {

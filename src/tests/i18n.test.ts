@@ -11,6 +11,7 @@ import {
   getLocaleToggleStrings,
   getModeAnnouncerStrings,
   getModeToggleStrings,
+  getSettingsControlsStrings,
   getLocaleScript,
   getLocaleStrings,
   isI18nDebugEnabled,
@@ -1111,6 +1112,47 @@ describe('i18n utilities', () => {
       expect(debugStrings.idsLabelEnabled).not.toBe('Collider IDs on');
       expect(debugStrings.solidIdsLabelEnabled).not.toBe('Solid IDs on');
     }
+  });
+
+  it('localizes settings control copy and keeps pseudo/key conventions stable', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const strings = getSettingsControlsStrings(locale);
+      expect(strings.graphicsQuality.title, locale).toBeTruthy();
+      expect(strings.accessibilityPresets.title, locale).toBeTruthy();
+      expect(
+        strings.avatarAccessories.options['wrist-console'].label,
+        locale
+      ).toBeTruthy();
+      expect(strings.motionBlur.label, locale).toBeTruthy();
+    }
+
+    const pseudo = getSettingsControlsStrings('en-x-pseudo');
+    expect(pseudo.graphicsQuality.title).toBe('⟦Graphics Quality⟧');
+    expect(pseudo.accessibilityPresets.presets.standard.label).toBe(
+      '⟦Standard⟧'
+    );
+
+    const controls = getControlOverlayStrings('en-x-pseudo');
+    expect(controls.items.keyboardMove.keys).toBe('WASD / Arrow keys');
+    expect(controls.items.cyclePoi.keys).toBe('Q / E');
+
+    const zh = getSettingsControlsStrings('zh-Hans');
+    expect(zh.accessibilityPresets.title).not.toBe('Accessibility Presets');
+    expect(zh.accessibilityPresets.presets.standard.label).not.toBe('Standard');
+    expect(zh.accessibilityPresets.presets.calm.label).not.toBe('Calm');
+    expect(zh.accessibilityPresets.presets['high-contrast'].label).not.toBe(
+      'High contrast'
+    );
+    expect(zh.accessibilityPresets.presets.photosensitive.label).not.toBe(
+      'Photosensitive safe'
+    );
+    expect(zh.graphicsQuality.title).not.toBe('Graphics Quality');
+    expect(getLocaleStrings('zh-Hans').hud.customization.heading).not.toBe(
+      'Customization'
+    );
+    expect(
+      getLocaleStrings('zh-Hans').hud.customization.accessories.title
+    ).not.toBe('Accessories');
   });
 
   it('builds mode announcer messages from localized HUD and fallback copy', () => {

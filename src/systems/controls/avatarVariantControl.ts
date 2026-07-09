@@ -39,8 +39,8 @@ export function createAvatarVariantControl({
   options,
   getActiveVariant,
   setActiveVariant,
-  title = 'Avatar style',
-  description = 'Switch outfits for the mannequin explorer.',
+  title,
+  description,
 }: AvatarVariantControlOptions): AvatarVariantControlHandle {
   if (!options.length) {
     throw new Error('Avatar variant control requires at least one option.');
@@ -55,11 +55,11 @@ export function createAvatarVariantControl({
   const heading = document.createElement('h2');
   heading.className = 'avatar-variants__title';
   heading.id = `${controlId}-title`;
-  heading.textContent = title;
+  heading.textContent = title ?? '';
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'avatar-variants__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = description ?? '';
 
   const optionsList = document.createElement('div');
   optionsList.className = 'avatar-variants__options';
