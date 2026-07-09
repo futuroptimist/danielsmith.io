@@ -565,7 +565,6 @@ export const applyImmersiveControlOverlayAccessibility = ({
     controlsButton,
     helpButton,
     documentTarget,
-    focusOnInit: true,
   });
 };
 
@@ -3805,6 +3804,9 @@ export function initializeImmersiveScene(
       })
     : null;
   if (controlOverlay) {
+    // Normal desktop immersive startup must not focus Controls: doing so creates
+    // the initial visual HUD highlight. Semantic metadata still applies here;
+    // focusOnInit remains reserved for explicit opt-in accessibility flows.
     applyImmersiveControlOverlayAccessibility({
       container: controlOverlay,
       heading: controlOverlayHeading,

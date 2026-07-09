@@ -122,7 +122,7 @@ describe('applyControlOverlayAccessibility', () => {
 });
 
 describe('applyImmersiveControlOverlayAccessibility', () => {
-  it('focuses the visible Controls region during normal immersive HUD setup', () => {
+  it('leaves body focused during normal immersive HUD setup while preserving semantics', () => {
     const container = document.createElement('div');
     const heading = document.createElement('p');
     const controlsButton = document.createElement('button');
@@ -138,6 +138,15 @@ describe('applyImmersiveControlOverlayAccessibility', () => {
     });
 
     expect(container.getAttribute('role')).toBe('region');
-    expect(document.activeElement).toBe(container);
+    expect(container.tabIndex).toBe(-1);
+    expect(container.getAttribute('aria-labelledby')).toBe(
+      'control-overlay-controls'
+    );
+    expect(controlsButton.id).toBe('control-overlay-controls');
+    expect(helpButton.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(container.getAttribute('aria-describedby')).toBe(
+      'control-overlay-help'
+    );
+    expect(document.activeElement).toBe(document.body);
   });
 });
