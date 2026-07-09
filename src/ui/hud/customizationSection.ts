@@ -109,13 +109,13 @@ export function createHudCustomizationSection({
             variantHandle.element.querySelectorAll<HTMLInputElement>(
               '.avatar-variants__radio'
             )
-          ).map((input) => ({
-            id: input.value as keyof typeof nextStrings.variants.options,
-            palette: { base: '', accent: '', trim: '' },
-            ...nextStrings.variants.options[
-              input.value as keyof typeof nextStrings.variants.options
-            ],
-          })),
+          ).map((input) => {
+            const id = input.value as keyof typeof nextStrings.variants.options;
+            return {
+              id,
+              ...nextStrings.variants.options[id],
+            };
+          }),
         });
       }
 

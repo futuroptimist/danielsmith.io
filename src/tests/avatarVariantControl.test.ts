@@ -95,6 +95,35 @@ describe('createAvatarVariantControl', () => {
     expect(container.querySelector('.avatar-variants')).toBeNull();
   });
 
+  it('refreshes localized swatch tooltips when strings change', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+
+    const handle = createAvatarVariantControl({
+      container,
+      options: OPTIONS,
+      getActiveVariant: () => 'portfolio',
+      setActiveVariant: () => undefined,
+    });
+
+    handle.setStrings({
+      title: 'アバタースタイル',
+      description: '装いを切り替えます。',
+      selectedAnnouncementTemplate: '{label} アバターを選択しました。',
+      options: [
+        { id: 'portfolio', label: 'ポートフォリオ', description: 'スーツ。' },
+        { id: 'casual', label: 'カジュアル', description: 'フーディー。' },
+        { id: 'formal', label: 'フォーマル', description: 'ブレザー。' },
+      ],
+    });
+
+    expect(
+      container.querySelector<HTMLElement>('.avatar-variants__swatch')?.title
+    ).toBe('ポートフォリオ base');
+
+    handle.dispose();
+  });
+
   it('logs warnings when variant updates fail', () => {
     const container = document.createElement('div');
     document.body.appendChild(container);

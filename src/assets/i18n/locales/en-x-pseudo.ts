@@ -563,6 +563,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
               ),
             },
             {
+              id: 'motion-blur',
               label: wrap('Motion blur slider'),
               description: wrap(
                 'Adjust trail strength with the Settings → Motion blur control.'

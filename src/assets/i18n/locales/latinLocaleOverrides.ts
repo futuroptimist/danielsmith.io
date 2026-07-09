@@ -327,6 +327,279 @@ const localizedTemplates: Record<
   },
 };
 
+const settingsCopies = {
+  es: {
+    graphicsTitle: 'Calidad gráfica',
+    graphicsDescription:
+      'Elige un ajuste para el rendimiento de tu dispositivo.',
+    cinematic: 'Cinemático',
+    balanced: 'Equilibrado',
+    performance: 'Rendimiento',
+    cinematicDesc:
+      'Posprocesado completo, modelos 3D detallados, bloom e iluminación cinematográfica.',
+    balancedDesc:
+      'Bloom moderado, resolución reducida y modelos 3D medios para portátiles.',
+    performanceDesc:
+      'Desactiva bloom, baja resolución y usa modelos 3D ligeros para priorizar FPS.',
+    accessibilityTitle: 'Preajustes de accesibilidad',
+    accessibilityDescription:
+      'Ajusta ayudas de movimiento y contraste del HUD.',
+    standard: 'Estándar',
+    calm: 'Calma',
+    highContrast: 'Alto contraste',
+    photosensitive: 'Seguro fotosensible',
+    standardDesc: 'Visuales y audio con equilibrio predeterminado.',
+    calmDesc: 'Suaviza bloom, brillo LED y audio ambiente.',
+    highContrastDesc:
+      'Aumenta legibilidad del HUD manteniendo señales de movimiento.',
+    photosensitiveDesc:
+      'Desactiva bloom, atenúa emisivos y aumenta contraste del HUD.',
+    selected: 'Preajuste {label} seleccionado.',
+  },
+  pt: {
+    graphicsTitle: 'Qualidade gráfica',
+    graphicsDescription:
+      'Escolha uma predefinição para o desempenho do dispositivo.',
+    cinematic: 'Cinemático',
+    balanced: 'Equilibrado',
+    performance: 'Desempenho',
+    cinematicDesc:
+      'Pós-processamento completo, modelos 3D detalhados, bloom e iluminação cinematográfica.',
+    balancedDesc:
+      'Bloom moderado, resolução reduzida e modelos 3D médios para notebooks.',
+    performanceDesc:
+      'Desativa bloom, reduz resolução e usa modelos 3D leves para priorizar FPS.',
+    accessibilityTitle: 'Predefinições de acessibilidade',
+    accessibilityDescription:
+      'Ajuste auxílios de movimento e contraste do HUD.',
+    standard: 'Padrão',
+    calm: 'Calmo',
+    highContrast: 'Alto contraste',
+    photosensitive: 'Seguro para fotossensibilidade',
+    standardDesc: 'Visuais e áudio no equilíbrio padrão.',
+    calmDesc: 'Suaviza bloom, brilho LED e áudio ambiente.',
+    highContrastDesc:
+      'Aumenta legibilidade do HUD mantendo pistas de movimento.',
+    photosensitiveDesc:
+      'Desativa bloom, reduz emissivos e aumenta contraste do HUD.',
+    selected: 'Predefinição {label} selecionada.',
+  },
+  de: {
+    graphicsTitle: 'Grafikqualität',
+    graphicsDescription: 'Wähle ein Preset passend zur Geräteleistung.',
+    cinematic: 'Kino',
+    balanced: 'Ausgewogen',
+    performance: 'Leistung',
+    cinematicDesc:
+      'Volles Postprocessing, detaillierte 3D-Modelle, Kino-Bloom und Licht.',
+    balancedDesc:
+      'Moderater Bloom, reduzierte Auflösung und mittlere 3D-Modelle für Laptops.',
+    performanceDesc:
+      'Deaktiviert Bloom, senkt Auflösung und nutzt leichte 3D-Modelle für FPS.',
+    accessibilityTitle: 'Barrierefreiheits-Presets',
+    accessibilityDescription: 'Passe Bewegungshilfen und HUD-Kontrast an.',
+    standard: 'Normal',
+    calm: 'Ruhig',
+    highContrast: 'Hoher Kontrast',
+    photosensitive: 'Fotosensibel sicher',
+    standardDesc: 'Standardbalance für Bild und Audio.',
+    calmDesc: 'Dämpft Bloom, LED-Glühen und Ambient-Audio.',
+    highContrastDesc: 'Erhöht HUD-Lesbarkeit bei aktiven Bewegungshinweisen.',
+    photosensitiveDesc:
+      'Deaktiviert Bloom, dämpft Emissives und erhöht HUD-Kontrast.',
+    selected: 'Preset {label} ausgewählt.',
+  },
+  hu: {
+    graphicsTitle: 'Grafikai minőség',
+    graphicsDescription: 'Válassz előbeállítást az eszköz teljesítményéhez.',
+    cinematic: 'Filmszerű',
+    balanced: 'Kiegyensúlyozott',
+    performance: 'Teljesítmény',
+    cinematicDesc:
+      'Teljes utófeldolgozás, részletes 3D modellek, filmszerű bloom és fények.',
+    balancedDesc:
+      'Mérsékelt bloom, csökkentett felbontás és közepes 3D modellek laptopokra.',
+    performanceDesc:
+      'Kikapcsolja a bloomot, csökkenti a felbontást és könnyű modelleket használ.',
+    accessibilityTitle: 'Akadálymentesítési előbeállítások',
+    accessibilityDescription: 'Mozgási segédek és HUD-kontraszt hangolása.',
+    standard: 'Alap',
+    calm: 'Nyugodt',
+    highContrast: 'Nagy kontraszt',
+    photosensitive: 'Fényérzékeny-barát',
+    standardDesc: 'Alapértelmezett vizuális és audio egyensúly.',
+    calmDesc: 'Lágyítja a bloomot, LED-fényt és környezeti hangot.',
+    highContrastDesc: 'Növeli a HUD olvashatóságát mozgási jelzésekkel.',
+    photosensitiveDesc:
+      'Kikapcsolja a bloomot, tompítja az emisszív fényeket és növeli a kontrasztot.',
+    selected: '{label} előbeállítás kiválasztva.',
+  },
+} as const;
+
+function buildSettingsHud(
+  locale: LatinLocale,
+  copy: (typeof settingsCopies)[LatinLocale]
+) {
+  const customizationCopy = {
+    es: {
+      heading: 'Personalización',
+      description: 'Ajusta el estilo del maniquí y los compañeros.',
+      variantsTitle: 'Estilo de avatar',
+      variantsDescription: 'Cambia atuendos del explorador.',
+      portfolio: 'Portafolio',
+      portfolioDesc: 'Traje crepuscular con visor neón.',
+      casual: 'Informal',
+      casualDesc: 'Sudadera atardecer con acentos turquesa.',
+      formal: 'De gala',
+      formalDesc: 'Blazer carbón con detalles dorados.',
+      accessoriesTitle: 'Accesorios',
+      accessoriesDescription: 'Alterna consola de muñeca o dron holográfico.',
+      wrist: 'Consola de muñeca',
+      wristDesc: 'Brazalete de telemetría que refleja diagnósticos.',
+      drone: 'Dron holográfico',
+      droneDesc: 'Dron explorador con brillo orbital suave.',
+      avatarSelected: 'Avatar {label} seleccionado.',
+      enabled: '{label} activado.',
+      disabled: '{label} desactivado.',
+    },
+    pt: {
+      heading: 'Personalização',
+      description: 'Ajuste o estilo do manequim e companheiros.',
+      variantsTitle: 'Estilo do avatar',
+      variantsDescription: 'Troque roupas do explorador.',
+      portfolio: 'Portfólio',
+      portfolioDesc: 'Traje crepuscular com visor neon.',
+      casual: 'Descontraído',
+      casualDesc: 'Moletom pôr do sol com acentos teal.',
+      formal: 'Elegante',
+      formalDesc: 'Blazer carvão com detalhes dourados.',
+      accessoriesTitle: 'Acessórios',
+      accessoriesDescription: 'Alterne console de pulso ou drone holográfico.',
+      wrist: 'Console de pulso',
+      wristDesc: 'Bracelete de telemetria com diagnósticos do HUD.',
+      drone: 'Drone holográfico',
+      droneDesc: 'Drone batedor com brilho orbital suave.',
+      avatarSelected: 'Avatar {label} selecionado.',
+      enabled: '{label} ativado.',
+      disabled: '{label} desativado.',
+    },
+    de: {
+      heading: 'Anpassung',
+      description: 'Passe Stil und Begleitgeräte des Mannequins an.',
+      variantsTitle: 'Avatar-Stil',
+      variantsDescription: 'Wechsle Outfits des Erkunders.',
+      portfolio: 'Mappe',
+      portfolioDesc: 'Dämmerungsanzug mit Neonvisier.',
+      casual: 'Lässig',
+      casualDesc: 'Sunset-Hoodie mit türkisen Akzenten.',
+      formal: 'Formell',
+      formalDesc: 'Anthrazit-Blazer mit goldenen Details.',
+      accessoriesTitle: 'Zubehör',
+      accessoriesDescription: 'Schalte Handgelenkkonsole oder Holo-Drohne um.',
+      wrist: 'Handgelenkkonsole',
+      wristDesc: 'Telemetrie-Manschette mit HUD-Diagnosen.',
+      drone: 'Holografische Drohne',
+      droneDesc: 'Scout-Drohne mit sanftem Orbitglanz.',
+      avatarSelected: 'Avatar {label} ausgewählt.',
+      enabled: '{label} aktiviert.',
+      disabled: '{label} deaktiviert.',
+    },
+    hu: {
+      heading: 'Testreszabás',
+      description: 'Hangold a bábu stílusát és társait.',
+      variantsTitle: 'Avatarstílus',
+      variantsDescription: 'Válts az explorer öltözetei között.',
+      portfolio: 'Portfólió',
+      portfolioDesc: 'Alkonyi öltöny neon napellenzővel.',
+      casual: 'Laza',
+      casualDesc: 'Naplemente kapucnis türkiz részletekkel.',
+      formal: 'Formális',
+      formalDesc: 'Szénszürke zakó arany díszítéssel.',
+      accessoriesTitle: 'Kiegészítők',
+      accessoriesDescription:
+        'Kapcsold a csuklókonzolt vagy holografikus drónt.',
+      wrist: 'Csuklókonzol',
+      wristDesc: 'Telemetria mandzsetta HUD diagnosztikával.',
+      drone: 'Holografikus drón',
+      droneDesc: 'Felderítő drón lágy keringő fénnyel.',
+      avatarSelected: '{label} avatar kiválasztva.',
+      enabled: '{label} bekapcsolva.',
+      disabled: '{label} kikapcsolva.',
+    },
+  }[locale];
+  return {
+    graphicsQuality: {
+      title: copy.graphicsTitle,
+      description: copy.graphicsDescription,
+      options: {
+        cinematic: { label: copy.cinematic, description: copy.cinematicDesc },
+        balanced: { label: copy.balanced, description: copy.balancedDesc },
+        performance: {
+          label: copy.performance,
+          description: copy.performanceDesc,
+        },
+      },
+      selectedAnnouncementTemplate: copy.selected,
+    },
+    accessibilityPresets: {
+      title: copy.accessibilityTitle,
+      description: copy.accessibilityDescription,
+      options: {
+        standard: { label: copy.standard, description: copy.standardDesc },
+        calm: { label: copy.calm, description: copy.calmDesc },
+        'high-contrast': {
+          label: copy.highContrast,
+          description: copy.highContrastDesc,
+        },
+        photosensitive: {
+          label: copy.photosensitive,
+          description: copy.photosensitiveDesc,
+        },
+      },
+      selectedAnnouncementTemplate: copy.selected,
+    },
+    customization: {
+      heading: customizationCopy.heading,
+      description: customizationCopy.description,
+      variants: {
+        title: customizationCopy.variantsTitle,
+        description: customizationCopy.variantsDescription,
+        options: {
+          portfolio: {
+            label: customizationCopy.portfolio,
+            description: customizationCopy.portfolioDesc,
+          },
+          casual: {
+            label: customizationCopy.casual,
+            description: customizationCopy.casualDesc,
+          },
+          formal: {
+            label: customizationCopy.formal,
+            description: customizationCopy.formalDesc,
+          },
+        },
+        selectedAnnouncementTemplate: customizationCopy.avatarSelected,
+      },
+      accessories: {
+        title: customizationCopy.accessoriesTitle,
+        description: customizationCopy.accessoriesDescription,
+        options: {
+          'wrist-console': {
+            label: customizationCopy.wrist,
+            description: customizationCopy.wristDesc,
+          },
+          'holo-drone': {
+            label: customizationCopy.drone,
+            description: customizationCopy.droneDesc,
+          },
+        },
+        enabledAnnouncementTemplate: customizationCopy.enabled,
+        disabledAnnouncementTemplate: customizationCopy.disabled,
+      },
+    },
+  };
+}
+
 function buildLatinHelpSections(
   locale: LatinLocale
 ): readonly HelpModalSectionStrings[] {
@@ -379,7 +652,11 @@ function buildLatinHelpSections(
       items: [
         { label: 'Low performance', description: copy.lowPerformance },
         { label: 'Manual toggle', description: copy.manualToggle },
-        { label: 'Motion blur slider', description: copy.motionBlur },
+        {
+          id: 'motion-blur',
+          label: 'Motion blur slider',
+          description: copy.motionBlur,
+        },
         { label: 'Ambient audio', description: copy.ambientAudio },
       ],
     },
@@ -530,6 +807,7 @@ export function buildLatinLocaleOverrides(
       },
     },
     hud: {
+      ...buildSettingsHud(copy.locale, settingsCopies[copy.locale]),
       controlOverlay: {
         heading: s.controls,
         items: {

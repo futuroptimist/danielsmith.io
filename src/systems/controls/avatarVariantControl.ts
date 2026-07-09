@@ -19,13 +19,18 @@ export interface AvatarVariantControlOptions {
   selectedAnnouncementTemplate?: string;
 }
 
+export type AvatarVariantControlStringOption = Pick<
+  AvatarVariantControlOption,
+  'id' | 'label' | 'description'
+>;
+
 export interface AvatarVariantControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
   setStrings(strings: {
     title: string;
     description: string;
-    options: ReadonlyArray<AvatarVariantControlOption>;
+    options: ReadonlyArray<AvatarVariantControlStringOption>;
     selectedAnnouncementTemplate: string;
   }): void;
   dispose(): void;
@@ -83,9 +88,10 @@ export function createAvatarVariantControl({
   wrapper.append(heading, descriptionParagraph, optionsList, liveRegion);
   container.appendChild(wrapper);
 
-  let localizedOptions = [...options];
+  let localizedOptions: AvatarVariantControlStringOption[] = [...options];
   const inputs: HTMLInputElement[] = [];
   const optionLabels = new Map<string, HTMLElement>();
+  const optionSwatches = new Map<string, HTMLElement[]>();
 
   let pending = false;
 
@@ -211,6 +217,12 @@ export function createAvatarVariantControl({
 
     inputs.push(input);
     optionLabels.set(option.id, label);
+    optionSwatches.set(
+      option.id,
+      Array.from(
+        swatches.querySelectorAll<HTMLElement>('.avatar-variants__swatch')
+      )
+    );
   });
 
   updateSelection();
@@ -240,6 +252,14 @@ export function createAvatarVariantControl({
         label
           ?.querySelector('[class$="__option-description"]')
           ?.replaceChildren(nextOption.description);
+        optionSwatches.get(nextOption.id)?.forEach((swatch) => {
+          const role = swatch.className.match(
+            /avatar-variants__swatch--([^\s]+)/
+          )?.[1];
+          if (role) {
+            swatch.title = `${nextOption.label} ${role}`;
+          }
+        });
       });
       updateSelection();
     },

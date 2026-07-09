@@ -522,7 +522,9 @@ function getMotionBlurControlCopy(
   const accessibilitySection = helpModalStrings.sections.find(
     (section) => section.id === 'accessibility'
   );
-  const motionBlurItem = accessibilitySection?.items[2];
+  const motionBlurItem = accessibilitySection?.items.find(
+    (item) => item.id === 'motion-blur'
+  );
   return {
     label: motionBlurItem?.label ?? helpModalStrings.settings.heading,
     description:

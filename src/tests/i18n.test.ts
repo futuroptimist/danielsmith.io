@@ -30,6 +30,38 @@ import { getPoiDefinitions } from '../scene/poi/registry';
 import { applyControlOverlayStrings } from '../ui/hud/controlOverlay';
 import { createHelpModal } from '../ui/hud/helpModal';
 
+function collectSettingsStrings(
+  hud: ReturnType<typeof getLocaleStrings>['hud']
+) {
+  return [
+    hud.graphicsQuality.title,
+    hud.graphicsQuality.description,
+    ...Object.values(hud.graphicsQuality.options).flatMap((option) => [
+      option.label,
+      option.description,
+    ]),
+    hud.accessibilityPresets.title,
+    hud.accessibilityPresets.description,
+    ...Object.values(hud.accessibilityPresets.options).flatMap((option) => [
+      option.label,
+      option.description,
+    ]),
+    hud.customization.heading,
+    hud.customization.description,
+    hud.customization.variants.title,
+    hud.customization.variants.description,
+    ...Object.values(hud.customization.variants.options).flatMap((option) => [
+      option.label,
+      option.description,
+    ]),
+    hud.customization.accessories.title,
+    hud.customization.accessories.description,
+    ...Object.values(hud.customization.accessories.options).flatMap(
+      (option) => [option.label, option.description]
+    ),
+  ];
+}
+
 const renderRepresentativeControlsPopover = (locale: string): HTMLElement => {
   const container = document.createElement('div');
   container.innerHTML = `
@@ -224,35 +256,20 @@ describe('i18n utilities', () => {
   it('localizes Settings preset and customization copy for every locale', () => {
     for (const locale of AVAILABLE_LOCALES) {
       const { hud } = getLocaleStrings(locale);
-      const values = [
-        hud.graphicsQuality.title,
-        hud.graphicsQuality.description,
-        ...Object.values(hud.graphicsQuality.options).flatMap((option) => [
-          option.label,
-          option.description,
-        ]),
-        hud.accessibilityPresets.title,
-        hud.accessibilityPresets.description,
-        ...Object.values(hud.accessibilityPresets.options).flatMap((option) => [
-          option.label,
-          option.description,
-        ]),
-        hud.customization.heading,
-        hud.customization.description,
-        hud.customization.variants.title,
-        hud.customization.variants.description,
-        ...Object.values(hud.customization.variants.options).flatMap(
-          (option) => [option.label, option.description]
-        ),
-        hud.customization.accessories.title,
-        hud.customization.accessories.description,
-        ...Object.values(hud.customization.accessories.options).flatMap(
-          (option) => [option.label, option.description]
-        ),
-      ];
-
+      const values = collectSettingsStrings(hud);
       for (const value of values) {
         expect(value.trim(), `${locale} settings string`).not.toBe('');
+      }
+
+      if (locale !== 'en' && locale !== 'en-x-pseudo') {
+        const englishValues = collectSettingsStrings(
+          getLocaleStrings('en').hud
+        );
+        values.forEach((value, index) => {
+          expect(value, `${locale} settings string at index ${index}`).not.toBe(
+            englishValues[index]
+          );
+        });
       }
     }
   });
