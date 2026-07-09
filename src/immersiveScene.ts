@@ -87,11 +87,6 @@ import {
   type AvatarAccessoryManager,
 } from './scene/avatar/accessoryManager';
 import {
-  AVATAR_ACCESSORY_PRESETS,
-  AVATAR_ACCESSORY_PRESET_RULES,
-  type AvatarAccessoryPresetId,
-} from './scene/avatar/accessoryPresets';
-import {
   createAvatarAssetPipeline,
   type AvatarAssetPipeline,
   type AvatarAssetPipelineLoadOptions,
@@ -478,10 +473,6 @@ import {
   createInputLatencyTelemetry,
   type InputLatencyTelemetryHandle,
 } from './systems/performance/inputLatencyTelemetry';
-import {
-  createAvatarAccessoryProgression,
-  type AvatarAccessoryProgressionHandle,
-} from './systems/progression/avatarAccessoryProgression';
 import { getPulseScale } from './ui/accessibility/animationPreferences';
 import {
   createHudFocusAnnouncer,
@@ -534,6 +525,7 @@ import {
   createResponsiveControlOverlay,
   type ResponsiveControlOverlayHandle,
 } from './ui/hud/responsiveControlOverlay';
+import { createSettingsControlSlots } from './ui/hud/settingsControlOrder';
 import {
   createContinuousSoftwareImmersiveUrl,
   createImmersiveModeUrl,
@@ -1080,9 +1072,6 @@ export function initializeImmersiveScene(
   let avatarAccessorySuite: AvatarAccessorySuite | null = null;
   let avatarAccessoryManager: AvatarAccessoryManager | null = null;
   let unsubscribeAvatarAccessories: (() => void) | null = null;
-  let unsubscribeAvatarAccessoryPresets: (() => void) | null = null;
-  let avatarAccessoryProgression: AvatarAccessoryProgressionHandle | null =
-    null;
   let avatarAssetPipeline: AvatarAssetPipeline | null = null;
   let softwareRendererWarning: ReturnType<
     typeof createSoftwareRendererWarning
@@ -2541,13 +2530,6 @@ export function initializeImmersiveScene(
   };
   wirePoiGitHubMetrics();
   const poiVisitedState = new PoiVisitedState();
-  if (avatarAccessoryManager) {
-    avatarAccessoryProgression = createAvatarAccessoryProgression({
-      manager: avatarAccessoryManager,
-      visitedState: poiVisitedState,
-      rules: AVATAR_ACCESSORY_PRESET_RULES,
-    });
-  }
   const poiTourGuide = new PoiTourGuide({
     definitions: poiDefinitions,
     visitedState: poiVisitedState,
@@ -3504,7 +3486,6 @@ export function initializeImmersiveScene(
     storage: avatarVariantStorage,
     storageKey: 'danielsmith.io:avatarAccessories',
     initialPalette: mannequin.getPalette(),
-    presets: AVATAR_ACCESSORY_PRESETS,
   });
 
   portfolioMiniatureTable?.setPlayerPalette(mannequin.getPalette());
@@ -3772,21 +3753,6 @@ export function initializeImmersiveScene(
       toggleAccessory(id: AvatarAccessoryId) {
         avatarAccessoryManager?.toggle(id);
       },
-      listAccessoryPresets() {
-        return avatarAccessoryManager?.listPresets() ?? [];
-      },
-      isAccessoryPresetUnlocked(id: AvatarAccessoryPresetId) {
-        return avatarAccessoryManager?.isPresetUnlocked(id) ?? false;
-      },
-      unlockAccessoryPreset(id: AvatarAccessoryPresetId) {
-        return avatarAccessoryManager?.unlockPreset(id) ?? false;
-      },
-      lockAccessoryPreset(id: AvatarAccessoryPresetId) {
-        return avatarAccessoryManager?.lockPreset(id) ?? false;
-      },
-      applyAccessoryPreset(id: AvatarAccessoryPresetId) {
-        avatarAccessoryManager?.applyPreset(id);
-      },
       loadAsset(options: AvatarAssetPipelineLoadOptions) {
         return getAvatarAssetPipeline().load(options);
       },
@@ -3877,6 +3843,10 @@ export function initializeImmersiveScene(
     })();
   const hudSettingsStack = document.createElement('div');
   hudSettingsStack.className = 'hud-settings';
+  const hudSettingsSlots = createSettingsControlSlots(hudSettingsStack);
+  const hudSettingsTopSlot = hudSettingsSlots.top;
+  const hudSettingsMiddleSlot = hudSettingsSlots.middle;
+  const hudSettingsBottomSlot = hudSettingsSlots.bottom;
   hudSettingsContainer.appendChild(hudSettingsStack);
   const hudControlElements = new Set<HTMLElement>();
   const registerHudControlElement = (element?: HTMLElement | null) => {
@@ -3911,7 +3881,7 @@ export function initializeImmersiveScene(
   );
   if (hasVariantControl || hasAccessoryControl) {
     hudCustomizationSection = createHudCustomizationSection({
-      container: hudSettingsStack,
+      container: hudSettingsBottomSlot,
       strings: hudCustomizationStrings,
       createVariantControl: hasVariantControl
         ? ({ container: customizationContainer, title, description }) =>
@@ -3939,12 +3909,6 @@ export function initializeImmersiveScene(
               },
               title,
               description,
-              presets: {
-                getPresets: () => avatarAccessoryManager?.listPresets() ?? [],
-                applyPreset: (presetId) => {
-                  avatarAccessoryManager?.applyPreset(presetId);
-                },
-              },
             })
         : undefined,
     });
@@ -3959,11 +3923,6 @@ export function initializeImmersiveScene(
     unsubscribeAvatarAccessories = avatarAccessoryManager.onChange(() => {
       hudCustomizationSection?.refresh();
     });
-    unsubscribeAvatarAccessoryPresets = avatarAccessoryManager.onPresetChange(
-      () => {
-        hudCustomizationSection?.refresh();
-      }
-    );
   }
   hudFocusAnnouncer = createHudFocusAnnouncer({
     documentTarget: document,
@@ -4360,7 +4319,7 @@ export function initializeImmersiveScene(
   }));
 
   localeToggleControl = createLocaleToggleControl({
-    container: hudSettingsStack,
+    container: hudSettingsMiddleSlot,
     options: localeOptions,
     getActiveLocale: () => locale,
     setActiveLocale: (nextLocale) => {
@@ -5090,7 +5049,7 @@ export function initializeImmersiveScene(
   debugCoordinatesControl.addEventListener('click', () => {
     setDebugCoordinatesEnabled(!debugCoordinatesEnabled);
   });
-  hudSettingsStack.appendChild(debugCoordinatesControl);
+  hudSettingsMiddleSlot.appendChild(debugCoordinatesControl);
   registerHudControlElement(debugCoordinatesControl);
   refreshDebugCoordinatesControl();
 
@@ -5100,7 +5059,7 @@ export function initializeImmersiveScene(
   debugCollidersControl.addEventListener('click', () => {
     setDebugCollidersEnabled(!debugCollidersEnabled);
   });
-  hudSettingsStack.appendChild(debugCollidersControl);
+  hudSettingsMiddleSlot.appendChild(debugCollidersControl);
   registerHudControlElement(debugCollidersControl);
   refreshDebugCollidersControl();
 
@@ -5110,7 +5069,7 @@ export function initializeImmersiveScene(
   debugColliderIdsControl.addEventListener('click', () => {
     setDebugColliderIdsEnabled(!debugColliderIdsEnabled);
   });
-  hudSettingsStack.appendChild(debugColliderIdsControl);
+  hudSettingsMiddleSlot.appendChild(debugColliderIdsControl);
   registerHudControlElement(debugColliderIdsControl);
   refreshDebugColliderIdsControl();
 
@@ -5120,7 +5079,7 @@ export function initializeImmersiveScene(
   debugSolidIdsControl.addEventListener('click', () => {
     setDebugSolidIdsEnabled(!debugSolidIdsEnabled);
   });
-  hudSettingsStack.appendChild(debugSolidIdsControl);
+  hudSettingsMiddleSlot.appendChild(debugSolidIdsControl);
   registerHudControlElement(debugSolidIdsControl);
   refreshDebugSolidIdsControl();
 
@@ -5130,7 +5089,7 @@ export function initializeImmersiveScene(
   debugFpsControl.addEventListener('click', () => {
     setDebugFpsEnabled(!debugFpsEnabled);
   });
-  hudSettingsStack.appendChild(debugFpsControl);
+  hudSettingsMiddleSlot.appendChild(debugFpsControl);
   registerHudControlElement(debugFpsControl);
   refreshDebugFpsControl();
   updateDebugCoordinatesOverlay();
@@ -5615,7 +5574,7 @@ export function initializeImmersiveScene(
     }
 
     audioHudHandle = createAudioHudControl({
-      container: hudSettingsStack,
+      container: hudSettingsMiddleSlot,
       getEnabled: () => ambientAudioController?.isEnabled() ?? false,
       setEnabled: async (enabled) => {
         try {
@@ -5633,7 +5592,7 @@ export function initializeImmersiveScene(
     registerHudControlElement(audioHudHandle?.element);
 
     manualModeToggle = createManualModeToggle({
-      container: hudSettingsStack,
+      container: hudSettingsMiddleSlot,
       strings: modeToggleStrings,
       getIsFallbackActive: () => performanceFailover.hasTriggered(),
       onToggle: activateTextMode,
@@ -5641,7 +5600,7 @@ export function initializeImmersiveScene(
     registerHudControlElement(manualModeToggle?.element ?? null);
 
     narrationToggleControl = createNarrationToggleControl({
-      container: hudSettingsStack,
+      container: hudSettingsMiddleSlot,
       initialEnabled: narrationPreference.isEnabled(),
       onToggle: (enabled) => {
         narrationPreference.setEnabled(enabled, 'control');
@@ -5651,7 +5610,7 @@ export function initializeImmersiveScene(
     registerHudControlElement(narrationToggleControl?.element ?? null);
 
     tourGuideToggleControl = createTourGuideToggleControl({
-      container: hudSettingsStack,
+      container: hudSettingsMiddleSlot,
       initialEnabled: guidedTourPreference.isEnabled(),
       onToggle: (enabled) => {
         guidedTourPreference.setEnabled(enabled, 'control');
@@ -5661,7 +5620,7 @@ export function initializeImmersiveScene(
     registerHudControlElement(tourGuideToggleControl?.element ?? null);
 
     tourResetControl = createTourResetControl({
-      container: hudSettingsStack,
+      container: hudSettingsMiddleSlot,
       subscribeVisited: (listener) => poiVisitedState.subscribe(listener),
       onReset: () => {
         poiVisitedState.reset();
@@ -5776,7 +5735,7 @@ export function initializeImmersiveScene(
   }
 
   motionBlurControl = createMotionBlurControl({
-    container: hudSettingsStack,
+    container: hudSettingsMiddleSlot,
     getIntensity: () =>
       accessibilityPresetManager?.getBaseMotionBlurIntensity() ??
       motionBlurController?.getIntensity() ??
@@ -5875,7 +5834,7 @@ export function initializeImmersiveScene(
   ensureGraphicsApi();
 
   accessibilityControlHandle = createAccessibilityPresetControl({
-    container: hudSettingsStack,
+    container: hudSettingsMiddleSlot,
     options: ACCESSIBILITY_PRESETS.map(({ id, label, description }) => ({
       id,
       label,
@@ -5898,7 +5857,7 @@ export function initializeImmersiveScene(
   });
 
   graphicsQualityControl = createGraphicsQualityControl({
-    container: hudSettingsStack,
+    container: hudSettingsTopSlot,
     presets: GRAPHICS_QUALITY_PRESETS,
     getActiveLevel: () =>
       graphicsQualityManager?.getLevel() ?? GRAPHICS_QUALITY_PRESETS[0].id,
@@ -6673,14 +6632,6 @@ export function initializeImmersiveScene(
     if (unsubscribeAvatarAccessories) {
       unsubscribeAvatarAccessories();
       unsubscribeAvatarAccessories = null;
-    }
-    if (unsubscribeAvatarAccessoryPresets) {
-      unsubscribeAvatarAccessoryPresets();
-      unsubscribeAvatarAccessoryPresets = null;
-    }
-    if (avatarAccessoryProgression) {
-      avatarAccessoryProgression.dispose();
-      avatarAccessoryProgression = null;
     }
     if (avatarAssetPipeline) {
       avatarAssetPipeline.dispose();

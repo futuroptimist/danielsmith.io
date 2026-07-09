@@ -2,7 +2,6 @@ import type {
   AvatarAccessoryId,
   AvatarAccessoryState,
 } from '../scene/avatar/accessories';
-import type { AvatarAccessoryPresetId } from '../scene/avatar/accessoryPresets';
 import type { AvatarAssetPipelineLoadOptions } from '../scene/avatar/assetPipeline';
 import type { AvatarVariantId } from '../scene/avatar/variants';
 import type { resolveInitialAvatarCameraFraming } from '../scene/camera/initialFraming';
@@ -59,15 +58,6 @@ export interface PortfolioApi {
     getAccessories(): AvatarAccessoryState[];
     setAccessoryEnabled(id: AvatarAccessoryId, enabled: boolean): void;
     toggleAccessory(id: AvatarAccessoryId): void;
-    applyAccessoryPreset(id: AvatarAccessoryPresetId): void;
-    listAccessoryPresets(): Array<{
-      id: AvatarAccessoryPresetId;
-      label: string;
-      description: string;
-    }>;
-    isAccessoryPresetUnlocked(id: AvatarAccessoryPresetId): boolean;
-    unlockAccessoryPreset(id: AvatarAccessoryPresetId): boolean;
-    lockAccessoryPreset(id: AvatarAccessoryPresetId): boolean;
     loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
   };
   performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;

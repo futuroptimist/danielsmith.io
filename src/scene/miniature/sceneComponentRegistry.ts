@@ -145,15 +145,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:avatar:accessoryManager',
     kind: 'excluded',
     sourceFiles: ['src/scene/avatar/accessoryManager.ts'],
-    syncRevision: 1,
-    reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
-  },
-  {
-    id: 'audit:src:scene:avatar:accessoryPresets',
-    kind: 'excluded',
-    sourceFiles: ['src/scene/avatar/accessoryPresets.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
+    syncNote:
+      'Accessory loadout persistence was removed without changing miniature geometry.',
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },
