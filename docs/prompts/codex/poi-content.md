@@ -16,7 +16,7 @@ USER:
 1. Select a project artifact listed in Phase 2 of `docs/roadmap.md`.
 2. Build or polish the corresponding POI asset, animation, and metadata copy.
 3. Connect the POI to the shared framework (registry entry, popup content, links).
-4. Ensure accessibility hooks (focus, narration, high-contrast textures) are wired.
+4. Ensure accessibility hooks (focus, captions, high-contrast textures) are wired.
 5. Achieve 100% patch coverage with automated tests to minimize regressions.
 6. Update `docs/roadmap.md` progress notes or add showcase screenshots.
 7. Always open the Web preview at

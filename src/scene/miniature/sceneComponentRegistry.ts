@@ -118,9 +118,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/poi/worldTooltip.ts',
       'src/scene/poi/visitedBadge.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     reason:
-      'POI markers gained a Flywheel performance pedestal opt-in; markers remain interaction UI, not miniature geometry.',
+      'Guided-tour recommendation rendering was removed from in-world POI labels; marker and tabletop proxy geometry is unchanged.',
   },
   {
     id: 'poi:tight-collider-bounds',
@@ -349,14 +349,6 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },
   {
-    id: 'audit:src:scene:poi:guidedTourChannel',
-    kind: 'excluded',
-    sourceFiles: ['src/scene/poi/guidedTourChannel.ts'],
-    syncRevision: 1,
-    reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
-  },
-  {
     id: 'audit:src:scene:poi:interactionManager',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/interactionManager.ts'],
@@ -402,17 +394,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:tooltipOverlay',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/tooltipOverlay.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
-  },
-  {
-    id: 'audit:src:scene:poi:tourGuide',
-    kind: 'excluded',
-    sourceFiles: ['src/scene/poi/tourGuide.ts'],
-    syncRevision: 1,
-    reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Guided-tour recommendation UI was removed from the DOM overlay; no miniature geometry proxy changes are required.',
   },
   {
     id: 'audit:src:scene:poi:validation',

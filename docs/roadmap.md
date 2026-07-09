@@ -435,16 +435,8 @@ Focus: make the experience inclusive and globally friendly.
 - ✅ High contrast accessibility preset now boosts HUD readability without disabling cinematic
   lighting cues.
 
-- ✅ Subtitle/captions system for ambient audio callouts and POI narration.
-  - ✅ Repeated captions now refresh their live region sequence so screen readers re-announce
-    identical lines instead of treating them as stale updates.
-  - ✅ Audio subtitles overlay now surfaces ambient beds and POI narration with cooldown-aware captions.
-  - ✅ Subtitle queue now sequences overlapping ambient and narration clips so lower-priority
-    callouts surface once higher-priority events finish.
-  - ✅ High-priority narration captions now temporarily escalate the subtitles live region to
-    `aria-live="assertive"`, ensuring screen readers announce urgent clips before returning to polite mode.
 - ✅ Photo sensitivity safe mode now smooths pulses and mutes emissive lighting to avoid flicker spikes.
-- ✅ Ambient caption bridge now honors per-bed priorities so critical narration can override
+- ✅ Ambient caption bridge now honors per-bed priorities so critical captions can override
   gentle ambient beds while still surfacing after higher-priority clips end, even when cooldown
   guards would normally delay the ambient line.
 - ✅ Ambient audio HUD now announces mute state and current levels so screen readers surface

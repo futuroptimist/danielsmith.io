@@ -133,7 +133,6 @@ const createPoi = (
   metrics: overrides.metrics,
   links: overrides.links,
   status: overrides.status,
-  narration: overrides.narration,
 });
 
 describe('wireGitHubRepoMetrics', () => {
