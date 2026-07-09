@@ -28,6 +28,7 @@ import {
   resolveLocale,
 } from '../assets/i18n';
 import { getPoiDefinitions } from '../scene/poi/registry';
+import { getControlItemRows } from '../ui/hud/controlItems';
 
 it('provides POI debug detail labels for every locale', () => {
   for (const locale of AVAILABLE_LOCALES) {
@@ -145,6 +146,37 @@ describe('i18n utilities', () => {
     expect(getLocaleScript('de')).toBe('latin');
     expect(getLocaleScript('hu')).toBe('latin');
     expect(getLocaleScript(undefined)).toBe('latin');
+  });
+
+  it('keeps Settings controls rows in sync with the Controls popover for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const overlayRows = getControlItemRows(
+        getControlOverlayStrings(locale)
+      ).map(({ keys, description }) => ({ label: keys, description }));
+      const controlsSection = getHelpModalStrings(locale).sections.find(
+        (section) => section.id === 'controls'
+      );
+
+      expect(
+        controlsSection,
+        `${locale} exposes a Settings controls section`
+      ).toBeDefined();
+      expect(controlsSection?.items).toEqual(overlayRows);
+    }
+  });
+
+  it('pseudo-localizes controls descriptions while preserving key labels', () => {
+    const englishRows = getControlItemRows(getControlOverlayStrings('en'));
+    const pseudoRows = getControlItemRows(
+      getControlOverlayStrings('en-x-pseudo')
+    );
+
+    expect(pseudoRows.map((row) => row.keys)).toEqual(
+      englishRows.map((row) => row.keys)
+    );
+    for (const row of pseudoRows) {
+      expect(row.description).toMatch(/^⟦.*⟧$/);
+    }
   });
 
   it('formats template strings with provided values', () => {
@@ -439,7 +471,7 @@ describe('i18n utilities', () => {
     expect(helpModal.announcements.close).toBe('⟦Help menu closed.⟧');
     expect(
       helpModal.sections
-        .find((section) => section.id === 'movement')
+        .find((section) => section.id === 'controls')
         ?.items.some((item) => item.label.includes('Shift + ='))
     ).toBe(true);
     const arabicHelp = getHelpModalStrings('ar');
@@ -454,13 +486,13 @@ describe('i18n utilities', () => {
     );
 
     const spanishHelp = getHelpModalStrings('es');
-    expect(spanishHelp.sections[0]?.title).toBe('Movimiento y cámara');
+    expect(spanishHelp.sections[0]?.title).toBe('Controles');
     expect(spanishHelp.sections[0]?.items[3]?.description).toBe(
-      'Acerca o aleja sin rueda de ratón.'
+      'Acercar o alejar con el teclado'
     );
     const germanHelp = getHelpModalStrings('de');
-    expect(germanHelp.sections[2]?.title).toBe('Barrierefreiheit & Fallback');
-    expect(germanHelp.sections[2]?.items[3]?.description).toBe(
+    expect(germanHelp.sections[1]?.title).toBe('Barrierefreiheit & Fallback');
+    expect(germanHelp.sections[1]?.items[3]?.description).toBe(
       'Schalte mit der Audio-Schaltfläche um oder drücke M.'
     );
   });
