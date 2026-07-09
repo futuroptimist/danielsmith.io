@@ -1,3 +1,16 @@
+export interface MotionBlurControlStrings {
+  label: string;
+  description: string;
+  groupAriaLabel: string;
+  hudLabel: string;
+  valueLabels: {
+    off: string;
+    lowTemplate: string;
+    mediumTemplate: string;
+    highTemplate: string;
+  };
+}
+
 export interface MotionBlurControlOptions {
   container: HTMLElement;
   /** Returns the base motion blur intensity between 0 and 1. */
@@ -8,6 +21,7 @@ export interface MotionBlurControlOptions {
   label?: string;
   description?: string;
   windowTarget?: Window;
+  strings?: MotionBlurControlStrings;
 }
 
 export interface MotionBlurControlHandle {
@@ -34,17 +48,29 @@ function clamp01(value: number): number {
   return value;
 }
 
-function formatIntensity(value: number): string {
+function formatIntensity(
+  value: number,
+  strings?: MotionBlurControlStrings
+): string {
+  const valueLabels = strings?.valueLabels;
   if (value <= 0.001) {
-    return 'Off';
+    return valueLabels?.off ?? 'Off';
   }
   if (value < 0.34) {
-    return `${Math.round(value * 100)}% · Low trails`;
+    return (valueLabels?.lowTemplate ?? '{percent}% · Low trails').replace(
+      '{percent}',
+      String(Math.round(value * 100))
+    );
   }
   if (value < 0.67) {
-    return `${Math.round(value * 100)}% · Medium trails`;
+    return (
+      valueLabels?.mediumTemplate ?? '{percent}% · Medium trails'
+    ).replace('{percent}', String(Math.round(value * 100)));
   }
-  return `${Math.round(value * 100)}% · High trails`;
+  return (valueLabels?.highTemplate ?? '{percent}% · High trails').replace(
+    '{percent}',
+    String(Math.round(value * 100))
+  );
 }
 
 export function createMotionBlurControl({
@@ -55,11 +81,18 @@ export function createMotionBlurControl({
   label = DEFAULT_LABEL,
   description = DEFAULT_DESCRIPTION,
   windowTarget = window,
+  strings,
 }: MotionBlurControlOptions): MotionBlurControlHandle {
+  label = strings?.label ?? label;
+  description = strings?.description ?? description;
+
   const wrapper = document.createElement('div');
   wrapper.className = 'motion-blur-control';
   wrapper.setAttribute('role', 'group');
-  wrapper.setAttribute('aria-label', 'Motion blur controls');
+  wrapper.setAttribute(
+    'aria-label',
+    strings?.groupAriaLabel ?? 'Motion blur controls'
+  );
 
   const heading = document.createElement('div');
   heading.className = 'motion-blur-control__heading';
@@ -79,7 +112,8 @@ export function createMotionBlurControl({
   slider.max = '1';
   slider.step = step.toString();
   slider.setAttribute('aria-label', label);
-  slider.dataset.hudAnnounce = 'Motion blur intensity slider.';
+  slider.dataset.hudAnnounce =
+    strings?.hudLabel ?? 'Motion blur intensity slider.';
 
   const valueText = document.createElement('span');
   valueText.className = 'motion-blur-control__value';
@@ -102,7 +136,7 @@ export function createMotionBlurControl({
     const clamped = clamp01(value);
     slider.value = clamped.toString();
     slider.setAttribute('aria-valuenow', clamped.toFixed(2));
-    const formatted = formatIntensity(clamped);
+    const formatted = formatIntensity(clamped, strings);
     slider.setAttribute('aria-valuetext', formatted);
     valueText.textContent = formatted;
     wrapper.dataset.state = clamped <= 0.001 ? 'off' : 'on';

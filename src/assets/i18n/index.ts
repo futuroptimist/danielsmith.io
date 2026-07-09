@@ -34,6 +34,7 @@ import type {
   HudCustomizationStrings,
   SiteStrings,
   SoftwareRendererWarningStrings,
+  SettingsControlStrings,
 } from './types';
 
 export type LocaleToggleResolvedStrings = LocaleToggleStrings;
@@ -492,4 +493,10 @@ export function getLowFpsRecoveryStrings(
   input?: LocaleInput
 ): LowFpsRecoveryStrings {
   return cloneValue(getLocaleStrings(input).hud.lowFpsRecovery);
+}
+
+export function getSettingsControlStrings(
+  input?: LocaleInput
+): SettingsControlStrings {
+  return cloneValue(getLocaleStrings(input).hud.settingsControls);
 }

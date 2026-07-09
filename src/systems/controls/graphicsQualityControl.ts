@@ -13,6 +13,7 @@ export interface GraphicsQualityControlOptions {
   setActiveLevel: (level: GraphicsQualityLevel) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
 }
 
 export interface GraphicsQualityControlHandle {
@@ -38,6 +39,7 @@ export function createGraphicsQualityControl({
   getActiveLevel,
   setActiveLevel,
   title = 'Graphics quality',
+  selectedAnnouncementTemplate = '{label} preset selected.',
   description = 'Pick a preset that matches your device performance.',
 }: GraphicsQualityControlOptions): GraphicsQualityControlHandle {
   if (!presets.length) {
@@ -94,7 +96,10 @@ export function createGraphicsQualityControl({
       }
     });
     updateLiveRegion(
-      `${presets.find((preset) => preset.id === active)?.label ?? active} preset selected.`
+      selectedAnnouncementTemplate.replace(
+        '{label}',
+        presets.find((preset) => preset.id === active)?.label ?? active
+      )
     );
   };
 

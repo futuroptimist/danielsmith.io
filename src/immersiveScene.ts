@@ -66,6 +66,7 @@ import {
   getPoiOverlayChromeStrings,
   getSiteStrings,
   getSoftwareRendererWarningStrings,
+  getSettingsControlStrings,
   getSelectableLocales,
   isI18nDebugEnabled,
   resolveInitialLocale,
@@ -1222,6 +1223,7 @@ export function initializeImmersiveScene(
   let helpModalStrings = getHelpModalStrings(locale);
   let hudCustomizationStrings = getHudCustomizationStrings(locale);
   let localeToggleStrings = getLocaleToggleStrings(locale);
+  let settingsControlStrings = getSettingsControlStrings(locale);
   let modeToggleStrings = getModeToggleStrings(locale);
   let audioHudStrings = getAudioHudControlStrings(locale);
   let audioSubtitleStrings = getAudioSubtitleStrings(locale);
@@ -3612,7 +3614,10 @@ export function initializeImmersiveScene(
         ? ({ container: customizationContainer, title, description }) =>
             createAvatarVariantControl({
               container: customizationContainer,
-              options: AVATAR_VARIANTS,
+              options: AVATAR_VARIANTS.map((variant) => ({
+                ...variant,
+                ...settingsControlStrings.avatarVariants.options[variant.id],
+              })),
               getActiveVariant: () =>
                 avatarVariantManager?.getVariant() ?? DEFAULT_AVATAR_VARIANT_ID,
               setActiveVariant: (variant) => {
@@ -3620,13 +3625,21 @@ export function initializeImmersiveScene(
               },
               title,
               description,
+              selectedAnnouncementTemplate:
+                settingsControlStrings.avatarVariants
+                  .selectedAnnouncementTemplate,
             })
         : undefined,
       createAccessoryControl: hasAccessoryControl
         ? ({ container: customizationContainer, title, description }) =>
             createAvatarAccessoryControl({
               container: customizationContainer,
-              options: avatarAccessorySuite!.definitions,
+              options: avatarAccessorySuite!.definitions.map((accessory) => ({
+                ...accessory,
+                ...settingsControlStrings.avatarAccessories.options[
+                  accessory.id
+                ],
+              })),
               isAccessoryEnabled: (id) =>
                 avatarAccessoryManager?.isEnabled(id) ?? false,
               setAccessoryEnabled: (id, enabled) => {
@@ -3634,6 +3647,12 @@ export function initializeImmersiveScene(
               },
               title,
               description,
+              enabledAnnouncementTemplate:
+                settingsControlStrings.avatarAccessories
+                  .enabledAnnouncementTemplate,
+              disabledAnnouncementTemplate:
+                settingsControlStrings.avatarAccessories
+                  .disabledAnnouncementTemplate,
             })
         : undefined,
     });
@@ -3930,6 +3949,7 @@ export function initializeImmersiveScene(
     helpModalStrings = getHelpModalStrings(locale);
     hudCustomizationStrings = getHudCustomizationStrings(locale);
     localeToggleStrings = getLocaleToggleStrings(locale);
+    settingsControlStrings = getSettingsControlStrings(locale);
     modeToggleStrings = getModeToggleStrings(locale);
     audioHudStrings = getAudioHudControlStrings(locale);
     audioSubtitleStrings = getAudioSubtitleStrings(locale);
@@ -5398,6 +5418,7 @@ export function initializeImmersiveScene(
       accessibilityPresetManager?.getBaseMotionBlurIntensity() ??
       motionBlurController?.getIntensity() ??
       0,
+    strings: settingsControlStrings.motionBlur,
     setIntensity: (intensity) => {
       if (accessibilityPresetManager) {
         accessibilityPresetManager.setBaseMotionBlurIntensity(intensity);
@@ -5493,11 +5514,14 @@ export function initializeImmersiveScene(
 
   accessibilityControlHandle = createAccessibilityPresetControl({
     container: hudSettingsStack,
-    options: ACCESSIBILITY_PRESETS.map(({ id, label, description }) => ({
+    options: ACCESSIBILITY_PRESETS.map(({ id }) => ({
       id,
-      label,
-      description,
+      ...settingsControlStrings.accessibilityPresets.options[id],
     })),
+    title: settingsControlStrings.accessibilityPresets.title,
+    description: settingsControlStrings.accessibilityPresets.description,
+    selectedAnnouncementTemplate:
+      settingsControlStrings.accessibilityPresets.selectedAnnouncementTemplate,
     getActivePreset: () =>
       accessibilityPresetManager?.getPreset() ?? ACCESSIBILITY_PRESETS[0].id,
     setActivePreset: (preset) => {
@@ -5516,7 +5540,14 @@ export function initializeImmersiveScene(
 
   graphicsQualityControl = createGraphicsQualityControl({
     container: hudSettingsStack,
-    presets: GRAPHICS_QUALITY_PRESETS,
+    presets: GRAPHICS_QUALITY_PRESETS.map(({ id }) => ({
+      id,
+      ...settingsControlStrings.graphicsQuality.options[id],
+    })),
+    title: settingsControlStrings.graphicsQuality.title,
+    description: settingsControlStrings.graphicsQuality.description,
+    selectedAnnouncementTemplate:
+      settingsControlStrings.graphicsQuality.selectedAnnouncementTemplate,
     getActiveLevel: () =>
       graphicsQualityManager?.getLevel() ?? GRAPHICS_QUALITY_PRESETS[0].id,
     setActiveLevel: (level) => {

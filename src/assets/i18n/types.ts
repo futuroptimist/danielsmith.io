@@ -1,3 +1,6 @@
+import type { AvatarAccessoryId } from '../../scene/avatar/accessories';
+import type { AvatarVariantId } from '../../scene/avatar/variants';
+import type { GraphicsQualityLevel } from '../../scene/graphics/qualityManager';
 import type {
   PoiId,
   PoiInteraction,
@@ -5,6 +8,7 @@ import type {
   PoiOutcome,
 } from '../../scene/poi/types';
 import type { FallbackReason } from '../../types/failover';
+import type { AccessibilityPresetId } from '../../ui/accessibility/presetManager';
 import type { InputMethod } from '../../ui/hud/movementLegend';
 
 export type Locale =
@@ -238,6 +242,47 @@ export interface DebugCollidersStrings {
   fpsDescriptionDisabled: string;
 }
 
+export interface SettingsControlOptionStrings {
+  label: string;
+  description: string;
+}
+
+export interface SelectableSettingsControlStrings<TId extends string> {
+  title: string;
+  description: string;
+  selectedAnnouncementTemplate: string;
+  options: Record<TId, SettingsControlOptionStrings>;
+}
+
+export interface ToggleSettingsControlStrings<TId extends string> {
+  title: string;
+  description: string;
+  enabledAnnouncementTemplate: string;
+  disabledAnnouncementTemplate: string;
+  options: Record<TId, SettingsControlOptionStrings>;
+}
+
+export interface MotionBlurSettingsControlStrings {
+  label: string;
+  description: string;
+  groupAriaLabel: string;
+  hudLabel: string;
+  valueLabels: {
+    off: string;
+    lowTemplate: string;
+    mediumTemplate: string;
+    highTemplate: string;
+  };
+}
+
+export interface SettingsControlStrings {
+  accessibilityPresets: SelectableSettingsControlStrings<AccessibilityPresetId>;
+  graphicsQuality: SelectableSettingsControlStrings<GraphicsQualityLevel>;
+  avatarVariants: SelectableSettingsControlStrings<AvatarVariantId>;
+  avatarAccessories: ToggleSettingsControlStrings<AvatarAccessoryId>;
+  motionBlur: MotionBlurSettingsControlStrings;
+}
+
 export interface SoftwareRendererWarningStrings {
   fallbackRendererLabel: string;
   title: string;
@@ -390,6 +435,7 @@ export interface LocaleStrings {
     debugColliders: DebugCollidersStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     lowFpsRecovery: LowFpsRecoveryStrings;
+    settingsControls: SettingsControlStrings;
     helpModal: HelpModalStrings;
     customization: HudCustomizationStrings;
     poiOverlay: PoiOverlayChromeStrings;

@@ -13,6 +13,7 @@ export interface AccessibilityPresetControlOptions {
   setActivePreset: (preset: AccessibilityPresetId) => void | Promise<void>;
   title?: string;
   description?: string;
+  selectedAnnouncementTemplate?: string;
 }
 
 export interface AccessibilityPresetControlHandle {
@@ -38,6 +39,7 @@ export function createAccessibilityPresetControl({
   getActivePreset,
   setActivePreset,
   title = 'Accessibility presets',
+  selectedAnnouncementTemplate = '{label} preset selected.',
   description = 'Tune motion assists and HUD contrast.',
 }: AccessibilityPresetControlOptions): AccessibilityPresetControlHandle {
   if (!options.length) {
@@ -96,7 +98,9 @@ export function createAccessibilityPresetControl({
     });
     const activeLabel =
       options.find((option) => option.id === active)?.label ?? active;
-    updateLiveRegion(`${activeLabel} preset selected.`);
+    updateLiveRegion(
+      selectedAnnouncementTemplate.replace('{label}', activeLabel)
+    );
   };
 
   const setPending = (value: boolean) => {

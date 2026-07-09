@@ -19,6 +19,7 @@ import {
   getSelectableLocales,
   getSiteStrings,
   getSoftwareRendererWarningStrings,
+  getSettingsControlStrings,
   resolveInitialLocale,
   resolveLocale,
 } from '../assets/i18n';
@@ -120,6 +121,67 @@ describe('i18n utilities', () => {
     expect(AVAILABLE_LOCALES).toContain('pt');
     expect(AVAILABLE_LOCALES).toContain('de');
     expect(AVAILABLE_LOCALES).toContain('hu');
+  });
+
+  it('provides localized Settings control copy for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const strings = getSettingsControlStrings(locale);
+      expect(strings.graphicsQuality.title.trim()).not.toBe('');
+      expect(strings.accessibilityPresets.title.trim()).not.toBe('');
+      expect(strings.avatarVariants.title.trim()).not.toBe('');
+      expect(strings.avatarAccessories.title.trim()).not.toBe('');
+      expect(strings.motionBlur.label.trim()).not.toBe('');
+      for (const group of [
+        strings.graphicsQuality,
+        strings.accessibilityPresets,
+        strings.avatarVariants,
+        strings.avatarAccessories,
+      ]) {
+        for (const option of Object.values(group.options)) {
+          expect(option.label.trim()).not.toBe('');
+          expect(option.description.trim()).not.toBe('');
+        }
+      }
+    }
+  });
+
+  it('pseudo-localizes Settings labels while keeping control key labels stable', () => {
+    const pseudo = getSettingsControlStrings('en-x-pseudo');
+    expect(pseudo.graphicsQuality.title).toMatch(/^⟦.*⟧$/);
+    expect(pseudo.accessibilityPresets.options.standard.label).toMatch(
+      /^⟦.*⟧$/
+    );
+    expect(
+      pseudo.avatarAccessories.options['wrist-console'].description
+    ).toMatch(/^⟦.*⟧$/);
+    expect(
+      getControlOverlayStrings('en-x-pseudo').items.keyboardMove.keys
+    ).toBe('WASD / Arrow keys');
+    expect(getControlOverlayStrings('en-x-pseudo').items.cyclePoi.keys).toBe(
+      'Q / E'
+    );
+  });
+
+  it('localizes previously English zh-Hans Settings regression strings', () => {
+    const strings = getSettingsControlStrings('zh-Hans');
+    expect(strings.accessibilityPresets.title).not.toMatch(
+      /Accessibility presets/i
+    );
+    expect(strings.accessibilityPresets.options.standard.label).not.toBe(
+      'Standard'
+    );
+    expect(strings.accessibilityPresets.options.calm.label).not.toBe('Calm');
+    expect(
+      strings.accessibilityPresets.options['high-contrast'].label
+    ).not.toBe('High contrast');
+    expect(strings.accessibilityPresets.options.photosensitive.label).not.toBe(
+      'Photosensitive safe'
+    );
+    expect(strings.graphicsQuality.title).not.toMatch(/Graphics quality/i);
+    expect(strings.avatarVariants.title).not.toMatch(
+      /Customization|Avatar style/i
+    );
+    expect(strings.avatarAccessories.title).not.toBe('Accessories');
   });
 
   it('normalizes locale inputs with region modifiers and pseudo identifiers', () => {
