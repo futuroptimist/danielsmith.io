@@ -118,8 +118,10 @@ describe('createAvatarAccessoryControl', () => {
         '.avatar-accessories__checkbox'
       )
     ).toHaveLength(2);
-    expect(container.textContent).toContain('Wrist console');
-    expect(container.textContent).toContain('Holographic drone');
+    const uiText = container.textContent ?? '';
+    expect(uiText).not.toContain('Loadouts');
+    expect(uiText).toContain('Wrist console');
+    expect(uiText).toContain('Holographic drone');
     expect(
       container.querySelector('.avatar-accessories__preset-group')
     ).toBeNull();
