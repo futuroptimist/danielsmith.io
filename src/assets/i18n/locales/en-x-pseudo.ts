@@ -179,8 +179,22 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
   hud: {
     controlOverlay: {
       heading: wrap('Controls'),
+      items: {
+        keyboardMove: { description: wrap('Move') },
+        pointerDrag: { description: wrap('Drag to pan') },
+        pointerZoom: { description: wrap('Zoom') },
+        keyboardZoom: { description: wrap('Zoom in or out') },
+        touchDrag: {
+          description: wrap(
+            'Drag the left half to move and the right half to pan'
+          ),
+        },
+        touchPinch: { description: wrap('Zoom') },
+        cyclePoi: { description: wrap('Cycle POIs') },
+        toggleTextMode: { description: wrap('Switch to text mode') },
+      },
       interact: {
-        defaultLabel: wrap('Enter'),
+        defaultLabel: 'Enter',
         description: wrap('Interact'),
         promptTemplates: {
           default: wrap('Interact with {title}'),
