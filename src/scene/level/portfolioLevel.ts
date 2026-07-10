@@ -142,7 +142,10 @@ const floorSurfaceForRoom = (
         : `${room.id}-floor-main`,
     sourceId: sourceId(mappedSourceId),
     floorId,
-    bounds: { ...room.bounds },
+    bounds:
+      room.id === 'upperLanding'
+        ? { ...room.bounds, minZ: -15.9 }
+        : { ...room.bounds },
     roomId: room.id,
     purpose: 'room-floor',
   };

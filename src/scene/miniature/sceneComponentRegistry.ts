@@ -23,9 +23,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Type-only wall schema cleanup keeps portfolio layout data unchanged.',
+      'Upper landing floor patch now meets the main floor at an edge; tabletop layout proxy stays aligned.',
   },
   {
     id: 'level:floors-walls',
@@ -93,9 +93,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 34,
+    syncRevision: 35,
     syncNote:
-      'Greenery QA assertions are source-only; tabletop furnishing proxy coverage is unchanged.',
+      'Studio rug bounds avoid coplanar floor overlap; tabletop furnishing proxy coverage is unchanged.',
     reason:
       'Lower- and upper-floor furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },
