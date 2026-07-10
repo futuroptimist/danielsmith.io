@@ -1545,6 +1545,10 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   --hud-combined-panel-height: min(42dvh, calc((100dvh - 5.5rem) / 2));
 }
 
+:root[data-hud-layout='mobile'][data-hud-tutorial-open][data-poi-detail-visible] {
+  --hud-combined-panel-height: min(18dvh, calc((100dvh - 9rem) / 2));
+}
+
 :root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
   .overlay {
   left: var(--hud-combined-panel-gutter-left);

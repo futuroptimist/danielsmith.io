@@ -22,10 +22,12 @@ export function createTutorialPanel({
   container,
   strings,
   onOpenChange,
+  onRequestClose,
 }: {
   container: HTMLElement;
   strings: TutorialPanelStrings;
   onOpenChange?: (open: boolean) => void;
+  onRequestClose?: () => void;
 }): TutorialPanelHandle {
   let currentStrings = strings;
   let open = false;
@@ -157,7 +159,13 @@ export function createTutorialPanel({
     dismiss.dataset.testid = 'tutorial-dismiss';
     dismiss.textContent = currentStrings.dismissLabel;
     dismiss.title = currentStrings.dismissTitle;
-    dismiss.addEventListener('click', () => handle.close());
+    dismiss.addEventListener('click', () => {
+      if (onRequestClose) {
+        onRequestClose();
+        return;
+      }
+      handle.close();
+    });
     options.append(label, dismiss);
 
     const content = document.createElement('div');

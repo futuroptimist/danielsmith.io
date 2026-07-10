@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { getTutorialPanelStrings } from '../assets/i18n';
 import { createHudPanelCoordinator } from '../ui/hud/hudPanelCoordinator';
+import { createTutorialPanel } from '../ui/hud/tutorialPanel';
 
 const createPanel = () => {
   let open = false;
@@ -182,6 +184,46 @@ describe('createHudPanelCoordinator', () => {
     expect(coordinator.getActivePanel()).toBe('tutorial');
 
     coordinator.dispose();
+  });
+
+  it('syncs Tutorial Dismiss through button and root-style state callbacks', () => {
+    const controls = createPanel();
+    const settings = createPanel();
+    const tutorialButton = document.createElement('button');
+    const activePanels: Array<string | null> = [];
+    let coordinator: ReturnType<typeof createHudPanelCoordinator> | null = null;
+    const tutorial = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      onRequestClose: () => coordinator?.closeActivePanel(),
+    });
+    coordinator = createHudPanelCoordinator({
+      controls,
+      settings,
+      tutorial,
+      tutorialButton,
+      onTextMode: vi.fn(),
+      onActivePanelChange: (panel) => activePanels.push(panel),
+    });
+
+    coordinator.openTutorial();
+    expect(tutorial.isOpen()).toBe(true);
+    expect(coordinator.getActivePanel()).toBe('tutorial');
+    expect(tutorialButton.getAttribute('aria-expanded')).toBe('true');
+    expect(tutorialButton.getAttribute('aria-pressed')).toBe('true');
+
+    tutorial.element
+      .querySelector<HTMLButtonElement>('[data-testid="tutorial-dismiss"]')
+      ?.click();
+
+    expect(tutorial.isOpen()).toBe(false);
+    expect(coordinator.getActivePanel()).toBeNull();
+    expect(tutorialButton.getAttribute('aria-expanded')).toBe('false');
+    expect(tutorialButton.getAttribute('aria-pressed')).toBe('false');
+    expect(activePanels).toEqual(['tutorial', null]);
+
+    coordinator.dispose();
+    tutorial.dispose();
   });
 
   it('wires HUD buttons and Escape to panel actions', () => {

@@ -3617,6 +3617,7 @@ export function initializeImmersiveScene(
     container: document.body,
     strings: tutorialPanelStrings,
     onOpenChange: () => syncPoiDetailOverlay(),
+    onRequestClose: () => hudPanelCoordinator?.closeActivePanel(),
   });
   const hudSettingsContainer =
     helpModal.settingsContainer ??
