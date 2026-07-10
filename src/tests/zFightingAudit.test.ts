@@ -9,6 +9,7 @@ import {
   createLowerFloorFurnishings,
   createUpperFloorFurnishings,
 } from '../scene/structures/lowerFloorFurnishings';
+import type { FloorFurnishingDefinition } from '../scene/structures/lowerFloorFurnishings';
 
 import {
   findHorizontalZFightingCandidates,
@@ -17,8 +18,8 @@ import {
 } from './helpers/zFightingAudit';
 import type { HorizontalSurfaceAuditRecord } from './helpers/zFightingAudit';
 
-const REPORTED_POINT = { x: 24.94, y: 0, z: 10.36, floorId: 'ground' };
-const DECORATIVE_SURFACE_HEIGHT = 0.025;
+const REPORTED_POINT = { x: 24.94, y: 0.025, z: 10.36, floorId: 'ground' };
+const REPORTED_POINT_Y_TOLERANCE = 0.001;
 
 const PRODUCTION_Z_FIGHT_ALLOWLIST = [
   {
@@ -26,6 +27,10 @@ const PRODUCTION_Z_FIGHT_ALLOWLIST = [
       'upper.upperLanding.floor.main',
       'upper.upperLanding.floor.stairEdgePiece',
     ],
+    expectedOverlap: { minX: 9.3, maxX: 15.5, minZ: -32, maxZ: -31.8 },
+    overlapTolerance: 0.001,
+    expectedYDelta: 0,
+    yDeltaTolerance: 0.001,
     reason: 'Narrow upper stair edge strip bridges the visible landing lip.',
     expectedYOffsetOrStrategy:
       'Coplanar structural floor strip generated as the same material.',
@@ -50,6 +55,23 @@ const generatedFootprintBoundsToWorldBounds = (
   bounds: HorizontalSurfaceAuditRecord['bounds']
 ) => ({ ...bounds });
 
+const decorativeSurfaceY = (
+  definition: Pick<
+    FloorFurnishingDefinition<string, string>,
+    'position' | 'visual'
+  >,
+  floorId: string
+): number =>
+  (definition.position.y ?? getFloorTopElevation(floorId)) +
+  (definition.visual?.decorativeHeight ?? 0.035);
+
+const definitionById = <
+  Definition extends FloorFurnishingDefinition<string, string>,
+>(
+  definitions: readonly Definition[]
+): ReadonlyMap<string, Definition> =>
+  new Map(definitions.map((definition) => [definition.id, definition]));
+
 const collectProductionHorizontalSurfaces =
   (): HorizontalSurfaceAuditRecord[] => {
     const floorSurfaces = PORTFOLIO_LEVEL.floors.flatMap((floor) =>
@@ -64,30 +86,44 @@ const collectProductionHorizontalSurfaces =
       }))
     );
 
+    const lowerDefinitions = definitionById(DEFAULT_LOWER_FLOOR_FURNISHINGS);
     const lowerFurnishings = createLowerFloorFurnishings({
       definitions: DEFAULT_LOWER_FLOOR_FURNISHINGS,
-    }).decorativeFootprints.map((footprint) => ({
-      sourceId: `ground.furnishings.${footprint.category}.${footprint.furnishingId}.decorative_footprint`,
-      objectName: footprint.id,
-      floorId: 'ground',
-      category: 'decorative-horizontal-surface',
-      purpose: 'floor-decor',
-      y: getFloorTopElevation('ground') + DECORATIVE_SURFACE_HEIGHT,
-      bounds: generatedFootprintBoundsToWorldBounds(footprint.bounds),
-    }));
+    }).decorativeFootprints.map((footprint) => {
+      const definition = lowerDefinitions.get(footprint.furnishingId);
 
+      return {
+        sourceId: `ground.furnishings.${footprint.category}.${footprint.furnishingId}.decorative_footprint`,
+        objectName: footprint.id,
+        floorId: 'ground',
+        category: 'decorative-horizontal-surface',
+        purpose: 'floor-decor',
+        y: definition
+          ? decorativeSurfaceY(definition, 'ground')
+          : getFloorTopElevation('ground') + 0.035,
+        bounds: generatedFootprintBoundsToWorldBounds(footprint.bounds),
+      };
+    });
+
+    const upperDefinitions = definitionById(DEFAULT_UPPER_FLOOR_FURNISHINGS);
     const upperFurnishings = createUpperFloorFurnishings({
       definitions: DEFAULT_UPPER_FLOOR_FURNISHINGS,
       baseElevation: getFloorTopElevation('upper'),
-    }).decorativeFootprints.map((footprint) => ({
-      sourceId: `upper.furnishings.${footprint.category}.${footprint.furnishingId}.decorative_footprint`,
-      objectName: footprint.id,
-      floorId: 'upper',
-      category: 'decorative-horizontal-surface',
-      purpose: 'floor-decor',
-      y: getFloorTopElevation('upper') + DECORATIVE_SURFACE_HEIGHT,
-      bounds: generatedFootprintBoundsToWorldBounds(footprint.bounds),
-    }));
+    }).decorativeFootprints.map((footprint) => {
+      const definition = upperDefinitions.get(footprint.furnishingId);
+
+      return {
+        sourceId: `upper.furnishings.${footprint.category}.${footprint.furnishingId}.decorative_footprint`,
+        objectName: footprint.id,
+        floorId: 'upper',
+        category: 'decorative-horizontal-surface',
+        purpose: 'floor-decor',
+        y: definition
+          ? decorativeSurfaceY(definition, 'upper')
+          : getFloorTopElevation('upper') + 0.035,
+        bounds: generatedFootprintBoundsToWorldBounds(footprint.bounds),
+      };
+    });
 
     return [...floorSurfaces, ...lowerFurnishings, ...upperFurnishings];
   };
@@ -100,6 +136,52 @@ describe('horizontal z-fighting audit helper', () => {
     bounds: { minX: 0, maxX: 2, minZ: 0, maxZ: 2 },
   };
 
+  it('only suppresses allowlisted pairs when their geometry matches expectations', () => {
+    const allowedPair = [
+      { ...base, sourceId: 'fixture.allowed.a' },
+      {
+        ...base,
+        sourceId: 'fixture.allowed.b',
+        y: 0.001,
+        bounds: { minX: 1, maxX: 3, minZ: 1, maxZ: 3 },
+      },
+    ];
+
+    const allowlist = [
+      {
+        sourceIds: ['fixture.allowed.a', 'fixture.allowed.b'],
+        expectedOverlap: { minX: 1, maxX: 2, minZ: 1, maxZ: 2 },
+        overlapTolerance: 0.001,
+        expectedYDelta: 0.001,
+        yDeltaTolerance: 0.001,
+        reason: 'Fixture validates geometry-specific allowlist matching.',
+        expectedYOffsetOrStrategy: 'Near-coplanar fixture record.',
+        safeBecause: 'The overlap bounds and y delta are pinned.',
+      },
+    ] as const;
+
+    expect(
+      formatZFightingFindings(
+        findHorizontalZFightingCandidates(allowedPair, { allowlist })
+      )
+    ).toBe('');
+
+    const driftedFindings = findHorizontalZFightingCandidates(
+      [
+        allowedPair[0],
+        {
+          ...allowedPair[1],
+          bounds: { minX: 0.9, maxX: 3, minZ: 1, maxZ: 3 },
+        },
+      ],
+      { allowlist }
+    );
+
+    expect(formatZFightingFindings(driftedFindings)).toContain(
+      'source=fixture.allowed.a'
+    );
+  });
+
   it('detects exact and near-coplanar overlap while ignoring separated or tiny contacts', () => {
     const findings = findHorizontalZFightingCandidates(
       [
@@ -107,7 +189,7 @@ describe('horizontal z-fighting audit helper', () => {
         {
           ...base,
           sourceId: 'fixture.exact.b',
-          bounds: { minX: 1, maxX: 3, minZ: 1, maxZ: 3 },
+          bounds: { minX: -1, maxX: 1, minZ: 1, maxZ: 3 },
         },
         {
           ...base,
@@ -129,12 +211,12 @@ describe('horizontal z-fighting audit helper', () => {
         {
           ...base,
           sourceId: 'fixture.edge',
-          bounds: { minX: 3, maxX: 4, minZ: 0, maxZ: 2 },
+          bounds: { minX: 2, maxX: 3, minZ: 0, maxZ: 2 },
         },
         {
           ...base,
           sourceId: 'fixture.tiny',
-          bounds: { minX: 1.99, maxX: 3, minZ: 0, maxZ: 0.2 },
+          bounds: { minX: -1, maxX: 0.2, minZ: 0, maxZ: 0.04 },
         },
       ],
       { yTolerance: 0.005, minOverlapArea: 0.01 }
@@ -163,7 +245,11 @@ describe('production horizontal z-fighting audit', () => {
 
   it('does not contain a z-fighting candidate at the reported studio outside-stairs point', () => {
     const reportedPointFindings = productionFindings.filter((finding) =>
-      zFightFindingContainsPoint(finding, REPORTED_POINT)
+      zFightFindingContainsPoint(
+        finding,
+        REPORTED_POINT,
+        REPORTED_POINT_Y_TOLERANCE
+      )
     );
 
     expect(formatZFightingFindings(reportedPointFindings)).toBe('');

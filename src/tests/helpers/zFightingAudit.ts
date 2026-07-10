@@ -20,6 +20,10 @@ export interface ZFightingAuditOptions {
 
 export interface ZFightingAllowlistEntry {
   readonly sourceIds: readonly [string, string];
+  readonly expectedOverlap: Bounds2D;
+  readonly overlapTolerance: number;
+  readonly expectedYDelta: number;
+  readonly yDeltaTolerance: number;
   readonly reason: string;
   readonly expectedYOffsetOrStrategy: string;
   readonly safeBecause: string;
@@ -61,6 +65,42 @@ const area = (bounds: Bounds2D): number =>
 const allowlistKey = (left: string, right: string): string =>
   [left, right].sort().join('::');
 
+const withinTolerance = (
+  actual: number,
+  expected: number,
+  tolerance: number
+): boolean => Math.abs(actual - expected) <= tolerance;
+
+const boundsWithinTolerance = (
+  actual: Bounds2D,
+  expected: Bounds2D,
+  tolerance: number
+): boolean =>
+  withinTolerance(actual.minX, expected.minX, tolerance) &&
+  withinTolerance(actual.maxX, expected.maxX, tolerance) &&
+  withinTolerance(actual.minZ, expected.minZ, tolerance) &&
+  withinTolerance(actual.maxZ, expected.maxZ, tolerance);
+
+const isAllowlistedFinding = (
+  finding: ZFightingAuditFinding,
+  allowlist: readonly ZFightingAllowlistEntry[]
+): boolean =>
+  allowlist.some(
+    (entry) =>
+      allowlistKey(entry.sourceIds[0], entry.sourceIds[1]) ===
+        allowlistKey(finding.a.sourceId, finding.b.sourceId) &&
+      boundsWithinTolerance(
+        finding.overlap,
+        entry.expectedOverlap,
+        entry.overlapTolerance
+      ) &&
+      withinTolerance(
+        finding.yDelta,
+        entry.expectedYDelta,
+        entry.yDeltaTolerance
+      )
+  );
+
 export const findHorizontalZFightingCandidates = (
   records: readonly HorizontalSurfaceAuditRecord[],
   options: ZFightingAuditOptions = {}
@@ -68,18 +108,13 @@ export const findHorizontalZFightingCandidates = (
   const yTolerance = options.yTolerance ?? DEFAULT_Y_TOLERANCE;
   const minOverlapArea = options.minOverlapArea ?? DEFAULT_MIN_OVERLAP_AREA;
   const edgeTolerance = options.edgeTolerance ?? DEFAULT_EDGE_TOLERANCE;
-  const allowed = new Set(
-    (options.allowlist ?? []).map((entry) =>
-      allowlistKey(entry.sourceIds[0], entry.sourceIds[1])
-    )
-  );
+  const allowlist = options.allowlist ?? [];
   const findings: ZFightingAuditFinding[] = [];
 
   records.forEach((a, index) => {
     records.slice(index + 1).forEach((b) => {
       if (a.floorId !== b.floorId) return;
       if (Math.abs(a.y - b.y) > yTolerance) return;
-      if (allowed.has(allowlistKey(a.sourceId, b.sourceId))) return;
 
       const overlap = overlapBounds(a.bounds, b.bounds, edgeTolerance);
       if (!overlap) return;
@@ -87,13 +122,16 @@ export const findHorizontalZFightingCandidates = (
       const overlapArea = area(overlap);
       if (overlapArea < minOverlapArea) return;
 
-      findings.push({
+      const finding = {
         a,
         b,
         overlap,
         overlapArea,
         yDelta: Math.abs(a.y - b.y),
-      });
+      };
+      if (isAllowlistedFinding(finding, allowlist)) return;
+
+      findings.push(finding);
     });
   });
 
@@ -102,13 +140,25 @@ export const findHorizontalZFightingCandidates = (
 
 export const zFightFindingContainsPoint = (
   finding: ZFightingAuditFinding,
-  point: { x: number; z: number; floorId?: string }
+  point: { x: number; y?: number; z: number; floorId?: string },
+  yTolerance = DEFAULT_Y_TOLERANCE
 ): boolean =>
   (!point.floorId || finding.a.floorId === point.floorId) &&
+  (point.y === undefined ||
+    Math.abs(finding.a.y - point.y) <= yTolerance ||
+    Math.abs(finding.b.y - point.y) <= yTolerance) &&
   point.x >= finding.overlap.minX &&
   point.x <= finding.overlap.maxX &&
   point.z >= finding.overlap.minZ &&
   point.z <= finding.overlap.maxZ;
+
+const formatUnknown = (value: string | undefined): string => value ?? 'unknown';
+
+const formatSurface = (surface: HorizontalSurfaceAuditRecord): string =>
+  `source=${surface.sourceId}; object=${formatUnknown(surface.objectName)}; ` +
+  `floor=${surface.floorId}; category=${surface.category}; ` +
+  `material=${formatUnknown(surface.material)}; purpose=${formatUnknown(surface.purpose)}; ` +
+  `y=${surface.y.toFixed(3)}; bounds=(${formatBounds(surface.bounds)})`;
 
 const formatBounds = (bounds: Bounds2D): string =>
   `x ${bounds.minX.toFixed(2)}..${bounds.maxX.toFixed(2)}, z ${bounds.minZ.toFixed(
@@ -121,10 +171,9 @@ export const formatZFightingFindings = (
   findings
     .map(
       (finding) =>
-        `${finding.a.sourceId} (${finding.a.objectName ?? finding.a.category}) vs ${
-          finding.b.sourceId
-        } (${finding.b.objectName ?? finding.b.category}) on ${finding.a.floorId}; ` +
-        `y=${finding.a.y.toFixed(3)}/${finding.b.y.toFixed(3)}; ` +
-        `overlap ${formatBounds(finding.overlap)} area=${finding.overlapArea.toFixed(3)}`
+        `a: ${formatSurface(finding.a)} | b: ${formatSurface(finding.b)} | ` +
+        `overlap=(${formatBounds(finding.overlap)}); ` +
+        `overlapArea=${finding.overlapArea.toFixed(3)}; ` +
+        `yDelta=${finding.yDelta.toFixed(3)}`
     )
     .join('\n');
