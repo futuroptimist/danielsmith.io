@@ -177,6 +177,48 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    tutorialPanel: {
+      heading: wrap('Tutorial'),
+      sidebarLabel: wrap('Tutorial steps'),
+      collapseLabel: wrap('Collapse tutorial steps'),
+      expandLabel: wrap('Expand tutorial steps'),
+      pages: [
+        {
+          id: 'welcomeMovement',
+          title: wrap('Welcome'),
+          body: wrap(
+            'Tutorial progress will appear here. For now, keep exploring the home at your own pace.'
+          ),
+        },
+        {
+          id: 'zoom',
+          title: wrap('Zoom'),
+          body: wrap('Zoom guidance will appear here in a later update.'),
+        },
+        {
+          id: 'visitPois',
+          title: wrap('Visit POIs'),
+          body: wrap(
+            'Point-of-interest goals will appear here in a later update.'
+          ),
+        },
+        {
+          id: 'findGitshelves',
+          title: wrap('Find Gitshelves'),
+          body: wrap('Gitshelves guidance will appear here in a later update.'),
+        },
+      ],
+      navigation: { previous: wrap('Previous'), next: wrap('Next') },
+      options: {
+        showOnStartup: wrap('Show on startup'),
+        dismiss: wrap('Dismiss'),
+      },
+      stepStatus: {
+        locked: wrap('Locked'),
+        unlocked: wrap('Unlocked'),
+        current: wrap('Current step'),
+      },
+    },
     controlOverlay: {
       heading: wrap('Controls'),
       items: {
@@ -220,6 +262,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
           label: wrap('Text'),
           keyHint: wrap('T'),
           title: wrap('Switch to text mode (T)'),
+        },
+        tutorial: {
+          label: wrap('Tutorial'),
+          keyHint: 'R',
+          title: wrap('Open tutorial (R)'),
         },
         settings: {
           label: wrap('Settings'),

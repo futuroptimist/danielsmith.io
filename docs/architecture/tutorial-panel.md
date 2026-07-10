@@ -5,9 +5,9 @@ replaces the removed implicit guided/narration concepts with a user-controlled,
 localized, non-modal panel that can stay open while the visitor completes gameplay
 actions.
 
-This document is design-only. It defines the architecture, contracts, persistence,
-layout, accessibility, and test plan for a future implementation without adding runtime
-Tutorial code yet.
+This document defines the architecture, contracts, persistence, layout, accessibility,
+and test plan for the Tutorial panel. The initial runtime shell now exists; progression,
+persistence, and action tracking remain future work.
 
 ## Current architecture summary
 
@@ -84,12 +84,12 @@ onboarding runtime:
 
 ## Proposed modules and ownership
 
-Future implementation should keep the Tutorial system small and composable:
+The Tutorial system should stay small and composable:
 
 | Area                 | Proposed file(s)                                                      | Responsibility                                                                                                                                                         |
 | -------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | HUD coordination     | `src/ui/hud/hudPanelCoordinator.ts`                                   | Add `tutorial` as a top-level non-modal HUD panel, enforce one top-level panel at a time for Controls/Tutorial/Settings, and keep Tutorial compatible with POI panels. |
-| Tutorial UI          | `src/ui/hud/tutorialPanel.ts`                                         | Render the panel shell, sidebar, body, navigation, options, localized labels, and DOM events.                                                                          |
+| Tutorial UI          | `src/ui/hud/tutorialPanel.ts`                                         | Renders the current panel shell, sidebar, body, navigation, options, localized labels, and DOM events.                                                                 |
 | Tutorial state       | `src/ui/hud/tutorialState.ts`                                         | Pure state machine, progress reducer, unlock rules, monotonic completion, current page handling, corrupt-data fallback.                                                |
 | Tutorial persistence | `src/ui/hud/tutorialPersistence.ts`                                   | Versioned localStorage load/save for progress and show-on-startup preference.                                                                                          |
 | Tutorial tracking    | `src/ui/hud/tutorialTracking.ts`                                      | Adapters for movement, zoom, and POI visited events; no DOM rendering.                                                                                                 |

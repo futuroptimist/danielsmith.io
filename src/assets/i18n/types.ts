@@ -31,6 +31,21 @@ export interface ControlOverlayMenuItemStrings {
   title: string;
 }
 
+export interface TutorialPanelStrings {
+  heading: string;
+  sidebarLabel: string;
+  collapseLabel: string;
+  expandLabel: string;
+  pages: readonly {
+    id: 'welcomeMovement' | 'zoom' | 'visitPois' | 'findGitshelves';
+    title: string;
+    body: string;
+  }[];
+  navigation: { previous: string; next: string };
+  options: { showOnStartup: string; dismiss: string };
+  stepStatus: { locked: string; unlocked: string; current: string };
+}
+
 export interface ControlOverlayStrings {
   heading: string;
   items: {
@@ -57,6 +72,7 @@ export interface ControlOverlayStrings {
   menu: {
     controls: ControlOverlayMenuItemStrings;
     text: ControlOverlayMenuItemStrings;
+    tutorial: ControlOverlayMenuItemStrings;
     settings: ControlOverlayMenuItemStrings;
   };
   mobileToggle: {
@@ -412,6 +428,7 @@ export interface LocaleStrings {
   site: SiteStrings;
   hud: {
     controlOverlay: ControlOverlayStrings;
+    tutorialPanel: TutorialPanelStrings;
     movementLegend: MovementLegendStrings;
     audioControl: AudioHudControlStrings;
     audioSubtitles: AudioSubtitleStrings;

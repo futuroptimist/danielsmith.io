@@ -906,7 +906,182 @@ export function buildLatinLocaleOverrides(
                   : 'Texto',
             title: s.textMode,
           },
+          tutorial: {
+            label:
+              copy.locale === 'de'
+                ? 'Tutorial'
+                : copy.locale === 'hu'
+                  ? 'Oktatóanyag'
+                  : 'Tutorial',
+            keyHint: 'R',
+            title:
+              copy.locale === 'es'
+                ? 'Abrir tutorial (R)'
+                : copy.locale === 'pt'
+                  ? 'Abrir tutorial (R)'
+                  : copy.locale === 'de'
+                    ? 'Tutorial öffnen (R)'
+                    : 'Oktatóanyag megnyitása (R)',
+          },
           settings: { label: s.settingsHelp, title: s.settingsHelp },
+        },
+      },
+      tutorialPanel: {
+        heading: copy.locale === 'hu' ? 'Oktatóanyag' : 'Tutorial',
+        sidebarLabel:
+          copy.locale === 'es'
+            ? 'Pasos del tutorial'
+            : copy.locale === 'pt'
+              ? 'Etapas do tutorial'
+              : copy.locale === 'de'
+                ? 'Tutorial-Schritte'
+                : 'Oktatóanyag lépései',
+        collapseLabel:
+          copy.locale === 'es'
+            ? 'Contraer pasos del tutorial'
+            : copy.locale === 'pt'
+              ? 'Recolher etapas do tutorial'
+              : copy.locale === 'de'
+                ? 'Tutorial-Schritte einklappen'
+                : 'Oktatóanyag lépéseinek összecsukása',
+        expandLabel:
+          copy.locale === 'es'
+            ? 'Expandir pasos del tutorial'
+            : copy.locale === 'pt'
+              ? 'Expandir etapas do tutorial'
+              : copy.locale === 'de'
+                ? 'Tutorial-Schritte ausklappen'
+                : 'Oktatóanyag lépéseinek kibontása',
+        pages: [
+          {
+            id: 'welcomeMovement',
+            title:
+              copy.locale === 'es'
+                ? 'Bienvenida'
+                : copy.locale === 'pt'
+                  ? 'Boas-vindas'
+                  : copy.locale === 'de'
+                    ? 'Willkommen'
+                    : 'Üdvözlés',
+            body:
+              copy.locale === 'es'
+                ? 'El progreso del tutorial aparecerá aquí. Por ahora, explora la casa a tu ritmo.'
+                : copy.locale === 'pt'
+                  ? 'O progresso do tutorial aparecerá aqui. Por enquanto, explore a casa no seu ritmo.'
+                  : copy.locale === 'de'
+                    ? 'Der Tutorial-Fortschritt erscheint hier. Erkunde das Haus vorerst in deinem eigenen Tempo.'
+                    : 'Az oktatóanyag előrehaladása itt jelenik meg. Egyelőre fedezd fel a házat a saját tempódban.',
+          },
+          {
+            id: 'zoom',
+            title: 'Zoom',
+            body:
+              copy.locale === 'de'
+                ? 'Zoom-Hinweise erscheinen hier in einem späteren Update.'
+                : copy.locale === 'hu'
+                  ? 'A nagyítási útmutató egy későbbi frissítésben jelenik meg itt.'
+                  : copy.locale === 'pt'
+                    ? 'A orientação de zoom aparecerá aqui em uma atualização futura.'
+                    : 'La guía de zoom aparecerá aquí en una actualización posterior.',
+          },
+          {
+            id: 'visitPois',
+            title:
+              copy.locale === 'de'
+                ? 'POIs besuchen'
+                : copy.locale === 'hu'
+                  ? 'POI-k felkeresése'
+                  : copy.locale === 'pt'
+                    ? 'Visitar POIs'
+                    : 'Visitar POI',
+            body:
+              copy.locale === 'de'
+                ? 'Ziele für interessante Punkte erscheinen hier in einem späteren Update.'
+                : copy.locale === 'hu'
+                  ? 'A látványosságcélok egy későbbi frissítésben jelennek meg itt.'
+                  : copy.locale === 'pt'
+                    ? 'As metas de pontos de interesse aparecerão aqui em uma atualização futura.'
+                    : 'Los objetivos de puntos de interés aparecerán aquí en una actualización posterior.',
+          },
+          {
+            id: 'findGitshelves',
+            title:
+              copy.locale === 'de'
+                ? 'Gitshelves finden'
+                : copy.locale === 'hu'
+                  ? 'Gitshelves megtalálása'
+                  : copy.locale === 'pt'
+                    ? 'Encontrar Gitshelves'
+                    : 'Encontrar Gitshelves',
+            body:
+              copy.locale === 'de'
+                ? 'Gitshelves-Hinweise erscheinen hier in einem späteren Update.'
+                : copy.locale === 'hu'
+                  ? 'A Gitshelves útmutató egy későbbi frissítésben jelenik meg itt.'
+                  : copy.locale === 'pt'
+                    ? 'A orientação sobre Gitshelves aparecerá aqui em uma atualização futura.'
+                    : 'La guía de Gitshelves aparecerá aquí en una actualización posterior.',
+          },
+        ],
+        navigation: {
+          previous:
+            copy.locale === 'de'
+              ? 'Zurück'
+              : copy.locale === 'hu'
+                ? 'Előző'
+                : 'Anterior',
+          next:
+            copy.locale === 'es'
+              ? 'Siguiente'
+              : copy.locale === 'pt'
+                ? 'Próximo'
+                : copy.locale === 'de'
+                  ? 'Weiter'
+                  : 'Következő',
+        },
+        options: {
+          showOnStartup:
+            copy.locale === 'es'
+              ? 'Mostrar al inicio'
+              : copy.locale === 'pt'
+                ? 'Mostrar ao iniciar'
+                : copy.locale === 'de'
+                  ? 'Beim Start anzeigen'
+                  : 'Megjelenítés indításkor',
+          dismiss:
+            copy.locale === 'es'
+              ? 'Descartar'
+              : copy.locale === 'pt'
+                ? 'Dispensar'
+                : copy.locale === 'de'
+                  ? 'Schließen'
+                  : 'Bezárás',
+        },
+        stepStatus: {
+          locked:
+            copy.locale === 'es'
+              ? 'Bloqueado'
+              : copy.locale === 'pt'
+                ? 'Bloqueado'
+                : copy.locale === 'de'
+                  ? 'Gesperrt'
+                  : 'Zárolt',
+          unlocked:
+            copy.locale === 'es'
+              ? 'Desbloqueado'
+              : copy.locale === 'pt'
+                ? 'Desbloqueado'
+                : copy.locale === 'de'
+                  ? 'Entsperrt'
+                  : 'Feloldva',
+          current:
+            copy.locale === 'es'
+              ? 'Paso actual'
+              : copy.locale === 'pt'
+                ? 'Etapa atual'
+                : copy.locale === 'de'
+                  ? 'Aktueller Schritt'
+                  : 'Aktuális lépés',
         },
       },
       audioSubtitles: {

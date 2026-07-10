@@ -230,6 +230,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           keyHint: 'T',
           title: 'Switch to text mode (T)',
         },
+        tutorial: {
+          label: 'Tutorial',
+          keyHint: 'R',
+          title: 'Open tutorial (R)',
+        },
         settings: {
           label: 'Settings',
           keyHint: 'H',
@@ -242,6 +247,47 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         expandAnnouncement:
           'Showing the full controls list for mobile players.',
         collapseAnnouncement: 'Hiding extra controls to keep the list compact.',
+      },
+    },
+    tutorialPanel: {
+      heading: 'Tutorial',
+      sidebarLabel: 'Tutorial steps',
+      collapseLabel: 'Collapse tutorial steps',
+      expandLabel: 'Expand tutorial steps',
+      pages: [
+        {
+          id: 'welcomeMovement',
+          title: 'Welcome',
+          body: 'Tutorial progress will appear here. For now, keep exploring the home at your own pace.',
+        },
+        {
+          id: 'zoom',
+          title: 'Zoom',
+          body: 'Zoom guidance will appear here in a later update.',
+        },
+        {
+          id: 'visitPois',
+          title: 'Visit POIs',
+          body: 'Point-of-interest goals will appear here in a later update.',
+        },
+        {
+          id: 'findGitshelves',
+          title: 'Find Gitshelves',
+          body: 'Gitshelves guidance will appear here in a later update.',
+        },
+      ],
+      navigation: {
+        previous: 'Previous',
+        next: 'Next',
+      },
+      options: {
+        showOnStartup: 'Show on startup',
+        dismiss: 'Dismiss',
+      },
+      stepStatus: {
+        locked: 'Locked',
+        unlocked: 'Unlocked',
+        current: 'Current step',
       },
     },
     movementLegend: {

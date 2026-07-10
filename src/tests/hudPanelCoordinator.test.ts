@@ -159,6 +159,38 @@ describe('createHudPanelCoordinator', () => {
     coordinator.dispose();
   });
 
+  it('coordinates Tutorial with Settings and Controls', () => {
+    const controls = createPanel();
+    const tutorial = createPanel();
+    const settings = createPanel();
+    const tutorialButton = document.createElement('button');
+    const coordinator = createHudPanelCoordinator({
+      controls,
+      tutorial,
+      settings,
+      tutorialButton,
+      onTextMode: vi.fn(),
+    });
+
+    coordinator.openSettings();
+    coordinator.openTutorial();
+    expect(settings.isOpen()).toBe(false);
+    expect(tutorial.isOpen()).toBe(true);
+    expect(coordinator.getActivePanel()).toBe('tutorial');
+    expect(tutorialButton.getAttribute('aria-pressed')).toBe('true');
+
+    coordinator.openControls();
+    expect(tutorial.isOpen()).toBe(false);
+    expect(controls.isOpen()).toBe(true);
+
+    coordinator.openTutorial();
+    coordinator.openSettings();
+    expect(tutorial.isOpen()).toBe(false);
+    expect(settings.isOpen()).toBe(true);
+
+    coordinator.dispose();
+  });
+
   it('wires HUD buttons and Escape to panel actions', () => {
     const controls = createPanel();
     const settings = createPanel();

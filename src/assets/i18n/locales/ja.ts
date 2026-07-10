@@ -219,6 +219,41 @@ export const JA_OVERRIDES: LocaleOverrides = {
       },
     },
 
+    tutorialPanel: {
+      heading: 'チュートリアル',
+      sidebarLabel: 'チュートリアル手順',
+      collapseLabel: 'チュートリアル手順を折りたたむ',
+      expandLabel: 'チュートリアル手順を展開',
+      pages: [
+        {
+          id: 'welcomeMovement',
+          title: 'ようこそ',
+          body: 'チュートリアルの進行状況はここに表示されます。今は自分のペースで家を探索してください。',
+        },
+        {
+          id: 'zoom',
+          title: 'ズーム',
+          body: 'ズームの案内は今後の更新でここに表示されます。',
+        },
+        {
+          id: 'visitPois',
+          title: 'POIを訪問',
+          body: 'POIの目標は今後の更新でここに表示されます。',
+        },
+        {
+          id: 'findGitshelves',
+          title: 'Gitshelvesを見つける',
+          body: 'Gitshelvesの案内は今後の更新でここに表示されます。',
+        },
+      ],
+      navigation: { previous: '前へ', next: '次へ' },
+      options: { showOnStartup: '起動時に表示', dismiss: '閉じる' },
+      stepStatus: {
+        locked: 'ロック中',
+        unlocked: '解除済み',
+        current: '現在の手順',
+      },
+    },
     controlOverlay: {
       heading: '操作',
       items: {
@@ -279,6 +314,11 @@ export const JA_OVERRIDES: LocaleOverrides = {
           label: 'テキスト',
           keyHint: 'T',
           title: 'テキストモードに切り替え (T)',
+        },
+        tutorial: {
+          label: 'チュートリアル',
+          keyHint: 'R',
+          title: 'チュートリアルを開く (R)',
         },
         settings: {
           label: '設定',
