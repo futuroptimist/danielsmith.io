@@ -450,6 +450,7 @@ import {
   createInputLatencyTelemetry,
   type InputLatencyTelemetryHandle,
 } from './systems/performance/inputLatencyTelemetry';
+import { createTutorialController } from './systems/tutorial/tutorialController';
 import { getPulseScale } from './ui/accessibility/animationPreferences';
 import {
   createHudFocusAnnouncer,
@@ -3613,12 +3614,47 @@ export function initializeImmersiveScene(
     container: document.body,
     content: helpModalStrings,
   });
+  const tutorialStorage = (() => {
+    try {
+      return window.localStorage;
+    } catch {
+      return null;
+    }
+  })();
+  const tutorialController = createTutorialController({
+    storage: tutorialStorage,
+    onDismiss: () => hudPanelCoordinator?.closeActivePanel(),
+  });
   const tutorialPanel = createTutorialPanel({
     container: document.body,
     strings: tutorialPanelStrings,
+    state: tutorialController.getSnapshot().state,
+    showOnStartup: tutorialController.getSnapshot().showOnStartup,
     onOpenChange: () => syncPoiDetailOverlay(),
-    onRequestClose: () => hudPanelCoordinator?.closeActivePanel(),
+    onRequestClose: () => tutorialController.dismiss(),
+    onSelectPage: (pageId) => {
+      tutorialController.selectPage(pageId);
+      syncTutorialPanelState();
+    },
+    onPrevious: () => {
+      tutorialController.previousPage();
+      syncTutorialPanelState();
+    },
+    onNext: () => {
+      tutorialController.nextPage();
+      syncTutorialPanelState();
+    },
+    onToggleShowOnStartup: (value) => {
+      tutorialController.setShowOnStartup(value);
+      syncTutorialPanelState();
+    },
   });
+  tutorialController.getSnapshot();
+  const syncTutorialPanelState = () => {
+    const snapshot = tutorialController.getSnapshot();
+    tutorialPanel.setState(snapshot.state);
+    tutorialPanel.setShowOnStartup(snapshot.showOnStartup);
+  };
   const hudSettingsContainer =
     helpModal.settingsContainer ??
     (() => {
@@ -3925,6 +3961,7 @@ export function initializeImmersiveScene(
   };
   window.addEventListener('keydown', handleHudPanelKeydown);
   window.addEventListener('keydown', handleControlsKeydown);
+  tutorialController.getSnapshot();
   hudPanelCoordinator = createHudPanelCoordinator({
     controls: responsiveControlOverlay ?? {
       open() {},
@@ -3946,6 +3983,10 @@ export function initializeImmersiveScene(
       syncPoiDetailOverlay();
     },
   });
+  const initialTutorialSnapshot = tutorialController.getSnapshot();
+  if (initialTutorialSnapshot.showOnStartup) {
+    hudPanelCoordinator.openTutorial();
+  }
   let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();
@@ -4100,6 +4141,7 @@ export function initializeImmersiveScene(
     softwareRendererWarning?.setStrings(softwareRendererWarningStrings);
     helpModal.setContent(helpModalStrings);
     tutorialPanel.setStrings(tutorialPanelStrings);
+    syncTutorialPanelState();
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     graphicsQualityControl?.setStrings({
       ...graphicsQualityStrings,

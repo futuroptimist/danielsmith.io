@@ -5,9 +5,11 @@ replaces the removed implicit guided/narration concepts with a user-controlled,
 localized, non-modal panel that can stay open while the visitor completes gameplay
 actions.
 
-This document is design-only. It defines the architecture, contracts, persistence,
-layout, accessibility, and test plan for a future implementation without adding runtime
-Tutorial code yet.
+This document defines the architecture, contracts, persistence, layout, accessibility,
+and test plan for the Tutorial runtime. The shell, state machine, storage layer,
+controller, startup preference, and dismiss behavior are implemented; gameplay action
+tracking is intentionally deferred until the existing movement, zoom, POI, and exhibit
+signals are connected.
 
 ## Current architecture summary
 
@@ -90,9 +92,9 @@ Future implementation should keep the Tutorial system small and composable:
 | -------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | HUD coordination     | `src/ui/hud/hudPanelCoordinator.ts`                                   | Add `tutorial` as a top-level non-modal HUD panel, enforce one top-level panel at a time for Controls/Tutorial/Settings, and keep Tutorial compatible with POI panels. |
 | Tutorial UI          | `src/ui/hud/tutorialPanel.ts`                                         | Render the panel shell, sidebar, body, navigation, options, localized labels, and DOM events.                                                                          |
-| Tutorial state       | `src/ui/hud/tutorialState.ts`                                         | Pure state machine, progress reducer, unlock rules, monotonic completion, current page handling, corrupt-data fallback.                                                |
-| Tutorial persistence | `src/ui/hud/tutorialPersistence.ts`                                   | Versioned localStorage load/save for progress and show-on-startup preference.                                                                                          |
-| Tutorial tracking    | `src/ui/hud/tutorialTracking.ts`                                      | Adapters for movement, zoom, and POI visited events; no DOM rendering.                                                                                                 |
+| Tutorial state       | `src/systems/tutorial/tutorialState.ts`                               | Pure state machine, progress reducer, unlock rules, monotonic completion, current page handling, corrupt-data fallback.                                                |
+| Tutorial persistence | `src/systems/tutorial/tutorialStorage.ts`                             | Versioned localStorage load/save for progress and show-on-startup preference.                                                                                          |
+| Tutorial controller  | `src/systems/tutorial/tutorialController.ts`                          | Adapters for movement, zoom, and POI visited events; no DOM rendering.                                                                                                 |
 | HUD menu data        | `src/ui/hud/hudMenu.ts` or existing `controlOverlay` helpers          | Shared metadata for Controls, Tutorial, Text, Settings labels/key badges.                                                                                              |
 | i18n types           | `src/assets/i18n/types.ts`                                            | Add `TutorialPanelStrings` and `ControlOverlayStrings.menu.tutorial`.                                                                                                  |
 | locale strings       | `src/assets/i18n/locales/*.ts`                                        | Add Tutorial copy for all supported locales and pseudo-locale wrappers.                                                                                                |
@@ -602,3 +604,33 @@ Future implementation is ready when:
 - No runtime Tutorial implementation lands before this design-only document is reviewed.
 - Localization and z-fighting guardrails remain at least as strict as they are today.
 - `docs/assets/game-launch.png` remains untouched.
+
+## Implemented state and persistence
+
+The runtime implementation keeps the Tutorial shell stateful without adding gameplay
+action tracking yet. `src/systems/tutorial/tutorialState.ts` owns the pure state machine:
+page order, page id validation, default progress placeholders, sanitization, monotonic
+unlock/completion helpers, current-page selection, and completion checks. The canonical
+page order is `welcomeMovement`, `zoom`, `visitPois`, then `findGitshelves`; only
+`welcomeMovement` is unlocked until future gameplay tracking explicitly unlocks later
+steps.
+
+`src/systems/tutorial/tutorialStorage.ts` owns best-effort persistence. Progress is stored
+as sanitized JSON under `danielsmith.io:tutorial:v1:progress`, and the startup preference
+is stored separately under `danielsmith.io:tutorial:v1:showOnStartup`. Missing storage,
+blocked storage APIs, corrupt JSON, malformed state, unknown page ids, duplicate page ids,
+and unsupported versions fall back to safe defaults instead of throwing. The show-on-startup
+preference defaults to enabled whenever the stored value is missing or invalid.
+
+`src/systems/tutorial/tutorialController.ts` connects state and storage to the HUD panel. It
+persists progress only after state changes, persists the startup preference only when the
+checkbox changes, and exposes placeholder methods for movement, zoom, POI, and Gitshelves
+updates. Those methods intentionally do not mark gameplay progress yet; action tracking is
+added after this state plumbing.
+
+`src/ui/hud/tutorialPanel.ts` renders the controller snapshot: active page, locked and
+unlocked sidebar steps, disabled Previous/Next navigation, the persisted Show on startup
+checkbox, and Dismiss. Dismiss closes the panel for the current load only and does not clear
+progress or disable future startup opens. Immersive startup opens Tutorial when the stored
+startup preference is enabled; manual HUD button or `R` hotkey access still works even when
+a visitor disables startup opens.

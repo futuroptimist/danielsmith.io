@@ -543,6 +543,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       dismissLabel: 'Dismiss',
       dismissTitle: 'Close the tutorial for now',
       lockedStepLabel: 'Locked',
+      completedStepLabel: 'Completed',
+      incompleteStepLabel: 'Incomplete',
       unlockedStepLabel: 'Unlocked',
       activeStepLabel: 'Current step',
       pages: {

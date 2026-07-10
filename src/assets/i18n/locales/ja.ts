@@ -448,6 +448,8 @@ export const JA_OVERRIDES: LocaleOverrides = {
       dismissLabel: '閉じる',
       dismissTitle: '今はチュートリアルを閉じる',
       lockedStepLabel: 'ロック中',
+      completedStepLabel: '完了',
+      incompleteStepLabel: '未完了',
       unlockedStepLabel: '解除済み',
       activeStepLabel: '現在のステップ',
       pages: {

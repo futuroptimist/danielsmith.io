@@ -557,6 +557,8 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       dismissLabel: wrap('Dismiss'),
       dismissTitle: wrap('Close the tutorial for now'),
       lockedStepLabel: wrap('Locked'),
+      completedStepLabel: wrap('Completed'),
+      incompleteStepLabel: wrap('Incomplete'),
       unlockedStepLabel: wrap('Unlocked'),
       activeStepLabel: wrap('Current step'),
       pages: {

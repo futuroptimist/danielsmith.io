@@ -436,6 +436,8 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       dismissLabel: '暂时关闭',
       dismissTitle: '暂时关闭教程',
       lockedStepLabel: '已锁定',
+      completedStepLabel: '已完成',
+      incompleteStepLabel: '未完成',
       unlockedStepLabel: '已解锁',
       activeStepLabel: '当前步骤',
       pages: {
