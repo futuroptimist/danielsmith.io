@@ -432,22 +432,49 @@ export const AR_OVERRIDES: LocaleOverrides = {
       unlockedStepLabel: 'مفتوح',
       activeStepLabel: 'الخطوة الحالية',
       completedStepLabel: 'مكتمل',
+      textOnlyButton: {
+        label: 'Switch to text-only version',
+        title: 'Open the fast text-only portfolio',
+        ariaLabel: 'Switch to the text-only portfolio version',
+      },
+      status: {
+        complete: 'Complete',
+        incomplete: 'Incomplete',
+        checkmark: 'Complete',
+      },
+      movement: {
+        chips: { forward: 'W', left: 'A', backward: 'S', right: 'D' },
+        chipAriaLabelTemplate: '{direction} movement is {status}',
+      },
+      zoomProgress: {
+        inLabel: 'In',
+        outLabel: 'Out',
+        chipAriaLabelTemplate: 'Zoom {direction} is {status}',
+      },
+      poiProgress: {
+        counterTemplate: '{count}/{goal} POIs visited',
+        counterAriaLabelTemplate: '{count} of {goal} POIs visited, {status}',
+      },
+      gitshelvesProgress: {
+        label: 'Gitshelves visited',
+        ariaLabelTemplate: 'Gitshelves objective is {status}',
+      },
       pages: {
         welcomeMovement: {
-          title: 'مرحبًا',
-          body: 'سيصل تقدم الدليل قريبًا. ستعرّف الخطوة الأولى الحركة داخل المعرض.',
+          title: 'Welcome and move',
+          body: 'Welcome to the immersive portfolio. This room showcases projects as interactive exhibits. Move in all four WASD directions; WASD, arrow keys, and the touch joystick all count. If you prefer not to use immersive mode, switch to the text-only version below.',
         },
         zoom: {
-          title: 'التكبير',
-          body: 'سيشرح هذا الموضع المؤقت عناصر التكبير مع إبقاء المشهد قابلًا للعب.',
+          title: 'Zoom',
+          body: 'Zoom all the way in and all the way out. Use the mouse scroll wheel, multitouch pinch, or keyboard shortcuts Shift + = / Shift + -.',
         },
         visitPois: {
-          title: 'زيارة نقاط الاهتمام',
-          body: 'سيتتبع هذا الموضع المؤقت زيارة ثلاث نقاط اهتمام للمشاريع.',
+          title: 'Visit 3 POIs',
+          body: 'POIs are project exhibits. Their panels show summaries, outcomes, metrics, links, and context. Click, tap, or interact with a POI to mark it visited.',
         },
         findGitshelves: {
-          title: 'العثور على Gitshelves',
-          body: 'سيرشد هذا الموضع المؤقت الزوار إلى معرض Gitshelves.',
+          title: 'Find Gitshelves',
+          body: 'Find and interact with the Gitshelves POI. Hint: check upstairs.',
         },
       },
     },

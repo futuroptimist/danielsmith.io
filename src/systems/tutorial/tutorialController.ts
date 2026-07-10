@@ -2,9 +2,15 @@ import type { TutorialPanelHandle } from '../../ui/hud/tutorialPanel';
 
 import {
   getTutorialPageOrder,
+  recordGitshelvesVisited,
+  recordMovementProgress as reduceMovementProgress,
+  recordVisitedPois,
+  recordZoomProgress as reduceZoomProgress,
   setCurrentTutorialPage,
   type TutorialPageId,
+  type TutorialMovementSnapshot,
   type TutorialState,
+  type TutorialZoomSnapshot,
 } from './tutorialState';
 import {
   createTutorialStorageAdapter,
@@ -20,9 +26,9 @@ export interface TutorialControllerHandle {
   nextPage(): void;
   setShowOnStartup(value: boolean): void;
   dismiss(): void;
-  recordMovementProgress(): void;
-  recordZoomProgress(): void;
-  syncVisitedPois(): void;
+  recordMovementProgress(snapshot: TutorialMovementSnapshot): void;
+  recordZoomProgress(snapshot: TutorialZoomSnapshot): void;
+  syncVisitedPois(visitedPoiIds: Iterable<string>): void;
   markGitshelvesVisited(): void;
 }
 
@@ -49,10 +55,14 @@ export const createTutorialController = ({
     lastSerializedState = serialized;
     adapter.writeState(state);
   };
-  const selectPage = (pageId: TutorialPageId) => {
-    state = setCurrentTutorialPage(state, pageId);
+  const commitState = (nextState: TutorialState) => {
+    const previous = state;
+    state = nextState;
     persistStateIfChanged();
-    render();
+    if (state !== previous) render();
+  };
+  const selectPage = (pageId: TutorialPageId) => {
+    commitState(setCurrentTutorialPage(state, pageId));
   };
   const nextAdjacentPage = () => {
     const order = getTutorialPageOrder();
@@ -92,9 +102,17 @@ export const createTutorialController = ({
     dismiss() {
       onDismiss?.();
     },
-    recordMovementProgress() {},
-    recordZoomProgress() {},
-    syncVisitedPois() {},
-    markGitshelvesVisited() {},
+    recordMovementProgress(snapshot) {
+      commitState(reduceMovementProgress(state, snapshot));
+    },
+    recordZoomProgress(snapshot) {
+      commitState(reduceZoomProgress(state, snapshot));
+    },
+    syncVisitedPois(visitedPoiIds) {
+      commitState(recordVisitedPois(state, visitedPoiIds));
+    },
+    markGitshelvesVisited() {
+      commitState(recordGitshelvesVisited(state));
+    },
   };
 };

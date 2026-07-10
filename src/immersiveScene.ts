@@ -3040,6 +3040,9 @@ export function initializeImmersiveScene(
       );
       syncPoiDetailOverlay();
     });
+  const removeTutorialVisitedListener = poiVisitedState.subscribe((visited) => {
+    tutorialController.syncVisitedPois(visited);
+  });
   const removeSelectionListener = poiInteractionManager.addSelectionListener(
     (poi) => {
       poiVisitedState.markVisited(poi.id);
@@ -3639,6 +3642,7 @@ export function initializeImmersiveScene(
     onNext: () => tutorialController.nextPage(),
     onToggleShowOnStartup: (value) =>
       tutorialController.setShowOnStartup(value),
+    onTextMode: () => activateTextMode(),
   });
   tutorialController.setPanel(tutorialPanel);
   const hudSettingsContainer =
@@ -5956,6 +5960,12 @@ export function initializeImmersiveScene(
 
     if (stepX !== 0 || stepZ !== 0) {
       const movementStep = applyPlayerMovementStep(stepX, stepZ);
+      tutorialController.recordMovementProgress({
+        right: combinedRight,
+        forward: combinedForward,
+        deltaSeconds: delta,
+        moved: movementStep.movedX || movementStep.movedZ,
+      });
       if (stepX !== 0 && !movementStep.movedX) {
         targetVelocity.x = 0;
         velocity.x = 0;
@@ -6018,6 +6028,12 @@ export function initializeImmersiveScene(
     if (Math.abs(cameraZoom - previousZoom) > 1e-4) {
       updateCameraProjection(window.innerWidth / window.innerHeight);
     }
+    tutorialController.recordZoomProgress({
+      currentZoom: cameraZoom,
+      currentZoomTarget: cameraZoomTarget,
+      minZoom: MIN_CAMERA_ZOOM,
+      maxZoom: MAX_CAMERA_ZOOM,
+    });
 
     const cameraInput =
       mouseCameraPointerId !== null ? mouseCameraInput : joystick.getCamera();
@@ -6345,6 +6361,7 @@ export function initializeImmersiveScene(
     removeHoverListener();
     removeSelectionStateListener();
     removeSelectionListener();
+    removeTutorialVisitedListener();
     removeVisitedSubscription();
     interactionTimeline.dispose();
     poiTooltipOverlay.dispose();
