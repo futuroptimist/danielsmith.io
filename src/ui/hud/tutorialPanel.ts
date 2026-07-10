@@ -152,8 +152,10 @@ export function createTutorialPanel({
     previous.className = 'tutorial-panel__button';
     previous.textContent = currentStrings.previousLabel;
     const currentIndex = pageOrder.indexOf(currentState.currentPageId);
-    const previousPage = pageOrder[currentIndex - 1];
-    previous.disabled = !previousPage || !unlocked.has(previousPage);
+    const hasPreviousUnlockedPage = pageOrder
+      .slice(0, currentIndex)
+      .some((pageId) => unlocked.has(pageId));
+    previous.disabled = !hasPreviousUnlockedPage;
     previous.addEventListener('click', () => onPrevious?.());
     const next = document.createElement('button');
     next.type = 'button';

@@ -89,7 +89,8 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
-  it('disables previous navigation when the adjacent previous page is locked', () => {
+  it('enables previous navigation when an earlier unlocked page is reachable across a gap', () => {
+    let previousClicks = 0;
     const panel = createTutorialPanel({
       container: document.body,
       strings: getTutorialPanelStrings('en'),
@@ -98,6 +99,9 @@ describe('createTutorialPanel', () => {
         currentPageId: 'visitPois',
         unlockedPageIds: ['welcomeMovement', 'visitPois'],
       },
+      onPrevious: () => {
+        previousClicks += 1;
+      },
     });
 
     panel.open();
@@ -105,7 +109,10 @@ describe('createTutorialPanel', () => {
     const [previous] = panel.element.querySelectorAll<HTMLButtonElement>(
       '[data-testid="tutorial-navigation"] button'
     );
-    expect(previous.disabled).toBe(true);
+    expect(previous.disabled).toBe(false);
+
+    previous.click();
+    expect(previousClicks).toBe(1);
 
     panel.dispose();
   });
