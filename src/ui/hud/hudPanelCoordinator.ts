@@ -58,6 +58,7 @@ export function createHudPanelCoordinator({
   onActivePanelChange,
   documentTarget = typeof document !== 'undefined' ? document : undefined,
 }: HudPanelCoordinatorOptions): HudPanelCoordinatorHandle {
+  const hasTutorialPanel = tutorial !== undefined;
   const tutorialPanel =
     tutorial ??
     ({
@@ -117,6 +118,9 @@ export function createHudPanelCoordinator({
   };
 
   const openTutorial = () => {
+    if (!hasTutorialPanel) {
+      return;
+    }
     closeControls();
     closeSettings();
     tutorialPanel.open();
@@ -124,6 +128,9 @@ export function createHudPanelCoordinator({
   };
 
   const toggleTutorial = () => {
+    if (!hasTutorialPanel) {
+      return;
+    }
     if (tutorialPanel.isOpen()) {
       closeTutorial();
       syncState();

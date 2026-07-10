@@ -186,6 +186,64 @@ describe('createHudPanelCoordinator', () => {
     coordinator.dispose();
   });
 
+  it('leaves active panels unchanged when Tutorial is absent', () => {
+    const controls = createPanel();
+    const settings = createPanel();
+    const controlsButton = document.createElement('button');
+    const settingsButton = document.createElement('button');
+    const tutorialButton = document.createElement('button');
+    const onActivePanelChange = vi.fn();
+    const coordinator = createHudPanelCoordinator({
+      controls,
+      settings,
+      controlsButton,
+      settingsButton,
+      tutorialButton,
+      onTextMode: vi.fn(),
+      onActivePanelChange,
+    });
+
+    coordinator.openControls();
+    const callbackHistoryAfterControls = onActivePanelChange.mock.calls.map(
+      ([panel]) => panel
+    );
+    coordinator.openTutorial();
+
+    expect(controls.isOpen()).toBe(true);
+    expect(settings.isOpen()).toBe(false);
+    expect(coordinator.getActivePanel()).toBe('controls');
+    expect(controlsButton.getAttribute('aria-expanded')).toBe('true');
+    expect(controlsButton.getAttribute('aria-pressed')).toBe('true');
+    expect(settingsButton.getAttribute('aria-expanded')).toBe('false');
+    expect(settingsButton.getAttribute('aria-pressed')).toBe('false');
+    expect(tutorialButton.getAttribute('aria-expanded')).toBe('false');
+    expect(tutorialButton.getAttribute('aria-pressed')).toBe('false');
+    expect(onActivePanelChange.mock.calls.map(([panel]) => panel)).toEqual(
+      callbackHistoryAfterControls
+    );
+
+    coordinator.openSettings();
+    const callbackHistoryAfterSettings = onActivePanelChange.mock.calls.map(
+      ([panel]) => panel
+    );
+    coordinator.toggleTutorial();
+
+    expect(controls.isOpen()).toBe(false);
+    expect(settings.isOpen()).toBe(true);
+    expect(coordinator.getActivePanel()).toBe('settings');
+    expect(controlsButton.getAttribute('aria-expanded')).toBe('false');
+    expect(controlsButton.getAttribute('aria-pressed')).toBe('false');
+    expect(settingsButton.getAttribute('aria-expanded')).toBe('true');
+    expect(settingsButton.getAttribute('aria-pressed')).toBe('true');
+    expect(tutorialButton.getAttribute('aria-expanded')).toBe('false');
+    expect(tutorialButton.getAttribute('aria-pressed')).toBe('false');
+    expect(onActivePanelChange.mock.calls.map(([panel]) => panel)).toEqual(
+      callbackHistoryAfterSettings
+    );
+
+    coordinator.dispose();
+  });
+
   it('syncs Tutorial Dismiss through button and root-style state callbacks', () => {
     const controls = createPanel();
     const settings = createPanel();
