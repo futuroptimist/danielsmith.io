@@ -21,7 +21,7 @@ export interface TutorialProgress {
     rightComplete: boolean;
   };
   zoom: { zoomInComplete: boolean; zoomOutComplete: boolean };
-  pois: { visitedPoiIds: readonly string[]; visitedCountGoal: 3 };
+  pois: { visitedPoiIds: readonly string[]; visitedCountGoal: number };
   gitshelves: { completed: boolean };
 }
 
@@ -34,6 +34,7 @@ export interface TutorialState {
 }
 
 const FIRST_PAGE_ID = TUTORIAL_PAGE_ORDER[0];
+const DEFAULT_VISITED_POI_COUNT_GOAL = 3;
 const PAGE_ID_SET = new Set<string>(TUTORIAL_PAGE_ORDER);
 
 export const getTutorialPageOrder = (): readonly TutorialPageId[] => [
@@ -71,7 +72,7 @@ export const createDefaultTutorialProgress = (): TutorialProgress => ({
     rightComplete: false,
   },
   zoom: { zoomInComplete: false, zoomOutComplete: false },
-  pois: { visitedPoiIds: [], visitedCountGoal: 3 },
+  pois: { visitedPoiIds: [], visitedCountGoal: DEFAULT_VISITED_POI_COUNT_GOAL },
   gitshelves: { completed: false },
 });
 const sanitizeProgress = (value: unknown): TutorialProgress => {
@@ -103,7 +104,7 @@ const sanitizeProgress = (value: unknown): TutorialProgress => {
             ),
           ]
         : [],
-      visitedCountGoal: 3,
+      visitedCountGoal: DEFAULT_VISITED_POI_COUNT_GOAL,
     },
     gitshelves: { completed: sanitizeBoolean(gitshelves.completed) },
   };

@@ -89,6 +89,27 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
+  it('disables previous navigation when the adjacent previous page is locked', () => {
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      state: {
+        ...createDefaultTutorialState(),
+        currentPageId: 'visitPois',
+        unlockedPageIds: ['welcomeMovement', 'visitPois'],
+      },
+    });
+
+    panel.open();
+
+    const [previous] = panel.element.querySelectorAll<HTMLButtonElement>(
+      '[data-testid="tutorial-navigation"] button'
+    );
+    expect(previous.disabled).toBe(true);
+
+    panel.dispose();
+  });
+
   it('clears open state when disposed while open', () => {
     const panel = createTutorialPanel({
       container: document.body,
