@@ -124,7 +124,7 @@ show-on-startup preference only when that preference changes. Dismiss closes the
 panel instance for the active page load only; it does not alter either storage key.
 
 Gameplay action tracking is intentionally not implemented in the current state plumbing.
-The progress object includes movement, zoom, POI, and Gitshelves placeholder fields so
+The progress object includes movement, zoom, POI, and Gitshelves fields so
 future runtime adapters can update a stable schema without changing storage keys.
 
 ## Universal HUD menu architecture
@@ -628,3 +628,29 @@ Future implementation is ready when:
 - No runtime Tutorial implementation lands before this design-only document is reviewed.
 - Localization and z-fighting guardrails remain at least as strict as they are today.
 - `docs/assets/game-launch.png` remains untouched.
+
+## Implemented action tracking contracts
+
+Tutorial progress is driven by the pure helpers in
+`src/systems/tutorial/tutorialState.ts` and persisted by
+`src/systems/tutorial/tutorialController.ts` only when serialized state changes.
+The runtime feeds those helpers from `src/immersiveScene.ts` so Tutorial progress
+continues while the panel is closed and repaints immediately when it is open.
+
+- Movement uses `recordMovementInputProgress(...)` with camera-relative canonical
+  input components: positive forward is W/ArrowUp/joystick-away, negative
+  forward is S/ArrowDown/joystick-toward, negative right is A/ArrowLeft, and
+  positive right is D/ArrowRight. A direction completes after 0.25 seconds of
+  meaningful input above the deadzone and only after a movement step reports
+  actual motion, so blocked movement and analog drift do not count.
+- Zoom uses `recordZoomProgress(...)` with the active runtime min/max zoom values
+  supplied by the scene. The helper completes zoom-in or zoom-out when either the
+  target or actual camera zoom reaches the matching bound within one percent of
+  the runtime zoom range.
+- POI progress uses the shared `PoiVisitedState` subscription from
+  `src/scene/poi/visitedState.ts`. Tutorial stores derived visited ids for
+  persistence and unlocks, but interactions remain sourced from the general POI
+  visited primitive used by panels and in-world visited labels.
+- Gitshelves completion is keyed to the stable POI id
+  `gitshelves-living-room-installation`. Its placement remains on the upper
+  floor, so the localized Tutorial hint directs visitors upstairs.

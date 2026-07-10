@@ -3639,8 +3639,15 @@ export function initializeImmersiveScene(
     onNext: () => tutorialController.nextPage(),
     onToggleShowOnStartup: (value) =>
       tutorialController.setShowOnStartup(value),
+    onTextMode: () =>
+      hudPanelCoordinator?.activateTextMode() ?? activateTextMode(),
   });
   tutorialController.setPanel(tutorialPanel);
+  const removeTutorialVisitedSubscription = poiVisitedState.subscribe(
+    (visited) => {
+      tutorialController.syncVisitedPois(visited);
+    }
+  );
   const hudSettingsContainer =
     helpModal.settingsContainer ??
     (() => {
@@ -5043,6 +5050,12 @@ export function initializeImmersiveScene(
 
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+    tutorialController.recordZoomProgress({
+      targetZoom: cameraZoomTarget,
+      currentZoom: cameraZoom,
+      minZoom: MIN_CAMERA_ZOOM,
+      maxZoom: MAX_CAMERA_ZOOM,
+    });
   };
 
   const updateCameraPanLimits = (aspect: number) => {
@@ -5964,6 +5977,12 @@ export function initializeImmersiveScene(
         targetVelocity.z = 0;
         velocity.z = 0;
       }
+      tutorialController.recordMovementProgress({
+        right: combinedRight,
+        forward: combinedForward,
+        deltaSeconds: delta,
+        moved: movementStep.movedX || movementStep.movedZ,
+      });
     }
 
     // Update facing: aim toward current planar velocity when moving.
@@ -6017,6 +6036,12 @@ export function initializeImmersiveScene(
     }
     if (Math.abs(cameraZoom - previousZoom) > 1e-4) {
       updateCameraProjection(window.innerWidth / window.innerHeight);
+      tutorialController.recordZoomProgress({
+        targetZoom: cameraZoomTarget,
+        currentZoom: cameraZoom,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      });
     }
 
     const cameraInput =
@@ -6346,6 +6371,7 @@ export function initializeImmersiveScene(
     removeSelectionStateListener();
     removeSelectionListener();
     removeVisitedSubscription();
+    removeTutorialVisitedSubscription();
     interactionTimeline.dispose();
     poiTooltipOverlay.dispose();
     poiWorldTooltip.dispose();

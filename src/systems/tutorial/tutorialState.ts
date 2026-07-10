@@ -36,6 +36,34 @@ export interface TutorialState {
 const FIRST_PAGE_ID = TUTORIAL_PAGE_ORDER[0];
 const DEFAULT_VISITED_POI_COUNT_GOAL = 3;
 const PAGE_ID_SET = new Set<string>(TUTORIAL_PAGE_ORDER);
+export const TUTORIAL_MOVEMENT_SECONDS_GOAL = 0.25;
+export const TUTORIAL_MOVEMENT_DEADZONE = 0.2;
+export const TUTORIAL_VISITED_POI_GOAL = DEFAULT_VISITED_POI_COUNT_GOAL;
+export const GITSHELVES_POI_ID = 'gitshelves-living-room-installation';
+export type TutorialMovementDirection =
+  | 'forward'
+  | 'left'
+  | 'backward'
+  | 'right';
+
+const MOVEMENT_SECOND_KEYS: Record<
+  TutorialMovementDirection,
+  keyof TutorialProgress['movement']
+> = {
+  forward: 'forwardSeconds',
+  left: 'leftSeconds',
+  backward: 'backwardSeconds',
+  right: 'rightSeconds',
+};
+const MOVEMENT_COMPLETE_KEYS: Record<
+  TutorialMovementDirection,
+  keyof TutorialProgress['movement']
+> = {
+  forward: 'forwardComplete',
+  left: 'leftComplete',
+  backward: 'backwardComplete',
+  right: 'rightComplete',
+};
 
 export const getTutorialPageOrder = (): readonly TutorialPageId[] => [
   ...TUTORIAL_PAGE_ORDER,
@@ -177,8 +205,191 @@ export const markTutorialPageCompleted = (
         completedPageIds: [...sanitized.completedPageIds, pageId],
       };
 };
-export const deriveTutorialUnlocks = (state: TutorialState): TutorialState =>
-  sanitizeTutorialState(state);
+
+const uniqueStrings = (values: readonly string[]) => [...new Set(values)];
+const movementComplete = (progress: TutorialProgress) =>
+  progress.movement.forwardComplete &&
+  progress.movement.leftComplete &&
+  progress.movement.backwardComplete &&
+  progress.movement.rightComplete;
+const zoomComplete = (progress: TutorialProgress) =>
+  progress.zoom.zoomInComplete && progress.zoom.zoomOutComplete;
+const poiGoalComplete = (progress: TutorialProgress) =>
+  progress.pois.visitedPoiIds.length >= progress.pois.visitedCountGoal;
+
+export const deriveTutorialUnlocks = (state: TutorialState): TutorialState => {
+  const sanitized = sanitizeTutorialState(state);
+  const unlocked = new Set<TutorialPageId>(sanitized.unlockedPageIds);
+  const completed = new Set<TutorialPageId>(sanitized.completedPageIds);
+  if (movementComplete(sanitized.progress)) {
+    completed.add('welcomeMovement');
+    unlocked.add('zoom');
+  }
+  if (zoomComplete(sanitized.progress)) {
+    completed.add('zoom');
+    unlocked.add('visitPois');
+  }
+  if (poiGoalComplete(sanitized.progress)) {
+    completed.add('visitPois');
+    unlocked.add('findGitshelves');
+  }
+  if (sanitized.progress.gitshelves.completed) {
+    completed.add('findGitshelves');
+  }
+  return {
+    ...sanitized,
+    unlockedPageIds: TUTORIAL_PAGE_ORDER.filter((id) => unlocked.has(id)),
+    completedPageIds: TUTORIAL_PAGE_ORDER.filter((id) => completed.has(id)),
+  };
+};
+
+export const recordMovementDirectionProgress = (
+  state: TutorialState,
+  direction: TutorialMovementDirection,
+  deltaSeconds: number
+): TutorialState => {
+  const sanitized = sanitizeTutorialState(state);
+  if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) return sanitized;
+  const secondsKey = MOVEMENT_SECOND_KEYS[direction];
+  const completeKey = MOVEMENT_COMPLETE_KEYS[direction];
+  if (sanitized.progress.movement[completeKey]) return sanitized;
+  const currentSeconds = sanitized.progress.movement[secondsKey] as number;
+  const nextSeconds = currentSeconds + deltaSeconds;
+  const nextMovement = {
+    ...sanitized.progress.movement,
+    [secondsKey]: nextSeconds,
+    [completeKey]: nextSeconds >= TUTORIAL_MOVEMENT_SECONDS_GOAL,
+  };
+  return deriveTutorialUnlocks({
+    ...sanitized,
+    progress: { ...sanitized.progress, movement: nextMovement },
+  });
+};
+
+export interface TutorialMovementInputSnapshot {
+  right: number;
+  forward: number;
+  deltaSeconds: number;
+  moved: boolean;
+  deadzone?: number;
+}
+
+export const recordMovementInputProgress = (
+  state: TutorialState,
+  snapshot: TutorialMovementInputSnapshot
+): TutorialState => {
+  if (!snapshot.moved) return sanitizeTutorialState(state);
+  const deadzone = snapshot.deadzone ?? TUTORIAL_MOVEMENT_DEADZONE;
+  let next = sanitizeTutorialState(state);
+  if (snapshot.forward > deadzone) {
+    next = recordMovementDirectionProgress(
+      next,
+      'forward',
+      snapshot.deltaSeconds
+    );
+  }
+  if (snapshot.forward < -deadzone) {
+    next = recordMovementDirectionProgress(
+      next,
+      'backward',
+      snapshot.deltaSeconds
+    );
+  }
+  if (snapshot.right > deadzone) {
+    next = recordMovementDirectionProgress(
+      next,
+      'right',
+      snapshot.deltaSeconds
+    );
+  }
+  if (snapshot.right < -deadzone) {
+    next = recordMovementDirectionProgress(next, 'left', snapshot.deltaSeconds);
+  }
+  return next;
+};
+
+export interface TutorialZoomSnapshot {
+  currentZoom?: number;
+  targetZoom?: number;
+  minZoom: number;
+  maxZoom: number;
+}
+
+export const recordZoomProgress = (
+  state: TutorialState,
+  snapshot: TutorialZoomSnapshot
+): TutorialState => {
+  const sanitized = sanitizeTutorialState(state);
+  const { minZoom, maxZoom } = snapshot;
+  if (
+    !Number.isFinite(minZoom) ||
+    !Number.isFinite(maxZoom) ||
+    maxZoom <= minZoom
+  ) {
+    return sanitized;
+  }
+  const range = maxZoom - minZoom;
+  const epsilon = range * 0.01;
+  const values = [snapshot.currentZoom, snapshot.targetZoom].filter(
+    (value): value is number =>
+      typeof value === 'number' && Number.isFinite(value)
+  );
+  const zoomInComplete =
+    sanitized.progress.zoom.zoomInComplete ||
+    values.some((value) => value >= maxZoom - epsilon);
+  const zoomOutComplete =
+    sanitized.progress.zoom.zoomOutComplete ||
+    values.some((value) => value <= minZoom + epsilon);
+  if (
+    zoomInComplete === sanitized.progress.zoom.zoomInComplete &&
+    zoomOutComplete === sanitized.progress.zoom.zoomOutComplete
+  ) {
+    return sanitized;
+  }
+  return deriveTutorialUnlocks({
+    ...sanitized,
+    progress: {
+      ...sanitized.progress,
+      zoom: { zoomInComplete, zoomOutComplete },
+    },
+  });
+};
+
+export const recordVisitedPois = (
+  state: TutorialState,
+  visitedPoiIds: Iterable<string>
+): TutorialState => {
+  const sanitized = sanitizeTutorialState(state);
+  const nextVisited = uniqueStrings(
+    [...visitedPoiIds].filter((id) => typeof id === 'string')
+  );
+  const gitshelvesCompleted =
+    sanitized.progress.gitshelves.completed ||
+    nextVisited.includes(GITSHELVES_POI_ID);
+  if (
+    nextVisited.length === sanitized.progress.pois.visitedPoiIds.length &&
+    nextVisited.every(
+      (id, index) => id === sanitized.progress.pois.visitedPoiIds[index]
+    ) &&
+    gitshelvesCompleted === sanitized.progress.gitshelves.completed
+  ) {
+    return sanitized;
+  }
+  return deriveTutorialUnlocks({
+    ...sanitized,
+    progress: {
+      ...sanitized.progress,
+      pois: { ...sanitized.progress.pois, visitedPoiIds: nextVisited },
+      gitshelves: { completed: gitshelvesCompleted },
+    },
+  });
+};
+
+export const recordGitshelvesVisited = (state: TutorialState): TutorialState =>
+  recordVisitedPois(state, [
+    ...sanitizeTutorialState(state).progress.pois.visitedPoiIds,
+    GITSHELVES_POI_ID,
+  ]);
 export const isTutorialComplete = (state: TutorialState): boolean => {
   const completed = new Set(getCompletedTutorialPages(state));
   return TUTORIAL_PAGE_ORDER.every((pageId) => completed.has(pageId));

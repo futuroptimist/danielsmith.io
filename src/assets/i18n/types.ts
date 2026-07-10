@@ -36,6 +36,27 @@ export interface TutorialPanelStepStrings {
   body: string;
 }
 
+export interface TutorialPanelActionStrings {
+  textModeLabel: string;
+  textModeTitle: string;
+  textModeAriaLabel: string;
+  complete: string;
+  incomplete: string;
+  checkmarkLabel: string;
+  movementPrompt: string;
+  movementDirections: Record<'forward' | 'left' | 'backward' | 'right', string>;
+  movementChipAriaTemplate: string;
+  zoomPrompt: string;
+  zoomInLabel: string;
+  zoomOutLabel: string;
+  zoomChipAriaTemplate: string;
+  poiCounterTemplate: string;
+  poiCounterAriaTemplate: string;
+  gitshelvesObjective: string;
+  gitshelvesHint: string;
+  gitshelvesAriaTemplate: string;
+}
+
 export interface TutorialPanelStrings {
   heading: string;
   sidebarLabel: string;
@@ -51,6 +72,7 @@ export interface TutorialPanelStrings {
   unlockedStepLabel: string;
   activeStepLabel: string;
   completedStepLabel: string;
+  actions: TutorialPanelActionStrings;
   pages: {
     welcomeMovement: TutorialPanelStepStrings;
     zoom: TutorialPanelStepStrings;

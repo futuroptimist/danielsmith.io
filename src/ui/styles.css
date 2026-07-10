@@ -2432,3 +2432,32 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   border-bottom: 1px solid rgba(123, 209, 255, 0.2);
   padding: 0 0 0.75rem;
 }
+
+.tutorial-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.tutorial-panel__chip {
+  border: 1px solid rgba(250, 204, 21, 0.55);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  font-weight: 700;
+}
+
+.tutorial-panel__chip--incomplete {
+  background: rgba(113, 63, 18, 0.82);
+  color: #fde68a;
+}
+
+.tutorial-panel__chip--complete {
+  background: #facc15;
+  color: #1f1300;
+}
+
+.tutorial-panel__progress-prompt,
+.tutorial-panel__hint {
+  margin: 0.75rem 0 0;
+}

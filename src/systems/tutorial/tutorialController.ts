@@ -2,6 +2,10 @@ import type { TutorialPanelHandle } from '../../ui/hud/tutorialPanel';
 
 import {
   getTutorialPageOrder,
+  recordGitshelvesVisited,
+  recordMovementInputProgress,
+  recordVisitedPois,
+  recordZoomProgress as recordTutorialZoomProgress,
   setCurrentTutorialPage,
   type TutorialPageId,
   type TutorialState,
@@ -20,9 +24,19 @@ export interface TutorialControllerHandle {
   nextPage(): void;
   setShowOnStartup(value: boolean): void;
   dismiss(): void;
-  recordMovementProgress(): void;
-  recordZoomProgress(): void;
-  syncVisitedPois(): void;
+  recordMovementProgress(input: {
+    right: number;
+    forward: number;
+    deltaSeconds: number;
+    moved: boolean;
+  }): void;
+  recordZoomProgress(snapshot: {
+    currentZoom?: number;
+    targetZoom?: number;
+    minZoom: number;
+    maxZoom: number;
+  }): void;
+  syncVisitedPois(visitedPoiIds: Iterable<string>): void;
   markGitshelvesVisited(): void;
 }
 
@@ -92,9 +106,25 @@ export const createTutorialController = ({
     dismiss() {
       onDismiss?.();
     },
-    recordMovementProgress() {},
-    recordZoomProgress() {},
-    syncVisitedPois() {},
-    markGitshelvesVisited() {},
+    recordMovementProgress(input) {
+      state = recordMovementInputProgress(state, input);
+      persistStateIfChanged();
+      render();
+    },
+    recordZoomProgress(snapshot) {
+      state = recordTutorialZoomProgress(state, snapshot);
+      persistStateIfChanged();
+      render();
+    },
+    syncVisitedPois(visitedPoiIds) {
+      state = recordVisitedPois(state, visitedPoiIds);
+      persistStateIfChanged();
+      render();
+    },
+    markGitshelvesVisited() {
+      state = recordGitshelvesVisited(state);
+      persistStateIfChanged();
+      render();
+    },
   };
 };
