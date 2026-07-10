@@ -381,3 +381,20 @@ bounds through the narrow production fixture helpers in
 `src/tests/helpers/productionLevelFixtures.ts`. Request the semantic floor and
 room IDs needed by the test, and keep exact geometry literals limited to small
 synthetic fixtures where the generator output itself is under test.
+
+## Avoid horizontal z-fighting
+
+Horizontal floor-like rectangles should either meet at edges or use a deliberate
+vertical separation. The production audit in `src/tests/zFightingAudit.test.ts`
+scans room floors, landing strips, rugs, and decorative floor footprints for
+coplanar overlaps. When adding rugs or other floor decor:
+
+- Keep decorative footprints from overlapping other decorative footprints at the
+  same top elevation.
+- Prefer moving, shrinking, clipping, or splitting rectangles so their X/Z bounds
+  meet cleanly instead of stacking.
+- If an overlap is intentional, keep it narrowly scoped in the audit allowlist
+  with the source IDs, reason, expected y offset or rendering strategy, and why
+  the overlap is safe.
+- Avoid broad `renderOrder`, `polygonOffset`, or depth-test workarounds for
+  structural floors; fix the geometry data instead.
