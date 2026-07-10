@@ -51,6 +51,29 @@ export interface TutorialPanelStrings {
   unlockedStepLabel: string;
   activeStepLabel: string;
   completedStepLabel: string;
+  completeLabel: string;
+  incompleteLabel: string;
+  checkmarkLabel: string;
+  textOnlyButtonLabel: string;
+  textOnlyButtonTitle: string;
+  textOnlyButtonAriaLabel: string;
+  movement: {
+    labels: { forward: string; left: string; backward: string; right: string };
+    ariaLabelTemplate: string;
+  };
+  zoomProgress: {
+    inLabel: string;
+    outLabel: string;
+    ariaLabelTemplate: string;
+  };
+  poiProgress: {
+    counterTemplate: string;
+    ariaLabelTemplate: string;
+  };
+  gitshelvesProgress: {
+    label: string;
+    ariaLabelTemplate: string;
+  };
   pages: {
     welcomeMovement: TutorialPanelStepStrings;
     zoom: TutorialPanelStepStrings;

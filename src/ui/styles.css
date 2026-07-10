@@ -2382,6 +2382,33 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   color: var(--hud-surface-muted-text);
   line-height: 1.55;
 }
+.tutorial-panel__progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+.tutorial-panel__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(250, 204, 21, 0.46);
+  border-radius: 999px;
+  font-weight: 700;
+}
+.tutorial-panel__chip--incomplete {
+  background: rgba(113, 63, 18, 0.72);
+  color: rgba(254, 243, 199, 0.94);
+}
+.tutorial-panel__chip--complete {
+  background: rgba(250, 204, 21, 0.94);
+  color: #2b2100;
+}
+.tutorial-panel__text-mode-button {
+  position: static;
+  padding: 0.45rem 0.7rem;
+}
 .tutorial-panel__nav,
 .tutorial-panel__options {
   display: flex;

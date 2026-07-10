@@ -432,22 +432,45 @@ export const AR_OVERRIDES: LocaleOverrides = {
       unlockedStepLabel: 'مفتوح',
       activeStepLabel: 'الخطوة الحالية',
       completedStepLabel: 'مكتمل',
+      completeLabel: 'مكتمل',
+      incompleteLabel: 'غير مكتمل',
+      checkmarkLabel: 'مكتمل',
+      textOnlyButtonLabel: 'نسخة نصية فقط',
+      textOnlyButtonTitle: 'التبديل إلى معرض الأعمال النصي فقط',
+      textOnlyButtonAriaLabel: 'التبديل إلى معرض الأعمال النصي فقط',
+      movement: {
+        labels: { forward: 'W', left: 'A', backward: 'S', right: 'D' },
+        ariaLabelTemplate: '{label}: {status}',
+      },
+      zoomProgress: {
+        inLabel: 'In',
+        outLabel: 'Out',
+        ariaLabelTemplate: '{label}: {status}',
+      },
+      poiProgress: {
+        counterTemplate: 'تمت زيارة {count}/3 نقاط اهتمام',
+        ariaLabelTemplate: 'تمت زيارة {count} من 3 نقاط اهتمام. {status}',
+      },
+      gitshelvesProgress: {
+        label: 'تمت زيارة Gitshelves',
+        ariaLabelTemplate: 'هدف Gitshelves: {status}',
+      },
       pages: {
         welcomeMovement: {
           title: 'مرحبًا',
-          body: 'سيصل تقدم الدليل قريبًا. ستعرّف الخطوة الأولى الحركة داخل المعرض.',
+          body: 'مرحبًا بك في معرض دانيال سميث الغامر. يعرض هذا الموقع المشاريع كمعروضات تفاعلية. تحرّك في اتجاهات WASD الأربعة؛ تُحتسب مفاتيح WASD والأسهم وعصا اللمس. إذا لم يناسبك الوضع الغامر، فانتقل إلى النسخة النصية فقط.',
         },
         zoom: {
-          title: 'التكبير',
-          body: 'سيشرح هذا الموضع المؤقت عناصر التكبير مع إبقاء المشهد قابلًا للعب.',
+          title: 'التكبير/التصغير',
+          body: 'كبّر حتى النهاية وصغّر حتى النهاية. استخدم عجلة تمرير الماوس أو قرصة اللمس المتعدد أو لوحة المفاتيح Shift + = / Shift + -.',
         },
         visitPois: {
           title: 'زيارة نقاط الاهتمام',
-          body: 'سيتتبع هذا الموضع المؤقت زيارة ثلاث نقاط اهتمام للمشاريع.',
+          body: 'نقاط الاهتمام هي معروضات مشاريع. تعرض لوحاتها الملخصات والنتائج والمقاييس والروابط والسياق. انقر أو المس أو تفاعل مع نقطة اهتمام لتمييزها كمزارة.',
         },
         findGitshelves: {
-          title: 'العثور على Gitshelves',
-          body: 'سيرشد هذا الموضع المؤقت الزوار إلى معرض Gitshelves.',
+          title: 'اعثر على Gitshelves',
+          body: 'اعثر على نقطة اهتمام Gitshelves وتفاعل معها. تلميح: تحقق في الطابق العلوي.',
         },
       },
     },

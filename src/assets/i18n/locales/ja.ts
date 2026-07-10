@@ -451,22 +451,45 @@ export const JA_OVERRIDES: LocaleOverrides = {
       unlockedStepLabel: '解除済み',
       activeStepLabel: '現在のステップ',
       completedStepLabel: '完了',
+      completeLabel: '完了',
+      incompleteLabel: '未完了',
+      checkmarkLabel: '完了',
+      textOnlyButtonLabel: 'テキスト版',
+      textOnlyButtonTitle: 'テキスト版ポートフォリオに切り替える',
+      textOnlyButtonAriaLabel: 'テキスト版ポートフォリオに切り替える',
+      movement: {
+        labels: { forward: 'W', left: 'A', backward: 'S', right: 'D' },
+        ariaLabelTemplate: '{label}: {status}',
+      },
+      zoomProgress: {
+        inLabel: 'In',
+        outLabel: 'Out',
+        ariaLabelTemplate: '{label}: {status}',
+      },
+      poiProgress: {
+        counterTemplate: '{count}/3 件の POI を訪問',
+        ariaLabelTemplate: '3 件中 {count} 件の POI を訪問。{status}',
+      },
+      gitshelvesProgress: {
+        label: 'Gitshelves 訪問済み',
+        ariaLabelTemplate: 'Gitshelves 目標: {status}',
+      },
       pages: {
         welcomeMovement: {
           title: 'ようこそ',
-          body: 'チュートリアルの進行はまもなく追加されます。最初のステップではポートフォリオ内の移動を紹介します。',
+          body: 'Daniel Smith の没入型ポートフォリオへようこそ。このサイトではプロジェクトをインタラクティブな展示として紹介します。WASD が表す4方向すべてに移動してください。WASD、矢印キー、タッチジョイスティックの移動がカウントされます。没入モードを使わない場合はテキスト版に切り替えられます。',
         },
         zoom: {
           title: 'ズーム',
-          body: 'このプレースホルダーは、シーンを操作できるままズーム操作を説明します。',
+          body: '最後までズームインし、最後までズームアウトしてください。マウスホイール、マルチタッチのピンチ、または Shift + = / Shift + - を使えます。',
         },
         visitPois: {
           title: 'POI を訪問',
-          body: 'このプレースホルダーは、3 つのプロジェクト POI への訪問を追跡します。',
+          body: 'POI はプロジェクト展示です。パネルには概要、成果、指標、リンク、背景が表示されます。POI をクリック、タップ、または操作すると訪問済みになります。',
         },
         findGitshelves: {
           title: 'Gitshelves を探す',
-          body: 'このプレースホルダーは、Gitshelves の展示へ案内します。',
+          body: 'Gitshelves POI を探して操作してください。ヒント: 上階を確認してください。',
         },
       },
     },

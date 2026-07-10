@@ -546,22 +546,45 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       unlockedStepLabel: 'Unlocked',
       activeStepLabel: 'Current step',
       completedStepLabel: 'Completed',
+      completeLabel: 'Complete',
+      incompleteLabel: 'Incomplete',
+      checkmarkLabel: 'Completed',
+      textOnlyButtonLabel: 'Text-only version',
+      textOnlyButtonTitle: 'Switch to the text-only portfolio',
+      textOnlyButtonAriaLabel: 'Switch to the text-only portfolio',
+      movement: {
+        labels: { forward: 'W', left: 'A', backward: 'S', right: 'D' },
+        ariaLabelTemplate: '{label}: {status}',
+      },
+      zoomProgress: {
+        inLabel: 'In',
+        outLabel: 'Out',
+        ariaLabelTemplate: '{label}: {status}',
+      },
+      poiProgress: {
+        counterTemplate: '{count}/3 POIs visited',
+        ariaLabelTemplate: '{count} of 3 POIs visited. {status}',
+      },
+      gitshelvesProgress: {
+        label: 'Gitshelves visited',
+        ariaLabelTemplate: 'Gitshelves objective: {status}',
+      },
       pages: {
         welcomeMovement: {
           title: 'Welcome',
-          body: 'Tutorial progress arrives soon. This first step will introduce movement through the portfolio.',
+          body: 'Welcome to Daniel Smith’s immersive portfolio. This site showcases projects as interactive exhibits. Move in all four WASD directions; keyboard WASD, arrow keys, and the touch joystick all count. If immersive mode is not for you, switch to the text-only version.',
         },
         zoom: {
           title: 'Zoom',
-          body: 'This placeholder will teach zoom controls while keeping the scene playable.',
+          body: 'Zoom all the way in and all the way out. Use the mouse scroll wheel, multitouch pinch, or keyboard Shift + = / Shift + -.',
         },
         visitPois: {
           title: 'Visit POIs',
-          body: 'This placeholder will track visits to three project points of interest.',
+          body: 'POIs are project exhibits. Their panels show summaries, outcomes, metrics, links, and context. Click, tap, or interact with a POI to mark it visited.',
         },
         findGitshelves: {
           title: 'Find Gitshelves',
-          body: 'This placeholder will guide visitors to the Gitshelves exhibit.',
+          body: 'Find and interact with the Gitshelves POI. Hint: check upstairs.',
         },
       },
     },
