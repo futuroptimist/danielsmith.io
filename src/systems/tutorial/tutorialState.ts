@@ -37,6 +37,7 @@ const FIRST_PAGE_ID = TUTORIAL_PAGE_ORDER[0];
 const DEFAULT_VISITED_POI_COUNT_GOAL = 3;
 const PAGE_ID_SET = new Set<string>(TUTORIAL_PAGE_ORDER);
 export const TUTORIAL_MOVEMENT_SECONDS_GOAL = 0.25;
+export const TUTORIAL_MOVEMENT_PERSISTENCE_SECONDS_BUCKET = 0.05;
 export const TUTORIAL_MOVEMENT_DEADZONE = 0.2;
 export const TUTORIAL_VISITED_POI_GOAL = DEFAULT_VISITED_POI_COUNT_GOAL;
 export const GITSHELVES_POI_ID = 'gitshelves-living-room-installation';
@@ -221,19 +222,22 @@ export const deriveTutorialUnlocks = (state: TutorialState): TutorialState => {
   const sanitized = sanitizeTutorialState(state);
   const unlocked = new Set<TutorialPageId>(sanitized.unlockedPageIds);
   const completed = new Set<TutorialPageId>(sanitized.completedPageIds);
-  if (movementComplete(sanitized.progress)) {
+  if (movementComplete(sanitized.progress) && unlocked.has('welcomeMovement')) {
     completed.add('welcomeMovement');
     unlocked.add('zoom');
   }
-  if (zoomComplete(sanitized.progress)) {
+  if (zoomComplete(sanitized.progress) && unlocked.has('zoom')) {
     completed.add('zoom');
     unlocked.add('visitPois');
   }
-  if (poiGoalComplete(sanitized.progress)) {
+  if (poiGoalComplete(sanitized.progress) && unlocked.has('visitPois')) {
     completed.add('visitPois');
     unlocked.add('findGitshelves');
   }
-  if (sanitized.progress.gitshelves.completed) {
+  if (
+    sanitized.progress.gitshelves.completed &&
+    unlocked.has('findGitshelves')
+  ) {
     completed.add('findGitshelves');
   }
   return {
@@ -360,10 +364,9 @@ export const recordVisitedPois = (
   visitedPoiIds: Iterable<string>
 ): TutorialState => {
   const sanitized = sanitizeTutorialState(state);
-  const nextVisited = uniqueStrings([
-    ...sanitized.progress.pois.visitedPoiIds,
-    ...[...visitedPoiIds].filter((id) => typeof id === 'string'),
-  ]);
+  const nextVisited = uniqueStrings(
+    [...visitedPoiIds].filter((id) => typeof id === 'string')
+  );
   const gitshelvesCompleted =
     sanitized.progress.gitshelves.completed ||
     nextVisited.includes(GITSHELVES_POI_ID);

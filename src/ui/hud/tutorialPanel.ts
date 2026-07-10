@@ -71,8 +71,9 @@ export function createTutorialPanel({
     chip.className = `tutorial-panel__chip tutorial-panel__chip--${complete ? 'complete' : 'incomplete'}`;
     chip.dataset.testid = testId;
     chip.setAttribute('aria-label', ariaLabel);
-    chip.textContent = complete ? `${label} ✓` : label;
-    if (complete) chip.title = currentStrings.actions.checkmarkLabel;
+    chip.textContent = complete
+      ? `${label} ${currentStrings.actions.checkmarkLabel}`
+      : label;
     return chip;
   };
 
@@ -109,7 +110,7 @@ export function createTutorialPanel({
       const textMode = document.createElement('button');
       textMode.type = 'button';
       textMode.className =
-        'tutorial-panel__button tutorial-panel__button--text-mode';
+        'overlay__menu-button tutorial-panel__button--text-mode';
       textMode.dataset.testid = 'tutorial-text-mode';
       textMode.textContent = actions.textModeLabel;
       textMode.title = actions.textModeTitle;
@@ -165,17 +166,13 @@ export function createTutorialPanel({
     } else if (pageId === 'findGitshelves') {
       const complete = progress.gitshelves.completed;
       const status = complete ? actions.complete : actions.incomplete;
-      const hint = document.createElement('p');
-      hint.className = 'tutorial-panel__hint';
-      hint.textContent = actions.gitshelvesHint;
       body.append(
         createStatusChip({
           label: actions.gitshelvesObjective,
           complete,
           ariaLabel: formatMessage(actions.gitshelvesAriaTemplate, { status }),
           testId: 'tutorial-gitshelves-status',
-        }),
-        hint
+        })
       );
     }
   };

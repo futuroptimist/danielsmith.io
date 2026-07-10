@@ -119,13 +119,16 @@ crashing immersive startup. The state sanitizer drops unknown page ids, removes 
 page ids, always unlocks `welcomeMovement`, and falls back to the first unlocked page
 when the stored current page is invalid or locked.
 
-The controller persists progress only when the serialized state changes and persists the
-show-on-startup preference only when that preference changes. Dismiss closes the current
-panel instance for the active page load only; it does not alter either storage key.
+The controller persists progress only after meaningful changes and persists the
+show-on-startup preference only when that preference changes. Movement durations stay in
+memory during high-frequency frames and are written at bounded `0.05s` duration buckets,
+or immediately when completion/unlock state changes. Dismiss closes the current panel
+instance for the active page load only; it does not alter either storage key.
 
-Gameplay action tracking is intentionally not implemented in the current state plumbing.
-The progress object includes movement, zoom, POI, and Gitshelves fields so
-future runtime adapters can update a stable schema without changing storage keys.
+Gameplay action tracking is implemented through pure reducers for movement, zoom, POI,
+and Gitshelves progress. Controller updates rerender the panel only when visible
+completion, counter, unlock, or current-page state changes; ordinary gameplay progress
+does not also rewrite the show-on-startup control.
 
 ## Universal HUD menu architecture
 
@@ -414,6 +417,11 @@ Unlock rules:
 4. `findGitshelves` unlocks when at least three unique POIs are visited.
 5. Tutorial MVP is complete when Gitshelves has been visited/interacted with.
 
+Completion is derived in page order. Early zoom, POI, or Gitshelves actions are retained
+in the progress object, but a later page is not marked complete until its page has been
+unlocked by the earlier prerequisites; once the prerequisite unlocks, completion cascades
+immediately.
+
 Behavior:
 
 - User can navigate to any unlocked page.
@@ -648,9 +656,10 @@ continues while the panel is closed and repaints immediately when it is open.
   target or actual camera zoom reaches the matching bound within one percent of
   the runtime zoom range.
 - POI progress uses the shared `PoiVisitedState` subscription from
-  `src/scene/poi/visitedState.ts`. Tutorial stores derived visited ids for
-  persistence and unlocks, but interactions remain sourced from the general POI
-  visited primitive used by panels and in-world visited labels.
+  `src/scene/poi/visitedState.ts`. The shared snapshot is authoritative for the live
+  counter, so an explicit reset or partial restore can reduce the displayed `0/3` through
+  `3/3` count. Persisted completed/unlocked Tutorial page flags remain monotonic and do
+  not regress when that shared snapshot shrinks.
 - Gitshelves completion is keyed to the stable POI id
   `gitshelves-living-room-installation`. Its placement remains on the upper
   floor, so the localized Tutorial hint directs visitors upstairs.

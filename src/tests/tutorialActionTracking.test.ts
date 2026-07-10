@@ -70,7 +70,7 @@ describe('tutorial action tracking', () => {
     expect(state.unlockedPageIds).toContain('zoom');
   });
 
-  it('tracks zoom thresholds in either order and unlocks POI visits', () => {
+  it('retains early zoom progress until movement unlocks the zoom page', () => {
     let state = recordZoomProgress(createDefaultTutorialState(), {
       targetZoom: 11.89,
       minZoom: 0.65,
@@ -83,8 +83,28 @@ describe('tutorial action tracking', () => {
       maxZoom: 12,
     });
     expect(state.progress.zoom.zoomOutComplete).toBe(true);
+    expect(state.completedPageIds).not.toContain('zoom');
+    expect(state.unlockedPageIds).toEqual(['welcomeMovement']);
+
+    state = recordMovementInputProgress(state, {
+      right: 1,
+      forward: 1,
+      moved: true,
+      deltaSeconds: 0.25,
+    });
+    state = recordMovementInputProgress(state, {
+      right: -1,
+      forward: -1,
+      moved: true,
+      deltaSeconds: 0.25,
+    });
+
     expect(state.completedPageIds).toContain('zoom');
-    expect(state.unlockedPageIds).toContain('visitPois');
+    expect(state.unlockedPageIds).toEqual([
+      'welcomeMovement',
+      'zoom',
+      'visitPois',
+    ]);
   });
 
   it('does not complete zoom just outside the one-percent threshold', () => {
@@ -96,7 +116,7 @@ describe('tutorial action tracking', () => {
     expect(state.progress.zoom.zoomInComplete).toBe(false);
   });
 
-  it('tracks unique visited POIs and Gitshelves by stable id', () => {
+  it('retains early POI and Gitshelves actions without locked completed gaps', () => {
     let state = recordVisitedPois(createDefaultTutorialState(), [
       'a',
       'a',
@@ -105,25 +125,72 @@ describe('tutorial action tracking', () => {
     expect(state.progress.pois.visitedPoiIds).toEqual(['a', 'b']);
     expect(state.completedPageIds).not.toContain('visitPois');
     state = recordVisitedPois(state, ['a', 'b', 'c']);
-    expect(state.completedPageIds).toContain('visitPois');
-    expect(state.unlockedPageIds).toContain('findGitshelves');
+    expect(state.completedPageIds).not.toContain('visitPois');
+    expect(state.unlockedPageIds).toEqual(['welcomeMovement']);
     expect(state.progress.gitshelves.completed).toBe(false);
     state = recordVisitedPois(state, ['a', 'b', 'c', GITSHELVES_POI_ID]);
     expect(state.progress.gitshelves.completed).toBe(true);
+    expect(state.completedPageIds).not.toContain('findGitshelves');
+
+    state = recordMovementInputProgress(state, {
+      right: 1,
+      forward: 1,
+      moved: true,
+      deltaSeconds: 0.25,
+    });
+    state = recordMovementInputProgress(state, {
+      right: -1,
+      forward: -1,
+      moved: true,
+      deltaSeconds: 0.25,
+    });
+    state = recordZoomProgress(state, {
+      currentZoom: 0.65,
+      targetZoom: 12,
+      minZoom: 0.65,
+      maxZoom: 12,
+    });
+
+    expect(state.completedPageIds).toContain('visitPois');
     expect(state.completedPageIds).toContain('findGitshelves');
+    expect(state.unlockedPageIds).toEqual([
+      'welcomeMovement',
+      'zoom',
+      'visitPois',
+      'findGitshelves',
+    ]);
   });
 
-  it('merges visited POI snapshots so tutorial progress remains monotonic', () => {
+  it('uses the shared POI snapshot for live counts while page flags stay monotonic', () => {
     let state = recordVisitedPois(createDefaultTutorialState(), [
       'a',
       'b',
       'c',
     ]);
+    state = recordMovementInputProgress(state, {
+      right: 1,
+      forward: 1,
+      moved: true,
+      deltaSeconds: 0.25,
+    });
+    state = recordMovementInputProgress(state, {
+      right: -1,
+      forward: -1,
+      moved: true,
+      deltaSeconds: 0.25,
+    });
+    state = recordZoomProgress(state, {
+      currentZoom: 0.65,
+      targetZoom: 12,
+      minZoom: 0.65,
+      maxZoom: 12,
+    });
 
     state = recordVisitedPois(state, ['b']);
 
-    expect(state.progress.pois.visitedPoiIds).toEqual(['a', 'b', 'c']);
+    expect(state.progress.pois.visitedPoiIds).toEqual(['b']);
     expect(state.completedPageIds).toContain('visitPois');
+    expect(state.unlockedPageIds).toContain('findGitshelves');
   });
 
   it('persists and sanitizes action progress', () => {

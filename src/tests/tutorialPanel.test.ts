@@ -57,10 +57,20 @@ describe('createTutorialPanel', () => {
   });
 
   it('renders progress chips as static labels without live-region roles', () => {
+    const strings = getTutorialPanelStrings('en');
     const panel = createTutorialPanel({
       container: document.body,
-      strings: getTutorialPanelStrings('en'),
-      state: createDefaultTutorialState(),
+      strings,
+      state: {
+        ...createDefaultTutorialState(),
+        progress: {
+          ...createDefaultTutorialState().progress,
+          movement: {
+            ...createDefaultTutorialState().progress.movement,
+            forwardComplete: true,
+          },
+        },
+      },
     });
 
     panel.open();
@@ -69,9 +79,70 @@ describe('createTutorialPanel', () => {
       '[data-testid="tutorial-movement-forward"]'
     );
     expect(chip?.getAttribute('aria-label')?.toLowerCase()).toContain(
-      'incomplete'
+      'complete'
     );
+    expect(chip?.textContent).toContain(strings.actions.checkmarkLabel);
     expect(chip?.getAttribute('role')).toBeNull();
+
+    panel.dispose();
+  });
+
+  it('renders final page content without duplicating the Gitshelves hint', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: {
+        ...createDefaultTutorialState(),
+        currentPageId: 'findGitshelves',
+        unlockedPageIds: [
+          'welcomeMovement',
+          'zoom',
+          'visitPois',
+          'findGitshelves',
+        ],
+        completedPageIds: [
+          'welcomeMovement',
+          'zoom',
+          'visitPois',
+          'findGitshelves',
+        ],
+        progress: {
+          ...createDefaultTutorialState().progress,
+          gitshelves: { completed: true },
+        },
+      },
+    });
+
+    const bodyText =
+      panel.element.querySelector('[data-testid="tutorial-body"]')
+        ?.textContent ?? '';
+    expect(bodyText).toContain(strings.pages.findGitshelves.body);
+    expect(
+      panel.element.querySelector('[data-testid="tutorial-gitshelves-status"]')
+        ?.textContent
+    ).toContain(strings.actions.checkmarkLabel);
+    expect(bodyText.split(strings.actions.gitshelvesHint).length - 1).toBe(1);
+
+    panel.dispose();
+  });
+
+  it('invokes the text-mode callback once', () => {
+    let textModeClicks = 0;
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
+      onTextMode: () => {
+        textModeClicks += 1;
+      },
+    });
+
+    panel.element
+      .querySelector<HTMLButtonElement>('[data-testid="tutorial-text-mode"]')
+      ?.click();
+
+    expect(textModeClicks).toBe(1);
 
     panel.dispose();
   });
