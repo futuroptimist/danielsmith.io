@@ -1,9 +1,43 @@
 import { expect, test, type Page } from '@playwright/test';
 
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
-const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
+const IMMERSIVE_PREVIEW_URL =
+  '/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous';
+
+async function mockHardwareRenderer(page: Page) {
+  await page.addInitScript(() => {
+    const patchGetParameter = (
+      prototype: WebGLRenderingContext | WebGL2RenderingContext
+    ) => {
+      const original = prototype.getParameter;
+      Object.defineProperty(prototype, 'getParameter', {
+        configurable: true,
+        value(parameter: number) {
+          if (parameter === this.RENDERER) {
+            return 'WebGL';
+          }
+          if (parameter === this.VENDOR) {
+            return 'Google Inc.';
+          }
+          if (parameter === 0x9246) {
+            return 'ANGLE (NVIDIA, NVIDIA GeForce RTX, OpenGL)';
+          }
+          if (parameter === 0x9245) {
+            return 'NVIDIA';
+          }
+          return original.call(this, parameter);
+        },
+      });
+    };
+    patchGetParameter(WebGLRenderingContext.prototype);
+    if (typeof WebGL2RenderingContext !== 'undefined') {
+      patchGetParameter(WebGL2RenderingContext.prototype);
+    }
+  });
+}
 
 const waitForImmersiveMode = async (page: Page) => {
+  await mockHardwareRenderer(page);
   await page.goto(IMMERSIVE_PREVIEW_URL, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(
     () => document.documentElement.dataset.appMode === 'immersive',
@@ -66,16 +100,30 @@ test.describe('Tutorial panel', () => {
     await expectTwoColumnHudMenu(page);
   });
 
-  test('toggles with R and closes with Escape', async ({ page }) => {
+  test('auto-opens by default, dismisses without changing preference, and reopens with R', async ({
+    page,
+  }) => {
     await waitForImmersiveMode(page);
 
     const tutorialPanel = page.locator('#tutorial-panel');
-    await page.keyboard.press('r');
+    const tutorialButton = page.locator('[data-role="tutorial-button"]');
+    const showOnStartup = page.locator(
+      '[data-testid="tutorial-show-on-startup"]'
+    );
     await expect(tutorialPanel).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute(
       'data-hud-tutorial-open',
       ''
     );
+    await expect(tutorialButton).not.toBeFocused();
+    await expect(showOnStartup).toBeChecked();
+
+    await page.locator('[data-testid="tutorial-dismiss"]').click();
+    await expect(tutorialPanel).toBeHidden();
+    await expect(showOnStartup).toBeChecked();
+
+    await page.keyboard.press('r');
+    await expect(tutorialPanel).toBeVisible();
 
     await page.keyboard.press('Escape');
     await expect(tutorialPanel).toBeHidden();
@@ -83,6 +131,31 @@ test.describe('Tutorial panel', () => {
       'data-hud-tutorial-open',
       ''
     );
+  });
+
+  test('honors disabled show-on-startup preference after refresh', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+
+    const tutorialPanel = page.locator('#tutorial-panel');
+    const showOnStartup = page.locator(
+      '[data-testid="tutorial-show-on-startup"]'
+    );
+    await expect(tutorialPanel).toBeVisible();
+    await showOnStartup.uncheck();
+    await expect(showOnStartup).not.toBeChecked();
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await expect(tutorialPanel).toBeHidden();
+
+    await page.keyboard.press('r');
+    await expect(tutorialPanel).toBeVisible();
   });
 
   test('keeps POI shortcuts active and lets Escape close Tutorial first', async ({
@@ -94,7 +167,6 @@ test.describe('Tutorial panel', () => {
     const poiOverlay = page.locator('.poi-tooltip-overlay');
     const poiTitle = page.locator('.poi-tooltip-overlay__title');
 
-    await page.keyboard.press('r');
     await expect(tutorialPanel).toBeVisible();
     await openPoiDetail(page);
     const firstTitle = (await poiTitle.textContent())?.trim() ?? '';
@@ -122,7 +194,10 @@ test.describe('Tutorial panel', () => {
     await page.keyboard.press('c');
     await openPoiDetail(page);
     await page.keyboard.press('f');
-    await page.keyboard.press('r');
+    if (!(await page.locator('#tutorial-panel').isVisible())) {
+      await page.keyboard.press('r');
+    }
+    await expect(page.locator('#tutorial-panel')).toBeVisible();
 
     const boxes = await page.evaluate(() => {
       const tutorial = document.querySelector<HTMLElement>('#tutorial-panel');
@@ -150,7 +225,7 @@ test.describe('Tutorial panel', () => {
 
     const html = page.locator('html');
     const tutorialButton = page.locator('[data-role="tutorial-button"]');
-    await page.keyboard.press('r');
+    await expect(page.locator('#tutorial-panel')).toBeVisible();
     await expect(tutorialButton).toHaveAttribute('aria-expanded', 'true');
 
     await page.locator('[data-testid="tutorial-dismiss"]').click();

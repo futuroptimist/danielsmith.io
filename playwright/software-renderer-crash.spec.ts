@@ -66,6 +66,7 @@ test.describe('software renderer crash hardening', () => {
       'safe'
     );
     await expect(page.locator('.software-renderer-warning')).toBeVisible();
+    await expect(page.locator('#tutorial-panel')).toBeHidden();
     await expect(page.getByText('Software rendering detected')).toBeVisible();
     await expect(
       page.locator('[data-action="continue-safe-immersive"]')

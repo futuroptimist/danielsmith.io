@@ -559,6 +559,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       lockedStepLabel: wrap('Locked'),
       unlockedStepLabel: wrap('Unlocked'),
       activeStepLabel: wrap('Current step'),
+      completedStepLabel: wrap('Completed'),
       pages: {
         welcomeMovement: {
           title: wrap('Welcome'),

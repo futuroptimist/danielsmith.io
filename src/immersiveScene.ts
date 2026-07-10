@@ -450,6 +450,7 @@ import {
   createInputLatencyTelemetry,
   type InputLatencyTelemetryHandle,
 } from './systems/performance/inputLatencyTelemetry';
+import { createTutorialController } from './systems/tutorial/tutorialController';
 import { getPulseScale } from './ui/accessibility/animationPreferences';
 import {
   createHudFocusAnnouncer,
@@ -3613,12 +3614,33 @@ export function initializeImmersiveScene(
     container: document.body,
     content: helpModalStrings,
   });
+  let tutorialStorage: Storage | null = null;
+  try {
+    tutorialStorage = window.localStorage;
+  } catch (error) {
+    console.warn(
+      'Unable to access localStorage for tutorial preferences.',
+      error
+    );
+  }
+  const tutorialController = createTutorialController({
+    storage: tutorialStorage,
+    onDismiss: () => hudPanelCoordinator?.closeActivePanel(),
+  });
   const tutorialPanel = createTutorialPanel({
     container: document.body,
     strings: tutorialPanelStrings,
+    state: tutorialController.getState(),
+    showOnStartup: tutorialController.getShowOnStartup(),
     onOpenChange: () => syncPoiDetailOverlay(),
-    onRequestClose: () => hudPanelCoordinator?.closeActivePanel(),
+    onRequestClose: () => tutorialController.dismiss(),
+    onSelectPage: (pageId) => tutorialController.selectPage(pageId),
+    onPrevious: () => tutorialController.previousPage(),
+    onNext: () => tutorialController.nextPage(),
+    onToggleShowOnStartup: (value) =>
+      tutorialController.setShowOnStartup(value),
   });
+  tutorialController.setPanel(tutorialPanel);
   const hudSettingsContainer =
     helpModal.settingsContainer ??
     (() => {
@@ -3946,6 +3968,19 @@ export function initializeImmersiveScene(
       syncPoiDetailOverlay();
     },
   });
+  const maybeOpenTutorialOnFirstReadyFrame = () => {
+    if (!tutorialController.getShowOnStartup()) {
+      return;
+    }
+    if (softwareRendererWarning?.element.isConnected) {
+      return;
+    }
+    if (lowFpsRecoveryPopup && !lowFpsRecoveryPopup.hidden) {
+      return;
+    }
+    hudPanelCoordinator?.openTutorial();
+  };
+
   let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();
@@ -6883,6 +6918,7 @@ export function initializeImmersiveScene(
         hasPresentedFirstFrame = true;
         writeModePreference('immersive');
         markAppReady('immersive');
+        maybeOpenTutorialOnFirstReadyFrame();
       }
       debugPerformanceOverlay.end();
     } catch (error) {
