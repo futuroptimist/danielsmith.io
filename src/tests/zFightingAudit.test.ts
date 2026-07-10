@@ -34,12 +34,21 @@ const PRODUCTION_Z_FIGHT_ALLOWLIST = [
   },
 ] as const;
 
-const scaledBounds = (bounds: HorizontalSurfaceAuditRecord['bounds']) => ({
+// Floor definitions are authored in source plan units, while generated furnishing
+// footprints already report rendered world-space bounds. Normalize both paths
+// explicitly before comparing overlap area so the audit cannot mix spaces.
+const sourceFloorBoundsToWorldBounds = (
+  bounds: HorizontalSurfaceAuditRecord['bounds']
+) => ({
   minX: bounds.minX * FLOOR_PLAN_SCALE,
   maxX: bounds.maxX * FLOOR_PLAN_SCALE,
   minZ: bounds.minZ * FLOOR_PLAN_SCALE,
   maxZ: bounds.maxZ * FLOOR_PLAN_SCALE,
 });
+
+const generatedFootprintBoundsToWorldBounds = (
+  bounds: HorizontalSurfaceAuditRecord['bounds']
+) => ({ ...bounds });
 
 const collectProductionHorizontalSurfaces =
   (): HorizontalSurfaceAuditRecord[] => {
@@ -51,7 +60,7 @@ const collectProductionHorizontalSurfaces =
         category: 'floor-surface',
         purpose: surface.purpose,
         y: surface.elevation ?? getFloorTopElevation(floor.id),
-        bounds: scaledBounds(surface.bounds),
+        bounds: sourceFloorBoundsToWorldBounds(surface.bounds),
       }))
     );
 
@@ -64,7 +73,7 @@ const collectProductionHorizontalSurfaces =
       category: 'decorative-horizontal-surface',
       purpose: 'floor-decor',
       y: getFloorTopElevation('ground') + DECORATIVE_SURFACE_HEIGHT,
-      bounds: footprint.bounds,
+      bounds: generatedFootprintBoundsToWorldBounds(footprint.bounds),
     }));
 
     const upperFurnishings = createUpperFloorFurnishings({
@@ -77,7 +86,7 @@ const collectProductionHorizontalSurfaces =
       category: 'decorative-horizontal-surface',
       purpose: 'floor-decor',
       y: getFloorTopElevation('upper') + DECORATIVE_SURFACE_HEIGHT,
-      bounds: footprint.bounds,
+      bounds: generatedFootprintBoundsToWorldBounds(footprint.bounds),
     }));
 
     return [...floorSurfaces, ...lowerFurnishings, ...upperFurnishings];
@@ -141,25 +150,22 @@ describe('horizontal z-fighting audit helper', () => {
 });
 
 describe('production horizontal z-fighting audit', () => {
-  it('has no coplanar overlapping floor, landing, rug, or decorative horizontal surfaces', () => {
-    const findings = findHorizontalZFightingCandidates(
-      collectProductionHorizontalSurfaces(),
-      {
-        allowlist: PRODUCTION_Z_FIGHT_ALLOWLIST,
-      }
-    );
+  const productionFindings = findHorizontalZFightingCandidates(
+    collectProductionHorizontalSurfaces(),
+    {
+      allowlist: PRODUCTION_Z_FIGHT_ALLOWLIST,
+    }
+  );
 
-    expect(formatZFightingFindings(findings)).toBe('');
+  it('has no coplanar overlapping floor, landing, rug, or decorative horizontal surfaces', () => {
+    expect(formatZFightingFindings(productionFindings)).toBe('');
   });
 
   it('does not contain a z-fighting candidate at the reported studio outside-stairs point', () => {
-    const findings = findHorizontalZFightingCandidates(
-      collectProductionHorizontalSurfaces(),
-      {
-        allowlist: PRODUCTION_Z_FIGHT_ALLOWLIST,
-      }
-    ).filter((finding) => zFightFindingContainsPoint(finding, REPORTED_POINT));
+    const reportedPointFindings = productionFindings.filter((finding) =>
+      zFightFindingContainsPoint(finding, REPORTED_POINT)
+    );
 
-    expect(formatZFightingFindings(findings)).toBe('');
+    expect(formatZFightingFindings(reportedPointFindings)).toBe('');
   });
 });
