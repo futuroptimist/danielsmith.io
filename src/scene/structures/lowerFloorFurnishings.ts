@@ -18,6 +18,8 @@ export type FloorFurnishingPurpose =
   | 'lower-floor-furnishing'
   | 'upper-floor-furnishing';
 
+export const DECORATIVE_FLOOR_OVERLAY_Y_OFFSET = 0.01;
+
 const FLOOR_FURNISHING_PURPOSE_BY_FLOOR = {
   ground: 'lower-floor-furnishing',
   upper: 'upper-floor-furnishing',
@@ -1260,9 +1262,9 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       id: 'studio-woven-rug',
       category: 'sleeping-nook',
       roomId: 'studio',
-      position: { x: 24.4, z: 8.8 },
+      position: { x: 24.4, z: 6.4 },
       orientationRadians: 0,
-      decorativeFootprint: { width: 5.4, depth: 3.6 },
+      decorativeFootprint: { width: 5.4, depth: 2.2 },
       kind: 'woven-rug',
       visual: {
         color: 0x9a6f58,
@@ -3363,7 +3365,7 @@ function createDecorativePrimitive(
       material
     );
     gravel.name = `Furnishing:${definition.id}:decorativeFootprint`;
-    gravel.position.y = height / 2;
+    gravel.position.y = height / 2 + DECORATIVE_FLOOR_OVERLAY_Y_OFFSET;
     group.add(gravel);
 
     const stoneMaterial = createMaterial(
@@ -3396,7 +3398,9 @@ function createDecorativePrimitive(
     material
   );
   mesh.name = `Furnishing:${definition.id}:decorativeFootprint`;
-  mesh.position.y = height / 2;
+  // Keep thin floor overlays just above floor surfaces so their bottom faces do not
+  // occupy the same depth plane as the room floor.
+  mesh.position.y = height / 2 + DECORATIVE_FLOOR_OVERLAY_Y_OFFSET;
   return mesh;
 }
 

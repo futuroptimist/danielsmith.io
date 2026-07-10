@@ -381,3 +381,23 @@ bounds through the narrow production fixture helpers in
 `src/tests/helpers/productionLevelFixtures.ts`. Request the semantic floor and
 room IDs needed by the test, and keep exact geometry literals limited to small
 synthetic fixtures where the generator output itself is under test.
+
+## Avoid horizontal z-fighting
+
+Room floors, stair-edge floor patches, rugs, and other thin horizontal overlays
+must meet at edges or use an intentional small vertical separation. Do not use
+broad `renderOrder`, `polygonOffset`, or disabled depth testing to hide floor
+conflicts; fix the authored bounds instead.
+
+Decorative floor overlays that are meant to sit on top of a floor should use the
+shared decorative overlay offset in the furnishing helpers so the overlay bottom
+face is not coplanar with the room floor. If an intentional overlay ever needs to
+share a near-coplanar footprint, add a narrow audit allowlist entry with both
+source IDs, the expected y offset or rendering strategy, the reason it is safe,
+and why geometry clipping is not preferable.
+
+Run the scene audit after editing floor patches or decorative overlays:
+
+```bash
+npm run scene:zfight:audit
+```
