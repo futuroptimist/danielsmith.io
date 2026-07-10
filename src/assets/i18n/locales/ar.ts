@@ -272,6 +272,7 @@ export const AR_OVERRIDES: LocaleOverrides = {
           keyHint: 'C',
           title: 'فتح عناصر التحكم (C)',
         },
+        tutorial: { label: 'الدليل', keyHint: 'R', title: 'فتح الدليل (R)' },
         text: {
           label: 'النص',
           keyHint: 'T',
@@ -415,6 +416,39 @@ export const AR_OVERRIDES: LocaleOverrides = {
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
       discoveryAnnouncementTemplate: 'تم اكتشاف {title}. {summary}',
+    },
+    tutorialPanel: {
+      heading: 'الدليل',
+      sidebarLabel: 'خطوات الدليل',
+      collapseLabel: 'طي خطوات الدليل',
+      expandLabel: 'توسيع خطوات الدليل',
+      previousLabel: 'السابق',
+      nextLabel: 'التالي',
+      showOnStartupLabel: 'إظهار عند البدء',
+      showOnStartupTitle: 'إظهار الدليل عند بدء الوضع الغامر',
+      dismissLabel: 'إغلاق',
+      dismissTitle: 'إغلاق الدليل الآن',
+      lockedStepLabel: 'مقفل',
+      unlockedStepLabel: 'مفتوح',
+      activeStepLabel: 'الخطوة الحالية',
+      pages: {
+        welcomeMovement: {
+          title: 'مرحبًا',
+          body: 'سيصل تقدم الدليل قريبًا. ستعرّف الخطوة الأولى الحركة داخل المعرض.',
+        },
+        zoom: {
+          title: 'التكبير',
+          body: 'سيشرح هذا الموضع المؤقت عناصر التكبير مع إبقاء المشهد قابلًا للعب.',
+        },
+        visitPois: {
+          title: 'زيارة نقاط الاهتمام',
+          body: 'سيتتبع هذا الموضع المؤقت زيارة ثلاث نقاط اهتمام للمشاريع.',
+        },
+        findGitshelves: {
+          title: 'العثور على Gitshelves',
+          body: 'سيرشد هذا الموضع المؤقت الزوار إلى معرض Gitshelves.',
+        },
+      },
     },
     helpModal: {
       heading: 'الإعدادات والمساعدة',

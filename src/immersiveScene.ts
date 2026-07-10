@@ -67,6 +67,7 @@ import {
   getPoiOverlayChromeStrings,
   getSiteStrings,
   getSoftwareRendererWarningStrings,
+  getTutorialPanelStrings,
   getSelectableLocales,
   isI18nDebugEnabled,
   resolveInitialLocale,
@@ -498,6 +499,7 @@ import {
   type ResponsiveControlOverlayHandle,
 } from './ui/hud/responsiveControlOverlay';
 import { applySettingsControlOrder } from './ui/hud/settingsOrder';
+import { createTutorialPanel } from './ui/hud/tutorialPanel';
 import {
   createContinuousSoftwareImmersiveUrl,
   createImmersiveModeUrl,
@@ -1227,6 +1229,7 @@ export function initializeImmersiveScene(
   document.documentElement.dataset.localeScript = getLocaleScript(locale);
   let controlOverlayStrings = getControlOverlayStrings(locale);
   let helpModalStrings = getHelpModalStrings(locale);
+  let tutorialPanelStrings = getTutorialPanelStrings(locale);
   let hudCustomizationStrings = getHudCustomizationStrings(locale);
   let localeToggleStrings = getLocaleToggleStrings(locale);
   let modeToggleStrings = getModeToggleStrings(locale);
@@ -2315,9 +2318,16 @@ export function initializeImmersiveScene(
       hasMobileKeyboardPoiTarget());
   const syncCombinedPoiPanelState = (poiDetailVisible: boolean) => {
     const root = document.documentElement;
-    const controlsOpen =
-      (hudPanelCoordinator?.getActivePanel() ?? null) === 'controls';
+    const activePanel = hudPanelCoordinator?.getActivePanel() ?? null;
+    const controlsOpen = activePanel === 'controls';
+    const tutorialOpen = activePanel === 'tutorial';
     root.toggleAttribute('data-hud-controls-open', controlsOpen);
+    root.toggleAttribute('data-hud-tutorial-open', tutorialOpen);
+    if (activePanel) {
+      root.dataset.activeHudPanel = activePanel;
+    } else {
+      delete root.dataset.activeHudPanel;
+    }
     root.toggleAttribute('data-poi-detail-visible', poiDetailVisible);
   };
   const isPoiVisibleOnActiveFloor = (poi: PoiDefinition | null): boolean =>
@@ -3036,11 +3046,16 @@ export function initializeImmersiveScene(
   );
   poiInteractionManager.start();
   const handlePoiDetailEscape = (event: KeyboardEvent) => {
-    if (
-      event.key !== 'Escape' ||
-      event.defaultPrevented ||
-      !poiTooltipOverlay.getState().visible
-    ) {
+    if (event.key !== 'Escape' || event.defaultPrevented) {
+      return;
+    }
+    if ((hudPanelCoordinator?.getActivePanel() ?? null) === 'tutorial') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      hudPanelCoordinator?.closeActivePanel();
+      return;
+    }
+    if (!poiTooltipOverlay.getState().visible) {
       return;
     }
     // Escape intentionally dismisses any visible POI detail state—selected, hovered,
@@ -3267,6 +3282,7 @@ export function initializeImmersiveScene(
     'interact',
     'help',
     'toggleControls',
+    'toggleTutorial',
   ];
   const bindingActionSet = new Set<KeyBindingAction>(bindingActions);
 
@@ -3520,6 +3536,9 @@ export function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
+  const tutorialButton = controlOverlay?.querySelector<HTMLButtonElement>(
+    '[data-role="tutorial-button"]'
+  );
   const textModeButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-role="text-mode-button"]'
   );
@@ -3575,10 +3594,30 @@ export function initializeImmersiveScene(
       controlOverlayStrings.menu.controls.keyHint;
     responsiveControlOverlay?.setControlsShortcutLabel(label);
   };
+  const updateTutorialButtonLabel = () => {
+    if (!tutorialButton) {
+      return;
+    }
+    const label =
+      formatKeyLabel(keyBindings.getPrimaryBinding('toggleTutorial')) ||
+      controlOverlayStrings.menu.tutorial.keyHint;
+    applyHudMenuButtonMetadata(
+      tutorialButton,
+      controlOverlayStrings.menu.tutorial,
+      label
+    );
+  };
   updateControlsButtonLabel();
+  updateTutorialButtonLabel();
   const helpModal = createHelpModal({
     container: document.body,
     content: helpModalStrings,
+  });
+  const tutorialPanel = createTutorialPanel({
+    container: document.body,
+    strings: tutorialPanelStrings,
+    onOpenChange: () => syncPoiDetailOverlay(),
+    onRequestClose: () => hudPanelCoordinator?.closeActivePanel(),
   });
   const hudSettingsContainer =
     helpModal.settingsContainer ??
@@ -3843,6 +3882,24 @@ export function initializeImmersiveScene(
           .some((binding) => normalizeBindingKey(binding) === normalizedKey)
     );
   };
+  const handleHudPanelKeydown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented || event.repeat) {
+      return;
+    }
+    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+      return;
+    }
+    if (isTextEntryTarget(event.target)) {
+      return;
+    }
+    if (
+      matchesKeyBinding(event, 'toggleTutorial') &&
+      !hasConflictingKeyBinding(event, 'toggleTutorial')
+    ) {
+      event.preventDefault();
+      hudPanelCoordinator?.toggleTutorial();
+    }
+  };
   const handleControlsKeydown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.repeat) {
       return;
@@ -3866,6 +3923,7 @@ export function initializeImmersiveScene(
     }
     responsiveControlOverlay?.toggle();
   };
+  window.addEventListener('keydown', handleHudPanelKeydown);
   window.addEventListener('keydown', handleControlsKeydown);
   hudPanelCoordinator = createHudPanelCoordinator({
     controls: responsiveControlOverlay ?? {
@@ -3875,8 +3933,10 @@ export function initializeImmersiveScene(
       isOpen: () => false,
     },
     settings: helpModal,
+    tutorial: tutorialPanel,
     controlsButton,
     settingsButton: helpButton,
+    tutorialButton,
     textButton: textModeButton,
     onTextMode: activateTextMode,
     onActivePanelChange: (panel) => {
@@ -3965,6 +4025,7 @@ export function initializeImmersiveScene(
 
     controlOverlayStrings = getControlOverlayStrings(locale);
     helpModalStrings = getHelpModalStrings(locale);
+    tutorialPanelStrings = getTutorialPanelStrings(locale);
     hudCustomizationStrings = getHudCustomizationStrings(locale);
     localeToggleStrings = getLocaleToggleStrings(locale);
     modeToggleStrings = getModeToggleStrings(locale);
@@ -4022,6 +4083,7 @@ export function initializeImmersiveScene(
     analyticsGlow.setElement(controlOverlay ?? null);
     responsiveControlOverlay?.setStrings(controlOverlayStrings);
     updateControlsButtonLabel();
+    updateTutorialButtonLabel();
     responsiveControlOverlay?.refresh();
     movementLegend?.setLocale(locale);
     if (movementLegend) {
@@ -4037,6 +4099,7 @@ export function initializeImmersiveScene(
     );
     softwareRendererWarning?.setStrings(softwareRendererWarningStrings);
     helpModal.setContent(helpModalStrings);
+    tutorialPanel.setStrings(tutorialPanelStrings);
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     graphicsQualityControl?.setStrings({
       ...graphicsQualityStrings,
@@ -4093,6 +4156,9 @@ export function initializeImmersiveScene(
       }
       if (action === 'toggleControls') {
         updateControlsButtonLabel();
+      }
+      if (action === 'toggleTutorial') {
+        updateTutorialButtonLabel();
       }
       saveKeyBindings();
     })
@@ -6309,14 +6375,18 @@ export function initializeImmersiveScene(
       hudLayoutManager.dispose();
       hudLayoutManager = null;
     }
+    window.removeEventListener('keydown', handleHudPanelKeydown);
     window.removeEventListener('keydown', handleControlsKeydown);
     window.removeEventListener('keydown', handleKeyboardZoom);
     if (hudPanelCoordinator) {
       hudPanelCoordinator.dispose();
       hudPanelCoordinator = null;
       document.documentElement.removeAttribute('data-hud-controls-open');
+      document.documentElement.removeAttribute('data-hud-tutorial-open');
+      document.documentElement.removeAttribute('data-active-hud-panel');
       document.documentElement.removeAttribute('data-poi-detail-visible');
     }
+    tutorialPanel.dispose();
     if (responsiveControlOverlay) {
       responsiveControlOverlay.dispose();
       responsiveControlOverlay = null;

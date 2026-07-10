@@ -15,6 +15,10 @@ describe('KeyBindings', () => {
       DEFAULT_KEY_BINDINGS.moveForward
     );
     expect(keyBindings.getBindings('toggleControls')).toEqual(['c']);
+    expect(keyBindings.getBindings('toggleTutorial')).toEqual(['r']);
+    expect(
+      formatKeyLabel(keyBindings.getPrimaryBinding('toggleTutorial'))
+    ).toBe('R');
     expect(formatKeyLabel(keyBindings.getPrimaryBinding('help'))).toBe('H');
 
     expect(

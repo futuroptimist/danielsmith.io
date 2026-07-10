@@ -31,6 +31,33 @@ export interface ControlOverlayMenuItemStrings {
   title: string;
 }
 
+export interface TutorialPanelStepStrings {
+  title: string;
+  body: string;
+}
+
+export interface TutorialPanelStrings {
+  heading: string;
+  sidebarLabel: string;
+  collapseLabel: string;
+  expandLabel: string;
+  previousLabel: string;
+  nextLabel: string;
+  showOnStartupLabel: string;
+  showOnStartupTitle: string;
+  dismissLabel: string;
+  dismissTitle: string;
+  lockedStepLabel: string;
+  unlockedStepLabel: string;
+  activeStepLabel: string;
+  pages: {
+    welcomeMovement: TutorialPanelStepStrings;
+    zoom: TutorialPanelStepStrings;
+    visitPois: TutorialPanelStepStrings;
+    findGitshelves: TutorialPanelStepStrings;
+  };
+}
+
 export interface ControlOverlayStrings {
   heading: string;
   items: {
@@ -56,6 +83,7 @@ export interface ControlOverlayStrings {
   };
   menu: {
     controls: ControlOverlayMenuItemStrings;
+    tutorial: ControlOverlayMenuItemStrings;
     text: ControlOverlayMenuItemStrings;
     settings: ControlOverlayMenuItemStrings;
   };
@@ -429,6 +457,7 @@ export interface LocaleStrings {
     softwareRendererWarning: SoftwareRendererWarningStrings;
     lowFpsRecovery: LowFpsRecoveryStrings;
     helpModal: HelpModalStrings;
+    tutorialPanel: TutorialPanelStrings;
     customization: HudCustomizationStrings;
     poiOverlay: PoiOverlayChromeStrings;
   };
