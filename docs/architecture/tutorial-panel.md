@@ -124,8 +124,8 @@ show-on-startup preference only when that preference changes. Dismiss closes the
 panel instance for the active page load only; it does not alter either storage key.
 
 Gameplay action tracking is intentionally not implemented in the current state plumbing.
-The progress object includes movement, zoom, POI, and Gitshelves placeholder fields so
-future runtime adapters can update a stable schema without changing storage keys.
+The progress object includes movement, zoom, POI, and Gitshelves fields so
+runtime adapters can update a stable schema without changing storage keys.
 
 ## Universal HUD menu architecture
 
@@ -628,3 +628,34 @@ Future implementation is ready when:
 - No runtime Tutorial implementation lands before this design-only document is reviewed.
 - Localization and z-fighting guardrails remain at least as strict as they are today.
 - `docs/assets/game-launch.png` remains untouched.
+
+## Implemented action-tracking contracts
+
+The Tutorial MVP now tracks progress through the existing scene systems instead of a
+parallel onboarding runtime. `src/systems/tutorial/tutorialState.ts` remains the pure
+state machine and exposes reducers for movement, zoom, visited POIs, and Gitshelves.
+`src/systems/tutorial/tutorialController.ts` owns change-only persistence and live panel
+refreshes.
+
+Movement tracking receives canonical input components named `forward`, `left`,
+`backward`, and `right` from `src/immersiveScene.ts`. Keyboard WASD, arrow-key bindings,
+touch joystick input, and any future input merged into the same movement vector count when
+the component is above the tutorial deadzone and the player movement step reports movement
+on at least one axis. Each direction completes after 0.25 seconds of successful movement;
+diagonal movement can complete both active cardinal components.
+
+Zoom tracking records snapshots with the current zoom, zoom target, and runtime min/max
+bounds from `src/immersiveScene.ts`. Completion uses the active bounds rather than copied
+constants: zoom-in completes within the final one percent of the range near max, and
+zoom-out completes within the first one percent near min. Keyboard, wheel, and pinch paths
+all update the same target and therefore feed the same reducer.
+
+POI visit progress uses `src/scene/poi/visitedState.ts` as the shared source of truth.
+Selecting or interacting with a POI marks the shared visited state, which persists unique
+POI ids, updates marker/tooltip visited styling, and syncs the Tutorial controller. The
+Tutorial stores derived unique ids for progress persistence, but it does not maintain a
+separate interaction source.
+
+The Gitshelves completion target is the stable POI id
+`gitshelves-living-room-installation`; completion never depends on localized display text.
+The Tutorial hint points visitors upstairs, matching the current exhibit placement.

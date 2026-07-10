@@ -560,29 +560,52 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       unlockedStepLabel: wrap('Unlocked'),
       activeStepLabel: wrap('Current step'),
       completedStepLabel: wrap('Completed'),
+      completeLabel: wrap('Complete'),
+      incompleteLabel: wrap('Incomplete'),
+      checkmarkLabel: wrap('Completed'),
+      textOnlyButtonLabel: wrap('Text-only version'),
+      textOnlyButtonTitle: wrap('Switch to the text-only portfolio'),
+      textOnlyButtonAriaLabel: wrap('Switch to the text-only portfolio'),
+      movement: {
+        labels: { forward: 'W', left: 'A', backward: 'S', right: 'D' },
+        ariaLabelTemplate: wrap('{label}: {status}'),
+      },
+      zoomProgress: {
+        inLabel: wrap('In'),
+        outLabel: wrap('Out'),
+        ariaLabelTemplate: wrap('{label}: {status}'),
+      },
+      poiProgress: {
+        counterTemplate: wrap('{count}/3 POIs visited'),
+        ariaLabelTemplate: wrap('{count} of 3 POIs visited. {status}'),
+      },
+      gitshelvesProgress: {
+        label: wrap('Gitshelves visited'),
+        ariaLabelTemplate: wrap('Gitshelves objective: {status}'),
+      },
       pages: {
         welcomeMovement: {
           title: wrap('Welcome'),
           body: wrap(
-            'Tutorial progress arrives soon. This first step will introduce movement through the portfolio.'
+            'Welcome to Daniel Smith’s immersive portfolio. This site showcases projects as interactive exhibits. Move in all four WASD directions; keyboard WASD, arrow keys, and the touch joystick all count. If immersive mode is not for you, switch to the text-only version.'
           ),
         },
         zoom: {
           title: wrap('Zoom'),
           body: wrap(
-            'This placeholder will teach zoom controls while keeping the scene playable.'
+            'Zoom all the way in and all the way out. Use the mouse scroll wheel, multitouch pinch, or keyboard Shift + = / Shift + -.'
           ),
         },
         visitPois: {
           title: wrap('Visit POIs'),
           body: wrap(
-            'This placeholder will track visits to three project points of interest.'
+            'POIs are project exhibits. Their panels show summaries, outcomes, metrics, links, and context. Click, tap, or interact with a POI to mark it visited.'
           ),
         },
         findGitshelves: {
           title: wrap('Find Gitshelves'),
           body: wrap(
-            'This placeholder will guide visitors to the Gitshelves exhibit.'
+            'Find and interact with the Gitshelves POI. Hint: check upstairs.'
           ),
         },
       },

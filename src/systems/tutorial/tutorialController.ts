@@ -2,9 +2,15 @@ import type { TutorialPanelHandle } from '../../ui/hud/tutorialPanel';
 
 import {
   getTutorialPageOrder,
+  recordGitshelvesVisited,
+  recordMovementProgress as recordMovementProgressInState,
+  recordVisitedPois,
+  recordZoomProgress as recordZoomProgressInState,
   setCurrentTutorialPage,
   type TutorialPageId,
+  type TutorialMovementInputSnapshot,
   type TutorialState,
+  type TutorialZoomSnapshot,
 } from './tutorialState';
 import {
   createTutorialStorageAdapter,
@@ -20,9 +26,9 @@ export interface TutorialControllerHandle {
   nextPage(): void;
   setShowOnStartup(value: boolean): void;
   dismiss(): void;
-  recordMovementProgress(): void;
-  recordZoomProgress(): void;
-  syncVisitedPois(): void;
+  recordMovementProgress(snapshot: TutorialMovementInputSnapshot): void;
+  recordZoomProgress(snapshot: TutorialZoomSnapshot): void;
+  syncVisitedPois(visitedPoiIds: Iterable<string>): void;
   markGitshelvesVisited(): void;
 }
 
@@ -49,10 +55,14 @@ export const createTutorialController = ({
     lastSerializedState = serialized;
     adapter.writeState(state);
   };
-  const selectPage = (pageId: TutorialPageId) => {
-    state = setCurrentTutorialPage(state, pageId);
+  const updateState = (nextState: TutorialState) => {
+    if (JSON.stringify(nextState) === JSON.stringify(state)) return;
+    state = nextState;
     persistStateIfChanged();
     render();
+  };
+  const selectPage = (pageId: TutorialPageId) => {
+    updateState(setCurrentTutorialPage(state, pageId));
   };
   const nextAdjacentPage = () => {
     const order = getTutorialPageOrder();
@@ -92,9 +102,17 @@ export const createTutorialController = ({
     dismiss() {
       onDismiss?.();
     },
-    recordMovementProgress() {},
-    recordZoomProgress() {},
-    syncVisitedPois() {},
-    markGitshelvesVisited() {},
+    recordMovementProgress(snapshot) {
+      updateState(recordMovementProgressInState(state, snapshot));
+    },
+    recordZoomProgress(snapshot) {
+      updateState(recordZoomProgressInState(state, snapshot));
+    },
+    syncVisitedPois(visitedPoiIds) {
+      updateState(recordVisitedPois(state, visitedPoiIds));
+    },
+    markGitshelvesVisited() {
+      updateState(recordGitshelvesVisited(state));
+    },
   };
 };

@@ -1047,24 +1047,24 @@ export function buildLatinLocaleOverrides(
                     ? 'Boas-vindas'
                     : 'Bienvenida',
             body:
-              copy.locale === 'hu'
-                ? 'Az oktatási előrehaladás hamarosan érkezik. Az első lépés bemutatja a mozgást a portfólióban.'
-                : copy.locale === 'de'
-                  ? 'Der Tutorial-Fortschritt folgt bald. Dieser erste Schritt führt die Bewegung durch das Portfolio ein.'
-                  : copy.locale === 'pt'
-                    ? 'O progresso do tutorial chegará em breve. Esta primeira etapa apresentará o movimento pelo portfólio.'
-                    : 'El progreso del tutorial llegará pronto. Este primer paso presentará el movimiento por el portafolio.',
+              copy.locale === 'de'
+                ? 'Willkommen im immersiven Portfolio von Daniel Smith. Bewege dich in alle vier WASD-Richtungen; WASD, Pfeiltasten und Touch-Joystick zählen. Wer den immersiven Modus nicht möchte, kann zur Textversion wechseln.'
+                : copy.locale === 'pt'
+                  ? 'Boas-vindas ao portfólio imersivo de Daniel Smith. Mova-se nas quatro direções WASD; WASD, setas e joystick de toque contam. Se preferir, mude para a versão somente texto.'
+                  : copy.locale === 'hu'
+                    ? 'Üdv Daniel Smith immerzív portfóliójában. Mozogj mind a négy WASD irányba; a WASD, nyilak és érintő joystick is számít. Ha szeretnéd, válts csak szöveges verzióra.'
+                    : 'Bienvenido al portafolio inmersivo de Daniel Smith. Muévete en las cuatro direcciones WASD; WASD, flechas y joystick táctil cuentan. Si prefieres, cambia a la versión solo texto.',
           },
           zoom: {
             title: 'Zoom',
             body:
               copy.locale === 'hu'
-                ? 'Ez a helyőrző a zoomvezérlést tanítja majd, miközben a jelenet játszható marad.'
+                ? 'Nagyíts teljesen be és ki. Használd az egérgörgőt, a többujjas csippentést vagy a Shift + = / Shift + - billentyűket.'
                 : copy.locale === 'de'
-                  ? 'Dieser Platzhalter erklärt später die Zoomsteuerung, während die Szene spielbar bleibt.'
+                  ? 'Zoome ganz hinein und ganz heraus. Nutze das Mausrad, Multitouch-Ziehen oder Shift + = / Shift + -.'
                   : copy.locale === 'pt'
-                    ? 'Este espaço reservado ensinará os controles de zoom mantendo a cena jogável.'
-                    : 'Este marcador enseñará los controles de zoom mientras mantiene la escena jugable.',
+                    ? 'Aproxime e afaste até o limite. Use a roda do mouse, gesto de pinça multitoque ou Shift + = / Shift + -.'
+                    : 'Acerca y aleja hasta el límite. Usa rueda del mouse, pellizco multitáctil o Shift + = / Shift + -.',
           },
           visitPois: {
             title:
@@ -1077,12 +1077,12 @@ export function buildLatinLocaleOverrides(
                     : 'Visitar POI',
             body:
               copy.locale === 'hu'
-                ? 'Ez a helyőrző három projekt-POI meglátogatását fogja követni.'
+                ? 'A POI-k projektkiállítások. Paneljeik összefoglalókat, eredményeket, metrikákat, linkeket és kontextust mutatnak. Kattints, koppints vagy lépj interakcióba egy POI-val a felkereséshez.'
                 : copy.locale === 'de'
-                  ? 'Dieser Platzhalter verfolgt später Besuche bei drei Projekt-POIs.'
+                  ? 'POIs sind Projektexponate. Ihre Panels zeigen Zusammenfassungen, Ergebnisse, Metriken, Links und Kontext. Klicke, tippe oder interagiere mit einem POI, um ihn als besucht zu markieren.'
                   : copy.locale === 'pt'
-                    ? 'Este espaço reservado acompanhará visitas a três pontos de interesse de projetos.'
-                    : 'Este marcador seguirá las visitas a tres puntos de interés de proyectos.',
+                    ? 'POIs são exibições de projetos. Seus painéis mostram resumos, resultados, métricas, links e contexto. Clique, toque ou interaja com um POI para marcá-lo como visitado.'
+                    : 'Los POI son exhibiciones de proyectos. Sus paneles muestran resúmenes, resultados, métricas, enlaces y contexto. Haz clic, toca o interactúa con un POI para marcarlo visitado.',
           },
           findGitshelves: {
             title:
@@ -1095,12 +1095,12 @@ export function buildLatinLocaleOverrides(
                     : 'Encontrar Gitshelves',
             body:
               copy.locale === 'hu'
-                ? 'Ez a helyőrző a Gitshelves kiállításhoz vezeti majd a látogatókat.'
+                ? 'Keresd meg a Gitshelves POI-t és lépj vele interakcióba. Tipp: nézz fel az emeletre.'
                 : copy.locale === 'de'
-                  ? 'Dieser Platzhalter führt Besucher später zur Gitshelves-Ausstellung.'
+                  ? 'Finde den Gitshelves-POI und interagiere damit. Hinweis: schau oben nach.'
                   : copy.locale === 'pt'
-                    ? 'Este espaço reservado guiará visitantes até a exibição Gitshelves.'
-                    : 'Este marcador guiará a los visitantes a la exhibición Gitshelves.',
+                    ? 'Encontre e interaja com o POI Gitshelves. Dica: confira o andar de cima.'
+                    : 'Encuentra e interactúa con el POI Gitshelves. Pista: revisa arriba.',
           },
         },
       },

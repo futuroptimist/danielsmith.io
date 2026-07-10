@@ -3043,6 +3043,7 @@ export function initializeImmersiveScene(
   const removeSelectionListener = poiInteractionManager.addSelectionListener(
     (poi) => {
       poiVisitedState.markVisited(poi.id);
+      tutorialController.syncVisitedPois(poiVisitedState.snapshot());
     }
   );
   poiInteractionManager.start();
@@ -3639,8 +3640,10 @@ export function initializeImmersiveScene(
     onNext: () => tutorialController.nextPage(),
     onToggleShowOnStartup: (value) =>
       tutorialController.setShowOnStartup(value),
+    onTextMode: () => activateTextMode(),
   });
   tutorialController.setPanel(tutorialPanel);
+  tutorialController.syncVisitedPois(poiVisitedState.snapshot());
   const hudSettingsContainer =
     helpModal.settingsContainer ??
     (() => {
@@ -5043,6 +5046,12 @@ export function initializeImmersiveScene(
 
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+    tutorialController.recordZoomProgress({
+      currentZoom: cameraZoom,
+      currentZoomTarget: cameraZoomTarget,
+      minZoom: MIN_CAMERA_ZOOM,
+      maxZoom: MAX_CAMERA_ZOOM,
+    });
   };
 
   const updateCameraPanLimits = (aspect: number) => {
@@ -5956,6 +5965,15 @@ export function initializeImmersiveScene(
 
     if (stepX !== 0 || stepZ !== 0) {
       const movementStep = applyPlayerMovementStep(stepX, stepZ);
+      const moved = movementStep.movedX || movementStep.movedZ;
+      tutorialController.recordMovementProgress({
+        forward: Math.max(0, combinedForward),
+        left: Math.max(0, -combinedRight),
+        backward: Math.max(0, -combinedForward),
+        right: Math.max(0, combinedRight),
+        deltaSeconds: delta,
+        moved,
+      });
       if (stepX !== 0 && !movementStep.movedX) {
         targetVelocity.x = 0;
         velocity.x = 0;
@@ -6015,6 +6033,12 @@ export function initializeImmersiveScene(
     if (!Number.isFinite(cameraZoom)) {
       cameraZoom = previousZoom;
     }
+    tutorialController.recordZoomProgress({
+      currentZoom: cameraZoom,
+      currentZoomTarget: cameraZoomTarget,
+      minZoom: MIN_CAMERA_ZOOM,
+      maxZoom: MAX_CAMERA_ZOOM,
+    });
     if (Math.abs(cameraZoom - previousZoom) > 1e-4) {
       updateCameraProjection(window.innerWidth / window.innerHeight);
     }

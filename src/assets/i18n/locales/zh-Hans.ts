@@ -439,22 +439,45 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       unlockedStepLabel: '已解锁',
       activeStepLabel: '当前步骤',
       completedStepLabel: '已完成',
+      completeLabel: '已完成',
+      incompleteLabel: '未完成',
+      checkmarkLabel: '已完成',
+      textOnlyButtonLabel: '纯文本版本',
+      textOnlyButtonTitle: '切换到纯文本作品集',
+      textOnlyButtonAriaLabel: '切换到纯文本作品集',
+      movement: {
+        labels: { forward: 'W', left: 'A', backward: 'S', right: 'D' },
+        ariaLabelTemplate: '{label}: {status}',
+      },
+      zoomProgress: {
+        inLabel: 'In',
+        outLabel: 'Out',
+        ariaLabelTemplate: '{label}: {status}',
+      },
+      poiProgress: {
+        counterTemplate: '已访问 {count}/3 个 POI',
+        ariaLabelTemplate: '已访问 3 个 POI 中的 {count} 个。{status}',
+      },
+      gitshelvesProgress: {
+        label: 'Gitshelves 已访问',
+        ariaLabelTemplate: 'Gitshelves 目标：{status}',
+      },
       pages: {
         welcomeMovement: {
           title: '欢迎',
-          body: '教程进度即将推出。第一步会介绍如何在作品集内移动。',
+          body: '欢迎来到 Daniel Smith 的沉浸式作品集。本网站以互动展品展示项目。请按 WASD 代表的四个方向移动；键盘 WASD、方向键和触控摇杆移动都可计入。如果你不想使用沉浸模式，可以切换到纯文本版本。',
         },
         zoom: {
           title: '缩放',
-          body: '此占位内容会介绍缩放控制，同时保持场景可玩。',
+          body: '请一直放大并一直缩小。可使用鼠标滚轮、多点触控捏合，或键盘 Shift + = / Shift + -。',
         },
         visitPois: {
           title: '访问 POI',
-          body: '此占位内容会跟踪三个项目兴趣点的访问。',
+          body: 'POI 是项目展品。POI 面板会显示摘要、成果、指标、链接和背景。点击、点按或与 POI 互动即可标记为已访问。',
         },
         findGitshelves: {
           title: '找到 Gitshelves',
-          body: '此占位内容会引导访客前往 Gitshelves 展品。',
+          body: '找到并互动 Gitshelves POI。提示：去楼上看看。',
         },
       },
     },
