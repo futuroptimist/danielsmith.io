@@ -897,6 +897,17 @@ export function buildLatinLocaleOverrides(
             label: s.controls,
             title: templates.controlsTitle,
           },
+          tutorial: {
+            label: copy.locale === 'hu' ? 'Oktató' : 'Tutorial',
+            title:
+              copy.locale === 'de'
+                ? 'Tutorial öffnen (R)'
+                : copy.locale === 'hu'
+                  ? 'Oktató megnyitása (R)'
+                  : copy.locale === 'pt'
+                    ? 'Abrir tutorial (R)'
+                    : 'Abrir tutorial (R)',
+          },
           text: {
             label:
               copy.locale === 'de'
@@ -909,6 +920,149 @@ export function buildLatinLocaleOverrides(
           settings: { label: s.settingsHelp, title: s.settingsHelp },
         },
       },
+
+      tutorialPanel: (() => {
+        const localized = {
+          es: {
+            menu: 'Tutorial',
+            title: 'Abrir tutorial (R)',
+            heading: 'Tutorial',
+            sidebar: 'Pasos del tutorial',
+            collapse: 'Contraer pasos',
+            expand: 'Expandir pasos',
+            previous: 'Anterior',
+            next: 'Siguiente',
+            startup: 'Mostrar al iniciar',
+            startupTitle: 'Mostrar el tutorial al iniciar el modo inmersivo',
+            dismiss: 'Cerrar',
+            locked: 'Bloqueado',
+            unlocked: 'Desbloqueado',
+            current: 'Paso actual',
+            welcome: 'Bienvenida',
+            welcomeBody:
+              'Un recorrido breve te ayudará a aprender el movimiento en este portfolio inmersivo.',
+            zoom: 'Zoom',
+            zoomBody:
+              'La guía de zoom aparecerá aquí en la próxima actualización del tutorial.',
+            pois: 'Visitar POI',
+            poisBody:
+              'Los objetivos de visita de puntos de interés aparecerán aquí en la próxima actualización del tutorial.',
+            gitshelves: 'Encontrar Gitshelves',
+            gitshelvesBody:
+              'El paso de descubrimiento de Gitshelves aparecerá aquí en la próxima actualización del tutorial.',
+          },
+          pt: {
+            menu: 'Tutorial',
+            title: 'Abrir tutorial (R)',
+            heading: 'Tutorial',
+            sidebar: 'Etapas do tutorial',
+            collapse: 'Recolher etapas',
+            expand: 'Expandir etapas',
+            previous: 'Anterior',
+            next: 'Próximo',
+            startup: 'Mostrar ao iniciar',
+            startupTitle: 'Mostrar o tutorial quando o modo imersivo começar',
+            dismiss: 'Dispensar',
+            locked: 'Bloqueado',
+            unlocked: 'Desbloqueado',
+            current: 'Etapa atual',
+            welcome: 'Boas-vindas',
+            welcomeBody:
+              'Um caminho rápido de integração ajudará você a aprender o movimento neste portfólio imersivo.',
+            zoom: 'Zoom',
+            zoomBody:
+              'A orientação de zoom aparecerá aqui na próxima atualização do tutorial.',
+            pois: 'Visitar POIs',
+            poisBody:
+              'As metas de visita aos pontos de interesse aparecerão aqui na próxima atualização do tutorial.',
+            gitshelves: 'Encontrar Gitshelves',
+            gitshelvesBody:
+              'A etapa de descoberta do Gitshelves aparecerá aqui na próxima atualização do tutorial.',
+          },
+          de: {
+            menu: 'Tutorial',
+            title: 'Tutorial öffnen (R)',
+            heading: 'Tutorial',
+            sidebar: 'Tutorial-Schritte',
+            collapse: 'Schritte einklappen',
+            expand: 'Schritte ausklappen',
+            previous: 'Zurück',
+            next: 'Weiter',
+            startup: 'Beim Start anzeigen',
+            startupTitle: 'Tutorial anzeigen, wenn der immersive Modus startet',
+            dismiss: 'Schließen',
+            locked: 'Gesperrt',
+            unlocked: 'Freigeschaltet',
+            current: 'Aktueller Schritt',
+            welcome: 'Willkommen',
+            welcomeBody:
+              'Ein kurzer Einstieg hilft dir, die Bewegung in diesem immersiven Portfolio zu lernen.',
+            zoom: 'Zoom',
+            zoomBody:
+              'Zoom-Hinweise erscheinen hier im nächsten Tutorial-Update.',
+            pois: 'POIs besuchen',
+            poisBody:
+              'Ziele für Besuche von Points of Interest erscheinen hier im nächsten Tutorial-Update.',
+            gitshelves: 'Gitshelves finden',
+            gitshelvesBody:
+              'Der Gitshelves-Entdeckungsschritt erscheint hier im nächsten Tutorial-Update.',
+          },
+          hu: {
+            menu: 'Oktató',
+            title: 'Oktató megnyitása (R)',
+            heading: 'Oktató',
+            sidebar: 'Oktató lépései',
+            collapse: 'Lépések összecsukása',
+            expand: 'Lépések kibontása',
+            previous: 'Előző',
+            next: 'Következő',
+            startup: 'Megjelenítés indításkor',
+            startupTitle: 'Az oktató megjelenítése az immerzív mód indításakor',
+            dismiss: 'Bezárás',
+            locked: 'Zárolt',
+            unlocked: 'Feloldva',
+            current: 'Aktuális lépés',
+            welcome: 'Üdvözlet',
+            welcomeBody:
+              'Egy rövid bevezető segít megtanulni a mozgást ebben az immerzív portfólióban.',
+            zoom: 'Nagyítás',
+            zoomBody:
+              'A nagyítási útmutató a következő oktatófrissítésben jelenik meg itt.',
+            pois: 'POI-k felkeresése',
+            poisBody:
+              'Az érdekes pontok felkeresésének céljai a következő oktatófrissítésben jelennek meg itt.',
+            gitshelves: 'Gitshelves megtalálása',
+            gitshelvesBody:
+              'A Gitshelves felfedezési lépése a következő oktatófrissítésben jelenik meg itt.',
+          },
+        }[copy.locale];
+        return {
+          heading: localized.heading,
+          sidebarLabel: localized.sidebar,
+          collapseLabel: localized.collapse,
+          expandLabel: localized.expand,
+          previousLabel: localized.previous,
+          nextLabel: localized.next,
+          showOnStartupLabel: localized.startup,
+          showOnStartupTitle: localized.startupTitle,
+          dismissLabel: localized.dismiss,
+          lockedStepLabel: localized.locked,
+          unlockedStepLabel: localized.unlocked,
+          currentStepLabel: localized.current,
+          pages: {
+            welcomeMovement: {
+              title: localized.welcome,
+              body: localized.welcomeBody,
+            },
+            zoom: { title: localized.zoom, body: localized.zoomBody },
+            visitPois: { title: localized.pois, body: localized.poisBody },
+            findGitshelves: {
+              title: localized.gitshelves,
+              body: localized.gitshelvesBody,
+            },
+          },
+        };
+      })(),
       audioSubtitles: {
         labels: {
           ambient: s.audioSubtitleAmbientLabel,

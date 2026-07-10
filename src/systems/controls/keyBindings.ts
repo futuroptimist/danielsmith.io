@@ -7,7 +7,8 @@ export type KeyBindingAction =
   | 'moveRight'
   | 'interact'
   | 'help'
-  | 'toggleControls';
+  | 'toggleControls'
+  | 'toggleTutorial';
 
 export type KeyBindingConfig = Partial<
   Record<KeyBindingAction, readonly string[]>
@@ -31,6 +32,7 @@ export const DEFAULT_KEY_BINDINGS: Record<KeyBindingAction, readonly string[]> =
     interact: ['Enter', 'f', ' '],
     help: ['h', '?'],
     toggleControls: ['c'],
+    toggleTutorial: ['r'],
   };
 
 type ActionEntries = [KeyBindingAction, readonly string[]];

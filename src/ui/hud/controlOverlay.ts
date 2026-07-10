@@ -9,6 +9,7 @@ const CONTROL_DESCRIPTION_SELECTOR = '.overlay__description';
 const INTERACT_LABEL_SELECTOR = '[data-role="interact-label"]';
 const INTERACT_DESCRIPTION_SELECTOR = '[data-role="interact-description"]';
 const CONTROLS_BUTTON_SELECTOR = '[data-role="controls-button"]';
+const TUTORIAL_BUTTON_SELECTOR = '[data-role="tutorial-button"]';
 const TEXT_MODE_BUTTON_SELECTOR = '[data-role="text-mode-button"]';
 const SETTINGS_BUTTON_SELECTOR = '[data-role="settings-button"]';
 const LEGACY_COLLAPSE_TOGGLE_SELECTOR = '[data-role="control-toggle"]';
@@ -89,6 +90,7 @@ export function applyControlOverlayStrings(
   };
 
   applyMenuButton(CONTROLS_BUTTON_SELECTOR, 'controls');
+  applyMenuButton(TUTORIAL_BUTTON_SELECTOR, 'tutorial');
   applyMenuButton(TEXT_MODE_BUTTON_SELECTOR, 'text');
   applyMenuButton(SETTINGS_BUTTON_SELECTOR, 'settings');
 
