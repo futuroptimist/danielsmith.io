@@ -450,6 +450,7 @@ export const JA_OVERRIDES: LocaleOverrides = {
       lockedStepLabel: 'ロック中',
       unlockedStepLabel: '解除済み',
       activeStepLabel: '現在のステップ',
+      completedStepLabel: 'Completed',
       pages: {
         welcomeMovement: {
           title: 'ようこそ',

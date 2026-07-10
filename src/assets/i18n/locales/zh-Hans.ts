@@ -438,6 +438,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       lockedStepLabel: '已锁定',
       unlockedStepLabel: '已解锁',
       activeStepLabel: '当前步骤',
+      completedStepLabel: 'Completed',
       pages: {
         welcomeMovement: {
           title: '欢迎',

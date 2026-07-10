@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { getTutorialPanelStrings } from '../assets/i18n';
+import { unlockTutorialPage } from '../systems/tutorial/tutorialState';
 import { createTutorialPanel } from '../ui/hud/tutorialPanel';
 
 describe('createTutorialPanel', () => {
@@ -78,6 +79,84 @@ describe('createTutorialPanel', () => {
 
     expect(panel.isOpen()).toBe(false);
     expect(panel.element.hidden).toBe(true);
+
+    panel.dispose();
+  });
+
+  it('renders state-driven navigation and persists callbacks', () => {
+    const strings = getTutorialPanelStrings('en');
+    const selected: string[] = [];
+    const toggles: boolean[] = [];
+    const state = unlockTutorialPage(
+      {
+        version: 1,
+        currentPageId: 'welcomeMovement',
+        unlockedPageIds: ['welcomeMovement'],
+        completedPageIds: [],
+        progress: {
+          movement: {
+            forwardSeconds: 0,
+            leftSeconds: 0,
+            backwardSeconds: 0,
+            rightSeconds: 0,
+            forwardComplete: false,
+            leftComplete: false,
+            backwardComplete: false,
+            rightComplete: false,
+          },
+          zoom: { zoomInComplete: false, zoomOutComplete: false },
+          pois: { visitedPoiIds: [], visitedCountGoal: 3 },
+          gitshelves: { completed: false },
+        },
+      },
+      'zoom'
+    );
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state,
+      showOnStartup: false,
+      onSelectPage: (pageId) => selected.push(pageId),
+      onToggleShowOnStartup: (value) => toggles.push(value),
+    });
+
+    panel.open();
+    const first = panel.element.querySelector<HTMLButtonElement>(
+      '[data-testid="tutorial-step-welcomeMovement"]'
+    );
+    const zoom = panel.element.querySelector<HTMLButtonElement>(
+      '[data-testid="tutorial-step-zoom"]'
+    );
+    const visit = panel.element.querySelector<HTMLButtonElement>(
+      '[data-testid="tutorial-step-visitPois"]'
+    );
+    expect(first?.getAttribute('aria-current')).toBe('step');
+    expect(zoom?.disabled).toBe(false);
+    expect(visit?.getAttribute('aria-disabled')).toBe('true');
+    expect(
+      panel.element.querySelectorAll<HTMLButtonElement>(
+        '.tutorial-panel__nav button'
+      )[0].disabled
+    ).toBe(true);
+    expect(
+      panel.element.querySelectorAll<HTMLButtonElement>(
+        '.tutorial-panel__nav button'
+      )[1].disabled
+    ).toBe(false);
+
+    zoom?.click();
+    expect(selected).toEqual(['zoom']);
+    expect(
+      panel.element.querySelector<HTMLInputElement>(
+        '[data-testid="tutorial-show-on-startup"]'
+      )?.checked
+    ).toBe(false);
+    panel.element
+      .querySelector<HTMLInputElement>(
+        '[data-testid="tutorial-show-on-startup"]'
+      )
+      ?.click();
+    expect(toggles).toEqual([true]);
 
     panel.dispose();
   });
