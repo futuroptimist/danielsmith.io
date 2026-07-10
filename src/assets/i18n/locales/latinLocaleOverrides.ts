@@ -1028,6 +1028,14 @@ export function buildLatinLocaleOverrides(
               : copy.locale === 'pt'
                 ? 'Etapa atual'
                 : 'Paso actual',
+        completedStepLabel:
+          copy.locale === 'hu'
+            ? 'Kész'
+            : copy.locale === 'de'
+              ? 'Abgeschlossen'
+              : copy.locale === 'pt'
+                ? 'Concluído'
+                : 'Completado',
         pages: {
           welcomeMovement: {
             title:

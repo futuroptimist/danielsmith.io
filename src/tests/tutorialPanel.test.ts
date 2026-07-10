@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { getTutorialPanelStrings } from '../assets/i18n';
+import {
+  createDefaultTutorialState,
+  unlockTutorialPage,
+} from '../systems/tutorial/tutorialState';
 import { createTutorialPanel } from '../ui/hud/tutorialPanel';
 
 describe('createTutorialPanel', () => {
@@ -9,6 +13,7 @@ describe('createTutorialPanel', () => {
     const panel = createTutorialPanel({
       container: document.body,
       strings,
+      state: createDefaultTutorialState(),
     });
 
     panel.open();
@@ -51,10 +56,44 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
+  it('renders state-driven navigation and callbacks', () => {
+    const strings = getTutorialPanelStrings('en');
+    let state = unlockTutorialPage(createDefaultTutorialState(), 'zoom');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state,
+      showOnStartup: false,
+      onSelectPage: (pageId) => {
+        state = { ...state, currentPageId: pageId };
+        panel.setState(state);
+      },
+    });
+
+    panel.open();
+    expect(
+      panel.element
+        .querySelector('[data-testid="tutorial-step-welcomeMovement"]')
+        ?.getAttribute('aria-current')
+    ).toBe('step');
+    expect(
+      panel.element.querySelector<HTMLInputElement>(
+        '[data-testid="tutorial-show-on-startup"]'
+      )?.checked
+    ).toBe(false);
+    panel.element
+      .querySelector<HTMLButtonElement>('[data-testid="tutorial-step-zoom"]')
+      ?.click();
+    expect(panel.element.textContent).toContain(strings.pages.zoom.title);
+
+    panel.dispose();
+  });
+
   it('clears open state when disposed while open', () => {
     const panel = createTutorialPanel({
       container: document.body,
       strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
     });
 
     panel.open();
@@ -69,6 +108,7 @@ describe('createTutorialPanel', () => {
     const panel = createTutorialPanel({
       container: document.body,
       strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
     });
 
     panel.open();

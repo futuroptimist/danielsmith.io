@@ -431,6 +431,7 @@ export const AR_OVERRIDES: LocaleOverrides = {
       lockedStepLabel: 'مقفل',
       unlockedStepLabel: 'مفتوح',
       activeStepLabel: 'الخطوة الحالية',
+      completedStepLabel: 'مكتمل',
       pages: {
         welcomeMovement: {
           title: 'مرحبًا',
