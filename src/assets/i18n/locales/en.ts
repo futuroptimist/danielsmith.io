@@ -545,6 +545,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       lockedStepLabel: 'Locked',
       unlockedStepLabel: 'Unlocked',
       activeStepLabel: 'Current step',
+      completedStepLabel: 'Completed',
+      incompleteStepLabel: 'Incomplete',
       pages: {
         welcomeMovement: {
           title: 'Welcome',

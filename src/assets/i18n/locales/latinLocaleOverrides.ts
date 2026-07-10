@@ -1028,6 +1028,22 @@ export function buildLatinLocaleOverrides(
               : copy.locale === 'pt'
                 ? 'Etapa atual'
                 : 'Paso actual',
+        completedStepLabel:
+          copy.locale === 'hu'
+            ? 'Kész'
+            : copy.locale === 'de'
+              ? 'Abgeschlossen'
+              : copy.locale === 'pt'
+                ? 'Concluído'
+                : 'Completado',
+        incompleteStepLabel:
+          copy.locale === 'hu'
+            ? 'Nincs kész'
+            : copy.locale === 'de'
+              ? 'Unvollständig'
+              : copy.locale === 'pt'
+                ? 'Incompleto'
+                : 'Incompleto',
         pages: {
           welcomeMovement: {
             title:

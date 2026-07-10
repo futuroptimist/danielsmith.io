@@ -50,6 +50,8 @@ export interface TutorialPanelStrings {
   lockedStepLabel: string;
   unlockedStepLabel: string;
   activeStepLabel: string;
+  completedStepLabel: string;
+  incompleteStepLabel: string;
   pages: {
     welcomeMovement: TutorialPanelStepStrings;
     zoom: TutorialPanelStepStrings;

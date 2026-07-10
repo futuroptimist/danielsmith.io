@@ -450,6 +450,8 @@ import {
   createInputLatencyTelemetry,
   type InputLatencyTelemetryHandle,
 } from './systems/performance/inputLatencyTelemetry';
+import { createTutorialController } from './systems/tutorial/tutorialController';
+import { createTutorialStorageAdapter } from './systems/tutorial/tutorialStorage';
 import { getPulseScale } from './ui/accessibility/animationPreferences';
 import {
   createHudFocusAnnouncer,
@@ -3613,11 +3615,38 @@ export function initializeImmersiveScene(
     container: document.body,
     content: helpModalStrings,
   });
+  let tutorialStorage: Storage | undefined;
+  try {
+    tutorialStorage = window.localStorage;
+  } catch {
+    tutorialStorage = undefined;
+  }
+  const tutorialController = createTutorialController({
+    storage: createTutorialStorageAdapter(tutorialStorage),
+  });
   const tutorialPanel = createTutorialPanel({
     container: document.body,
     strings: tutorialPanelStrings,
+    state: tutorialController.getState(),
+    showOnStartup: tutorialController.getShowOnStartup(),
     onOpenChange: () => syncPoiDetailOverlay(),
-    onRequestClose: () => hudPanelCoordinator?.closeActivePanel(),
+    onRequestClose: () => tutorialController.dismiss(),
+    onSelectPage: (pageId) => tutorialController.selectPage(pageId),
+    onPrevious: () => tutorialController.previous(),
+    onNext: () => tutorialController.next(),
+    onToggleShowOnStartup: (showOnStartup) =>
+      tutorialController.setShowOnStartup(showOnStartup),
+  });
+  tutorialController.setOpenHandler((open) => {
+    if (open) {
+      hudPanelCoordinator?.openTutorial();
+    } else {
+      hudPanelCoordinator?.closeActivePanel();
+    }
+  });
+  tutorialController.subscribe(() => {
+    tutorialPanel.setState(tutorialController.getState());
+    tutorialPanel.setShowOnStartup(tutorialController.getShowOnStartup());
   });
   const hudSettingsContainer =
     helpModal.settingsContainer ??
@@ -3946,6 +3975,10 @@ export function initializeImmersiveScene(
       syncPoiDetailOverlay();
     },
   });
+  if (tutorialController.getShowOnStartup()) {
+    hudPanelCoordinator.openTutorial();
+  }
+
   let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();

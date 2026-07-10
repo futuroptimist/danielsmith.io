@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { getTutorialPanelStrings } from '../assets/i18n';
+import {
+  createDefaultTutorialState,
+  unlockTutorialPage,
+} from '../systems/tutorial/tutorialState';
 import { createTutorialPanel } from '../ui/hud/tutorialPanel';
 
 describe('createTutorialPanel', () => {
@@ -9,6 +13,7 @@ describe('createTutorialPanel', () => {
     const panel = createTutorialPanel({
       container: document.body,
       strings,
+      state: createDefaultTutorialState(),
     });
 
     panel.open();
@@ -55,6 +60,7 @@ describe('createTutorialPanel', () => {
     const panel = createTutorialPanel({
       container: document.body,
       strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
     });
 
     panel.open();
@@ -65,10 +71,57 @@ describe('createTutorialPanel', () => {
     expect(panel.element.dataset.open).toBeUndefined();
   });
 
+  it('renders stateful navigation and persists shell callbacks', () => {
+    const strings = getTutorialPanelStrings('en');
+    let selected = '';
+    let showOnStartup = true;
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: unlockTutorialPage(createDefaultTutorialState(), 'zoom'),
+      showOnStartup: false,
+      onSelectPage: (pageId) => {
+        selected = pageId;
+      },
+      onToggleShowOnStartup: (value) => {
+        showOnStartup = value;
+      },
+    });
+
+    panel.open();
+    expect(
+      panel.element
+        .querySelector('[data-testid="tutorial-step-welcomeMovement"]')
+        ?.getAttribute('aria-current')
+    ).toBe('step');
+    expect(
+      panel.element.querySelector<HTMLInputElement>(
+        '[data-testid="tutorial-show-on-startup"]'
+      )?.checked
+    ).toBe(false);
+    panel.element
+      .querySelector<HTMLButtonElement>('[data-testid="tutorial-step-zoom"]')
+      ?.click();
+    expect(selected).toBe('zoom');
+    panel.setState({
+      ...unlockTutorialPage(createDefaultTutorialState(), 'zoom'),
+      currentPageId: 'zoom',
+    });
+    expect(panel.element.textContent).toContain(strings.pages.zoom.title);
+    panel.element
+      .querySelector<HTMLInputElement>(
+        '[data-testid="tutorial-show-on-startup"]'
+      )
+      ?.click();
+    expect(showOnStartup).toBe(true);
+    panel.dispose();
+  });
+
   it('dismisses without persistence or progression side effects', () => {
     const panel = createTutorialPanel({
       container: document.body,
       strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
     });
 
     panel.open();

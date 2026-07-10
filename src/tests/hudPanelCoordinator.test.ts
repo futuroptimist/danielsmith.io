@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getTutorialPanelStrings } from '../assets/i18n';
+import { createDefaultTutorialState } from '../systems/tutorial/tutorialState';
 import { createHudPanelCoordinator } from '../ui/hud/hudPanelCoordinator';
 import { createTutorialPanel } from '../ui/hud/tutorialPanel';
 
@@ -253,6 +254,7 @@ describe('createHudPanelCoordinator', () => {
     const tutorial = createTutorialPanel({
       container: document.body,
       strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
       onRequestClose: () => coordinator?.closeActivePanel(),
     });
     coordinator = createHudPanelCoordinator({
