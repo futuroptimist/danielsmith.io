@@ -502,7 +502,7 @@ Buttons/forms:
 
 - The 2x2 HUD menu grid is used on all device sizes.
 - Tutorial can coexist with POI panels.
-- Desktop: keep scene visible, avoid avoidable overlap with POI details, and align with the
+- Desktop: keep scene visible, minimize overlap with POI details, and align with the
   existing right-side HUD rhythm.
 - Mobile: use internal scrolling inside Tutorial, leave visible scene gutters, and include
   safe-area padding.
