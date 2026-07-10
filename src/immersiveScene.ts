@@ -498,6 +498,7 @@ import {
   type ResponsiveControlOverlayHandle,
 } from './ui/hud/responsiveControlOverlay';
 import { applySettingsControlOrder } from './ui/hud/settingsOrder';
+import { createTutorialPanel } from './ui/hud/tutorialPanel';
 import {
   createContinuousSoftwareImmersiveUrl,
   createImmersiveModeUrl,
@@ -3267,6 +3268,7 @@ export function initializeImmersiveScene(
     'interact',
     'help',
     'toggleControls',
+    'toggleTutorial',
   ];
   const bindingActionSet = new Set<KeyBindingAction>(bindingActions);
 
@@ -3523,6 +3525,9 @@ export function initializeImmersiveScene(
   const textModeButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-role="text-mode-button"]'
   );
+  const tutorialButton = controlOverlay?.querySelector<HTMLButtonElement>(
+    '[data-role="tutorial-button"]'
+  );
   let interactLabelFallback = controlOverlayStrings.interact.defaultLabel;
   let interactDescriptionFallback = controlOverlayStrings.interact.description;
   const movementLegend: MovementLegendHandle | null = controlOverlay
@@ -3579,6 +3584,11 @@ export function initializeImmersiveScene(
   const helpModal = createHelpModal({
     container: document.body,
     content: helpModalStrings,
+  });
+  const tutorialPanel = createTutorialPanel({
+    container: document.body,
+    strings: getLocaleStrings(locale).hud.tutorialPanel,
+    onOpenChange: () => syncPoiDetailOverlay(),
   });
   const hudSettingsContainer =
     helpModal.settingsContainer ??
@@ -3843,7 +3853,7 @@ export function initializeImmersiveScene(
           .some((binding) => normalizeBindingKey(binding) === normalizedKey)
     );
   };
-  const handleControlsKeydown = (event: KeyboardEvent) => {
+  const handleHudPanelKeydown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.repeat) {
       return;
     }
@@ -3854,19 +3864,26 @@ export function initializeImmersiveScene(
       return;
     }
     if (
-      !matchesKeyBinding(event, 'toggleControls') ||
-      hasConflictingKeyBinding(event, 'toggleControls')
+      matchesKeyBinding(event, 'toggleControls') &&
+      !hasConflictingKeyBinding(event, 'toggleControls')
     ) {
+      event.preventDefault();
+      if (hudPanelCoordinator) {
+        hudPanelCoordinator.toggleControls();
+        return;
+      }
+      responsiveControlOverlay?.toggle();
       return;
     }
-    event.preventDefault();
-    if (hudPanelCoordinator) {
-      hudPanelCoordinator.toggleControls();
-      return;
+    if (
+      matchesKeyBinding(event, 'toggleTutorial') &&
+      !hasConflictingKeyBinding(event, 'toggleTutorial')
+    ) {
+      event.preventDefault();
+      hudPanelCoordinator?.toggleTutorial();
     }
-    responsiveControlOverlay?.toggle();
   };
-  window.addEventListener('keydown', handleControlsKeydown);
+  window.addEventListener('keydown', handleHudPanelKeydown);
   hudPanelCoordinator = createHudPanelCoordinator({
     controls: responsiveControlOverlay ?? {
       open() {},
@@ -3875,11 +3892,17 @@ export function initializeImmersiveScene(
       isOpen: () => false,
     },
     settings: helpModal,
+    tutorial: tutorialPanel,
     controlsButton,
     settingsButton: helpButton,
+    tutorialButton,
     textButton: textModeButton,
     onTextMode: activateTextMode,
     onActivePanelChange: (panel) => {
+      document.documentElement.dataset.activeHudPanel = panel ?? '';
+      if (panel === null) {
+        delete document.documentElement.dataset.activeHudPanel;
+      }
       if (panel === 'settings') {
         clearPoiDetailState();
       }
@@ -4058,6 +4081,7 @@ export function initializeImmersiveScene(
     refreshDebugCoordinatesStrings();
     refreshDebugCollidersStrings();
     updateHelpButtonLabel();
+    tutorialPanel.setStrings(getLocaleStrings(locale).hud.tutorialPanel);
     localeToggleControl?.refresh();
     syncPoiDetailOverlay();
     refreshInteractablePoiPrompt();
@@ -6309,7 +6333,7 @@ export function initializeImmersiveScene(
       hudLayoutManager.dispose();
       hudLayoutManager = null;
     }
-    window.removeEventListener('keydown', handleControlsKeydown);
+    window.removeEventListener('keydown', handleHudPanelKeydown);
     window.removeEventListener('keydown', handleKeyboardZoom);
     if (hudPanelCoordinator) {
       hudPanelCoordinator.dispose();
@@ -6317,6 +6341,8 @@ export function initializeImmersiveScene(
       document.documentElement.removeAttribute('data-hud-controls-open');
       document.documentElement.removeAttribute('data-poi-detail-visible');
     }
+    tutorialPanel.dispose();
+    document.documentElement.removeAttribute('data-active-hud-panel');
     if (responsiveControlOverlay) {
       responsiveControlOverlay.dispose();
       responsiveControlOverlay = null;

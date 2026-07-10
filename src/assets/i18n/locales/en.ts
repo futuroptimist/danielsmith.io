@@ -225,6 +225,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           keyHint: 'C',
           title: 'Open controls (C)',
         },
+        tutorial: {
+          label: 'Tutorial',
+          keyHint: 'R',
+          title: 'Open tutorial (R)',
+        },
         text: {
           label: 'Text',
           keyHint: 'T',
@@ -242,6 +247,39 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         expandAnnouncement:
           'Showing the full controls list for mobile players.',
         collapseAnnouncement: 'Hiding extra controls to keep the list compact.',
+      },
+    },
+    tutorialPanel: {
+      heading: 'Tutorial',
+      sidebarLabel: 'Tutorial steps',
+      collapseLabel: 'Collapse tutorial steps',
+      expandLabel: 'Expand tutorial steps',
+      previousLabel: 'Previous',
+      nextLabel: 'Next',
+      showOnStartupLabel: 'Show on startup',
+      showOnStartupTitle: 'Show the tutorial automatically on future visits',
+      dismissLabel: 'Dismiss',
+      dismissTitle: 'Close tutorial',
+      lockedStepLabel: 'Locked',
+      unlockedStepLabel: 'Unlocked',
+      currentStepLabel: 'Current step',
+      pages: {
+        welcomeMovement: {
+          title: 'Welcome',
+          body: 'Placeholder: movement guidance will appear here.',
+        },
+        zoom: {
+          title: 'Zoom',
+          body: 'Placeholder: zoom guidance will appear here.',
+        },
+        visitPois: {
+          title: 'Visit POIs',
+          body: 'Placeholder: POI visit guidance will appear here.',
+        },
+        findGitshelves: {
+          title: 'Find Gitshelves',
+          body: 'Placeholder: Gitshelves guidance will appear here.',
+        },
       },
     },
     movementLegend: {

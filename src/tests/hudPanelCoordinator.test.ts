@@ -2,6 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createHudPanelCoordinator } from '../ui/hud/hudPanelCoordinator';
 
+const createCoordinatorOptions = (
+  options: Parameters<typeof createHudPanelCoordinator>[0]
+) => ({
+  tutorial: createPanel(),
+  ...options,
+});
 const createPanel = () => {
   let open = false;
   return {
@@ -26,11 +32,13 @@ describe('createHudPanelCoordinator', () => {
   it('closes Settings when Controls opens', () => {
     const controls = createPanel();
     const settings = createPanel();
-    const coordinator = createHudPanelCoordinator({
-      controls,
-      settings,
-      onTextMode: vi.fn(),
-    });
+    const coordinator = createHudPanelCoordinator(
+      createCoordinatorOptions({
+        controls,
+        settings,
+        onTextMode: vi.fn(),
+      })
+    );
 
     coordinator.openSettings();
     expect(settings.isOpen()).toBe(true);
@@ -48,11 +56,13 @@ describe('createHudPanelCoordinator', () => {
   it('closes Controls when Settings opens', () => {
     const controls = createPanel();
     const settings = createPanel();
-    const coordinator = createHudPanelCoordinator({
-      controls,
-      settings,
-      onTextMode: vi.fn(),
-    });
+    const coordinator = createHudPanelCoordinator(
+      createCoordinatorOptions({
+        controls,
+        settings,
+        onTextMode: vi.fn(),
+      })
+    );
 
     coordinator.openControls();
     expect(controls.isOpen()).toBe(true);
@@ -74,12 +84,14 @@ describe('createHudPanelCoordinator', () => {
     };
     const settings = createPanel();
     const controlsButton = document.createElement('button');
-    const coordinator = createHudPanelCoordinator({
-      controls,
-      settings,
-      controlsButton,
-      onTextMode: vi.fn(),
-    });
+    const coordinator = createHudPanelCoordinator(
+      createCoordinatorOptions({
+        controls,
+        settings,
+        controlsButton,
+        onTextMode: vi.fn(),
+      })
+    );
 
     controlsButton.dispatchEvent(
       new MouseEvent('click', { bubbles: true, detail: 1 })
@@ -98,12 +110,14 @@ describe('createHudPanelCoordinator', () => {
     };
     const settings = createPanel();
     const controlsButton = document.createElement('button');
-    const coordinator = createHudPanelCoordinator({
-      controls,
-      settings,
-      controlsButton,
-      onTextMode: vi.fn(),
-    });
+    const coordinator = createHudPanelCoordinator(
+      createCoordinatorOptions({
+        controls,
+        settings,
+        controlsButton,
+        onTextMode: vi.fn(),
+      })
+    );
 
     controlsButton.click();
 
@@ -142,11 +156,13 @@ describe('createHudPanelCoordinator', () => {
     const onTextMode = vi.fn(() => {
       events.push('text');
     });
-    const coordinator = createHudPanelCoordinator({
-      controls,
-      settings,
-      onTextMode,
-    });
+    const coordinator = createHudPanelCoordinator(
+      createCoordinatorOptions({
+        controls,
+        settings,
+        onTextMode,
+      })
+    );
 
     coordinator.openControls();
     events.length = 0;
@@ -166,14 +182,16 @@ describe('createHudPanelCoordinator', () => {
     const settingsButton = document.createElement('button');
     const textButton = document.createElement('button');
     const onTextMode = vi.fn();
-    const coordinator = createHudPanelCoordinator({
-      controls,
-      settings,
-      controlsButton,
-      settingsButton,
-      textButton,
-      onTextMode,
-    });
+    const coordinator = createHudPanelCoordinator(
+      createCoordinatorOptions({
+        controls,
+        settings,
+        controlsButton,
+        settingsButton,
+        textButton,
+        onTextMode,
+      })
+    );
 
     controlsButton.click();
     expect(controls.isOpen()).toBe(true);
@@ -190,6 +208,42 @@ describe('createHudPanelCoordinator', () => {
 
     textButton.click();
     expect(onTextMode).toHaveBeenCalledTimes(1);
+
+    coordinator.dispose();
+  });
+
+  it('coordinates Tutorial as a gameplay-permissive top-level panel', () => {
+    const controls = createPanel();
+    const settings = createPanel();
+    const tutorial = createPanel();
+    const tutorialButton = document.createElement('button');
+    const coordinator = createHudPanelCoordinator({
+      controls,
+      settings,
+      tutorial,
+      tutorialButton,
+      onTextMode: vi.fn(),
+    });
+
+    coordinator.openSettings();
+    tutorialButton.click();
+
+    expect(settings.isOpen()).toBe(false);
+    expect(tutorial.isOpen()).toBe(true);
+    expect(tutorialButton.getAttribute('aria-pressed')).toBe('true');
+    expect(coordinator.getActivePanel()).toBe('tutorial');
+
+    coordinator.openControls();
+    expect(tutorial.isOpen()).toBe(false);
+    expect(controls.isOpen()).toBe(true);
+
+    coordinator.openTutorial();
+    expect(controls.isOpen()).toBe(false);
+    expect(tutorial.isOpen()).toBe(true);
+
+    coordinator.openSettings();
+    expect(tutorial.isOpen()).toBe(false);
+    expect(settings.isOpen()).toBe(true);
 
     coordinator.dispose();
   });

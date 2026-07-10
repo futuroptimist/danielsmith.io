@@ -56,6 +56,7 @@ export interface ControlOverlayStrings {
   };
   menu: {
     controls: ControlOverlayMenuItemStrings;
+    tutorial: ControlOverlayMenuItemStrings;
     text: ControlOverlayMenuItemStrings;
     settings: ControlOverlayMenuItemStrings;
   };
@@ -64,6 +65,28 @@ export interface ControlOverlayStrings {
     collapseLabel: string;
     expandAnnouncement: string;
     collapseAnnouncement: string;
+  };
+}
+
+export interface TutorialPanelStrings {
+  heading: string;
+  sidebarLabel: string;
+  collapseLabel: string;
+  expandLabel: string;
+  previousLabel: string;
+  nextLabel: string;
+  showOnStartupLabel: string;
+  showOnStartupTitle: string;
+  dismissLabel: string;
+  dismissTitle: string;
+  lockedStepLabel: string;
+  unlockedStepLabel: string;
+  currentStepLabel: string;
+  pages: {
+    welcomeMovement: { title: string; body: string };
+    zoom: { title: string; body: string };
+    visitPois: { title: string; body: string };
+    findGitshelves: { title: string; body: string };
   };
 }
 
@@ -412,6 +435,7 @@ export interface LocaleStrings {
   site: SiteStrings;
   hud: {
     controlOverlay: ControlOverlayStrings;
+    tutorialPanel: TutorialPanelStrings;
     movementLegend: MovementLegendStrings;
     audioControl: AudioHudControlStrings;
     audioSubtitles: AudioSubtitleStrings;

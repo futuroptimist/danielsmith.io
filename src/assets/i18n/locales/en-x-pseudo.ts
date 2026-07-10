@@ -216,6 +216,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
           keyHint: wrap('C'),
           title: wrap('Open controls (C)'),
         },
+        tutorial: {
+          label: wrap('Tutorial'),
+          keyHint: 'R',
+          title: wrap('Open tutorial (R)'),
+        },
         text: {
           label: wrap('Text'),
           keyHint: wrap('T'),
@@ -236,6 +241,41 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         collapseAnnouncement: wrap(
           'Hiding extra controls to keep the list compact.'
         ),
+      },
+    },
+    tutorialPanel: {
+      heading: wrap('Tutorial'),
+      sidebarLabel: wrap('Tutorial steps'),
+      collapseLabel: wrap('Collapse tutorial steps'),
+      expandLabel: wrap('Expand tutorial steps'),
+      previousLabel: wrap('Previous'),
+      nextLabel: wrap('Next'),
+      showOnStartupLabel: wrap('Show on startup'),
+      showOnStartupTitle: wrap(
+        'Show the tutorial automatically on future visits'
+      ),
+      dismissLabel: wrap('Dismiss'),
+      dismissTitle: wrap('Close tutorial'),
+      lockedStepLabel: wrap('Locked'),
+      unlockedStepLabel: wrap('Unlocked'),
+      currentStepLabel: wrap('Current step'),
+      pages: {
+        welcomeMovement: {
+          title: wrap('Welcome'),
+          body: wrap('Placeholder: movement guidance will appear here.'),
+        },
+        zoom: {
+          title: wrap('Zoom'),
+          body: wrap('Placeholder: zoom guidance will appear here.'),
+        },
+        visitPois: {
+          title: wrap('Visit POIs'),
+          body: wrap('Placeholder: POI visit guidance will appear here.'),
+        },
+        findGitshelves: {
+          title: wrap('Find Gitshelves'),
+          body: wrap('Placeholder: Gitshelves guidance will appear here.'),
+        },
       },
     },
     movementLegend: {
