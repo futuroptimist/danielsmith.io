@@ -216,6 +216,41 @@ export const AR_OVERRIDES: LocaleOverrides = {
       },
     },
 
+    tutorialPanel: {
+      heading: 'البرنامج التعليمي',
+      sidebarLabel: 'خطوات البرنامج التعليمي',
+      collapseLabel: 'طي خطوات البرنامج التعليمي',
+      expandLabel: 'توسيع خطوات البرنامج التعليمي',
+      pages: [
+        {
+          id: 'welcomeMovement',
+          title: 'مرحبًا',
+          body: 'سيظهر تقدم البرنامج التعليمي هنا. الآن، تابع استكشاف المنزل بإيقاعك.',
+        },
+        {
+          id: 'zoom',
+          title: 'التكبير',
+          body: 'ستظهر إرشادات التكبير هنا في تحديث لاحق.',
+        },
+        {
+          id: 'visitPois',
+          title: 'زيارة نقاط الاهتمام',
+          body: 'ستظهر أهداف نقاط الاهتمام هنا في تحديث لاحق.',
+        },
+        {
+          id: 'findGitshelves',
+          title: 'اعثر على Gitshelves',
+          body: 'ستظهر إرشادات Gitshelves هنا في تحديث لاحق.',
+        },
+      ],
+      navigation: { previous: 'السابق', next: 'التالي' },
+      options: { showOnStartup: 'إظهار عند بدء التشغيل', dismiss: 'إغلاق' },
+      stepStatus: {
+        locked: 'مقفل',
+        unlocked: 'مفتوح',
+        current: 'الخطوة الحالية',
+      },
+    },
     controlOverlay: {
       heading: 'عناصر التحكم',
       items: {
@@ -276,6 +311,11 @@ export const AR_OVERRIDES: LocaleOverrides = {
           label: 'النص',
           keyHint: 'T',
           title: 'التحويل إلى العرض النصي (T)',
+        },
+        tutorial: {
+          label: 'البرنامج التعليمي',
+          keyHint: 'R',
+          title: 'افتح البرنامج التعليمي (R)',
         },
         settings: {
           label: 'الإعدادات',

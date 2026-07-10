@@ -56,13 +56,13 @@
       }
 
       .overlay__menu {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         align-items: stretch;
-        justify-content: flex-end;
         gap: 0.25rem;
         padding: 0.25rem;
         border: 1px solid rgba(123, 209, 255, 0.4);
-        border-radius: 999px;
+        border-radius: 1.35rem;
         background: rgba(9, 18, 28, 0.88);
         box-shadow: 0 20px 48px rgba(3, 9, 18, 0.55);
       }
@@ -70,7 +70,9 @@
       .overlay__menu-button {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 0.35rem;
+        min-width: 0;
         min-height: 2.45rem;
         padding: 0.55rem 0.72rem;
         border: 0;
@@ -389,6 +391,18 @@
         >
           <span data-hud-menu-label="controls">Controls</span>
           <kbd class="overlay__menu-key" data-hud-menu-key="controls">C</kbd>
+        </button>
+        <button
+          class="overlay__menu-button"
+          type="button"
+          data-role="tutorial-button"
+          aria-controls="tutorial-panel"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          aria-pressed="false"
+        >
+          <span data-hud-menu-label="tutorial">Tutorial</span>
+          <kbd class="overlay__menu-key" data-hud-menu-key="tutorial">R</kbd>
         </button>
         <button
           class="overlay__menu-button"

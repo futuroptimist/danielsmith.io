@@ -138,6 +138,37 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    tutorialPanel: {
+      heading: '教程',
+      sidebarLabel: '教程步骤',
+      collapseLabel: '折叠教程步骤',
+      expandLabel: '展开教程步骤',
+      pages: [
+        {
+          id: 'welcomeMovement',
+          title: '欢迎',
+          body: '教程进度将显示在这里。现在，请按自己的节奏继续探索这座房屋。',
+        },
+        {
+          id: 'zoom',
+          title: '缩放',
+          body: '缩放指南将在后续更新中显示在这里。',
+        },
+        {
+          id: 'visitPois',
+          title: '访问兴趣点',
+          body: '兴趣点目标将在后续更新中显示在这里。',
+        },
+        {
+          id: 'findGitshelves',
+          title: '找到 Gitshelves',
+          body: 'Gitshelves 指南将在后续更新中显示在这里。',
+        },
+      ],
+      navigation: { previous: '上一步', next: '下一步' },
+      options: { showOnStartup: '启动时显示', dismiss: '关闭' },
+      stepStatus: { locked: '已锁定', unlocked: '已解锁', current: '当前步骤' },
+    },
     controlOverlay: {
       heading: '控制',
       items: {
@@ -178,6 +209,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       menu: {
         controls: { label: '控制', keyHint: 'C', title: '打开控制 (C)' },
         text: { label: '文本', keyHint: 'T', title: '切换到文本模式 (T)' },
+        tutorial: { label: '教程', keyHint: 'R', title: '打开教程 (R)' },
         settings: { label: '设置', keyHint: 'H', title: '打开设置和帮助 (H)' },
       },
       mobileToggle: {
