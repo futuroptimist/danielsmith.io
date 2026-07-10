@@ -1260,7 +1260,7 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       id: 'studio-woven-rug',
       category: 'sleeping-nook',
       roomId: 'studio',
-      position: { x: 24.4, z: 8.8 },
+      position: { x: 24.4, z: 7.45 },
       orientationRadians: 0,
       decorativeFootprint: { width: 5.4, depth: 3.6 },
       kind: 'woven-rug',

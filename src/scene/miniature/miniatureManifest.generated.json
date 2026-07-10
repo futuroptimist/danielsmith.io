@@ -409,11 +409,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 34,
-      "syncNote": "Greenery QA assertions are source-only; tabletop furnishing proxy coverage is unchanged.",
-      "sourceFingerprint": "e513b0c19288f2c8df177cab580ea6617252044a92cbf2e0d600fed66a012d42",
+      "syncRevision": 35,
+      "syncNote": "Studio rug placement removes a full-scale overlap; tabletop furnishing proxy coverage is unchanged.",
+      "sourceFingerprint": "dc9843801ca295f3454b1757ecad2700a34c8bd6165fa9c471f9eff896ab6c5a",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "7009d9e03ef23dc72075bcf9994511fdf918a8f11751b29f8903c1ca2a4e107b"
+      "metadataFingerprint": "553285491b527c93b6ab6a643405941af53d1a6796113735d195dee84b148cc1"
     },
     {
       "id": "decor:wall-paintings",
