@@ -311,8 +311,10 @@ Completion:
 - Use existing `PoiVisitedState` semantics.
 - Clicking/tapping/interacting with a POI marks it visited through the shared POI primitive.
 - Count unique visited POI ids only.
-- Counter increments from `0/3` to `3/3`.
-- At `3/3`, the counter turns bright yellow and receives a checkmark/status indicator.
+- Counter increments from `0/3` to `3/3` before the page is completed.
+- At `3/3`, the counter turns bright yellow and receives a checkmark/status indicator;
+  after completion, the rendered counter remains `3/3` even if the shared POI snapshot
+  is later reset or partially restored.
 - Do not create duplicate Tutorial-only shadow visited state if the shared visited set is
   available. Persist Tutorial page flags separately but derive the count from the shared set
   where possible.
@@ -657,9 +659,10 @@ continues while the panel is closed and repaints immediately when it is open.
   the runtime zoom range.
 - POI progress uses the shared `PoiVisitedState` subscription from
   `src/scene/poi/visitedState.ts`. The shared snapshot is authoritative for the live
-  counter, so an explicit reset or partial restore can reduce the displayed `0/3` through
-  `3/3` count. Persisted completed/unlocked Tutorial page flags remain monotonic and do
-  not regress when that shared snapshot shrinks.
+  counter until the POI page completes, so an explicit reset or partial restore can
+  reduce the displayed `0/3` through `2/3` count. Once the page has completed, the
+  visible counter stays clamped at `3/3` and persisted completed/unlocked Tutorial page
+  flags remain monotonic when that shared snapshot shrinks.
 - Gitshelves completion is keyed to the stable POI id
   `gitshelves-living-room-installation`. Its placement remains on the upper
   floor, so the localized Tutorial hint directs visitors upstairs.

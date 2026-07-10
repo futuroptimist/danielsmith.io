@@ -127,6 +127,44 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
+  it('keeps a completed POI page visually complete after a shared reset', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: {
+        ...createDefaultTutorialState(),
+        currentPageId: 'visitPois',
+        unlockedPageIds: [
+          'welcomeMovement',
+          'zoom',
+          'visitPois',
+          'findGitshelves',
+        ],
+        completedPageIds: ['welcomeMovement', 'zoom', 'visitPois'],
+        progress: {
+          ...createDefaultTutorialState().progress,
+          pois: {
+            ...createDefaultTutorialState().progress.pois,
+            visitedPoiIds: ['remaining-shared-poi'],
+          },
+        },
+      },
+    });
+
+    const counter = panel.element.querySelector(
+      '[data-testid="tutorial-poi-counter"]'
+    );
+
+    expect(counter?.textContent).toContain('3/3');
+    expect(counter?.textContent).toContain(strings.actions.checkmarkLabel);
+    expect(counter?.getAttribute('aria-label')?.toLowerCase()).toContain(
+      'complete'
+    );
+
+    panel.dispose();
+  });
+
   it('invokes the text-mode callback once', () => {
     let textModeClicks = 0;
     const panel = createTutorialPanel({

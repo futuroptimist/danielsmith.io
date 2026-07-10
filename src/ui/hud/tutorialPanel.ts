@@ -142,11 +142,14 @@ export function createTutorialPanel({
       });
       body.append(prompt, chips);
     } else if (pageId === 'visitPois') {
-      const count = Math.min(
-        progress.pois.visitedPoiIds.length,
-        progress.pois.visitedCountGoal
-      );
-      const complete = count >= progress.pois.visitedCountGoal;
+      const completedPages = new Set(currentState.completedPageIds);
+      const complete = completedPages.has('visitPois');
+      const count = complete
+        ? progress.pois.visitedCountGoal
+        : Math.min(
+            progress.pois.visitedPoiIds.length,
+            progress.pois.visitedCountGoal
+          );
       const status = complete ? actions.complete : actions.incomplete;
       body.append(
         createStatusChip({
