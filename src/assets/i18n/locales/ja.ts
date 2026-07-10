@@ -159,6 +159,39 @@ export const JA_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    tutorialPanel: {
+      heading: 'チュートリアル',
+      sidebarLabel: 'チュートリアル手順',
+      collapseLabel: '手順を折りたたむ',
+      expandLabel: '手順を展開',
+      previousLabel: '前へ',
+      nextLabel: '次へ',
+      showOnStartupLabel: '起動時に表示',
+      showOnStartupTitle: '今後の訪問でチュートリアルを自動表示',
+      dismissLabel: '閉じる',
+      dismissTitle: 'チュートリアルを閉じる',
+      lockedStepLabel: 'ロック中',
+      unlockedStepLabel: '解除済み',
+      currentStepLabel: '現在の手順',
+      pages: {
+        welcomeMovement: {
+          title: 'ようこそ',
+          body: 'プレースホルダー: 移動ガイドはここに表示されます。',
+        },
+        zoom: {
+          title: 'ズーム',
+          body: 'プレースホルダー: ズームガイドはここに表示されます。',
+        },
+        visitPois: {
+          title: 'POI を訪問',
+          body: 'プレースホルダー: POI 訪問ガイドはここに表示されます。',
+        },
+        findGitshelves: {
+          title: 'Gitshelves を探す',
+          body: 'プレースホルダー: Gitshelves ガイドはここに表示されます。',
+        },
+      },
+    },
     graphicsQuality: {
       title: 'グラフィック品質',
       description: 'デバイス性能に合わせてプリセットを選びます。',
@@ -274,6 +307,11 @@ export const JA_OVERRIDES: LocaleOverrides = {
           label: '操作',
           keyHint: 'C',
           title: '操作を開く (C)',
+        },
+        tutorial: {
+          label: 'チュートリアル',
+          keyHint: 'R',
+          title: 'チュートリアルを開く (R)',
         },
         text: {
           label: 'テキスト',

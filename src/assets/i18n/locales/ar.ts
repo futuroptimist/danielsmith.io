@@ -158,6 +158,39 @@ export const AR_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    tutorialPanel: {
+      heading: 'الدرس',
+      sidebarLabel: 'خطوات الدرس',
+      collapseLabel: 'طي خطوات الدرس',
+      expandLabel: 'توسيع خطوات الدرس',
+      previousLabel: 'السابق',
+      nextLabel: 'التالي',
+      showOnStartupLabel: 'إظهار عند البدء',
+      showOnStartupTitle: 'إظهار الدرس تلقائياً في الزيارات القادمة',
+      dismissLabel: 'إغلاق',
+      dismissTitle: 'إغلاق الدرس',
+      lockedStepLabel: 'مقفل',
+      unlockedStepLabel: 'مفتوح',
+      currentStepLabel: 'الخطوة الحالية',
+      pages: {
+        welcomeMovement: {
+          title: 'مرحباً',
+          body: 'عنصر نائب: ستظهر إرشادات الحركة هنا.',
+        },
+        zoom: {
+          title: 'التكبير',
+          body: 'عنصر نائب: ستظهر إرشادات التكبير هنا.',
+        },
+        visitPois: {
+          title: 'زيارة نقاط الاهتمام',
+          body: 'عنصر نائب: ستظهر إرشادات الزيارة هنا.',
+        },
+        findGitshelves: {
+          title: 'العثور على Gitshelves',
+          body: 'عنصر نائب: ستظهر إرشادات Gitshelves هنا.',
+        },
+      },
+    },
     graphicsQuality: {
       title: 'جودة الرسوميات',
       description: 'اختر إعدادًا يناسب أداء جهازك.',
@@ -272,6 +305,7 @@ export const AR_OVERRIDES: LocaleOverrides = {
           keyHint: 'C',
           title: 'فتح عناصر التحكم (C)',
         },
+        tutorial: { label: 'الدرس', keyHint: 'R', title: 'فتح الدرس (R)' },
         text: {
           label: 'النص',
           keyHint: 'T',

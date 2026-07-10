@@ -138,6 +138,36 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    tutorialPanel: {
+      heading: '教程',
+      sidebarLabel: '教程步骤',
+      collapseLabel: '折叠教程步骤',
+      expandLabel: '展开教程步骤',
+      previousLabel: '上一步',
+      nextLabel: '下一步',
+      showOnStartupLabel: '启动时显示',
+      showOnStartupTitle: '以后访问时自动显示教程',
+      dismissLabel: '关闭',
+      dismissTitle: '关闭教程',
+      lockedStepLabel: '已锁定',
+      unlockedStepLabel: '已解锁',
+      currentStepLabel: '当前步骤',
+      pages: {
+        welcomeMovement: {
+          title: '欢迎',
+          body: '占位：移动指引将显示在这里。',
+        },
+        zoom: { title: '缩放', body: '占位：缩放指引将显示在这里。' },
+        visitPois: {
+          title: '访问兴趣点',
+          body: '占位：兴趣点访问指引将显示在这里。',
+        },
+        findGitshelves: {
+          title: '找到 Gitshelves',
+          body: '占位：Gitshelves 指引将显示在这里。',
+        },
+      },
+    },
     controlOverlay: {
       heading: '控制',
       items: {
@@ -177,6 +207,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       menu: {
         controls: { label: '控制', keyHint: 'C', title: '打开控制 (C)' },
+        tutorial: { label: '教程', keyHint: 'R', title: '打开教程 (R)' },
         text: { label: '文本', keyHint: 'T', title: '切换到文本模式 (T)' },
         settings: { label: '设置', keyHint: 'H', title: '打开设置和帮助 (H)' },
       },

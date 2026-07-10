@@ -327,6 +327,134 @@ const localizedTemplates: Record<
   },
 };
 
+const buildLatinTutorialPanel = (locale: LatinLocale) => {
+  const copies = {
+    es: {
+      heading: 'Tutorial',
+      sidebarLabel: 'Pasos del tutorial',
+      collapseLabel: 'Contraer pasos del tutorial',
+      expandLabel: 'Expandir pasos del tutorial',
+      previousLabel: 'Anterior',
+      nextLabel: 'Siguiente',
+      showOnStartupLabel: 'Mostrar al inicio',
+      showOnStartupTitle:
+        'Mostrar el tutorial automáticamente en futuras visitas',
+      dismissLabel: 'Descartar',
+      dismissTitle: 'Cerrar tutorial',
+      lockedStepLabel: 'Bloqueado',
+      unlockedStepLabel: 'Desbloqueado',
+      currentStepLabel: 'Paso actual',
+      welcomeTitle: 'Bienvenida',
+      welcomeBody: 'Marcador: la guía de movimiento aparecerá aquí.',
+      zoomTitle: 'Zoom',
+      zoomBody: 'Marcador: la guía de zoom aparecerá aquí.',
+      visitTitle: 'Visitar POI',
+      visitBody: 'Marcador: la guía de visitas POI aparecerá aquí.',
+      gitshelvesTitle: 'Encontrar Gitshelves',
+      gitshelvesBody: 'Marcador: la guía de Gitshelves aparecerá aquí.',
+    },
+    pt: {
+      heading: 'Tutorial',
+      sidebarLabel: 'Etapas do tutorial',
+      collapseLabel: 'Recolher etapas do tutorial',
+      expandLabel: 'Expandir etapas do tutorial',
+      previousLabel: 'Anterior',
+      nextLabel: 'Próximo',
+      showOnStartupLabel: 'Mostrar ao iniciar',
+      showOnStartupTitle:
+        'Mostrar o tutorial automaticamente em visitas futuras',
+      dismissLabel: 'Dispensar',
+      dismissTitle: 'Fechar tutorial',
+      lockedStepLabel: 'Bloqueado',
+      unlockedStepLabel: 'Desbloqueado',
+      currentStepLabel: 'Etapa atual',
+      welcomeTitle: 'Boas-vindas',
+      welcomeBody:
+        'Espaço reservado: a orientação de movimento aparecerá aqui.',
+      zoomTitle: 'Zoom',
+      zoomBody: 'Espaço reservado: a orientação de zoom aparecerá aqui.',
+      visitTitle: 'Visitar POIs',
+      visitBody:
+        'Espaço reservado: a orientação de visita a POIs aparecerá aqui.',
+      gitshelvesTitle: 'Encontrar Gitshelves',
+      gitshelvesBody:
+        'Espaço reservado: a orientação do Gitshelves aparecerá aqui.',
+    },
+    de: {
+      heading: 'Tutorial',
+      sidebarLabel: 'Tutorial-Schritte',
+      collapseLabel: 'Tutorial-Schritte einklappen',
+      expandLabel: 'Tutorial-Schritte ausklappen',
+      previousLabel: 'Zurück',
+      nextLabel: 'Weiter',
+      showOnStartupLabel: 'Beim Start anzeigen',
+      showOnStartupTitle:
+        'Tutorial bei künftigen Besuchen automatisch anzeigen',
+      dismissLabel: 'Schließen',
+      dismissTitle: 'Tutorial schließen',
+      lockedStepLabel: 'Gesperrt',
+      unlockedStepLabel: 'Entsperrt',
+      currentStepLabel: 'Aktueller Schritt',
+      welcomeTitle: 'Willkommen',
+      welcomeBody: 'Platzhalter: Bewegungsanleitung erscheint hier.',
+      zoomTitle: 'Zoom',
+      zoomBody: 'Platzhalter: Zoom-Anleitung erscheint hier.',
+      visitTitle: 'POIs besuchen',
+      visitBody: 'Platzhalter: POI-Anleitung erscheint hier.',
+      gitshelvesTitle: 'Gitshelves finden',
+      gitshelvesBody: 'Platzhalter: Gitshelves-Anleitung erscheint hier.',
+    },
+    hu: {
+      heading: 'Oktatóanyag',
+      sidebarLabel: 'Oktatóanyag lépései',
+      collapseLabel: 'Lépések összecsukása',
+      expandLabel: 'Lépések kibontása',
+      previousLabel: 'Előző',
+      nextLabel: 'Következő',
+      showOnStartupLabel: 'Megjelenítés indításkor',
+      showOnStartupTitle:
+        'Az oktatóanyag automatikus megjelenítése későbbi látogatásokkor',
+      dismissLabel: 'Elvetés',
+      dismissTitle: 'Oktatóanyag bezárása',
+      lockedStepLabel: 'Zárolva',
+      unlockedStepLabel: 'Feloldva',
+      currentStepLabel: 'Aktuális lépés',
+      welcomeTitle: 'Üdvözlet',
+      welcomeBody: 'Helyőrző: a mozgási útmutató itt jelenik meg.',
+      zoomTitle: 'Nagyítás',
+      zoomBody: 'Helyőrző: a nagyítási útmutató itt jelenik meg.',
+      visitTitle: 'POI-k felkeresése',
+      visitBody: 'Helyőrző: a POI-útmutató itt jelenik meg.',
+      gitshelvesTitle: 'Gitshelves megkeresése',
+      gitshelvesBody: 'Helyőrző: a Gitshelves útmutató itt jelenik meg.',
+    },
+  }[locale];
+  return {
+    heading: copies.heading,
+    sidebarLabel: copies.sidebarLabel,
+    collapseLabel: copies.collapseLabel,
+    expandLabel: copies.expandLabel,
+    previousLabel: copies.previousLabel,
+    nextLabel: copies.nextLabel,
+    showOnStartupLabel: copies.showOnStartupLabel,
+    showOnStartupTitle: copies.showOnStartupTitle,
+    dismissLabel: copies.dismissLabel,
+    dismissTitle: copies.dismissTitle,
+    lockedStepLabel: copies.lockedStepLabel,
+    unlockedStepLabel: copies.unlockedStepLabel,
+    currentStepLabel: copies.currentStepLabel,
+    pages: {
+      welcomeMovement: { title: copies.welcomeTitle, body: copies.welcomeBody },
+      zoom: { title: copies.zoomTitle, body: copies.zoomBody },
+      visitPois: { title: copies.visitTitle, body: copies.visitBody },
+      findGitshelves: {
+        title: copies.gitshelvesTitle,
+        body: copies.gitshelvesBody,
+      },
+    },
+  };
+};
+
 const settingsCopies = {
   es: {
     graphicsTitle: 'Calidad gráfica',
@@ -897,6 +1025,18 @@ export function buildLatinLocaleOverrides(
             label: s.controls,
             title: templates.controlsTitle,
           },
+          tutorial: {
+            label: copy.locale === 'hu' ? 'Oktatóanyag' : 'Tutorial',
+            keyHint: 'R',
+            title:
+              copy.locale === 'de'
+                ? 'Tutorial öffnen (R)'
+                : copy.locale === 'hu'
+                  ? 'Oktatóanyag megnyitása (R)'
+                  : copy.locale === 'pt'
+                    ? 'Abrir tutorial (R)'
+                    : 'Abrir tutorial (R)',
+          },
           text: {
             label:
               copy.locale === 'de'
@@ -909,6 +1049,7 @@ export function buildLatinLocaleOverrides(
           settings: { label: s.settingsHelp, title: s.settingsHelp },
         },
       },
+      tutorialPanel: buildLatinTutorialPanel(copy.locale),
       audioSubtitles: {
         labels: {
           ambient: s.audioSubtitleAmbientLabel,

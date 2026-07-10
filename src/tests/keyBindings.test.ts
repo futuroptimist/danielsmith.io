@@ -15,6 +15,7 @@ describe('KeyBindings', () => {
       DEFAULT_KEY_BINDINGS.moveForward
     );
     expect(keyBindings.getBindings('toggleControls')).toEqual(['c']);
+    expect(keyBindings.getBindings('toggleTutorial')).toEqual(['r']);
     expect(formatKeyLabel(keyBindings.getPrimaryBinding('help'))).toBe('H');
 
     expect(
@@ -43,5 +44,13 @@ describe('KeyBindings', () => {
         })
       )
     ).toBe(1);
+  });
+
+  it('does not assign R to any action except Tutorial by default', () => {
+    const matches = Object.entries(DEFAULT_KEY_BINDINGS)
+      .filter(([, bindings]) => bindings.includes('r'))
+      .map(([action]) => action);
+
+    expect(matches).toEqual(['toggleTutorial']);
   });
 });
