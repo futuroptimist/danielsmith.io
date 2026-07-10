@@ -16,6 +16,7 @@ import type {
   ControlOverlayStrings,
   DeepPartial,
   HelpModalStrings,
+  TutorialPanelStrings,
   Locale,
   LocaleInput,
   LocaleOverrides,
@@ -373,6 +374,12 @@ export function getControlOverlayStrings(
 
 export function getHelpModalStrings(input?: LocaleInput): HelpModalStrings {
   return getLocaleStrings(input).hud.helpModal;
+}
+
+export function getTutorialPanelStrings(
+  input?: LocaleInput
+): TutorialPanelStrings {
+  return getLocaleStrings(input).hud.tutorialPanel;
 }
 
 export function getMovementLegendStrings(

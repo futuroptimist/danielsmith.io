@@ -275,6 +275,11 @@ export const JA_OVERRIDES: LocaleOverrides = {
           keyHint: 'C',
           title: '操作を開く (C)',
         },
+        tutorial: {
+          label: 'チュートリアル',
+          keyHint: 'R',
+          title: 'チュートリアルを開く (R)',
+        },
         text: {
           label: 'テキスト',
           keyHint: 'T',
@@ -430,6 +435,39 @@ export const JA_OVERRIDES: LocaleOverrides = {
       textModeLabel: '非没入モードを使う',
       announcement:
         '低いフレームレートを検出しました。復旧アクションを選べます。',
+    },
+    tutorialPanel: {
+      heading: 'チュートリアル',
+      sidebarLabel: 'チュートリアル手順',
+      collapseLabel: '手順を折りたたむ',
+      expandLabel: '手順を展開',
+      previousLabel: '前へ',
+      nextLabel: '次へ',
+      showOnStartupLabel: '起動時に表示',
+      showOnStartupTitle: '没入モードの開始時にチュートリアルを表示',
+      dismissLabel: '閉じる',
+      dismissTitle: '今はチュートリアルを閉じる',
+      lockedStepLabel: 'ロック中',
+      unlockedStepLabel: '解除済み',
+      activeStepLabel: '現在のステップ',
+      pages: {
+        welcomeMovement: {
+          title: 'ようこそ',
+          body: 'チュートリアルの進行はまもなく追加されます。最初のステップではポートフォリオ内の移動を紹介します。',
+        },
+        zoom: {
+          title: 'ズーム',
+          body: 'このプレースホルダーは、シーンを操作できるままズーム操作を説明します。',
+        },
+        visitPois: {
+          title: 'POI を訪問',
+          body: 'このプレースホルダーは、3 つのプロジェクト POI への訪問を追跡します。',
+        },
+        findGitshelves: {
+          title: 'Gitshelves を探す',
+          body: 'このプレースホルダーは、Gitshelves の展示へ案内します。',
+        },
+      },
     },
     helpModal: {
       heading: '設定とヘルプ',

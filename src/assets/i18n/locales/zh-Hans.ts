@@ -177,6 +177,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       menu: {
         controls: { label: '控制', keyHint: 'C', title: '打开控制 (C)' },
+        tutorial: { label: '教程', keyHint: 'R', title: '打开教程 (R)' },
         text: { label: '文本', keyHint: 'T', title: '切换到文本模式 (T)' },
         settings: { label: '设置', keyHint: 'H', title: '打开设置和帮助 (H)' },
       },
@@ -422,6 +423,39 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
       discoveryAnnouncementTemplate: '已发现 {title}。{summary}',
+    },
+    tutorialPanel: {
+      heading: '教程',
+      sidebarLabel: '教程步骤',
+      collapseLabel: '收起教程步骤',
+      expandLabel: '展开教程步骤',
+      previousLabel: '上一步',
+      nextLabel: '下一步',
+      showOnStartupLabel: '启动时显示',
+      showOnStartupTitle: '进入沉浸模式时显示教程',
+      dismissLabel: '暂时关闭',
+      dismissTitle: '暂时关闭教程',
+      lockedStepLabel: '已锁定',
+      unlockedStepLabel: '已解锁',
+      activeStepLabel: '当前步骤',
+      pages: {
+        welcomeMovement: {
+          title: '欢迎',
+          body: '教程进度即将推出。第一步会介绍如何在作品集内移动。',
+        },
+        zoom: {
+          title: '缩放',
+          body: '此占位内容会介绍缩放控制，同时保持场景可玩。',
+        },
+        visitPois: {
+          title: '访问 POI',
+          body: '此占位内容会跟踪三个项目兴趣点的访问。',
+        },
+        findGitshelves: {
+          title: '找到 Gitshelves',
+          body: '此占位内容会引导访客前往 Gitshelves 展品。',
+        },
+      },
     },
     helpModal: {
       heading: '设置与帮助',

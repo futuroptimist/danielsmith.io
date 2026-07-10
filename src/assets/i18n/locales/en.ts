@@ -225,6 +225,11 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           keyHint: 'C',
           title: 'Open controls (C)',
         },
+        tutorial: {
+          label: 'Tutorial',
+          keyHint: 'R',
+          title: 'Open tutorial (R)',
+        },
         text: {
           label: 'Text',
           keyHint: 'T',
@@ -524,6 +529,40 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
       discoveryAnnouncementTemplate: '{title} discovered. {summary}',
+    },
+
+    tutorialPanel: {
+      heading: 'Tutorial',
+      sidebarLabel: 'Tutorial steps',
+      collapseLabel: 'Collapse tutorial steps',
+      expandLabel: 'Expand tutorial steps',
+      previousLabel: 'Previous',
+      nextLabel: 'Next',
+      showOnStartupLabel: 'Show on startup',
+      showOnStartupTitle: 'Show the tutorial when immersive mode starts',
+      dismissLabel: 'Dismiss',
+      dismissTitle: 'Close the tutorial for now',
+      lockedStepLabel: 'Locked',
+      unlockedStepLabel: 'Unlocked',
+      activeStepLabel: 'Current step',
+      pages: {
+        welcomeMovement: {
+          title: 'Welcome',
+          body: 'Tutorial progress arrives soon. This first step will introduce movement through the portfolio.',
+        },
+        zoom: {
+          title: 'Zoom',
+          body: 'This placeholder will teach zoom controls while keeping the scene playable.',
+        },
+        visitPois: {
+          title: 'Visit POIs',
+          body: 'This placeholder will track visits to three project points of interest.',
+        },
+        findGitshelves: {
+          title: 'Find Gitshelves',
+          body: 'This placeholder will guide visitors to the Gitshelves exhibit.',
+        },
+      },
     },
     helpModal: {
       heading: 'Settings & Help',

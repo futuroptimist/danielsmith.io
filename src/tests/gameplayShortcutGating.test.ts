@@ -6,8 +6,9 @@ const keyboardEvent = (options: KeyboardEventInit = {}) =>
   new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...options });
 
 describe('canHandleGameplayShortcut', () => {
-  it('allows gameplay shortcuts when Controls is open', () => {
+  it('allows gameplay shortcuts when Controls or Tutorial is open', () => {
     expect(canHandleGameplayShortcut(keyboardEvent(), 'controls')).toBe(true);
+    expect(canHandleGameplayShortcut(keyboardEvent(), 'tutorial')).toBe(true);
   });
 
   it('blocks gameplay shortcuts when Settings is open', () => {

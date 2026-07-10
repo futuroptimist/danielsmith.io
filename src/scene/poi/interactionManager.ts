@@ -352,7 +352,10 @@ export class PoiInteractionManager {
 
     const activeElement = (this.domElement.ownerDocument ?? document)
       .activeElement;
-    const hasHudFocus = activeElement?.id === 'control-overlay';
+    const hasHudFocus =
+      activeElement instanceof HTMLElement &&
+      (activeElement.id === 'control-overlay' ||
+        activeElement.closest('[data-role="tutorial-panel"]') !== null);
     if (
       activeElement &&
       activeElement !== this.domElement &&

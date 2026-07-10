@@ -216,6 +216,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
           keyHint: wrap('C'),
           title: wrap('Open controls (C)'),
         },
+        tutorial: {
+          label: wrap('Tutorial'),
+          keyHint: wrap('R'),
+          title: wrap('Open tutorial (R)'),
+        },
         text: {
           label: wrap('Text'),
           keyHint: wrap('T'),
@@ -539,6 +544,47 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       debugPoiAnchor: wrap('POI anchor'),
       debugModelTriangles: wrap('Model triangles'),
       discoveryAnnouncementTemplate: wrap('{title} discovered. {summary}'),
+    },
+    tutorialPanel: {
+      heading: wrap('Tutorial'),
+      sidebarLabel: wrap('Tutorial steps'),
+      collapseLabel: wrap('Collapse tutorial steps'),
+      expandLabel: wrap('Expand tutorial steps'),
+      previousLabel: wrap('Previous'),
+      nextLabel: wrap('Next'),
+      showOnStartupLabel: wrap('Show on startup'),
+      showOnStartupTitle: wrap('Show the tutorial when immersive mode starts'),
+      dismissLabel: wrap('Dismiss'),
+      dismissTitle: wrap('Close the tutorial for now'),
+      lockedStepLabel: wrap('Locked'),
+      unlockedStepLabel: wrap('Unlocked'),
+      activeStepLabel: wrap('Current step'),
+      pages: {
+        welcomeMovement: {
+          title: wrap('Welcome'),
+          body: wrap(
+            'Tutorial progress arrives soon. This first step will introduce movement through the portfolio.'
+          ),
+        },
+        zoom: {
+          title: wrap('Zoom'),
+          body: wrap(
+            'This placeholder will teach zoom controls while keeping the scene playable.'
+          ),
+        },
+        visitPois: {
+          title: wrap('Visit POIs'),
+          body: wrap(
+            'This placeholder will track visits to three project points of interest.'
+          ),
+        },
+        findGitshelves: {
+          title: wrap('Find Gitshelves'),
+          body: wrap(
+            'This placeholder will guide visitors to the Gitshelves exhibit.'
+          ),
+        },
+      },
     },
     helpModal: {
       heading: wrap('Settings & Help'),
