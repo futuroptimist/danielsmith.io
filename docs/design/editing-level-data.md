@@ -381,3 +381,17 @@ bounds through the narrow production fixture helpers in
 `src/tests/helpers/productionLevelFixtures.ts`. Request the semantic floor and
 room IDs needed by the test, and keep exact geometry literals limited to small
 synthetic fixtures where the generator output itself is under test.
+
+## Avoid horizontal z-fighting
+
+Horizontal floor, landing, platform, rug, and decorative rectangle top faces should
+not occupy the same floor at the same elevation with overlapping X/Z bounds. If a
+new decorative overlay is meant to sit on another horizontal surface, give it a
+small, deliberate height or elevation separation and document the source IDs and
+safe rendering strategy in the z-fighting audit allowlist instead of relying on
+broad `renderOrder`, `polygonOffset`, or global depth-state changes.
+
+Use the production z-fighting regression tests when editing rugs, floor surfaces,
+stair landings, or decorative horizontal rectangles. A failure should list the
+conflicting source IDs and overlap bounds so the source geometry can be split,
+clipped, moved to meet at an edge, or intentionally raised by a named offset.
