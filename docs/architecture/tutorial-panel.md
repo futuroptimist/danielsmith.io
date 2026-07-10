@@ -124,8 +124,8 @@ show-on-startup preference only when that preference changes. Dismiss closes the
 panel instance for the active page load only; it does not alter either storage key.
 
 Gameplay action tracking is intentionally not implemented in the current state plumbing.
-The progress object includes movement, zoom, POI, and Gitshelves placeholder fields so
-future runtime adapters can update a stable schema without changing storage keys.
+The progress object includes movement, zoom, POI, and Gitshelves fields so
+runtime adapters can update a stable schema without changing storage keys.
 
 ## Universal HUD menu architecture
 
@@ -628,3 +628,35 @@ Future implementation is ready when:
 - No runtime Tutorial implementation lands before this design-only document is reviewed.
 - Localization and z-fighting guardrails remain at least as strict as they are today.
 - `docs/assets/game-launch.png` remains untouched.
+
+## Implemented action tracking contracts
+
+Tutorial progress is now updated by the pure reducers in
+`src/systems/tutorial/tutorialState.ts` and persisted by
+`src/systems/tutorial/tutorialController.ts` only when the serialized progress
+changes. The DOM panel renders the state it receives; it does not own gameplay
+truth.
+
+- Movement tracking uses `recordMovementProgress(state, snapshot)`. The immersive
+  scene passes the combined keyboard, arrow-key, and virtual-joystick movement
+  components before camera-relative conversion plus frame delta and the collision
+  result for the movement step. A direction counts only when its canonical WASD
+  component is above the tutorial deadzone and the player actually moved. Each
+  direction completes after 0.25 seconds. Diagonals can count both active axes.
+- Zoom tracking uses `recordZoomProgress(state, snapshot)`. The snapshot contains
+  the active camera zoom, zoom target, and runtime min/max bounds from the scene.
+  A zoom direction completes at 99% of the range toward that bound, using either
+  the current zoom or target so wheel, pinch, and keyboard zoom all share one
+  contract.
+- POI progress uses the shared `PoiVisitedState` primitive in
+  `src/scene/poi/visitedState.ts`. The tutorial subscribes to that state and
+  stores the current unique visited-id snapshot as derived progress. It does not
+  maintain a separate shadow visited source of truth.
+- Gitshelves completion uses the stable POI id
+  `gitshelves-living-room-installation`. The current placement is in the upper
+  focus-pods room, so the localized hint can safely tell visitors to check
+  upstairs.
+
+The first page includes the same Text mode action callback used by the HUD Text
+menu, keeping fallback behavior and preference writes centralized in immersive
+scene startup.

@@ -28,6 +28,7 @@ export function createTutorialPanel({
   onPrevious,
   onNext,
   onToggleShowOnStartup,
+  onTextMode,
 }: {
   container: HTMLElement;
   strings: TutorialPanelStrings;
@@ -39,6 +40,7 @@ export function createTutorialPanel({
   onPrevious?: () => void;
   onNext?: () => void;
   onToggleShowOnStartup?: (value: boolean) => void;
+  onTextMode?: () => void;
 }): TutorialPanelHandle {
   let currentStrings = strings;
   let open = false;
@@ -143,6 +145,119 @@ export function createTutorialPanel({
       currentStrings.pages[currentState.currentPageId].body;
     element.setAttribute('aria-describedby', pageBody.id);
     body.append(pageHeading, pageBody);
+
+    const chipRow = document.createElement('div');
+    chipRow.className = 'tutorial-panel__chips';
+    const addChip = (
+      label: string,
+      complete: boolean,
+      ariaLabel: string,
+      testId: string
+    ) => {
+      const chip = document.createElement('span');
+      chip.className = 'tutorial-panel__chip';
+      chip.classList.toggle('tutorial-panel__chip--complete', complete);
+      chip.dataset.testid = testId;
+      chip.setAttribute('role', 'status');
+      chip.setAttribute('aria-label', ariaLabel);
+      chip.textContent = complete
+        ? `${label} ✓ ${currentStrings.status.complete}`
+        : `${label} · ${currentStrings.status.incomplete}`;
+      return chip;
+    };
+    const statusLabel = (complete: boolean) =>
+      complete
+        ? currentStrings.status.complete
+        : currentStrings.status.incomplete;
+    if (currentState.currentPageId === 'welcomeMovement') {
+      const movement = currentState.progress.movement;
+      const directionOrder = ['forward', 'left', 'backward', 'right'] as const;
+      directionOrder.forEach((direction) => {
+        const complete = movement[`${direction}Complete`];
+        chipRow.append(
+          addChip(
+            currentStrings.movement.chips[direction],
+            complete,
+            currentStrings.movement.chipAriaLabelTemplate
+              .replace('{direction}', currentStrings.movement.chips[direction])
+              .replace('{status}', statusLabel(complete)),
+            `tutorial-movement-${direction}`
+          )
+        );
+      });
+      const textButton = document.createElement('button');
+      textButton.type = 'button';
+      textButton.className =
+        'control-overlay__menu-button tutorial-panel__text-mode-button';
+      textButton.dataset.testid = 'tutorial-text-mode';
+      textButton.textContent = currentStrings.textOnlyButton.label;
+      textButton.title = currentStrings.textOnlyButton.title;
+      textButton.setAttribute(
+        'aria-label',
+        currentStrings.textOnlyButton.ariaLabel
+      );
+      textButton.addEventListener('click', () => onTextMode?.());
+      body.append(chipRow, textButton);
+    } else if (currentState.currentPageId === 'zoom') {
+      const zoom = currentState.progress.zoom;
+      const chips = [
+        [currentStrings.zoomProgress.inLabel, zoom.zoomInComplete, 'in'],
+        [currentStrings.zoomProgress.outLabel, zoom.zoomOutComplete, 'out'],
+      ] as const;
+      chips.forEach(([label, complete, id]) => {
+        chipRow.append(
+          addChip(
+            label,
+            complete,
+            currentStrings.zoomProgress.chipAriaLabelTemplate
+              .replace('{direction}', label)
+              .replace('{status}', statusLabel(complete)),
+            `tutorial-zoom-${id}`
+          )
+        );
+      });
+      body.append(chipRow);
+    } else if (currentState.currentPageId === 'visitPois') {
+      const count = Math.min(
+        currentState.progress.pois.visitedPoiIds.length,
+        currentState.progress.pois.visitedCountGoal
+      );
+      const complete = count >= currentState.progress.pois.visitedCountGoal;
+      chipRow.append(
+        addChip(
+          currentStrings.poiProgress.counterTemplate
+            .replace('{count}', String(count))
+            .replace(
+              '{goal}',
+              String(currentState.progress.pois.visitedCountGoal)
+            ),
+          complete,
+          currentStrings.poiProgress.counterAriaLabelTemplate
+            .replace('{count}', String(count))
+            .replace(
+              '{goal}',
+              String(currentState.progress.pois.visitedCountGoal)
+            )
+            .replace('{status}', statusLabel(complete)),
+          'tutorial-poi-counter'
+        )
+      );
+      body.append(chipRow);
+    } else if (currentState.currentPageId === 'findGitshelves') {
+      const complete = currentState.progress.gitshelves.completed;
+      chipRow.append(
+        addChip(
+          currentStrings.gitshelvesProgress.label,
+          complete,
+          currentStrings.gitshelvesProgress.ariaLabelTemplate.replace(
+            '{status}',
+            statusLabel(complete)
+          ),
+          'tutorial-gitshelves-status'
+        )
+      );
+      body.append(chipRow);
+    }
 
     const nav = document.createElement('div');
     nav.className = 'tutorial-panel__nav';

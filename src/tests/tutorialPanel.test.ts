@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { getTutorialPanelStrings } from '../assets/i18n';
 import {
+  GITSHELVES_POI_ID,
   createDefaultTutorialState,
+  recordMovementProgress,
+  recordVisitedPois,
+  recordZoomProgress,
   unlockTutorialPage,
 } from '../systems/tutorial/tutorialState';
 import { createTutorialPanel } from '../ui/hud/tutorialPanel';
@@ -147,6 +151,75 @@ describe('createTutorialPanel', () => {
     expect(panel.isOpen()).toBe(false);
     expect(panel.element.hidden).toBe(true);
 
+    panel.dispose();
+  });
+});
+
+describe('createTutorialPanel action content', () => {
+  it('renders final movement copy, chips, and text-mode callback', () => {
+    let textModeClicks = 0;
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
+      onTextMode: () => {
+        textModeClicks += 1;
+      },
+    });
+    expect(panel.element.textContent).toContain(
+      'Welcome to the immersive portfolio'
+    );
+    expect(
+      panel.element.querySelectorAll('[data-testid^="tutorial-movement-"]')
+    ).toHaveLength(4);
+    panel.element
+      .querySelector<HTMLButtonElement>('[data-testid="tutorial-text-mode"]')
+      ?.click();
+    expect(textModeClicks).toBe(1);
+    panel.dispose();
+  });
+
+  it('renders completed chips, POI counter, and Gitshelves status', () => {
+    let state = recordMovementProgress(createDefaultTutorialState(), {
+      right: 1,
+      forward: 1,
+      deltaSeconds: 0.25,
+      moved: true,
+    });
+    state = recordMovementProgress(state, {
+      right: -1,
+      forward: -1,
+      deltaSeconds: 0.25,
+      moved: true,
+    });
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      state,
+    });
+    expect(panel.element.textContent).toContain('✓');
+    panel.setState({
+      ...recordZoomProgress(state, {
+        currentZoom: 12,
+        minZoom: 0.65,
+        maxZoom: 12,
+      }),
+      currentPageId: 'zoom',
+    });
+    expect(
+      panel.element.querySelectorAll('[data-testid^="tutorial-zoom-"]')
+    ).toHaveLength(2);
+    const poiState = {
+      ...recordVisitedPois(state, ['a', 'b']),
+      currentPageId: 'visitPois',
+    };
+    panel.setState(poiState);
+    expect(panel.element.textContent).toContain('2/3 POIs visited');
+    panel.setState({
+      ...recordVisitedPois(poiState, ['a', 'b', 'c', GITSHELVES_POI_ID]),
+      currentPageId: 'findGitshelves',
+    });
+    expect(panel.element.textContent).toContain('Gitshelves visited');
     panel.dispose();
   });
 });

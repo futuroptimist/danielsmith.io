@@ -36,6 +36,12 @@ export interface TutorialPanelStepStrings {
   body: string;
 }
 
+export interface TutorialStatusStrings {
+  complete: string;
+  incomplete: string;
+  checkmark: string;
+}
+
 export interface TutorialPanelStrings {
   heading: string;
   sidebarLabel: string;
@@ -51,6 +57,25 @@ export interface TutorialPanelStrings {
   unlockedStepLabel: string;
   activeStepLabel: string;
   completedStepLabel: string;
+  textOnlyButton: { label: string; title: string; ariaLabel: string };
+  status: TutorialStatusStrings;
+  movement: {
+    chips: Record<'forward' | 'left' | 'backward' | 'right', string>;
+    chipAriaLabelTemplate: string;
+  };
+  zoomProgress: {
+    inLabel: string;
+    outLabel: string;
+    chipAriaLabelTemplate: string;
+  };
+  poiProgress: {
+    counterTemplate: string;
+    counterAriaLabelTemplate: string;
+  };
+  gitshelvesProgress: {
+    label: string;
+    ariaLabelTemplate: string;
+  };
   pages: {
     welcomeMovement: TutorialPanelStepStrings;
     zoom: TutorialPanelStepStrings;

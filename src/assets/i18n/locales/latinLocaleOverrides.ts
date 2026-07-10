@@ -1036,6 +1036,66 @@ export function buildLatinLocaleOverrides(
               : copy.locale === 'pt'
                 ? 'Concluído'
                 : 'Completado',
+        textOnlyButton: {
+          label:
+            copy.locale === 'hu'
+              ? 'Váltás csak szöveges verzióra'
+              : copy.locale === 'de'
+                ? 'Zur Textversion wechseln'
+                : copy.locale === 'pt'
+                  ? 'Alternar para versão somente texto'
+                  : 'Cambiar a versión de solo texto',
+          title: s.textMode,
+          ariaLabel:
+            copy.locale === 'hu'
+              ? 'Váltás a csak szöveges portfólióverzióra'
+              : copy.locale === 'de'
+                ? 'Zur reinen Textversion des Portfolios wechseln'
+                : copy.locale === 'pt'
+                  ? 'Alternar para a versão somente texto do portfólio'
+                  : 'Cambiar a la versión de portafolio de solo texto',
+        },
+        status: {
+          complete:
+            copy.locale === 'hu'
+              ? 'Kész'
+              : copy.locale === 'de'
+                ? 'Fertig'
+                : 'Completo',
+          incomplete:
+            copy.locale === 'hu'
+              ? 'Nincs kész'
+              : copy.locale === 'de'
+                ? 'Unvollständig'
+                : copy.locale === 'pt'
+                  ? 'Incompleto'
+                  : 'Incompleto',
+          checkmark:
+            copy.locale === 'hu'
+              ? 'Kész'
+              : copy.locale === 'de'
+                ? 'Fertig'
+                : 'Completo',
+        },
+        movement: {
+          chips: { forward: 'W', left: 'A', backward: 'S', right: 'D' },
+          chipAriaLabelTemplate: '{direction}: {status}',
+        },
+        zoomProgress: {
+          inLabel:
+            copy.locale === 'de' ? 'Rein' : copy.locale === 'hu' ? 'Be' : 'In',
+          outLabel:
+            copy.locale === 'de' ? 'Raus' : copy.locale === 'hu' ? 'Ki' : 'Out',
+          chipAriaLabelTemplate: 'Zoom {direction}: {status}',
+        },
+        poiProgress: {
+          counterTemplate: '{count}/{goal} POIs',
+          counterAriaLabelTemplate: '{count} / {goal} POIs, {status}',
+        },
+        gitshelvesProgress: {
+          label: 'Gitshelves',
+          ariaLabelTemplate: 'Gitshelves: {status}',
+        },
         pages: {
           welcomeMovement: {
             title:
@@ -1048,23 +1108,23 @@ export function buildLatinLocaleOverrides(
                     : 'Bienvenida',
             body:
               copy.locale === 'hu'
-                ? 'Az oktatási előrehaladás hamarosan érkezik. Az első lépés bemutatja a mozgást a portfólióban.'
+                ? 'Üdvözlünk az immerzív portfólióban. A projektek interaktív kiállítások. Mozogj mind a négy WASD irányba; WASD, nyilak és érintő joystick is számít.'
                 : copy.locale === 'de'
-                  ? 'Der Tutorial-Fortschritt folgt bald. Dieser erste Schritt führt die Bewegung durch das Portfolio ein.'
+                  ? 'Willkommen im immersiven Portfolio. Projekte erscheinen als interaktive Exponate. Bewege dich in alle vier WASD-Richtungen; WASD, Pfeiltasten und Touch-Joystick zählen.'
                   : copy.locale === 'pt'
-                    ? 'O progresso do tutorial chegará em breve. Esta primeira etapa apresentará o movimento pelo portfólio.'
-                    : 'El progreso del tutorial llegará pronto. Este primer paso presentará el movimiento por el portafolio.',
+                    ? 'Boas-vindas ao portfólio imersivo. Os projetos aparecem como exposições interativas. Mova-se nas quatro direções WASD; WASD, setas e joystick de toque contam.'
+                    : 'Bienvenido al portafolio inmersivo. Los proyectos son exhibiciones interactivas. Muévete en las cuatro direcciones WASD; WASD, flechas y joystick táctil cuentan.',
           },
           zoom: {
             title: 'Zoom',
             body:
               copy.locale === 'hu'
-                ? 'Ez a helyőrző a zoomvezérlést tanítja majd, miközben a jelenet játszható marad.'
+                ? 'Nagyíts teljesen be és ki. Használd az egérgörgőt, többujjas csippentést vagy Shift + = / Shift + - billentyűket.'
                 : copy.locale === 'de'
-                  ? 'Dieser Platzhalter erklärt später die Zoomsteuerung, während die Szene spielbar bleibt.'
+                  ? 'Zoome ganz hinein und ganz heraus. Nutze Mausrad, Multitouch-Zoom oder Shift + = / Shift + -.'
                   : copy.locale === 'pt'
-                    ? 'Este espaço reservado ensinará os controles de zoom mantendo a cena jogável.'
-                    : 'Este marcador enseñará los controles de zoom mientras mantiene la escena jugable.',
+                    ? 'Aproxime e afaste completamente. Use roda do mouse, pinça multitoque ou Shift + = / Shift + -.'
+                    : 'Acerca y aleja completamente. Usa la rueda del mouse, pellizco multitáctil o Shift + = / Shift + -.',
           },
           visitPois: {
             title:

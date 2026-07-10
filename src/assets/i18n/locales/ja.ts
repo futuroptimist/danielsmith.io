@@ -451,22 +451,49 @@ export const JA_OVERRIDES: LocaleOverrides = {
       unlockedStepLabel: '解除済み',
       activeStepLabel: '現在のステップ',
       completedStepLabel: '完了',
+      textOnlyButton: {
+        label: 'Switch to text-only version',
+        title: 'Open the fast text-only portfolio',
+        ariaLabel: 'Switch to the text-only portfolio version',
+      },
+      status: {
+        complete: 'Complete',
+        incomplete: 'Incomplete',
+        checkmark: 'Complete',
+      },
+      movement: {
+        chips: { forward: 'W', left: 'A', backward: 'S', right: 'D' },
+        chipAriaLabelTemplate: '{direction} movement is {status}',
+      },
+      zoomProgress: {
+        inLabel: 'In',
+        outLabel: 'Out',
+        chipAriaLabelTemplate: 'Zoom {direction} is {status}',
+      },
+      poiProgress: {
+        counterTemplate: '{count}/{goal} POIs visited',
+        counterAriaLabelTemplate: '{count} of {goal} POIs visited, {status}',
+      },
+      gitshelvesProgress: {
+        label: 'Gitshelves visited',
+        ariaLabelTemplate: 'Gitshelves objective is {status}',
+      },
       pages: {
         welcomeMovement: {
-          title: 'ようこそ',
-          body: 'チュートリアルの進行はまもなく追加されます。最初のステップではポートフォリオ内の移動を紹介します。',
+          title: 'Welcome and move',
+          body: 'Welcome to the immersive portfolio. This room showcases projects as interactive exhibits. Move in all four WASD directions; WASD, arrow keys, and the touch joystick all count. If you prefer not to use immersive mode, switch to the text-only version below.',
         },
         zoom: {
-          title: 'ズーム',
-          body: 'このプレースホルダーは、シーンを操作できるままズーム操作を説明します。',
+          title: 'Zoom',
+          body: 'Zoom all the way in and all the way out. Use the mouse scroll wheel, multitouch pinch, or keyboard shortcuts Shift + = / Shift + -.',
         },
         visitPois: {
-          title: 'POI を訪問',
-          body: 'このプレースホルダーは、3 つのプロジェクト POI への訪問を追跡します。',
+          title: 'Visit 3 POIs',
+          body: 'POIs are project exhibits. Their panels show summaries, outcomes, metrics, links, and context. Click, tap, or interact with a POI to mark it visited.',
         },
         findGitshelves: {
-          title: 'Gitshelves を探す',
-          body: 'このプレースホルダーは、Gitshelves の展示へ案内します。',
+          title: 'Find Gitshelves',
+          body: 'Find and interact with the Gitshelves POI. Hint: check upstairs.',
         },
       },
     },
