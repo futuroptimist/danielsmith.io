@@ -1532,7 +1532,8 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   margin-block-start: -0.2rem;
 }
 
-:root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible] {
+:root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible],
+:root[data-hud-layout='mobile'][data-hud-tutorial-open][data-poi-detail-visible] {
   --hud-combined-panel-gutter-left: max(
     0.75rem,
     env(safe-area-inset-left, 0px)
@@ -1552,6 +1553,13 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   pointer-events: none;
 }
 
+:root[data-hud-layout='mobile'][data-hud-tutorial-open][data-poi-detail-visible]
+  .tutorial-panel {
+  left: var(--hud-combined-panel-gutter-left);
+  right: var(--hud-combined-panel-gutter-right);
+  max-width: none;
+}
+
 :root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
   .overlay__menu,
 :root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
@@ -1560,13 +1568,17 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 }
 
 :root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
-  .overlay__popover {
+  .overlay__popover,
+:root[data-hud-layout='mobile'][data-hud-tutorial-open][data-poi-detail-visible]
+  .tutorial-panel {
   width: auto;
   max-height: var(--hud-combined-panel-height);
   overflow-y: auto;
 }
 
 :root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]
+  .poi-tooltip-overlay,
+:root[data-hud-layout='mobile'][data-hud-tutorial-open][data-poi-detail-visible]
   .poi-tooltip-overlay {
   top: auto;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);

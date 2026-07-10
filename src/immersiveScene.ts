@@ -3046,11 +3046,16 @@ export function initializeImmersiveScene(
   );
   poiInteractionManager.start();
   const handlePoiDetailEscape = (event: KeyboardEvent) => {
-    if (
-      event.key !== 'Escape' ||
-      event.defaultPrevented ||
-      !poiTooltipOverlay.getState().visible
-    ) {
+    if (event.key !== 'Escape' || event.defaultPrevented) {
+      return;
+    }
+    if ((hudPanelCoordinator?.getActivePanel() ?? null) === 'tutorial') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      hudPanelCoordinator?.closeActivePanel();
+      return;
+    }
+    if (!poiTooltipOverlay.getState().visible) {
       return;
     }
     // Escape intentionally dismisses any visible POI detail state—selected, hovered,

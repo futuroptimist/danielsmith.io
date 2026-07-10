@@ -65,12 +65,14 @@ export function createTutorialPanel({
       : currentStrings.collapseLabel;
     collapse.title = collapse.textContent;
     collapse.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    collapse.setAttribute('aria-controls', 'tutorial-panel-steps');
     collapse.addEventListener('click', () => {
       collapsed = !collapsed;
       render();
     });
     const list = document.createElement('ol');
     list.className = 'tutorial-panel__steps';
+    list.id = 'tutorial-panel-steps';
     PAGE_IDS.forEach((id, index) => {
       const li = document.createElement('li');
       const button = document.createElement('button');
@@ -82,9 +84,14 @@ export function createTutorialPanel({
       button.textContent = currentStrings.pages[id].title;
       button.disabled = !isUnlocked;
       button.setAttribute('aria-disabled', isUnlocked ? 'false' : 'true');
+      const stepStateLabel = isActive
+        ? currentStrings.activeStepLabel
+        : isUnlocked
+          ? currentStrings.unlockedStepLabel
+          : currentStrings.lockedStepLabel;
       button.setAttribute(
         'aria-label',
-        `${currentStrings.pages[id].title} — ${isActive ? currentStrings.activeStepLabel : isUnlocked ? currentStrings.unlockedStepLabel : currentStrings.lockedStepLabel}`
+        `${currentStrings.pages[id].title} — ${stepStateLabel}`
       );
       if (isActive) {
         button.classList.add('tutorial-panel__step--active');
@@ -189,6 +196,12 @@ export function createTutorialPanel({
       render();
     },
     dispose() {
+      if (open) {
+        open = false;
+        element.hidden = true;
+        delete element.dataset.open;
+        onOpenChange?.(false);
+      }
       element.remove();
     },
   };

@@ -159,6 +159,31 @@ describe('createHudPanelCoordinator', () => {
     coordinator.dispose();
   });
 
+  it('does not close and reopen Tutorial when asked to open an already open Tutorial', () => {
+    const controls = createPanel();
+    const settings = createPanel();
+    const tutorial = createPanel();
+    const onActivePanelChange = vi.fn();
+    const coordinator = createHudPanelCoordinator({
+      controls,
+      settings,
+      tutorial,
+      onTextMode: vi.fn(),
+      onActivePanelChange,
+    });
+
+    coordinator.openTutorial();
+    coordinator.openTutorial();
+
+    expect(tutorial.open).toHaveBeenCalledTimes(2);
+    expect(tutorial.close).not.toHaveBeenCalled();
+    expect(tutorial.isOpen()).toBe(true);
+    expect(onActivePanelChange).toHaveBeenCalledTimes(1);
+    expect(coordinator.getActivePanel()).toBe('tutorial');
+
+    coordinator.dispose();
+  });
+
   it('wires HUD buttons and Escape to panel actions', () => {
     const controls = createPanel();
     const settings = createPanel();

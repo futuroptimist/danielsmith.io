@@ -118,7 +118,6 @@ export function createHudPanelCoordinator({
 
   const openTutorial = () => {
     closeControls();
-    closeTutorial();
     closeSettings();
     tutorialPanel.open();
     syncState();
