@@ -56,7 +56,11 @@ Floor surfaces live in `floorSurfaces`. Most room floors are created by
 `floorSurfaceForRoom(...)`, and special pieces can be appended in `buildFloor`.
 Add the source ID to `FLOOR_SURFACE_SOURCE_IDS`, then ensure the bounds describe
 the current walkable/rendered surface. The floor generator owns downstream
-splitting and stairwell clipping.
+splitting and stairwell clipping. Adjacent floor pieces must meet at edges instead of
+overlapping; run `npm run scene:zfight:audit` after adding floor, landing, rug,
+or platform rectangles. Intentional horizontal overlays should use a small,
+documented elevation difference or a narrowly documented audit allowlist rather
+than relying on broad depth, render order, or material polygon offset workarounds.
 
 ## Add a safety collider
 
