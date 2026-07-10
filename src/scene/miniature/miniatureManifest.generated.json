@@ -409,11 +409,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 34,
-      "syncNote": "Greenery QA assertions are source-only; tabletop furnishing proxy coverage is unchanged.",
-      "sourceFingerprint": "e513b0c19288f2c8df177cab580ea6617252044a92cbf2e0d600fed66a012d42",
+      "syncRevision": 35,
+      "syncNote": "Studio rug footprint separation is source-only; tabletop furnishing proxy coverage is unchanged.",
+      "sourceFingerprint": "cc408d7ef8744cb0e5e2ea6395746f99beb8ca2e679a9483c346a6ad9671d800",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "7009d9e03ef23dc72075bcf9994511fdf918a8f11751b29f8903c1ca2a4e107b"
+      "metadataFingerprint": "42f0a6ad37ce85fcb53e9e97d0166bbabf7a81c34e68228e031c8f89bc3c0c85"
     },
     {
       "id": "decor:wall-paintings",
@@ -458,11 +458,11 @@
         "src/scene/level/schema.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Type-only wall schema cleanup keeps portfolio layout data unchanged.",
-      "sourceFingerprint": "b3f2e0c11b30012b5a2d22dcd3b8dbc5d230f57c4b28dddb7ba91106b8a62439",
+      "syncRevision": 3,
+      "syncNote": "Upper landing floor seam split keeps tabletop layout proxy coverage unchanged.",
+      "sourceFingerprint": "3883676cfb30f0d41b705b2e3c2936c99fbc9eb1a685492d21e2f50eca53853d",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "acb861bc93948e77a4dc0501b3e097b58abd15a34ab7ec3395379e62359c2320"
+      "metadataFingerprint": "6233388c336e2e28fc3709b91ddd1bf589cc612b45d29dbaa780b6d324b48fd2"
     },
     {
       "id": "level:stairs-landing",
