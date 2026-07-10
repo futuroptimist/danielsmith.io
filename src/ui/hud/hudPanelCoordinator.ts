@@ -1,4 +1,4 @@
-export type HudPanel = 'controls' | 'settings';
+export type HudPanel = 'controls' | 'tutorial' | 'settings';
 
 interface TogglePanelHandle {
   open(): void;
@@ -10,8 +10,10 @@ interface TogglePanelHandle {
 
 export interface HudPanelCoordinatorOptions {
   controls: TogglePanelHandle;
+  tutorial?: TogglePanelHandle | null;
   settings: TogglePanelHandle;
   controlsButton?: HTMLButtonElement | null;
+  tutorialButton?: HTMLButtonElement | null;
   settingsButton?: HTMLButtonElement | null;
   textButton?: HTMLButtonElement | null;
   onTextMode: () => void;
@@ -23,6 +25,8 @@ export interface HudPanelCoordinatorHandle {
   getActivePanel(): HudPanel | null;
   openControls(): void;
   toggleControls(): void;
+  openTutorial(): void;
+  toggleTutorial(force?: boolean): void;
   openSettings(): void;
   toggleSettings(force?: boolean): void;
   activateTextMode(): void;
@@ -44,8 +48,10 @@ const updateButtonState = (
 
 export function createHudPanelCoordinator({
   controls,
+  tutorial,
   settings,
   controlsButton,
+  tutorialButton,
   settingsButton,
   textButton,
   onTextMode,
@@ -59,12 +65,15 @@ export function createHudPanelCoordinator({
     const previousPanel = activePanel;
     if (controls.isOpen()) {
       activePanel = 'controls';
+    } else if (tutorial?.isOpen()) {
+      activePanel = 'tutorial';
     } else if (settings.isOpen()) {
       activePanel = 'settings';
     } else {
       activePanel = null;
     }
     updateButtonState(controlsButton, activePanel === 'controls');
+    updateButtonState(tutorialButton, activePanel === 'tutorial');
     updateButtonState(settingsButton, activePanel === 'settings');
     if (activePanel !== previousPanel) {
       onActivePanelChange?.(activePanel);
@@ -75,11 +84,16 @@ export function createHudPanelCoordinator({
     controls.close();
   };
 
+  const closeTutorial = () => {
+    tutorial?.close();
+  };
+
   const closeSettings = () => {
     settings.close();
   };
 
   const openControls = () => {
+    closeTutorial();
     closeSettings();
     controls.open();
     syncState();
@@ -94,8 +108,27 @@ export function createHudPanelCoordinator({
     openControls();
   };
 
+  const openTutorial = () => {
+    closeControls();
+    closeTutorial();
+    closeSettings();
+    tutorial?.open();
+    syncState();
+  };
+
+  const toggleTutorial = (force?: boolean) => {
+    const shouldOpen = force ?? !tutorial?.isOpen();
+    if (shouldOpen) {
+      openTutorial();
+      return;
+    }
+    closeTutorial();
+    syncState();
+  };
+
   const openSettings = () => {
     closeControls();
+    closeTutorial();
     settings.open();
     syncState();
   };
@@ -112,6 +145,7 @@ export function createHudPanelCoordinator({
 
   const closeAllPanels = () => {
     closeControls();
+    closeTutorial();
     closeSettings();
     syncState();
   };
@@ -119,6 +153,8 @@ export function createHudPanelCoordinator({
   const closeActivePanel = () => {
     if (activePanel === 'controls') {
       closeControls();
+    } else if (activePanel === 'tutorial') {
+      closeTutorial();
     } else if (activePanel === 'settings') {
       closeSettings();
     }
@@ -135,6 +171,10 @@ export function createHudPanelCoordinator({
       controls.releaseButtonFocusOnNextOpen?.();
     }
     toggleControls();
+  };
+
+  const handleTutorialClick = () => {
+    toggleTutorial();
   };
 
   const handleSettingsClick = () => {
@@ -158,6 +198,7 @@ export function createHudPanelCoordinator({
   };
 
   controlsButton?.addEventListener('click', handleControlsClick);
+  tutorialButton?.addEventListener('click', handleTutorialClick);
   settingsButton?.addEventListener('click', handleSettingsClick);
   textButton?.addEventListener('click', handleTextClick);
   documentTarget?.addEventListener('keydown', handleDocumentKeydown);
@@ -170,6 +211,8 @@ export function createHudPanelCoordinator({
     },
     openControls,
     toggleControls,
+    openTutorial,
+    toggleTutorial,
     openSettings,
     toggleSettings,
     activateTextMode,
@@ -181,6 +224,7 @@ export function createHudPanelCoordinator({
       }
       disposed = true;
       controlsButton?.removeEventListener('click', handleControlsClick);
+      tutorialButton?.removeEventListener('click', handleTutorialClick);
       settingsButton?.removeEventListener('click', handleSettingsClick);
       textButton?.removeEventListener('click', handleTextClick);
       documentTarget?.removeEventListener('keydown', handleDocumentKeydown);

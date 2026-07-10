@@ -176,6 +176,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         shortcutFallback: 'H',
       },
       menu: {
+        tutorial: { label: '教程', keyHint: 'R', title: '打开教程 (R)' },
         controls: { label: '控制', keyHint: 'C', title: '打开控制 (C)' },
         text: { label: '文本', keyHint: 'T', title: '切换到文本模式 (T)' },
         settings: { label: '设置', keyHint: 'H', title: '打开设置和帮助 (H)' },
@@ -185,6 +186,39 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         collapseLabel: '隐藏额外控制',
         expandAnnouncement: '正在显示移动端玩家的完整控制列表。',
         collapseAnnouncement: '正在隐藏额外控制以保持列表简洁。',
+      },
+    },
+
+    tutorialPanel: {
+      heading: '教程',
+      sidebarLabel: '教程步骤',
+      collapseLabel: '折叠教程步骤',
+      expandLabel: '展开教程步骤',
+      previousLabel: '上一步',
+      nextLabel: '下一步',
+      showOnStartupLabel: '启动时显示',
+      showOnStartupTitle: '沉浸模式启动时显示教程',
+      dismissLabel: '关闭',
+      lockedStepLabel: '已锁定',
+      unlockedStepLabel: '已解锁',
+      currentStepLabel: '当前步骤',
+      pages: {
+        welcomeMovement: {
+          title: '欢迎',
+          body: '一条简短的引导路径将帮助你学习在这个沉浸式作品集中的移动。',
+        },
+        zoom: {
+          title: '缩放',
+          body: '缩放指引将在下一次教程更新中显示在这里。',
+        },
+        visitPois: {
+          title: '访问兴趣点',
+          body: '兴趣点访问目标将在下一次教程更新中显示在这里。',
+        },
+        findGitshelves: {
+          title: '找到 Gitshelves',
+          body: 'Gitshelves 发现步骤将在下一次教程更新中显示在这里。',
+        },
       },
     },
     movementLegend: {

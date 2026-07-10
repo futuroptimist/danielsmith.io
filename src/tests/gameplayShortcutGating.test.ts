@@ -10,6 +10,10 @@ describe('canHandleGameplayShortcut', () => {
     expect(canHandleGameplayShortcut(keyboardEvent(), 'controls')).toBe(true);
   });
 
+  it('allows gameplay shortcuts when Tutorial is open', () => {
+    expect(canHandleGameplayShortcut(keyboardEvent(), 'tutorial')).toBe(true);
+  });
+
   it('blocks gameplay shortcuts when Settings is open', () => {
     expect(
       canHandleGameplayShortcut(keyboardEvent({ key: 'q' }), 'settings')

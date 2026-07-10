@@ -216,6 +216,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
           keyHint: wrap('C'),
           title: wrap('Open controls (C)'),
         },
+        tutorial: {
+          label: wrap('Tutorial'),
+          keyHint: wrap('R'),
+          title: wrap('Open tutorial (R)'),
+        },
         text: {
           label: wrap('Text'),
           keyHint: wrap('T'),
@@ -236,6 +241,47 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         collapseAnnouncement: wrap(
           'Hiding extra controls to keep the list compact.'
         ),
+      },
+    },
+
+    tutorialPanel: {
+      heading: wrap('Tutorial'),
+      sidebarLabel: wrap('Tutorial steps'),
+      collapseLabel: wrap('Collapse tutorial steps'),
+      expandLabel: wrap('Expand tutorial steps'),
+      previousLabel: wrap('Previous'),
+      nextLabel: wrap('Next'),
+      showOnStartupLabel: wrap('Show on startup'),
+      showOnStartupTitle: wrap('Show the tutorial when immersive mode starts'),
+      dismissLabel: wrap('Dismiss'),
+      lockedStepLabel: wrap('Locked'),
+      unlockedStepLabel: wrap('Unlocked'),
+      currentStepLabel: wrap('Current step'),
+      pages: {
+        welcomeMovement: {
+          title: wrap('Welcome'),
+          body: wrap(
+            'A short onboarding path will help you learn movement in this immersive portfolio.'
+          ),
+        },
+        zoom: {
+          title: wrap('Zoom'),
+          body: wrap(
+            'Zoom guidance will appear here in the next tutorial update.'
+          ),
+        },
+        visitPois: {
+          title: wrap('Visit POIs'),
+          body: wrap(
+            'Point-of-interest visit goals will appear here in the next tutorial update.'
+          ),
+        },
+        findGitshelves: {
+          title: wrap('Find Gitshelves'),
+          body: wrap(
+            'The Gitshelves discovery step will appear here in the next tutorial update.'
+          ),
+        },
       },
     },
     movementLegend: {

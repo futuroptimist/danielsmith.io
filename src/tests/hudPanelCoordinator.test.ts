@@ -45,6 +45,37 @@ describe('createHudPanelCoordinator', () => {
     coordinator.dispose();
   });
 
+  it('coordinates Tutorial as a top-level gameplay panel', () => {
+    const controls = createPanel();
+    const tutorial = createPanel();
+    const settings = createPanel();
+    const tutorialButton = document.createElement('button');
+    const coordinator = createHudPanelCoordinator({
+      controls,
+      tutorial,
+      settings,
+      tutorialButton,
+      onTextMode: vi.fn(),
+    });
+
+    coordinator.openSettings();
+    coordinator.openTutorial();
+    expect(settings.isOpen()).toBe(false);
+    expect(tutorial.isOpen()).toBe(true);
+    expect(tutorialButton.getAttribute('aria-pressed')).toBe('true');
+    expect(coordinator.getActivePanel()).toBe('tutorial');
+
+    coordinator.openControls();
+    expect(tutorial.isOpen()).toBe(false);
+    expect(controls.isOpen()).toBe(true);
+
+    coordinator.openTutorial();
+    expect(controls.isOpen()).toBe(false);
+    expect(tutorial.isOpen()).toBe(true);
+
+    coordinator.dispose();
+  });
+
   it('closes Controls when Settings opens', () => {
     const controls = createPanel();
     const settings = createPanel();

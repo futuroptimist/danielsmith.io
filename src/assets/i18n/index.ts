@@ -14,6 +14,7 @@ import type {
   AudioHudControlStrings,
   AudioSubtitleStrings,
   ControlOverlayStrings,
+  TutorialPanelStrings,
   DeepPartial,
   HelpModalStrings,
   Locale,
@@ -369,6 +370,12 @@ export function getControlOverlayStrings(
   input?: LocaleInput
 ): ControlOverlayStrings {
   return getLocaleStrings(input).hud.controlOverlay;
+}
+
+export function getTutorialPanelStrings(
+  input?: LocaleInput
+): TutorialPanelStrings {
+  return getLocaleStrings(input).hud.tutorialPanel;
 }
 
 export function getHelpModalStrings(input?: LocaleInput): HelpModalStrings {

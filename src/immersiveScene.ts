@@ -53,6 +53,7 @@ import {
   getAudioHudControlStrings,
   getAudioSubtitleStrings,
   getControlOverlayStrings,
+  getTutorialPanelStrings,
   getDebugCoordinatesStrings,
   getDebugCollidersStrings,
   getHelpModalStrings,
@@ -498,6 +499,7 @@ import {
   type ResponsiveControlOverlayHandle,
 } from './ui/hud/responsiveControlOverlay';
 import { applySettingsControlOrder } from './ui/hud/settingsOrder';
+import { createTutorialPanel } from './ui/hud/tutorialPanel';
 import {
   createContinuousSoftwareImmersiveUrl,
   createImmersiveModeUrl,
@@ -1226,6 +1228,7 @@ export function initializeImmersiveScene(
   document.documentElement.dataset.localeDirection = htmlDirection;
   document.documentElement.dataset.localeScript = getLocaleScript(locale);
   let controlOverlayStrings = getControlOverlayStrings(locale);
+  let tutorialPanelStrings = getTutorialPanelStrings(locale);
   let helpModalStrings = getHelpModalStrings(locale);
   let hudCustomizationStrings = getHudCustomizationStrings(locale);
   let localeToggleStrings = getLocaleToggleStrings(locale);
@@ -3267,6 +3270,7 @@ export function initializeImmersiveScene(
     'interact',
     'help',
     'toggleControls',
+    'toggleTutorial',
   ];
   const bindingActionSet = new Set<KeyBindingAction>(bindingActions);
 
@@ -3520,6 +3524,9 @@ export function initializeImmersiveScene(
   const helpButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-control="help"]'
   );
+  const tutorialButton = controlOverlay?.querySelector<HTMLButtonElement>(
+    '[data-role="tutorial-button"]'
+  );
   const textModeButton = controlOverlay?.querySelector<HTMLButtonElement>(
     '[data-role="text-mode-button"]'
   );
@@ -3569,6 +3576,27 @@ export function initializeImmersiveScene(
         onOpenChange: () => syncPoiDetailOverlay(),
       })
     : null;
+  const tutorialPanel = createTutorialPanel({
+    container: controlOverlay ?? document.body,
+    strings: tutorialPanelStrings,
+    button: tutorialButton,
+    onOpenChange: () => syncPoiDetailOverlay(),
+  });
+  const updateTutorialButtonLabel = () => {
+    if (!tutorialButton) {
+      return;
+    }
+    const label =
+      formatKeyLabel(keyBindings.getPrimaryBinding('toggleTutorial')) ||
+      controlOverlayStrings.menu.tutorial.keyHint;
+    applyHudMenuButtonMetadata(
+      tutorialButton,
+      controlOverlayStrings.menu.tutorial,
+      label
+    );
+  };
+  updateTutorialButtonLabel();
+
   const updateControlsButtonLabel = () => {
     const label =
       formatKeyLabel(keyBindings.getPrimaryBinding('toggleControls')) ||
@@ -3843,30 +3871,47 @@ export function initializeImmersiveScene(
           .some((binding) => normalizeBindingKey(binding) === normalizedKey)
     );
   };
-  const handleControlsKeydown = (event: KeyboardEvent) => {
+  const handleHudToggleKeydown = (
+    event: KeyboardEvent,
+    action: KeyBindingAction
+  ) => {
     if (event.defaultPrevented || event.repeat) {
-      return;
+      return false;
     }
     if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
-      return;
+      return false;
     }
     if (isTextEntryTarget(event.target)) {
-      return;
+      return false;
     }
     if (
-      !matchesKeyBinding(event, 'toggleControls') ||
-      hasConflictingKeyBinding(event, 'toggleControls')
+      !matchesKeyBinding(event, action) ||
+      hasConflictingKeyBinding(event, action)
     ) {
-      return;
+      return false;
     }
     event.preventDefault();
+    return true;
+  };
+
+  const handleControlsKeydown = (event: KeyboardEvent) => {
+    if (!handleHudToggleKeydown(event, 'toggleControls')) {
+      return;
+    }
     if (hudPanelCoordinator) {
       hudPanelCoordinator.toggleControls();
       return;
     }
     responsiveControlOverlay?.toggle();
   };
+  const handleTutorialKeydown = (event: KeyboardEvent) => {
+    if (!handleHudToggleKeydown(event, 'toggleTutorial')) {
+      return;
+    }
+    hudPanelCoordinator?.toggleTutorial();
+  };
   window.addEventListener('keydown', handleControlsKeydown);
+  window.addEventListener('keydown', handleTutorialKeydown);
   hudPanelCoordinator = createHudPanelCoordinator({
     controls: responsiveControlOverlay ?? {
       open() {},
@@ -3874,12 +3919,17 @@ export function initializeImmersiveScene(
       toggle() {},
       isOpen: () => false,
     },
+    tutorial: tutorialPanel,
     settings: helpModal,
     controlsButton,
+    tutorialButton,
     settingsButton: helpButton,
     textButton: textModeButton,
     onTextMode: activateTextMode,
     onActivePanelChange: (panel) => {
+      document.documentElement.dataset.activeHudPanel = panel ?? '';
+      document.documentElement.dataset.tutorialOpen =
+        panel === 'tutorial' ? 'true' : 'false';
       if (panel === 'settings') {
         clearPoiDetailState();
       }
@@ -3964,6 +4014,7 @@ export function initializeImmersiveScene(
     document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
 
     controlOverlayStrings = getControlOverlayStrings(locale);
+    tutorialPanelStrings = getTutorialPanelStrings(locale);
     helpModalStrings = getHelpModalStrings(locale);
     hudCustomizationStrings = getHudCustomizationStrings(locale);
     localeToggleStrings = getLocaleToggleStrings(locale);
@@ -4022,6 +4073,8 @@ export function initializeImmersiveScene(
     analyticsGlow.setElement(controlOverlay ?? null);
     responsiveControlOverlay?.setStrings(controlOverlayStrings);
     updateControlsButtonLabel();
+    updateTutorialButtonLabel();
+    tutorialPanel.setStrings(tutorialPanelStrings);
     responsiveControlOverlay?.refresh();
     movementLegend?.setLocale(locale);
     if (movementLegend) {
@@ -4093,6 +4146,9 @@ export function initializeImmersiveScene(
       }
       if (action === 'toggleControls') {
         updateControlsButtonLabel();
+      }
+      if (action === 'toggleTutorial') {
+        updateTutorialButtonLabel();
       }
       saveKeyBindings();
     })

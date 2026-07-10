@@ -267,6 +267,7 @@ export const AR_OVERRIDES: LocaleOverrides = {
         shortcutFallback: 'H',
       },
       menu: {
+        tutorial: { label: 'الشرح', keyHint: 'R', title: 'فتح الشرح (R)' },
         controls: {
           label: 'التحكم',
           keyHint: 'C',
@@ -290,6 +291,39 @@ export const AR_OVERRIDES: LocaleOverrides = {
           'يتم عرض قائمة عناصر التحكم الكاملة للأجهزة المحمولة.',
         collapseAnnouncement:
           'يتم إخفاء عناصر التحكم الإضافية للحفاظ على القائمة مضغوطة.',
+      },
+    },
+
+    tutorialPanel: {
+      heading: 'الشرح',
+      sidebarLabel: 'خطوات الشرح',
+      collapseLabel: 'طي خطوات الشرح',
+      expandLabel: 'توسيع خطوات الشرح',
+      previousLabel: 'السابق',
+      nextLabel: 'التالي',
+      showOnStartupLabel: 'إظهاره عند البدء',
+      showOnStartupTitle: 'إظهار الشرح عند بدء النمط الغامر',
+      dismissLabel: 'إغلاق',
+      lockedStepLabel: 'مقفل',
+      unlockedStepLabel: 'متاح',
+      currentStepLabel: 'الخطوة الحالية',
+      pages: {
+        welcomeMovement: {
+          title: 'مرحبًا',
+          body: 'سيساعدك مسار تمهيدي قصير على تعلم الحركة في هذا المعرض الغامر.',
+        },
+        zoom: {
+          title: 'التكبير',
+          body: 'ستظهر إرشادات التكبير هنا في تحديث الشرح التالي.',
+        },
+        visitPois: {
+          title: 'زيارة نقاط الاهتمام',
+          body: 'ستظهر أهداف زيارة نقاط الاهتمام هنا في تحديث الشرح التالي.',
+        },
+        findGitshelves: {
+          title: 'العثور على Gitshelves',
+          body: 'ستظهر خطوة اكتشاف Gitshelves هنا في تحديث الشرح التالي.',
+        },
       },
     },
     movementLegend: {

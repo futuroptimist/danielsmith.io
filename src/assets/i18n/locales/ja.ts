@@ -270,6 +270,11 @@ export const JA_OVERRIDES: LocaleOverrides = {
         shortcutFallback: 'H',
       },
       menu: {
+        tutorial: {
+          label: 'チュートリアル',
+          keyHint: 'R',
+          title: 'チュートリアルを開く (R)',
+        },
         controls: {
           label: '操作',
           keyHint: 'C',
@@ -292,6 +297,39 @@ export const JA_OVERRIDES: LocaleOverrides = {
         expandAnnouncement: 'モバイル向けの操作一覧を表示します。',
         collapseAnnouncement:
           '一覧をコンパクトに保つため追加の操作を隠します。',
+      },
+    },
+
+    tutorialPanel: {
+      heading: 'チュートリアル',
+      sidebarLabel: 'チュートリアル手順',
+      collapseLabel: '手順を折りたたむ',
+      expandLabel: '手順を展開',
+      previousLabel: '前へ',
+      nextLabel: '次へ',
+      showOnStartupLabel: '起動時に表示',
+      showOnStartupTitle: '没入モードの開始時にチュートリアルを表示',
+      dismissLabel: '閉じる',
+      lockedStepLabel: 'ロック中',
+      unlockedStepLabel: '解除済み',
+      currentStepLabel: '現在の手順',
+      pages: {
+        welcomeMovement: {
+          title: 'ようこそ',
+          body: '短いオンボーディングで、この没入型ポートフォリオでの移動を学べます。',
+        },
+        zoom: {
+          title: 'ズーム',
+          body: 'ズームの案内は次回のチュートリアル更新でここに表示されます。',
+        },
+        visitPois: {
+          title: 'POI を訪問',
+          body: '興味地点の訪問目標は次回のチュートリアル更新でここに表示されます。',
+        },
+        findGitshelves: {
+          title: 'Gitshelves を探す',
+          body: 'Gitshelves の発見手順は次回のチュートリアル更新でここに表示されます。',
+        },
       },
     },
     movementLegend: {
