@@ -61,8 +61,6 @@ type BooleanLike = boolean | undefined;
 
 export interface AccessibilityPresetDefinition {
   readonly id: AccessibilityPresetId;
-  readonly label: string;
-  readonly description: string;
   readonly motion: MotionSetting;
   readonly contrast: ContrastSetting;
   readonly animation: {
@@ -90,8 +88,6 @@ export interface AccessibilityPresetDefinition {
 export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
   {
     id: 'standard',
-    label: 'Standard',
-    description: 'Default visuals and audio balance.',
     motion: 'default',
     contrast: 'standard',
     animation: {
@@ -116,9 +112,6 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
   },
   {
     id: 'calm',
-    label: 'Calm',
-    description:
-      'Softens bloom, LED glow, and ambient audio for a gentler pass.',
     motion: 'reduced',
     contrast: 'standard',
     animation: {
@@ -143,8 +136,6 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
   },
   {
     id: 'high-contrast',
-    label: 'High contrast',
-    description: 'Boosts HUD readability while keeping motion cues active.',
     motion: 'default',
     contrast: 'high',
     animation: {
@@ -169,8 +160,6 @@ export const ACCESSIBILITY_PRESETS: readonly AccessibilityPresetDefinition[] = [
   },
   {
     id: 'photosensitive',
-    label: 'Photosensitive safe',
-    description: 'Disables bloom, dulls emissives, and boosts HUD contrast.',
     motion: 'reduced',
     contrast: 'high',
     animation: {

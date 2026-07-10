@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { getLocaleStrings } from '../assets/i18n';
 import {
   GRAPHICS_QUALITY_PRESETS,
   type GraphicsQualityLevel,
@@ -7,13 +8,17 @@ import {
 import { createGraphicsQualityControl } from '../systems/controls/graphicsQualityControl';
 
 describe('createGraphicsQualityControl', () => {
-  const presets = GRAPHICS_QUALITY_PRESETS.map(
-    ({ id, label, description }) => ({
-      id,
-      label,
-      description,
-    })
-  );
+  const graphicsStrings = getLocaleStrings('en').hud.graphicsQuality;
+  const presets = GRAPHICS_QUALITY_PRESETS.map(({ id }) => ({
+    id,
+    ...graphicsStrings.options[id],
+  }));
+  const strings = {
+    title: graphicsStrings.title,
+    description: graphicsStrings.description,
+    options: presets,
+    selectedAnnouncementTemplate: graphicsStrings.selectedAnnouncementTemplate,
+  };
 
   it('renders presets, updates state, and handles refreshes', async () => {
     const container = document.createElement('div');
@@ -27,6 +32,7 @@ describe('createGraphicsQualityControl', () => {
     const control = createGraphicsQualityControl({
       container,
       presets,
+      strings,
       getActiveLevel: () => level,
       setActiveLevel: setActive,
     });
@@ -71,6 +77,7 @@ describe('createGraphicsQualityControl', () => {
     const control = createGraphicsQualityControl({
       container,
       presets,
+      strings,
       getActiveLevel: () => level,
       setActiveLevel: setActive,
     });
@@ -106,6 +113,7 @@ describe('createGraphicsQualityControl', () => {
       createGraphicsQualityControl({
         container: document.createElement('div'),
         presets: [],
+        strings: { ...strings, options: [] },
         getActiveLevel: () => 'cinematic',
         setActiveLevel: () => {},
       })

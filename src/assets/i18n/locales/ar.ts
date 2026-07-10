@@ -158,6 +158,64 @@ export const AR_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    graphicsQuality: {
+      title: 'جودة الرسوميات',
+      description: 'اختر إعدادًا يناسب أداء جهازك.',
+      options: {
+        cinematic: {
+          label: 'سينمائي',
+          description:
+            'معالجة كاملة ونماذج ثلاثية الأبعاد عالية التفصيل وإضاءة سينمائية.',
+        },
+        balanced: {
+          label: 'متوازن',
+          description:
+            'توهج متوسط ودقة أقل ونماذج متوسطة التفاصيل للحواسيب المحمولة.',
+        },
+        performance: {
+          label: 'أداء',
+          description:
+            'يعطّل التوهج ويخفض الدقة ويستخدم نماذج خفيفة لإعطاء الأولوية للإطارات.',
+        },
+      },
+      selectedAnnouncementTemplate: 'تم اختيار إعداد {label}.',
+    },
+    accessibilityPresets: {
+      title: 'إعدادات إمكانية الوصول',
+      description: 'اضبط مساعدات الحركة وتباين الواجهة.',
+      options: {
+        standard: {
+          label: 'قياسي',
+          description: 'مرئيات وصوت بالتوازن الافتراضي.',
+        },
+        calm: {
+          label: 'هادئ',
+          description: 'يخفف التوهج وبريق LED والصوت المحيط.',
+        },
+        'high-contrast': {
+          label: 'تباين عالٍ',
+          description: 'يعزز قراءة الواجهة مع إبقاء إشارات الحركة نشطة.',
+        },
+        photosensitive: {
+          label: 'آمن للحساسية الضوئية',
+          description: 'يعطّل التوهج ويخفض الانبعاثات ويزيد تباين الواجهة.',
+        },
+      },
+      selectedAnnouncementTemplate: 'تم اختيار إعداد {label}.',
+    },
+    motionBlur: {
+      heading: 'شدة ضبابية الحركة',
+      description: 'اضبط أثر المسارات أثناء حركة الكاميرا أو الشخصية بسرعة.',
+      groupAriaLabel: 'عناصر ضبابية الحركة',
+      sliderAnnouncement: 'تغيّرت شدة ضبابية الحركة.',
+      values: {
+        off: 'إيقاف',
+        lowTemplate: '{percent}% · مسارات منخفضة',
+        mediumTemplate: '{percent}% · مسارات متوسطة',
+        highTemplate: '{percent}% · مسارات عالية',
+      },
+    },
+
     controlOverlay: {
       heading: 'عناصر التحكم',
       items: {
@@ -254,10 +312,34 @@ export const AR_OVERRIDES: LocaleOverrides = {
       heading: 'التخصيص',
       description: 'اضبط نمط الشخصية ومرافقيها حسب المهمة الحالية.',
       variants: {
+        options: {
+          portfolio: {
+            label: 'الحافظة',
+            description: 'بدلة الغسق مع إبرازات حاجب نيون.',
+          },
+          casual: {
+            label: 'غير رسمي',
+            description: 'سترة غروب مع لمسات فيروزية.',
+          },
+          formal: { label: 'رسمي', description: 'سترة فحمية بحواف ذهبية.' },
+        },
+        selectedAnnouncementTemplate: 'تم اختيار شخصية {label}.',
         title: 'أسلوب الشخصية',
         description: 'بدّل بين أنماط مستكشف المعرض.',
       },
       accessories: {
+        options: {
+          'wrist-console': {
+            label: 'سوار التحكم',
+            description: 'سوار قياس يعكس تشخيصات الواجهة.',
+          },
+          'holo-drone': {
+            label: 'طائرة هولوغرافية',
+            description: 'طائرة كشافة بوهج مدار لطيف.',
+          },
+        },
+        enabledAnnouncementTemplate: 'تم تفعيل {label}.',
+        disabledAnnouncementTemplate: 'تم تعطيل {label}.',
         title: 'الإكسسوارات',
         description: 'فعّل سوار المعصم أو الطائرة الهولوغرافية.',
       },

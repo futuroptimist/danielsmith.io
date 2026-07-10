@@ -89,14 +89,10 @@ describe('Accessibility Preset Documentation Sync', () => {
     expect(ids).toContain('photosensitive');
   });
 
-  it('provides labels and descriptions for all presets', () => {
+  it('keeps presets limited to stable IDs and behavior data', () => {
     for (const preset of ACCESSIBILITY_PRESETS) {
-      expect(preset.label).toBeTruthy();
-      expect(preset.description).toBeTruthy();
-      expect(typeof preset.label).toBe('string');
-      expect(typeof preset.description).toBe('string');
-      expect(preset.label.length).toBeGreaterThan(0);
-      expect(preset.description.length).toBeGreaterThan(0);
+      expect('label' in preset).toBe(false);
+      expect('description' in preset).toBe(false);
     }
   });
 

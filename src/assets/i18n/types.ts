@@ -183,11 +183,42 @@ export interface HelpModalStrings {
   };
 }
 
+export interface SelectableOptionStrings {
+  label: string;
+  description: string;
+}
+
+export interface PresetControlStrings<OptionId extends string> {
+  title: string;
+  description: string;
+  options: Record<OptionId, SelectableOptionStrings>;
+  selectedAnnouncementTemplate: string;
+}
+
+export interface MotionBlurControlStrings {
+  heading: string;
+  description: string;
+  groupAriaLabel: string;
+  sliderAnnouncement: string;
+  values: {
+    off: string;
+    lowTemplate: string;
+    mediumTemplate: string;
+    highTemplate: string;
+  };
+}
+
 export interface HudCustomizationStrings {
   heading: string;
   description: string;
-  variants: { title: string; description: string };
-  accessories: { title: string; description: string };
+  variants: PresetControlStrings<'portfolio' | 'casual' | 'formal'>;
+  accessories: {
+    title: string;
+    description: string;
+    options: Record<'wrist-console' | 'holo-drone', SelectableOptionStrings>;
+    enabledAnnouncementTemplate: string;
+    disabledAnnouncementTemplate: string;
+  };
 }
 
 export interface LocaleOptionStrings {
@@ -388,6 +419,13 @@ export interface LocaleStrings {
     localeToggle: LocaleToggleStrings;
     debugCoordinates: DebugCoordinatesStrings;
     debugColliders: DebugCollidersStrings;
+    graphicsQuality: PresetControlStrings<
+      'cinematic' | 'balanced' | 'performance'
+    >;
+    accessibilityPresets: PresetControlStrings<
+      'standard' | 'calm' | 'high-contrast' | 'photosensitive'
+    >;
+    motionBlur: MotionBlurControlStrings;
     softwareRendererWarning: SoftwareRendererWarningStrings;
     lowFpsRecovery: LowFpsRecoveryStrings;
     helpModal: HelpModalStrings;

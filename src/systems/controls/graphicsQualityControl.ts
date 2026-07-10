@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { GraphicsQualityLevel } from '../../scene/graphics/qualityManager';
 
 export interface GraphicsQualityControlPreset {
@@ -11,13 +12,20 @@ export interface GraphicsQualityControlOptions {
   presets: ReadonlyArray<GraphicsQualityControlPreset>;
   getActiveLevel: () => GraphicsQualityLevel;
   setActiveLevel: (level: GraphicsQualityLevel) => void | Promise<void>;
-  title?: string;
-  description?: string;
+  strings: GraphicsQualityControlStrings;
+}
+
+export interface GraphicsQualityControlStrings {
+  title: string;
+  description: string;
+  options: ReadonlyArray<GraphicsQualityControlPreset>;
+  selectedAnnouncementTemplate: string;
 }
 
 export interface GraphicsQualityControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
+  setStrings(strings: GraphicsQualityControlStrings): void;
   dispose(): void;
 }
 
@@ -37,8 +45,7 @@ export function createGraphicsQualityControl({
   presets,
   getActiveLevel,
   setActiveLevel,
-  title = 'Graphics quality',
-  description = 'Pick a preset that matches your device performance.',
+  strings,
 }: GraphicsQualityControlOptions): GraphicsQualityControlHandle {
   if (!presets.length) {
     throw new Error('Graphics quality control requires at least one preset.');
@@ -52,11 +59,11 @@ export function createGraphicsQualityControl({
 
   const heading = document.createElement('h2');
   heading.className = 'graphics-quality__title';
-  heading.textContent = title;
+  heading.textContent = strings.title;
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'graphics-quality__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = strings.description;
 
   const optionList = document.createElement('div');
   optionList.className = 'graphics-quality__options';
@@ -73,6 +80,8 @@ export function createGraphicsQualityControl({
   wrapper.append(heading, descriptionParagraph, optionList, liveRegion);
   container.appendChild(wrapper);
 
+  let selectedAnnouncementTemplate = strings.selectedAnnouncementTemplate;
+  let localizedOptions = [...strings.options];
   const inputs: HTMLInputElement[] = [];
   const labels = new Map<string, HTMLElement>();
 
@@ -94,7 +103,11 @@ export function createGraphicsQualityControl({
       }
     });
     updateLiveRegion(
-      `${presets.find((preset) => preset.id === active)?.label ?? active} preset selected.`
+      formatMessage(selectedAnnouncementTemplate, {
+        label:
+          localizedOptions.find((preset) => preset.id === active)?.label ??
+          active,
+      })
     );
   };
 
@@ -141,7 +154,7 @@ export function createGraphicsQualityControl({
     }
   };
 
-  presets.forEach((preset, index) => {
+  localizedOptions.forEach((preset, index) => {
     const optionLabel = document.createElement('label');
     optionLabel.className = 'graphics-quality__option';
     optionLabel.dataset.state = 'idle';
@@ -183,6 +196,29 @@ export function createGraphicsQualityControl({
   return {
     element: wrapper,
     refresh() {
+      updateSelection();
+    },
+    setStrings(nextStrings) {
+      localizedOptions = [...nextStrings.options];
+      heading.textContent = nextStrings.title;
+      descriptionParagraph.textContent = nextStrings.description;
+      selectedAnnouncementTemplate = nextStrings.selectedAnnouncementTemplate;
+      inputs.forEach((input) => {
+        const nextOption = localizedOptions.find(
+          (entry) => entry.id === input.value
+        );
+        if (!nextOption) {
+          return;
+        }
+        input.setAttribute('aria-label', nextOption.label);
+        const label = input.closest('label');
+        label
+          ?.querySelector('[class$="__option-title"]')
+          ?.replaceChildren(nextOption.label);
+        label
+          ?.querySelector('[class$="__option-description"]')
+          ?.replaceChildren(nextOption.description);
+      });
       updateSelection();
     },
     dispose() {

@@ -20,8 +20,6 @@ export type AvatarAccessoryId = 'wrist-console' | 'holo-drone';
 
 export interface AvatarAccessoryDefinition {
   readonly id: AvatarAccessoryId;
-  readonly label: string;
-  readonly description: string;
 }
 
 export interface AvatarAccessoryState {
@@ -57,13 +55,9 @@ interface AvatarAccessoryInternal {
 const DEFINITIONS: readonly AvatarAccessoryDefinition[] = [
   {
     id: 'wrist-console',
-    label: 'Wrist console',
-    description: 'Wearable telemetry cuff that mirrors HUD diagnostics.',
   },
   {
     id: 'holo-drone',
-    label: 'Holographic drone',
-    description: 'Shoulder scout drone with a gentle orbiting glow.',
   },
 ];
 

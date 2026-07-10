@@ -142,10 +142,28 @@ describe('createHudCustomizationSection', () => {
               description: 'Orbiting scout.',
             },
           ],
+          strings: {
+            title,
+            description,
+            options: [
+              {
+                id: 'wrist-console',
+                label: 'Wrist console',
+                description: 'Wearable diagnostics.',
+              },
+              {
+                id: 'holo-drone',
+                label: 'Drone',
+                description: 'Orbiting scout.',
+              },
+            ],
+            enabledAnnouncementTemplate:
+              STRINGS.accessories.enabledAnnouncementTemplate,
+            disabledAnnouncementTemplate:
+              STRINGS.accessories.disabledAnnouncementTemplate,
+          },
           isAccessoryEnabled: () => false,
           setAccessoryEnabled: () => undefined,
-          title,
-          description,
         }),
     });
 

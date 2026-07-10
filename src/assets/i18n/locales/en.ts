@@ -267,11 +267,40 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       variants: {
         title: 'Avatar style',
         description: 'Switch outfits for the mannequin explorer.',
+        options: {
+          portfolio: {
+            label: 'Portfolio',
+            description: 'Signature dusk suit with neon visor highlights.',
+          },
+          casual: {
+            label: 'Casual',
+            description:
+              'Sunset hoodie with teal accents for relaxed walkthroughs.',
+          },
+          formal: {
+            label: 'Formal',
+            description: 'Charcoal blazer with gilded trims for keynote demos.',
+          },
+        },
+        selectedAnnouncementTemplate: '{label} avatar selected.',
       },
       accessories: {
         title: 'Accessories',
         description:
           'Toggle the wrist console or holographic drone companions.',
+        options: {
+          'wrist-console': {
+            label: 'Wrist console',
+            description:
+              'Wearable telemetry cuff that mirrors HUD diagnostics.',
+          },
+          'holo-drone': {
+            label: 'Holographic drone',
+            description: 'Shoulder scout drone with a gentle orbiting glow.',
+          },
+        },
+        enabledAnnouncementTemplate: '{label} enabled.',
+        disabledAnnouncementTemplate: '{label} disabled.',
       },
     },
     audioSubtitles: {
@@ -388,6 +417,67 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       downgradePerformanceLabel: 'Switch to Performance',
       textModeLabel: 'Use non-immersive mode',
       announcement: 'Low frame rate detected. Recovery actions are available.',
+    },
+    graphicsQuality: {
+      title: 'Graphics Quality',
+      description: 'Pick a preset that matches your device performance.',
+      options: {
+        cinematic: {
+          label: 'Cinematic',
+          description:
+            'Full post-processing, highest-detail 3D models, cinematic bloom and lighting.',
+        },
+        balanced: {
+          label: 'Balanced',
+          description:
+            'Moderate bloom, reduced resolution, and medium-detail 3D models for laptops.',
+        },
+        performance: {
+          label: 'Performance',
+          description:
+            'Disables bloom, lowers resolution, and uses lowest-detail 3D models to prioritize FPS.',
+        },
+      },
+      selectedAnnouncementTemplate: '{label} preset selected.',
+    },
+    accessibilityPresets: {
+      title: 'Accessibility Presets',
+      description: 'Tune motion assists and HUD contrast.',
+      options: {
+        standard: {
+          label: 'Standard',
+          description: 'Default visuals and audio balance.',
+        },
+        calm: {
+          label: 'Calm',
+          description:
+            'Softens bloom, LED glow, and ambient audio for a gentler pass.',
+        },
+        'high-contrast': {
+          label: 'High contrast',
+          description:
+            'Boosts HUD readability while keeping motion cues active.',
+        },
+        photosensitive: {
+          label: 'Photosensitive safe',
+          description:
+            'Disables bloom, dulls emissives, and boosts HUD contrast.',
+        },
+      },
+      selectedAnnouncementTemplate: '{label} preset selected.',
+    },
+    motionBlur: {
+      heading: 'Motion blur intensity',
+      description:
+        'Adjust the trail effect applied to fast camera and avatar movement.',
+      groupAriaLabel: 'Motion blur controls',
+      sliderAnnouncement: 'Motion blur intensity changed.',
+      values: {
+        off: 'Off',
+        lowTemplate: '{percent}% · Low trails',
+        mediumTemplate: '{percent}% · Medium trails',
+        highTemplate: '{percent}% · High trails',
+      },
     },
     softwareRendererWarning: {
       fallbackRendererLabel: 'software WebGL renderer',

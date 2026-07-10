@@ -26,9 +26,86 @@ import {
   CONTROL_ITEM_IDS,
   getControlHelpRows,
 } from '../assets/i18n/controlItems';
+import { AR_OVERRIDES } from '../assets/i18n/locales/ar';
+import { DE_OVERRIDES } from '../assets/i18n/locales/de';
+import { ES_OVERRIDES } from '../assets/i18n/locales/es';
+import { HU_OVERRIDES } from '../assets/i18n/locales/hu';
+import { JA_OVERRIDES } from '../assets/i18n/locales/ja';
+import { PT_OVERRIDES } from '../assets/i18n/locales/pt';
+import { ZH_HANS_OVERRIDES } from '../assets/i18n/locales/zh-Hans';
 import { getPoiDefinitions } from '../scene/poi/registry';
 import { applyControlOverlayStrings } from '../ui/hud/controlOverlay';
 import { createHelpModal } from '../ui/hud/helpModal';
+
+function collectSettingsStrings(
+  hud: ReturnType<typeof getLocaleStrings>['hud']
+) {
+  return [
+    hud.graphicsQuality.title,
+    hud.graphicsQuality.description,
+    ...Object.values(hud.graphicsQuality.options).flatMap((option) => [
+      option.label,
+      option.description,
+    ]),
+    hud.accessibilityPresets.title,
+    hud.accessibilityPresets.description,
+    ...Object.values(hud.accessibilityPresets.options).flatMap((option) => [
+      option.label,
+      option.description,
+    ]),
+    hud.customization.heading,
+    hud.customization.description,
+    hud.customization.variants.title,
+    hud.customization.variants.description,
+    ...Object.values(hud.customization.variants.options).flatMap((option) => [
+      option.label,
+      option.description,
+    ]),
+    hud.customization.accessories.title,
+    hud.customization.accessories.description,
+    hud.customization.accessories.enabledAnnouncementTemplate,
+    hud.customization.accessories.disabledAnnouncementTemplate,
+    ...Object.values(hud.customization.accessories.options).flatMap(
+      (option) => [option.label, option.description]
+    ),
+  ];
+}
+
+const PUBLIC_LOCALE_OVERRIDES = {
+  ar: AR_OVERRIDES,
+  ja: JA_OVERRIDES,
+  'zh-Hans': ZH_HANS_OVERRIDES,
+  es: ES_OVERRIDES,
+  pt: PT_OVERRIDES,
+  de: DE_OVERRIDES,
+  hu: HU_OVERRIDES,
+} as const;
+
+function collectRequiredSettingsStringsFromOverrides(
+  locale: keyof typeof PUBLIC_LOCALE_OVERRIDES
+) {
+  const hud = PUBLIC_LOCALE_OVERRIDES[locale].hud;
+  expect(hud, `${locale} owns hud overrides`).toBeDefined();
+  expect(hud?.graphicsQuality, `${locale} owns graphics quality`).toBeDefined();
+  expect(
+    hud?.accessibilityPresets,
+    `${locale} owns accessibility presets`
+  ).toBeDefined();
+  expect(hud?.motionBlur, `${locale} owns motion blur`).toBeDefined();
+  expect(hud?.customization, `${locale} owns customization`).toBeDefined();
+  return collectSettingsStrings(
+    hud as ReturnType<typeof getLocaleStrings>['hud']
+  ).concat(
+    hud?.motionBlur?.heading ?? '',
+    hud?.motionBlur?.description ?? '',
+    hud?.motionBlur?.groupAriaLabel ?? '',
+    hud?.motionBlur?.sliderAnnouncement ?? '',
+    hud?.motionBlur?.values?.off ?? '',
+    hud?.motionBlur?.values?.lowTemplate ?? '',
+    hud?.motionBlur?.values?.mediumTemplate ?? '',
+    hud?.motionBlur?.values?.highTemplate ?? ''
+  );
+}
 
 const renderRepresentativeControlsPopover = (locale: string): HTMLElement => {
   const container = document.createElement('div');
@@ -219,6 +296,64 @@ describe('i18n utilities', () => {
       ).toBeDefined();
       expect(controlsSection?.items).toEqual(helpRows);
     }
+  });
+
+  it('localizes Settings preset and customization copy for every locale', () => {
+    for (const locale of AVAILABLE_LOCALES) {
+      const { hud } = getLocaleStrings(locale);
+      const values = collectSettingsStrings(hud);
+      for (const value of values) {
+        expect(value.trim(), `${locale} settings string`).not.toBe('');
+      }
+    }
+
+    for (const locale of Object.keys(PUBLIC_LOCALE_OVERRIDES) as Array<
+      keyof typeof PUBLIC_LOCALE_OVERRIDES
+    >) {
+      const values = collectRequiredSettingsStringsFromOverrides(locale);
+      const englishValues = collectSettingsStrings(getLocaleStrings('en').hud);
+      values.forEach((value, index) => {
+        expect(value.trim(), `${locale} raw settings string ${index}`).not.toBe(
+          ''
+        );
+        expect(value, `${locale} raw settings string ${index}`).not.toBe(
+          englishValues[index]
+        );
+      });
+    }
+  });
+
+  it('regresses previously English zh-Hans Settings strings', () => {
+    const { hud } = getLocaleStrings('zh-Hans');
+    expect(hud.accessibilityPresets.title).not.toBe('Accessibility Presets');
+    expect(hud.accessibilityPresets.options.standard.label).not.toBe(
+      'Standard'
+    );
+    expect(hud.accessibilityPresets.options.calm.label).not.toBe('Calm');
+    expect(hud.accessibilityPresets.options['high-contrast'].label).not.toBe(
+      'High contrast'
+    );
+    expect(hud.accessibilityPresets.options.photosensitive.label).not.toBe(
+      'Photosensitive safe'
+    );
+    expect(hud.graphicsQuality.title).not.toBe('Graphics Quality');
+    expect(hud.customization.heading).not.toBe('Customization');
+    expect(hud.customization.accessories.title).not.toBe('Accessories');
+  });
+
+  it('pseudo-localizes Settings labels while keeping input key glyphs stable', () => {
+    const pseudo = getLocaleStrings('en-x-pseudo');
+    expect(pseudo.hud.graphicsQuality.title).toMatch(/^⟦.*⟧$/);
+    expect(pseudo.hud.accessibilityPresets.options.standard.label).toMatch(
+      /^⟦.*⟧$/
+    );
+    expect(
+      pseudo.hud.customization.accessories.options['wrist-console'].label
+    ).toMatch(/^⟦.*⟧$/);
+    expect(pseudo.hud.controlOverlay.items.cyclePoi.keys).toBe('Q / E');
+    expect(pseudo.hud.controlOverlay.items.keyboardZoom.keys).toBe(
+      'Shift + = / Shift + -'
+    );
   });
 
   it('renders one Settings controls section without stale duplicate sections for every locale', () => {

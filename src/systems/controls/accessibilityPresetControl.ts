@@ -1,3 +1,4 @@
+import { formatMessage } from '../../assets/i18n';
 import type { AccessibilityPresetId } from '../../ui/accessibility/presetManager';
 
 export interface AccessibilityPresetOption {
@@ -11,13 +12,20 @@ export interface AccessibilityPresetControlOptions {
   options: readonly AccessibilityPresetOption[];
   getActivePreset: () => AccessibilityPresetId;
   setActivePreset: (preset: AccessibilityPresetId) => void | Promise<void>;
-  title?: string;
-  description?: string;
+  strings: AccessibilityPresetControlStrings;
+}
+
+export interface AccessibilityPresetControlStrings {
+  title: string;
+  description: string;
+  options: ReadonlyArray<AccessibilityPresetOption>;
+  selectedAnnouncementTemplate: string;
 }
 
 export interface AccessibilityPresetControlHandle {
   readonly element: HTMLElement;
   refresh(): void;
+  setStrings(strings: AccessibilityPresetControlStrings): void;
   dispose(): void;
 }
 
@@ -37,8 +45,7 @@ export function createAccessibilityPresetControl({
   options,
   getActivePreset,
   setActivePreset,
-  title = 'Accessibility presets',
-  description = 'Tune motion assists and HUD contrast.',
+  strings,
 }: AccessibilityPresetControlOptions): AccessibilityPresetControlHandle {
   if (!options.length) {
     throw new Error(
@@ -55,11 +62,11 @@ export function createAccessibilityPresetControl({
   const heading = document.createElement('h2');
   heading.className = 'accessibility-presets__title';
   heading.id = `${controlId}-title`;
-  heading.textContent = title;
+  heading.textContent = strings.title;
 
   const descriptionParagraph = document.createElement('p');
   descriptionParagraph.className = 'accessibility-presets__description';
-  descriptionParagraph.textContent = description;
+  descriptionParagraph.textContent = strings.description;
 
   const list = document.createElement('div');
   list.className = 'accessibility-presets__options';
@@ -74,6 +81,8 @@ export function createAccessibilityPresetControl({
   wrapper.append(heading, descriptionParagraph, list, liveRegion);
   container.appendChild(wrapper);
 
+  let selectedAnnouncementTemplate = strings.selectedAnnouncementTemplate;
+  let localizedOptions = [...strings.options];
   const inputs: HTMLInputElement[] = [];
   const optionLabels = new Map<string, HTMLElement>();
 
@@ -95,8 +104,10 @@ export function createAccessibilityPresetControl({
       }
     });
     const activeLabel =
-      options.find((option) => option.id === active)?.label ?? active;
-    updateLiveRegion(`${activeLabel} preset selected.`);
+      localizedOptions.find((option) => option.id === active)?.label ?? active;
+    updateLiveRegion(
+      formatMessage(selectedAnnouncementTemplate, { label: activeLabel })
+    );
   };
 
   const setPending = (value: boolean) => {
@@ -142,7 +153,7 @@ export function createAccessibilityPresetControl({
     }
   };
 
-  options.forEach((option, index) => {
+  localizedOptions.forEach((option, index) => {
     const label = document.createElement('label');
     label.className = 'accessibility-presets__option';
     label.dataset.state = 'idle';
@@ -184,6 +195,29 @@ export function createAccessibilityPresetControl({
   return {
     element: wrapper,
     refresh() {
+      updateSelection();
+    },
+    setStrings(nextStrings) {
+      localizedOptions = [...nextStrings.options];
+      heading.textContent = nextStrings.title;
+      descriptionParagraph.textContent = nextStrings.description;
+      selectedAnnouncementTemplate = nextStrings.selectedAnnouncementTemplate;
+      inputs.forEach((input) => {
+        const nextOption = localizedOptions.find(
+          (entry) => entry.id === input.value
+        );
+        if (!nextOption) {
+          return;
+        }
+        input.setAttribute('aria-label', nextOption.label);
+        const label = input.closest('label');
+        label
+          ?.querySelector('[class$="__option-title"]')
+          ?.replaceChildren(nextOption.label);
+        label
+          ?.querySelector('[class$="__option-description"]')
+          ?.replaceChildren(nextOption.description);
+      });
       updateSelection();
     },
     dispose() {

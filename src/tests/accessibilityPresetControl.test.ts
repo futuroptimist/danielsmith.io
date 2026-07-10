@@ -26,6 +26,13 @@ const OPTIONS = [
   },
 ];
 
+const STRINGS = {
+  title: 'Accessibility presets',
+  description: 'Tune motion assists and HUD contrast.',
+  options: OPTIONS,
+  selectedAnnouncementTemplate: '{label} preset selected.',
+};
+
 describe('createAccessibilityPresetControl', () => {
   it('renders options, syncs state, and handles async selection', async () => {
     const container = document.createElement('div');
@@ -37,6 +44,7 @@ describe('createAccessibilityPresetControl', () => {
     const handle = createAccessibilityPresetControl({
       container,
       options: OPTIONS,
+      strings: STRINGS,
       getActivePreset: () => active,
       setActivePreset: (next) => {
         active = next;
@@ -90,6 +98,7 @@ describe('createAccessibilityPresetControl', () => {
     createAccessibilityPresetControl({
       container,
       options: OPTIONS,
+      strings: STRINGS,
       getActivePreset: () => active,
       setActivePreset: (next) => {
         active = next;
@@ -122,6 +131,7 @@ describe('createAccessibilityPresetControl', () => {
       createAccessibilityPresetControl({
         container,
         options: [],
+        strings: { ...STRINGS, options: [] },
         getActivePreset: () => 'standard',
         setActivePreset: () => undefined,
       })

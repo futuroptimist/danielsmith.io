@@ -159,6 +159,66 @@ export const JA_OVERRIDES: LocaleOverrides = {
     },
   },
   hud: {
+    graphicsQuality: {
+      title: 'グラフィック品質',
+      description: 'デバイス性能に合わせてプリセットを選びます。',
+      options: {
+        cinematic: {
+          label: 'シネマティック',
+          description:
+            'ポスト処理、最高詳細の3Dモデル、シネマ風ブルームと照明を有効にします。',
+        },
+        balanced: {
+          label: 'バランス',
+          description:
+            '控えめなブルーム、低めの解像度、中詳細モデルでノートPC向けにします。',
+        },
+        performance: {
+          label: 'パフォーマンス',
+          description:
+            'ブルームを無効化し解像度とモデル負荷を下げてFPSを優先します。',
+        },
+      },
+      selectedAnnouncementTemplate: '{label} プリセットを選択しました。',
+    },
+    accessibilityPresets: {
+      title: 'アクセシビリティプリセット',
+      description: 'モーション補助とHUDコントラストを調整します。',
+      options: {
+        standard: {
+          label: '標準',
+          description: '既定のビジュアルと音声バランスです。',
+        },
+        calm: {
+          label: 'カーム',
+          description: 'ブルーム、LED発光、環境音をやわらげます。',
+        },
+        'high-contrast': {
+          label: '高コントラスト',
+          description:
+            'モーション手掛かりを保ちながらHUDの読みやすさを高めます。',
+        },
+        photosensitive: {
+          label: '光過敏セーフ',
+          description:
+            'ブルームを無効化し発光を抑えHUDコントラストを高めます。',
+        },
+      },
+      selectedAnnouncementTemplate: '{label} プリセットを選択しました。',
+    },
+    motionBlur: {
+      heading: 'モーションブラー強度',
+      description: 'カメラやアバターが速く動くときの残像効果を調整します。',
+      groupAriaLabel: 'モーションブラー操作',
+      sliderAnnouncement: 'モーションブラー強度を変更しました。',
+      values: {
+        off: 'オフ',
+        lowTemplate: '{percent}% · 低い残像',
+        mediumTemplate: '{percent}% · 中程度の残像',
+        highTemplate: '{percent}% · 高い残像',
+      },
+    },
+
     controlOverlay: {
       heading: '操作',
       items: {
@@ -254,10 +314,37 @@ export const JA_OVERRIDES: LocaleOverrides = {
       heading: 'カスタマイズ',
       description: 'アバターのスタイルと相棒ギアを調整します。',
       variants: {
+        options: {
+          portfolio: {
+            label: 'ポートフォリオ',
+            description: 'ネオンバイザーが光る夕暮れスーツ。',
+          },
+          casual: {
+            label: 'カジュアル',
+            description: 'ティールの差し色が入った夕焼けフーディー。',
+          },
+          formal: {
+            label: 'フォーマル',
+            description: '金色の縁取りがあるチャコールブレザー。',
+          },
+        },
+        selectedAnnouncementTemplate: '{label} アバターを選択しました。',
         title: 'アバタースタイル',
         description: 'マネキン探索者の装いを切り替えます。',
       },
       accessories: {
+        options: {
+          'wrist-console': {
+            label: 'リストコンソール',
+            description: 'HUD診断を映すウェアラブルテレメトリカフ。',
+          },
+          'holo-drone': {
+            label: 'ホログラフィックドローン',
+            description: '穏やかに周回発光する肩乗り偵察ドローン。',
+          },
+        },
+        enabledAnnouncementTemplate: '{label} を有効にしました。',
+        disabledAnnouncementTemplate: '{label} を無効にしました。',
         title: 'アクセサリー',
         description:
           'リストコンソールやホログラフィックドローンを切り替えます。',
