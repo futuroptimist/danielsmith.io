@@ -429,6 +429,8 @@ export const AR_OVERRIDES: LocaleOverrides = {
       dismissLabel: 'إغلاق',
       dismissTitle: 'إغلاق الدليل الآن',
       lockedStepLabel: 'مقفل',
+      completedStepLabel: 'مكتمل',
+      incompleteStepLabel: 'غير مكتمل',
       unlockedStepLabel: 'مفتوح',
       activeStepLabel: 'الخطوة الحالية',
       pages: {

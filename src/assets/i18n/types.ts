@@ -49,6 +49,8 @@ export interface TutorialPanelStrings {
   dismissTitle: string;
   lockedStepLabel: string;
   unlockedStepLabel: string;
+  completedStepLabel: string;
+  incompleteStepLabel: string;
   activeStepLabel: string;
   pages: {
     welcomeMovement: TutorialPanelStepStrings;

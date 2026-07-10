@@ -1,12 +1,10 @@
 import type { TutorialPanelStrings } from '../../assets/i18n';
-
-const PAGE_IDS = [
-  'welcomeMovement',
-  'zoom',
-  'visitPois',
-  'findGitshelves',
-] as const;
-type TutorialPageId = (typeof PAGE_IDS)[number];
+import {
+  createDefaultTutorialState,
+  getTutorialPageOrder,
+  type TutorialPageId,
+  type TutorialState,
+} from '../../systems/tutorial/tutorialState';
 
 export interface TutorialPanelHandle {
   readonly element: HTMLElement;
@@ -15,24 +13,39 @@ export interface TutorialPanelHandle {
   toggle(force?: boolean): void;
   isOpen(): boolean;
   setStrings(strings: TutorialPanelStrings): void;
+  setState(state: TutorialState): void;
+  setShowOnStartup(value: boolean): void;
   dispose(): void;
 }
 
 export function createTutorialPanel({
   container,
   strings,
+  state,
+  showOnStartup = true,
   onOpenChange,
   onRequestClose,
+  onSelectPage,
+  onPrevious,
+  onNext,
+  onToggleShowOnStartup,
 }: {
   container: HTMLElement;
   strings: TutorialPanelStrings;
+  state?: TutorialState;
+  showOnStartup?: boolean;
   onOpenChange?: (open: boolean) => void;
   onRequestClose?: () => void;
+  onSelectPage?: (pageId: TutorialPageId) => void;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  onToggleShowOnStartup?: (value: boolean) => void;
 }): TutorialPanelHandle {
   let currentStrings = strings;
   let open = false;
   let collapsed = false;
-  let currentPage: TutorialPageId = 'welcomeMovement';
+  let currentState = state ?? createDefaultTutorialState();
+  let currentShowOnStartup = showOnStartup;
 
   const element = document.createElement('aside');
   element.className = 'tutorial-panel';
@@ -75,11 +88,12 @@ export function createTutorialPanel({
     const list = document.createElement('ol');
     list.className = 'tutorial-panel__steps';
     list.id = 'tutorial-panel-steps';
-    PAGE_IDS.forEach((id, index) => {
+    getTutorialPageOrder().forEach((id) => {
       const li = document.createElement('li');
       const button = document.createElement('button');
-      const isUnlocked = index === 0;
-      const isActive = id === currentPage;
+      const isUnlocked = currentState.unlockedPageIds.includes(id);
+      const isCompleted = currentState.completedPageIds.includes(id);
+      const isActive = id === currentState.currentPageId;
       button.type = 'button';
       button.className = 'tutorial-panel__step';
       button.dataset.testid = `tutorial-step-${id}`;
@@ -88,9 +102,11 @@ export function createTutorialPanel({
       button.setAttribute('aria-disabled', isUnlocked ? 'false' : 'true');
       const stepStateLabel = isActive
         ? currentStrings.activeStepLabel
-        : isUnlocked
-          ? currentStrings.unlockedStepLabel
-          : currentStrings.lockedStepLabel;
+        : isCompleted
+          ? currentStrings.completedStepLabel
+          : isUnlocked
+            ? currentStrings.unlockedStepLabel
+            : currentStrings.lockedStepLabel;
       button.setAttribute(
         'aria-label',
         `${currentStrings.pages[id].title} — ${stepStateLabel}`
@@ -104,8 +120,7 @@ export function createTutorialPanel({
       }
       button.addEventListener('click', () => {
         if (!isUnlocked) return;
-        currentPage = id;
-        render();
+        onSelectPage?.(id);
       });
       li.append(button);
       list.append(li);
@@ -117,11 +132,13 @@ export function createTutorialPanel({
     body.dataset.testid = 'tutorial-body';
     const pageHeading = document.createElement('h3');
     pageHeading.className = 'tutorial-panel__page-title';
-    pageHeading.textContent = currentStrings.pages[currentPage].title;
+    pageHeading.textContent =
+      currentStrings.pages[currentState.currentPageId].title;
     const pageBody = document.createElement('p');
     pageBody.className = 'tutorial-panel__copy';
     pageBody.id = 'tutorial-panel-description';
-    pageBody.textContent = currentStrings.pages[currentPage].body;
+    pageBody.textContent =
+      currentStrings.pages[currentState.currentPageId].body;
     element.setAttribute('aria-describedby', pageBody.id);
     body.append(pageHeading, pageBody);
 
@@ -132,12 +149,22 @@ export function createTutorialPanel({
     previous.type = 'button';
     previous.className = 'tutorial-panel__button';
     previous.textContent = currentStrings.previousLabel;
-    previous.disabled = true;
+    const order = getTutorialPageOrder();
+    const currentIndex = order.indexOf(currentState.currentPageId);
+    const previousUnlocked = order
+      .slice(0, currentIndex)
+      .reverse()
+      .some((id) => currentState.unlockedPageIds.includes(id));
+    previous.disabled = !previousUnlocked;
+    previous.addEventListener('click', () => onPrevious?.());
     const next = document.createElement('button');
     next.type = 'button';
     next.className = 'tutorial-panel__button tutorial-panel__button--primary';
     next.textContent = currentStrings.nextLabel;
-    next.disabled = true;
+    const nextPage = order[currentIndex + 1];
+    next.disabled =
+      !nextPage || !currentState.unlockedPageIds.includes(nextPage);
+    next.addEventListener('click', () => onNext?.());
     nav.append(previous, next);
 
     const options = document.createElement('div');
@@ -148,8 +175,11 @@ export function createTutorialPanel({
     label.title = currentStrings.showOnStartupTitle;
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.checked = true;
+    checkbox.checked = currentShowOnStartup;
     checkbox.dataset.testid = 'tutorial-show-on-startup';
+    checkbox.addEventListener('change', () =>
+      onToggleShowOnStartup?.(checkbox.checked)
+    );
     const labelText = document.createElement('span');
     labelText.textContent = currentStrings.showOnStartupLabel;
     label.append(checkbox, labelText);
@@ -201,6 +231,14 @@ export function createTutorialPanel({
     },
     setStrings(next) {
       currentStrings = next;
+      render();
+    },
+    setState(next) {
+      currentState = next;
+      render();
+    },
+    setShowOnStartup(next) {
+      currentShowOnStartup = next;
       render();
     },
     dispose() {
