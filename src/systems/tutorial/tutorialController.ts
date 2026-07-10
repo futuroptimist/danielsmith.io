@@ -54,11 +54,23 @@ export const createTutorialController = ({
     persistStateIfChanged();
     render();
   };
-  const adjacentPage = (direction: -1 | 1) => {
+  const nextAdjacentPage = () => {
     const order = getTutorialPageOrder();
     const currentIndex = order.indexOf(state.currentPageId);
-    const candidate = order[currentIndex + direction];
+    const candidate = order[currentIndex + 1];
     if (candidate) selectPage(candidate);
+  };
+  const previousUnlockedPage = () => {
+    const order = getTutorialPageOrder();
+    const currentIndex = order.indexOf(state.currentPageId);
+    const unlockedPageIds = new Set(state.unlockedPageIds);
+    for (let index = currentIndex - 1; index >= 0; index -= 1) {
+      const candidate = order[index];
+      if (candidate && unlockedPageIds.has(candidate)) {
+        selectPage(candidate);
+        return;
+      }
+    }
   };
 
   return {
@@ -69,8 +81,8 @@ export const createTutorialController = ({
       render();
     },
     selectPage,
-    previousPage: () => adjacentPage(-1),
-    nextPage: () => adjacentPage(1),
+    previousPage: previousUnlockedPage,
+    nextPage: nextAdjacentPage,
     setShowOnStartup(value) {
       if (showOnStartup === value) return;
       showOnStartup = value;

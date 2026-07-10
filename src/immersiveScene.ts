@@ -3968,9 +3968,18 @@ export function initializeImmersiveScene(
       syncPoiDetailOverlay();
     },
   });
-  if (tutorialController.getShowOnStartup()) {
-    hudPanelCoordinator.openTutorial();
-  }
+  const maybeOpenTutorialOnFirstReadyFrame = () => {
+    if (!tutorialController.getShowOnStartup()) {
+      return;
+    }
+    if (softwareRendererWarning?.element.isConnected) {
+      return;
+    }
+    if (lowFpsRecoveryPopup && !lowFpsRecoveryPopup.hidden) {
+      return;
+    }
+    hudPanelCoordinator?.openTutorial();
+  };
 
   let interactablePoi: PoiInstance | null = null;
 
@@ -6909,6 +6918,7 @@ export function initializeImmersiveScene(
         hasPresentedFirstFrame = true;
         writeModePreference('immersive');
         markAppReady('immersive');
+        maybeOpenTutorialOnFirstReadyFrame();
       }
       debugPerformanceOverlay.end();
     } catch (error) {

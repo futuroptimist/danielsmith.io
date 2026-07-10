@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { createTutorialController } from '../systems/tutorial/tutorialController';
-import { unlockTutorialPage } from '../systems/tutorial/tutorialState';
+import {
+  setCurrentTutorialPage,
+  unlockTutorialPage,
+} from '../systems/tutorial/tutorialState';
 import { TUTORIAL_SHOW_ON_STARTUP_STORAGE_KEY } from '../systems/tutorial/tutorialStorage';
 
 class MemoryStorage implements Pick<Storage, 'getItem' | 'setItem'> {
@@ -35,6 +38,26 @@ describe('tutorial controller', () => {
     expect(controller.getShowOnStartup()).toBe(false);
     expect(storage.getItem(TUTORIAL_SHOW_ON_STARTUP_STORAGE_KEY)).toBe('false');
     controller.nextPage();
+    expect(controller.getState().currentPageId).toBe('welcomeMovement');
+  });
+
+  it('previous navigation skips locked gaps to the nearest unlocked page', () => {
+    const storage = new MemoryStorage();
+    let state = createTutorialController({ storage }).getState();
+    state = unlockTutorialPage(state, 'visitPois');
+    state = setCurrentTutorialPage(state, 'visitPois');
+    storage.setItem(
+      'danielsmith.io:tutorial:v1:progress',
+      JSON.stringify(state)
+    );
+    const controller = createTutorialController({ storage });
+
+    expect(controller.getState().currentPageId).toBe('visitPois');
+    expect(controller.getState().unlockedPageIds).toContain('welcomeMovement');
+    expect(controller.getState().unlockedPageIds).not.toContain('zoom');
+
+    controller.previousPage();
+
     expect(controller.getState().currentPageId).toBe('welcomeMovement');
   });
 
