@@ -8,7 +8,7 @@ import {
 import { createTutorialPanel } from '../ui/hud/tutorialPanel';
 
 describe('createTutorialPanel', () => {
-  it('renders the shell zones and localized placeholder controls', () => {
+  it('renders the shell zones and localized tutorial controls', () => {
     const strings = getTutorialPanelStrings('en');
     const panel = createTutorialPanel({
       container: document.body,
@@ -46,6 +46,14 @@ describe('createTutorialPanel', () => {
     ).toBe(true);
     expect(panel.element.textContent).toContain(strings.showOnStartupLabel);
     expect(panel.element.textContent).toContain(strings.dismissLabel);
+    expect(panel.element.textContent).toContain('interactive portfolio');
+    expect(panel.element.textContent).toContain('W');
+    expect(panel.element.textContent).toContain('A');
+    expect(panel.element.textContent).toContain('S');
+    expect(panel.element.textContent).toContain('D');
+    expect(
+      panel.element.querySelector('[data-testid="tutorial-text-mode"]')
+    ).not.toBeNull();
     expect(
       panel.element
         .querySelector('[data-testid="tutorial-sidebar-collapse"]')
@@ -149,4 +157,64 @@ describe('createTutorialPanel', () => {
 
     panel.dispose();
   });
+});
+
+it('renders live progress chips for zoom, POIs, and Gitshelves', () => {
+  const strings = getTutorialPanelStrings('en');
+  const base = createDefaultTutorialState();
+  const panel = createTutorialPanel({
+    container: document.body,
+    strings,
+    state: {
+      ...base,
+      currentPageId: 'visitPois',
+      unlockedPageIds: ['welcomeMovement', 'zoom', 'visitPois'],
+      progress: {
+        ...base.progress,
+        pois: { ...base.progress.pois, visitedPoiIds: ['a', 'b'] },
+      },
+    },
+  });
+  panel.open();
+  expect(panel.element.textContent).toContain('2/3 POIs');
+
+  panel.setState({
+    ...base,
+    currentPageId: 'zoom',
+    unlockedPageIds: ['welcomeMovement', 'zoom'],
+    progress: {
+      ...base.progress,
+      zoom: { zoomInComplete: true, zoomOutComplete: false },
+    },
+  });
+  expect(panel.element.textContent).toContain('In ✓');
+  expect(panel.element.textContent).toContain('Out');
+
+  panel.setState({
+    ...base,
+    currentPageId: 'findGitshelves',
+    unlockedPageIds: ['welcomeMovement', 'zoom', 'visitPois', 'findGitshelves'],
+    progress: { ...base.progress, gitshelves: { completed: true } },
+  });
+  expect(panel.element.textContent).toContain('Gitshelves ✓');
+
+  panel.dispose();
+});
+
+it('invokes the shared text-mode callback from the tutorial page', () => {
+  let requested = 0;
+  const panel = createTutorialPanel({
+    container: document.body,
+    strings: getTutorialPanelStrings('en'),
+    state: createDefaultTutorialState(),
+    onRequestTextMode: () => {
+      requested += 1;
+    },
+  });
+  panel.open();
+  panel.element
+    .querySelector<HTMLButtonElement>('[data-testid="tutorial-text-mode"]')
+    ?.click();
+  expect(requested).toBe(1);
+  panel.dispose();
 });

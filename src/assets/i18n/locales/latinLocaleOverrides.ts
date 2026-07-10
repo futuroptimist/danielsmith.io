@@ -926,181 +926,102 @@ export function buildLatinLocaleOverrides(
         },
       },
       tutorialPanel: {
-        heading:
-          copy.locale === 'hu'
-            ? 'Oktatóanyag'
-            : copy.locale === 'de'
-              ? 'Tutorial'
-              : 'Tutorial',
-        sidebarLabel:
-          copy.locale === 'hu'
-            ? 'Oktatási lépések'
-            : copy.locale === 'de'
-              ? 'Tutorial-Schritte'
-              : copy.locale === 'pt'
-                ? 'Etapas do tutorial'
-                : 'Pasos del tutorial',
-        collapseLabel:
-          copy.locale === 'hu'
-            ? 'Oktatási lépések összecsukása'
-            : copy.locale === 'de'
-              ? 'Tutorial-Schritte einklappen'
-              : copy.locale === 'pt'
-                ? 'Recolher etapas do tutorial'
-                : 'Contraer pasos del tutorial',
-        expandLabel:
-          copy.locale === 'hu'
-            ? 'Oktatási lépések kibontása'
-            : copy.locale === 'de'
-              ? 'Tutorial-Schritte ausklappen'
-              : copy.locale === 'pt'
-                ? 'Expandir etapas do tutorial'
-                : 'Expandir pasos del tutorial',
-        previousLabel:
-          copy.locale === 'hu'
-            ? 'Előző'
-            : copy.locale === 'de'
-              ? 'Zurück'
-              : copy.locale === 'pt'
-                ? 'Anterior'
-                : 'Anterior',
-        nextLabel:
-          copy.locale === 'hu'
-            ? 'Következő'
-            : copy.locale === 'de'
-              ? 'Weiter'
-              : copy.locale === 'pt'
-                ? 'Próximo'
-                : 'Siguiente',
-        showOnStartupLabel:
-          copy.locale === 'hu'
-            ? 'Megjelenítés indításkor'
-            : copy.locale === 'de'
-              ? 'Beim Start anzeigen'
-              : copy.locale === 'pt'
-                ? 'Mostrar ao iniciar'
-                : 'Mostrar al inicio',
-        showOnStartupTitle:
-          copy.locale === 'hu'
-            ? 'Az oktatóanyag megjelenítése az immerzív mód indításakor'
-            : copy.locale === 'de'
-              ? 'Tutorial beim Start des immersiven Modus anzeigen'
-              : copy.locale === 'pt'
-                ? 'Mostrar o tutorial quando o modo imersivo iniciar'
-                : 'Mostrar el tutorial al iniciar el modo inmersivo',
-        dismissLabel:
-          copy.locale === 'hu'
-            ? 'Bezárás'
-            : copy.locale === 'de'
-              ? 'Schließen'
-              : copy.locale === 'pt'
-                ? 'Dispensar'
-                : 'Descartar',
-        dismissTitle:
-          copy.locale === 'hu'
-            ? 'Oktatóanyag bezárása most'
-            : copy.locale === 'de'
-              ? 'Tutorial vorerst schließen'
-              : copy.locale === 'pt'
-                ? 'Fechar o tutorial por enquanto'
-                : 'Cerrar el tutorial por ahora',
-        lockedStepLabel:
-          copy.locale === 'hu'
-            ? 'Zárolva'
-            : copy.locale === 'de'
-              ? 'Gesperrt'
-              : copy.locale === 'pt'
-                ? 'Bloqueado'
-                : 'Bloqueado',
-        unlockedStepLabel:
-          copy.locale === 'hu'
-            ? 'Feloldva'
-            : copy.locale === 'de'
-              ? 'Freigeschaltet'
-              : copy.locale === 'pt'
-                ? 'Desbloqueado'
-                : 'Desbloqueado',
-        activeStepLabel:
-          copy.locale === 'hu'
-            ? 'Aktuális lépés'
-            : copy.locale === 'de'
-              ? 'Aktueller Schritt'
-              : copy.locale === 'pt'
-                ? 'Etapa atual'
-                : 'Paso actual',
-        completedStepLabel:
-          copy.locale === 'hu'
-            ? 'Kész'
-            : copy.locale === 'de'
-              ? 'Abgeschlossen'
-              : copy.locale === 'pt'
-                ? 'Concluído'
-                : 'Completado',
+        heading: 'Tutorial',
+        sidebarLabel: 'Tutorial steps',
+        collapseLabel: 'Collapse tutorial steps',
+        expandLabel: 'Expand tutorial steps',
+        previousLabel: 'Previous',
+        nextLabel: 'Next',
+        showOnStartupLabel: 'Show on startup',
+        showOnStartupTitle: 'Show the tutorial when immersive mode starts',
+        dismissLabel: 'Dismiss',
+        dismissTitle: 'Close the tutorial for now',
+        lockedStepLabel: 'Locked',
+        unlockedStepLabel: 'Unlocked',
+        activeStepLabel: 'Current step',
+        completedStepLabel: 'Completed',
+        checkmarkLabel: 'Complete',
+        completeLabel: 'Complete',
+        incompleteLabel: 'Incomplete',
+        textMode: {
+          label: 'Switch to text-only',
+          title: 'Open the text-only portfolio view',
+          ariaLabel: 'Switch to the text-only portfolio view',
+        },
+        movement: {
+          forward: {
+            label: 'W',
+            completeLabel: 'W complete',
+            incompleteLabel: 'W incomplete',
+            ariaComplete: 'Forward movement complete.',
+            ariaIncomplete: 'Forward movement incomplete.',
+          },
+          left: {
+            label: 'A',
+            completeLabel: 'A complete',
+            incompleteLabel: 'A incomplete',
+            ariaComplete: 'Left movement complete.',
+            ariaIncomplete: 'Left movement incomplete.',
+          },
+          backward: {
+            label: 'S',
+            completeLabel: 'S complete',
+            incompleteLabel: 'S incomplete',
+            ariaComplete: 'Backward movement complete.',
+            ariaIncomplete: 'Backward movement incomplete.',
+          },
+          right: {
+            label: 'D',
+            completeLabel: 'D complete',
+            incompleteLabel: 'D incomplete',
+            ariaComplete: 'Right movement complete.',
+            ariaIncomplete: 'Right movement incomplete.',
+          },
+        },
+        zoomStatus: {
+          in: {
+            label: 'In',
+            completeLabel: 'Zoom in complete',
+            incompleteLabel: 'Zoom in incomplete',
+            ariaComplete: 'Zooming all the way in is complete.',
+            ariaIncomplete: 'Zoom in all the way to complete this step.',
+          },
+          out: {
+            label: 'Out',
+            completeLabel: 'Zoom out complete',
+            incompleteLabel: 'Zoom out incomplete',
+            ariaComplete: 'Zooming all the way out is complete.',
+            ariaIncomplete: 'Zoom out all the way to complete this step.',
+          },
+        },
+        poiCounter: {
+          labelTemplate: '{count}/{goal} POIs',
+          ariaTemplate: '{count} of {goal} project exhibits visited.',
+        },
+        gitshelvesStatus: {
+          label: 'Gitshelves',
+          completeLabel: 'Gitshelves visited',
+          incompleteLabel: 'Gitshelves not visited',
+          ariaComplete: 'Gitshelves has been visited.',
+          ariaIncomplete:
+            'Find and interact with Gitshelves to complete this step.',
+        },
         pages: {
           welcomeMovement: {
-            title:
-              copy.locale === 'hu'
-                ? 'Üdvözlet'
-                : copy.locale === 'de'
-                  ? 'Willkommen'
-                  : copy.locale === 'pt'
-                    ? 'Boas-vindas'
-                    : 'Bienvenida',
-            body:
-              copy.locale === 'hu'
-                ? 'Az oktatási előrehaladás hamarosan érkezik. Az első lépés bemutatja a mozgást a portfólióban.'
-                : copy.locale === 'de'
-                  ? 'Der Tutorial-Fortschritt folgt bald. Dieser erste Schritt führt die Bewegung durch das Portfolio ein.'
-                  : copy.locale === 'pt'
-                    ? 'O progresso do tutorial chegará em breve. Esta primeira etapa apresentará o movimento pelo portfólio.'
-                    : 'El progreso del tutorial llegará pronto. Este primer paso presentará el movimiento por el portafolio.',
+            title: 'Welcome',
+            body: 'Welcome to Daniel Smith’s interactive portfolio. Explore project exhibits by moving through the scene, and move in all four WASD directions to continue. WASD, arrow keys, and the touch joystick all count. Prefer a simpler version? Switch to the text-only portfolio.',
           },
           zoom: {
             title: 'Zoom',
-            body:
-              copy.locale === 'hu'
-                ? 'Ez a helyőrző a zoomvezérlést tanítja majd, miközben a jelenet játszható marad.'
-                : copy.locale === 'de'
-                  ? 'Dieser Platzhalter erklärt später die Zoomsteuerung, während die Szene spielbar bleibt.'
-                  : copy.locale === 'pt'
-                    ? 'Este espaço reservado ensinará os controles de zoom mantendo a cena jogável.'
-                    : 'Este marcador enseñará los controles de zoom mientras mantiene la escena jugable.',
+            body: 'Zoom all the way in and all the way out. Use the mouse scroll wheel, a multitouch pinch, or keyboard shortcuts Shift + = and Shift + -.',
           },
           visitPois: {
-            title:
-              copy.locale === 'hu'
-                ? 'POI-k felkeresése'
-                : copy.locale === 'de'
-                  ? 'POIs besuchen'
-                  : copy.locale === 'pt'
-                    ? 'Visitar POIs'
-                    : 'Visitar POI',
-            body:
-              copy.locale === 'hu'
-                ? 'Ez a helyőrző három projekt-POI meglátogatását fogja követni.'
-                : copy.locale === 'de'
-                  ? 'Dieser Platzhalter verfolgt später Besuche bei drei Projekt-POIs.'
-                  : copy.locale === 'pt'
-                    ? 'Este espaço reservado acompanhará visitas a três pontos de interesse de projetos.'
-                    : 'Este marcador seguirá las visitas a tres puntos de interés de proyectos.',
+            title: 'Visit 3 POIs',
+            body: 'POIs are project exhibits. Open their panels to review summaries, outcomes, metrics, links, and context. Clicking, tapping, or interacting with a POI marks it visited.',
           },
           findGitshelves: {
-            title:
-              copy.locale === 'hu'
-                ? 'Gitshelves megtalálása'
-                : copy.locale === 'de'
-                  ? 'Gitshelves finden'
-                  : copy.locale === 'pt'
-                    ? 'Encontrar Gitshelves'
-                    : 'Encontrar Gitshelves',
-            body:
-              copy.locale === 'hu'
-                ? 'Ez a helyőrző a Gitshelves kiállításhoz vezeti majd a látogatókat.'
-                : copy.locale === 'de'
-                  ? 'Dieser Platzhalter führt Besucher später zur Gitshelves-Ausstellung.'
-                  : copy.locale === 'pt'
-                    ? 'Este espaço reservado guiará visitantes até a exibição Gitshelves.'
-                    : 'Este marcador guiará a los visitantes a la exhibición Gitshelves.',
+            title: 'Find Gitshelves',
+            body: 'Find and interact with the Gitshelves POI to finish the tutorial. Hint: check upstairs.',
           },
         },
       },

@@ -124,7 +124,7 @@ show-on-startup preference only when that preference changes. Dismiss closes the
 panel instance for the active page load only; it does not alter either storage key.
 
 Gameplay action tracking is intentionally not implemented in the current state plumbing.
-The progress object includes movement, zoom, POI, and Gitshelves placeholder fields so
+The progress object includes movement, zoom, POI, and Gitshelves fields so
 future runtime adapters can update a stable schema without changing storage keys.
 
 ## Universal HUD menu architecture
@@ -628,3 +628,34 @@ Future implementation is ready when:
 - No runtime Tutorial implementation lands before this design-only document is reviewed.
 - Localization and z-fighting guardrails remain at least as strict as they are today.
 - `docs/assets/game-launch.png` remains untouched.
+
+## Implemented action-tracking contracts
+
+The Tutorial MVP now records gameplay actions through the pure state helpers in
+`src/systems/tutorial/tutorialState.ts` and the persistence-aware orchestrator in
+`src/systems/tutorial/tutorialController.ts`.
+
+- Movement tracking uses `recordMovementSample(...)` with camera-relative action
+  components `{ right, forward, deltaSeconds, moved }`. Keyboard movement, arrow
+  keys, virtual joystick input, and any future source that feeds the same movement
+  vector can count. A direction is complete after its canonical WASD component is
+  meaningfully active for 0.25 seconds and the movement step reports that the
+  player actually moved.
+- Zoom tracking uses `recordZoomProgress(...)` with runtime `{ zoom, zoomTarget,
+minZoom, maxZoom }`. Completion is monotonic and uses the active zoom bounds;
+  zoom-in completes within one percent of the max bound and zoom-out completes
+  within one percent of the min bound.
+- POI progress uses the shared `PoiVisitedState` subscription as the source of
+  truth. Tutorial stores sanitized derived visited ids and completion flags, but
+  clicking, tapping, or interacting with POIs remains the general scene primitive
+  that marks POIs visited and drives the floating visited affordances.
+- The Gitshelves objective uses the stable POI id
+  `gitshelves-living-room-installation`; localized display titles are not part of
+  the completion contract.
+
+The immersive scene wires these contracts without making the panel modal:
+movement is sampled after collision-aware movement steps, zoom is sampled when the
+active zoom target or camera zoom changes, and visited POI snapshots are synced
+from `PoiVisitedState`. The controller persists only when the serialized Tutorial
+state changes, so ordinary frames that do not cross a meaningful progress boundary
+avoid localStorage churn.

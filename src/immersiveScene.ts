@@ -3639,8 +3639,14 @@ export function initializeImmersiveScene(
     onNext: () => tutorialController.nextPage(),
     onToggleShowOnStartup: (value) =>
       tutorialController.setShowOnStartup(value),
+    onRequestTextMode: () => activateTextMode(),
   });
   tutorialController.setPanel(tutorialPanel);
+  const removeTutorialVisitedSubscription = poiVisitedState.subscribe(
+    (visited) => {
+      tutorialController.syncVisitedPois(visited);
+    }
+  );
   const hudSettingsContainer =
     helpModal.settingsContainer ??
     (() => {
@@ -5041,8 +5047,18 @@ export function initializeImmersiveScene(
     },
   });
 
+  const recordTutorialZoomProgress = () => {
+    tutorialController.recordZoomProgress({
+      zoom: cameraZoom,
+      zoomTarget: cameraZoomTarget,
+      minZoom: MIN_CAMERA_ZOOM,
+      maxZoom: MAX_CAMERA_ZOOM,
+    });
+  };
+
   const setCameraZoomTarget = (next: number) => {
     cameraZoomTarget = MathUtils.clamp(next, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM);
+    recordTutorialZoomProgress();
   };
 
   const updateCameraPanLimits = (aspect: number) => {
@@ -5954,8 +5970,10 @@ export function initializeImmersiveScene(
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
 
+    let movementSucceeded = false;
     if (stepX !== 0 || stepZ !== 0) {
       const movementStep = applyPlayerMovementStep(stepX, stepZ);
+      movementSucceeded = movementStep.movedX || movementStep.movedZ;
       if (stepX !== 0 && !movementStep.movedX) {
         targetVelocity.x = 0;
         velocity.x = 0;
@@ -5965,6 +5983,13 @@ export function initializeImmersiveScene(
         velocity.z = 0;
       }
     }
+
+    tutorialController.recordMovementProgress({
+      right: combinedRight,
+      forward: combinedForward,
+      deltaSeconds: delta,
+      moved: movementSucceeded,
+    });
 
     // Update facing: aim toward current planar velocity when moving.
     const speedSq = velocity.x * velocity.x + velocity.z * velocity.z;
@@ -6017,6 +6042,7 @@ export function initializeImmersiveScene(
     }
     if (Math.abs(cameraZoom - previousZoom) > 1e-4) {
       updateCameraProjection(window.innerWidth / window.innerHeight);
+      recordTutorialZoomProgress();
     }
 
     const cameraInput =
@@ -6346,6 +6372,7 @@ export function initializeImmersiveScene(
     removeSelectionStateListener();
     removeSelectionListener();
     removeVisitedSubscription();
+    removeTutorialVisitedSubscription();
     interactionTimeline.dispose();
     poiTooltipOverlay.dispose();
     poiWorldTooltip.dispose();

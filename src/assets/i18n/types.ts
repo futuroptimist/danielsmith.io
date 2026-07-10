@@ -36,6 +36,25 @@ export interface TutorialPanelStepStrings {
   body: string;
 }
 
+export interface TutorialStatusChipStrings {
+  label: string;
+  completeLabel: string;
+  incompleteLabel: string;
+  ariaComplete: string;
+  ariaIncomplete: string;
+}
+
+export interface TutorialPoiCounterStrings {
+  labelTemplate: string;
+  ariaTemplate: string;
+}
+
+export interface TutorialTextModeStrings {
+  label: string;
+  title: string;
+  ariaLabel: string;
+}
+
 export interface TutorialPanelStrings {
   heading: string;
   sidebarLabel: string;
@@ -51,6 +70,22 @@ export interface TutorialPanelStrings {
   unlockedStepLabel: string;
   activeStepLabel: string;
   completedStepLabel: string;
+  checkmarkLabel: string;
+  completeLabel: string;
+  incompleteLabel: string;
+  textMode: TutorialTextModeStrings;
+  movement: {
+    forward: TutorialStatusChipStrings;
+    left: TutorialStatusChipStrings;
+    backward: TutorialStatusChipStrings;
+    right: TutorialStatusChipStrings;
+  };
+  zoomStatus: {
+    in: TutorialStatusChipStrings;
+    out: TutorialStatusChipStrings;
+  };
+  poiCounter: TutorialPoiCounterStrings;
+  gitshelvesStatus: TutorialStatusChipStrings;
   pages: {
     welcomeMovement: TutorialPanelStepStrings;
     zoom: TutorialPanelStepStrings;

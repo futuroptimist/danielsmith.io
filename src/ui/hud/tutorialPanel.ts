@@ -28,6 +28,7 @@ export function createTutorialPanel({
   onPrevious,
   onNext,
   onToggleShowOnStartup,
+  onRequestTextMode,
 }: {
   container: HTMLElement;
   strings: TutorialPanelStrings;
@@ -39,12 +40,114 @@ export function createTutorialPanel({
   onPrevious?: () => void;
   onNext?: () => void;
   onToggleShowOnStartup?: (value: boolean) => void;
+  onRequestTextMode?: () => void;
 }): TutorialPanelHandle {
   let currentStrings = strings;
   let open = false;
   let collapsed = false;
   let currentState = state;
   let currentShowOnStartup = showOnStartup;
+
+  const createChip = (label: string, complete: boolean, ariaLabel: string) => {
+    const chip = document.createElement('span');
+    chip.className = `tutorial-panel__chip tutorial-panel__chip--${complete ? 'complete' : 'incomplete'}`;
+    chip.dataset.complete = complete ? 'true' : 'false';
+    chip.setAttribute('role', 'status');
+    chip.setAttribute('aria-label', ariaLabel);
+    chip.textContent = complete ? `${label} ✓` : label;
+    return chip;
+  };
+
+  const createProgress = () => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'tutorial-panel__progress';
+    const { progress, currentPageId } = currentState;
+    if (currentPageId === 'welcomeMovement') {
+      const items = [
+        [
+          'forward',
+          currentStrings.movement.forward,
+          progress.movement.forwardComplete,
+        ],
+        ['left', currentStrings.movement.left, progress.movement.leftComplete],
+        [
+          'backward',
+          currentStrings.movement.backward,
+          progress.movement.backwardComplete,
+        ],
+        [
+          'right',
+          currentStrings.movement.right,
+          progress.movement.rightComplete,
+        ],
+      ] as const;
+      items.forEach(([, strings, complete]) =>
+        wrapper.append(
+          createChip(
+            strings.label,
+            complete,
+            complete ? strings.ariaComplete : strings.ariaIncomplete
+          )
+        )
+      );
+      const textMode = document.createElement('button');
+      textMode.type = 'button';
+      textMode.className =
+        'tutorial-panel__button tutorial-panel__text-mode-button';
+      textMode.dataset.testid = 'tutorial-text-mode';
+      textMode.textContent = currentStrings.textMode.label;
+      textMode.title = currentStrings.textMode.title;
+      textMode.setAttribute('aria-label', currentStrings.textMode.ariaLabel);
+      textMode.addEventListener('click', () => onRequestTextMode?.());
+      wrapper.append(textMode);
+    }
+    if (currentPageId === 'zoom') {
+      const zoomIn = currentStrings.zoomStatus.in;
+      const zoomOut = currentStrings.zoomStatus.out;
+      wrapper.append(
+        createChip(
+          zoomIn.label,
+          progress.zoom.zoomInComplete,
+          progress.zoom.zoomInComplete
+            ? zoomIn.ariaComplete
+            : zoomIn.ariaIncomplete
+        ),
+        createChip(
+          zoomOut.label,
+          progress.zoom.zoomOutComplete,
+          progress.zoom.zoomOutComplete
+            ? zoomOut.ariaComplete
+            : zoomOut.ariaIncomplete
+        )
+      );
+    }
+    if (currentPageId === 'visitPois') {
+      const count = Math.min(
+        progress.pois.visitedPoiIds.length,
+        progress.pois.visitedCountGoal
+      );
+      const complete = count >= progress.pois.visitedCountGoal;
+      const label = currentStrings.poiCounter.labelTemplate
+        .replace('{count}', String(count))
+        .replace('{goal}', String(progress.pois.visitedCountGoal));
+      const aria = currentStrings.poiCounter.ariaTemplate
+        .replace('{count}', String(count))
+        .replace('{goal}', String(progress.pois.visitedCountGoal));
+      wrapper.append(createChip(label, complete, aria));
+    }
+    if (currentPageId === 'findGitshelves') {
+      const strings = currentStrings.gitshelvesStatus;
+      const complete = progress.gitshelves.completed;
+      wrapper.append(
+        createChip(
+          strings.label,
+          complete,
+          complete ? strings.ariaComplete : strings.ariaIncomplete
+        )
+      );
+    }
+    return wrapper;
+  };
 
   const element = document.createElement('aside');
   element.className = 'tutorial-panel';
@@ -142,7 +245,7 @@ export function createTutorialPanel({
     pageBody.textContent =
       currentStrings.pages[currentState.currentPageId].body;
     element.setAttribute('aria-describedby', pageBody.id);
-    body.append(pageHeading, pageBody);
+    body.append(pageHeading, pageBody, createProgress());
 
     const nav = document.createElement('div');
     nav.className = 'tutorial-panel__nav';
