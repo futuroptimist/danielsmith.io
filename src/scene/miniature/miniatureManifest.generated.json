@@ -409,11 +409,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 34,
-      "syncNote": "Greenery QA assertions are source-only; tabletop furnishing proxy coverage is unchanged.",
-      "sourceFingerprint": "e513b0c19288f2c8df177cab580ea6617252044a92cbf2e0d600fed66a012d42",
+      "syncRevision": 35,
+      "syncNote": "Studio rug footprint shifts only floor-decor placement; tabletop furnishing proxy coverage is unchanged.",
+      "sourceFingerprint": "8520c3c9329de4a8ca125a350e11607caf9b8de3ed48902bb3d0ee4728a2d417",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "7009d9e03ef23dc72075bcf9994511fdf918a8f11751b29f8903c1ca2a4e107b"
+      "metadataFingerprint": "aa35b463ca0dd1b75efbc2323266703cd232549e274e571eb0ffb04420b120f4"
     },
     {
       "id": "decor:wall-paintings",
