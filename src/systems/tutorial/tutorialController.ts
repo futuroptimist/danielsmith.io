@@ -1,10 +1,17 @@
 import type { TutorialPanelHandle } from '../../ui/hud/tutorialPanel';
 
 import {
+  deriveTutorialUnlocks,
   getTutorialPageOrder,
+  recordGitshelvesVisited,
+  recordMovementSample,
+  recordVisitedPois,
+  recordZoomProgress,
   setCurrentTutorialPage,
   type TutorialPageId,
+  type TutorialMovementSample,
   type TutorialState,
+  type TutorialZoomSnapshot,
 } from './tutorialState';
 import {
   createTutorialStorageAdapter,
@@ -20,9 +27,9 @@ export interface TutorialControllerHandle {
   nextPage(): void;
   setShowOnStartup(value: boolean): void;
   dismiss(): void;
-  recordMovementProgress(): void;
-  recordZoomProgress(): void;
-  syncVisitedPois(): void;
+  recordMovementProgress(sample: TutorialMovementSample): void;
+  recordZoomProgress(snapshot: TutorialZoomSnapshot): void;
+  syncVisitedPois(visitedPoiIds: Iterable<string>): void;
   markGitshelvesVisited(): void;
 }
 
@@ -34,7 +41,7 @@ export const createTutorialController = ({
   onDismiss?: () => void;
 }): TutorialControllerHandle => {
   const adapter = createTutorialStorageAdapter(storage);
-  let state = adapter.readState();
+  let state = deriveTutorialUnlocks(adapter.readState());
   let showOnStartup = adapter.readShowOnStartup();
   let panel: TutorialPanelHandle | null = null;
   let lastSerializedState = JSON.stringify(state);
@@ -92,9 +99,25 @@ export const createTutorialController = ({
     dismiss() {
       onDismiss?.();
     },
-    recordMovementProgress() {},
-    recordZoomProgress() {},
-    syncVisitedPois() {},
-    markGitshelvesVisited() {},
+    recordMovementProgress(sample) {
+      state = recordMovementSample(state, sample);
+      persistStateIfChanged();
+      render();
+    },
+    recordZoomProgress(snapshot) {
+      state = recordZoomProgress(state, snapshot);
+      persistStateIfChanged();
+      render();
+    },
+    syncVisitedPois(visitedPoiIds) {
+      state = recordVisitedPois(state, visitedPoiIds);
+      persistStateIfChanged();
+      render();
+    },
+    markGitshelvesVisited() {
+      state = recordGitshelvesVisited(state);
+      persistStateIfChanged();
+      render();
+    },
   };
 };

@@ -546,22 +546,88 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       unlockedStepLabel: 'Unlocked',
       activeStepLabel: 'Current step',
       completedStepLabel: 'Completed',
+      checkmarkLabel: 'Complete',
+      completeLabel: 'Complete',
+      incompleteLabel: 'Incomplete',
+      textMode: {
+        label: 'Switch to text-only',
+        title: 'Open the text-only portfolio view',
+        ariaLabel: 'Switch to the text-only portfolio view',
+      },
+      movement: {
+        forward: {
+          label: 'W',
+          completeLabel: 'W complete',
+          incompleteLabel: 'W incomplete',
+          ariaComplete: 'Forward movement complete.',
+          ariaIncomplete: 'Forward movement incomplete.',
+        },
+        left: {
+          label: 'A',
+          completeLabel: 'A complete',
+          incompleteLabel: 'A incomplete',
+          ariaComplete: 'Left movement complete.',
+          ariaIncomplete: 'Left movement incomplete.',
+        },
+        backward: {
+          label: 'S',
+          completeLabel: 'S complete',
+          incompleteLabel: 'S incomplete',
+          ariaComplete: 'Backward movement complete.',
+          ariaIncomplete: 'Backward movement incomplete.',
+        },
+        right: {
+          label: 'D',
+          completeLabel: 'D complete',
+          incompleteLabel: 'D incomplete',
+          ariaComplete: 'Right movement complete.',
+          ariaIncomplete: 'Right movement incomplete.',
+        },
+      },
+      zoomStatus: {
+        in: {
+          label: 'In',
+          completeLabel: 'Zoom in complete',
+          incompleteLabel: 'Zoom in incomplete',
+          ariaComplete: 'Zooming all the way in is complete.',
+          ariaIncomplete: 'Zoom in all the way to complete this step.',
+        },
+        out: {
+          label: 'Out',
+          completeLabel: 'Zoom out complete',
+          incompleteLabel: 'Zoom out incomplete',
+          ariaComplete: 'Zooming all the way out is complete.',
+          ariaIncomplete: 'Zoom out all the way to complete this step.',
+        },
+      },
+      poiCounter: {
+        labelTemplate: '{count}/{goal} POIs',
+        ariaTemplate: '{count} of {goal} project exhibits visited.',
+      },
+      gitshelvesStatus: {
+        label: 'Gitshelves',
+        completeLabel: 'Gitshelves visited',
+        incompleteLabel: 'Gitshelves not visited',
+        ariaComplete: 'Gitshelves has been visited.',
+        ariaIncomplete:
+          'Find and interact with Gitshelves to complete this step.',
+      },
       pages: {
         welcomeMovement: {
           title: 'Welcome',
-          body: 'Tutorial progress arrives soon. This first step will introduce movement through the portfolio.',
+          body: 'Welcome to Daniel Smith’s interactive portfolio. Explore project exhibits by moving through the scene, and move in all four WASD directions to continue. WASD, arrow keys, and the touch joystick all count. Prefer a simpler version? Switch to the text-only portfolio.',
         },
         zoom: {
           title: 'Zoom',
-          body: 'This placeholder will teach zoom controls while keeping the scene playable.',
+          body: 'Zoom all the way in and all the way out. Use the mouse scroll wheel, a multitouch pinch, or keyboard shortcuts Shift + = and Shift + -.',
         },
         visitPois: {
-          title: 'Visit POIs',
-          body: 'This placeholder will track visits to three project points of interest.',
+          title: 'Visit 3 POIs',
+          body: 'POIs are project exhibits. Open their panels to review summaries, outcomes, metrics, links, and context. Clicking, tapping, or interacting with a POI marks it visited.',
         },
         findGitshelves: {
           title: 'Find Gitshelves',
-          body: 'This placeholder will guide visitors to the Gitshelves exhibit.',
+          body: 'Find and interact with the Gitshelves POI to finish the tutorial. Hint: check upstairs.',
         },
       },
     },
