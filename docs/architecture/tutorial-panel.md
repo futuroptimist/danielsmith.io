@@ -29,6 +29,10 @@ onboarding runtime:
   actions include movement, interact, Settings/help, and Controls (`C`). Runtime code in
   `src/immersiveScene.ts` loads/saves keybinding overrides under
   `danielsmith.io:keyBindings` and exposes them through `window.portfolio.input`.
+- The existing `T` shortcut is supplied by `src/systems/failover/manualModeToggle.ts` and
+  the shared `activateTextMode` path in `src/immersiveScene.ts`, not the central
+  `KeyBindings` registry. Tutorial must preserve and reuse that path rather than creating
+  a second Text-mode implementation or a duplicate mode-preference writer.
 - Movement is sampled each frame in `src/immersiveScene.ts` from `KeyBindings`,
   `KeyboardControls`, and `VirtualJoystick`. The combined right/forward vector is passed
   to `getCameraRelativeMovementVector(...)`, so any Tutorial movement tracking must use
@@ -183,12 +187,23 @@ Tutorial must be non-modal and gameplay-permissive:
 - Opening Settings should close Tutorial because Settings remains conservative/modal.
 - `Escape` closes the active top-level HUD panel. If only a POI detail panel is active, keep
   existing POI escape behavior.
+- When Tutorial and a POI detail are visible together, `Escape` closes Tutorial first without
+  clearing the selected/hovered POI or its detail panel. A later `Escape` may dismiss the POI
+  according to existing behavior. `src/immersiveScene.ts` currently installs
+  `handlePoiDetailEscape` as a capture listener and calls `stopImmediatePropagation()`, so
+  implementation must adjust or centralize keyboard routing so that listener cannot swallow
+  the Tutorial close.
 - Clicking/tapping the scene behind panels should follow existing Controls/POI transient
   dismissal rules.
 - Text-entry targets (`input`, `textarea`, `select`, contenteditable) still block gameplay
   shortcuts and Tutorial hotkey handling.
 - `canHandleGameplayShortcut(...)` should treat `tutorial` like `controls`, not like
   `settings`.
+- `src/scene/poi/interactionManager.ts` currently permits HUD-focused keyboard POI handling
+  only when `document.activeElement.id === 'control-overlay'`. Tutorial implementation must
+  generalize this into a shared HUD-focus predicate or equivalent event-routing contract so
+  focus on Tutorial sidebar, navigation, option, and other non-text controls still permits
+  `Q` / `E` cycling and keyboard POI interaction. Text-entry targets must remain blocked.
 
 ## Tutorial pages and completion rules
 
@@ -283,11 +298,13 @@ Instruction:
 Completion:
 
 - Completion is based on stable POI id, not localized title text.
-- Likely id is `gitshelves-living-room-installation`; implementation must verify the current
-  POI registry before shipping.
+- The stable id is `gitshelves-living-room-installation`. The base POI registry entry lives
+  with the living-room POIs, while `src/scene/poi/placements.ts` currently provides an
+  effective upper-floor `focusPods` placement override. Implementation must verify both the
+  stable registry id and the effective placement before shipping.
 - Completion is location-agnostic and depends on the shared visited/interacted state.
-- If Gitshelves is not upstairs in current data, the implementation must either update the
-  hint or intentionally update placement with tests.
+- If Gitshelves is no longer upstairs in current effective placement data, the
+  implementation must either update the hint or intentionally update placement with tests.
 
 ## Persistence model
 
@@ -448,7 +465,9 @@ interface PoiVisitedSource {
 ### Text mode
 
 - The Tutorial Text-only button calls the existing Text action handler used by the HUD Text
-  pill.
+  pill. Today the `T` shortcut comes from `src/systems/failover/manualModeToggle.ts` and the
+  shared `activateTextMode` path, not `KeyBindings`; keep using that behavior while Tutorial
+  is open.
 - Do not duplicate mode-preference writes, performance-failover routing, or URL handling.
 
 ### Localization
@@ -509,6 +528,12 @@ Buttons/forms:
 - If Tutorial and a POI panel are visible on mobile, split available vertical space roughly
   half and half like the existing combined Controls + POI layout; neither panel should cover
   the full viewport unless the other is closed.
+- Preserve the existing Controls + POI responsive contract: `syncCombinedPoiPanelState()` in
+  `src/immersiveScene.ts` currently writes `data-hud-controls-open` and
+  `data-poi-detail-visible`, and dependent selectors in `src/ui/styles.css` use those
+  attributes for the mobile split layout. Prefer adding an explicit Tutorial-open state and
+  shared selectors for Tutorial + POI. Do not silently replace `data-hud-controls-open`
+  unless the writer, every dependent selector, and regression coverage change atomically.
 - Sidebar should default collapsed or become a compact top/inline step list on narrow
   screens when necessary.
 - Avoid `position: fixed` assumptions that ignore `env(safe-area-inset-*)`.
@@ -520,7 +545,8 @@ Unit tests:
 - `src/tests/keyBindings.test.ts`: `toggleTutorial` action exists and default `R` binding is
   normalized.
 - `src/tests/hudPanelCoordinator.test.ts`: Tutorial toggles, top-level exclusivity,
-  Settings closes Tutorial, and Text mode remains an action.
+  Settings closes Tutorial, Tutorial-first `Escape` behavior with a visible POI, and Text
+  mode remains an action.
 - `src/tests/tutorialState.test.ts`: unlock rules, monotonic completion, current-page
   selection, locked-page rejection.
 - `src/tests/tutorialPersistence.test.ts`: corrupt localStorage fallback, show-on-startup
@@ -537,6 +563,8 @@ Integration/component tests:
 - `src/tests/tutorialPanel.test.ts`: panel renders sidebar, body, navigation, options;
   locked/unlocked behavior; Previous/Next disabled states; checkbox and Dismiss behavior;
   Text-only button invokes the shared Text action.
+- `src/tests/poiInteractionManager.test.ts`: Tutorial descendant focus permits POI
+  cycling/interaction while text-entry focus remains blocked.
 - `src/tests/responsiveControlOverlay.test.ts` or a new HUD menu test: 2x2 menu metadata,
   tab order, key badges, and Controls/Settings parity.
 
@@ -545,10 +573,12 @@ Playwright tests:
 - `playwright/tutorial-panel.spec.ts`: Tutorial opens on startup by default, Dismiss closes
   it, `showOnStartup=false` prevents next startup auto-open, `R` toggles it, movement unlocks
   page 2, zoom unlocks page 3, visiting 3 POIs unlocks page 4, visiting Gitshelves completes
-  page 4, mobile 2x2 grid fits and panel scrolls, Tutorial coexists with POI details, and
-  Text-only action works.
-- Existing `playwright/immersive-mode.spec.ts` should retain Controls + POI cycling coverage
-  and add Tutorial equivalents only where needed.
+  page 4, mobile 2x2 grid fits and panel scrolls, Tutorial coexists with POI details,
+  Tutorial-first `Escape` behavior with a visible POI, `Q` / `E` while Tutorial controls own
+  focus, the existing `T` action while Tutorial is open, Tutorial + POI mobile splitting,
+  and Text-only action works.
+- Existing `playwright/immersive-mode.spec.ts` should preserve Controls + POI coverage,
+  including the current Controls + POI cycling and responsive split contracts.
 - Release checks must continue to include z-fighting audit coverage through `npm run test:ci`.
 
 ## Migration and deletion plan
