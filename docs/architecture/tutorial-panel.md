@@ -5,9 +5,11 @@ replaces the removed implicit guided/narration concepts with a user-controlled,
 localized, non-modal panel that can stay open while the visitor completes gameplay
 actions.
 
-This document is design-only. It defines the architecture, contracts, persistence,
-layout, accessibility, and test plan for a future implementation without adding runtime
-Tutorial code yet.
+This document describes the architecture, contracts, persistence, layout,
+accessibility, and test plan for the Tutorial panel. The shell, state machine,
+storage adapter, controller, HUD entry point, and startup preference are now
+implemented; gameplay action tracking is intentionally left for a later
+implementation step.
 
 ## Current architecture summary
 
@@ -86,17 +88,17 @@ onboarding runtime:
 
 Future implementation should keep the Tutorial system small and composable:
 
-| Area                 | Proposed file(s)                                                      | Responsibility                                                                                                                                                         |
-| -------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| HUD coordination     | `src/ui/hud/hudPanelCoordinator.ts`                                   | Add `tutorial` as a top-level non-modal HUD panel, enforce one top-level panel at a time for Controls/Tutorial/Settings, and keep Tutorial compatible with POI panels. |
-| Tutorial UI          | `src/ui/hud/tutorialPanel.ts`                                         | Render the panel shell, sidebar, body, navigation, options, localized labels, and DOM events.                                                                          |
-| Tutorial state       | `src/ui/hud/tutorialState.ts`                                         | Pure state machine, progress reducer, unlock rules, monotonic completion, current page handling, corrupt-data fallback.                                                |
-| Tutorial persistence | `src/ui/hud/tutorialPersistence.ts`                                   | Versioned localStorage load/save for progress and show-on-startup preference.                                                                                          |
-| Tutorial tracking    | `src/ui/hud/tutorialTracking.ts`                                      | Adapters for movement, zoom, and POI visited events; no DOM rendering.                                                                                                 |
-| HUD menu data        | `src/ui/hud/hudMenu.ts` or existing `controlOverlay` helpers          | Shared metadata for Controls, Tutorial, Text, Settings labels/key badges.                                                                                              |
-| i18n types           | `src/assets/i18n/types.ts`                                            | Add `TutorialPanelStrings` and `ControlOverlayStrings.menu.tutorial`.                                                                                                  |
-| locale strings       | `src/assets/i18n/locales/*.ts`                                        | Add Tutorial copy for all supported locales and pseudo-locale wrappers.                                                                                                |
-| tests                | `src/tests/tutorial*.test.ts` and `playwright/tutorial-panel.spec.ts` | Unit/component/e2e coverage described below.                                                                                                                           |
+| Area                 | Proposed file(s)                                                      | Responsibility                                                                                                                                                                                                             |
+| -------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HUD coordination     | `src/ui/hud/hudPanelCoordinator.ts`                                   | Add `tutorial` as a top-level non-modal HUD panel, enforce one top-level panel at a time for Controls/Tutorial/Settings, and keep Tutorial compatible with POI panels.                                                     |
+| Tutorial UI          | `src/ui/hud/tutorialPanel.ts`                                         | Render the panel shell, sidebar, body, navigation, options, localized labels, and DOM events.                                                                                                                              |
+| Tutorial state       | `src/systems/tutorial/tutorialState.ts`                               | Pure state machine, progress schema, unlock rules, monotonic completion, current page handling, corrupt-data fallback.                                                                                                     |
+| Tutorial persistence | `src/systems/tutorial/tutorialStorage.ts`                             | Versioned localStorage load/save for progress and show-on-startup preference via `readTutorialState`, `writeTutorialState`, `readTutorialShowOnStartup`, `writeTutorialShowOnStartup`, and `createTutorialStorageAdapter`. |
+| Tutorial tracking    | `src/ui/hud/tutorialTracking.ts`                                      | Adapters for movement, zoom, and POI visited events; no DOM rendering.                                                                                                                                                     |
+| HUD menu data        | `src/ui/hud/hudMenu.ts` or existing `controlOverlay` helpers          | Shared metadata for Controls, Tutorial, Text, Settings labels/key badges.                                                                                                                                                  |
+| i18n types           | `src/assets/i18n/types.ts`                                            | Add `TutorialPanelStrings` and `ControlOverlayStrings.menu.tutorial`.                                                                                                                                                      |
+| locale strings       | `src/assets/i18n/locales/*.ts`                                        | Add Tutorial copy for all supported locales and pseudo-locale wrappers.                                                                                                                                                    |
+| tests                | `src/tests/tutorial*.test.ts` and `playwright/tutorial-panel.spec.ts` | Unit/component/e2e coverage described below.                                                                                                                                                                               |
 
 `src/immersiveScene.ts` should only compose these modules, pass existing handles, and expose
 minimal debug/test hooks when needed.
@@ -132,6 +134,35 @@ Requirements:
   coexist with Controls or Tutorial. Text mode remains an action, not a panel.
 - Settings may keep the existing modal/backdrop behavior. Controls and Tutorial are
   non-modal.
+
+## Implemented state and persistence
+
+Tutorial progress is stored separately from the startup preference so visitors can
+disable the automatic panel without erasing progress. The exact localStorage keys
+are:
+
+- `danielsmith.io:tutorial:v1:progress`
+- `danielsmith.io:tutorial:v1:showOnStartup`
+
+`src/systems/tutorial/tutorialState.ts` owns the pure state schema, page order,
+current-page selection, locked-page guards, monotonic unlock/completion helpers,
+and placeholder progress fields for movement, zoom, POI visits, and Gitshelves.
+The first page, `welcomeMovement`, is always restored as unlocked. Unknown page
+ids, duplicates, malformed progress values, locked current pages, and future or
+missing versions sanitize back to safe defaults. Localized strings are not stored
+in Tutorial state.
+
+`src/systems/tutorial/tutorialStorage.ts` reads and writes the versioned progress
+object and the boolean show-on-startup preference. Missing storage, blocked
+storage APIs, thrown `getItem` / `setItem` calls, corrupt JSON, invalid boolean
+strings, and malformed state all fail closed to defaults without crashing.
+`showOnStartup` defaults to `true`; invalid stored values also restore `true`.
+
+`src/systems/tutorial/tutorialController.ts` composes the panel with the storage
+adapter, persists current-page and preference changes only when values change,
+and exposes future-facing no-op hooks for movement, zoom, POI, and Gitshelves
+tracking. Gameplay action tracking is not wired yet; the current progress fields
+exist so later tracking can update durable state without reshaping storage.
 
 ## Tutorial panel layout
 
