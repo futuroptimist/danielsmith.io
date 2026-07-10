@@ -59,9 +59,10 @@ export const createTutorialController = ({
   };
   const persistStateIfChanged = () => {
     const serialized = JSON.stringify(state);
-    if (serialized === lastSerializedState) return;
+    if (serialized === lastSerializedState) return false;
     lastSerializedState = serialized;
     adapter.writeState(state);
+    return true;
   };
   const selectPage = (pageId: TutorialPageId) => {
     state = setCurrentTutorialPage(state, pageId);
@@ -108,23 +109,19 @@ export const createTutorialController = ({
     },
     recordMovementProgress(input) {
       state = recordMovementInputProgress(state, input);
-      persistStateIfChanged();
-      render();
+      if (persistStateIfChanged()) render();
     },
     recordZoomProgress(snapshot) {
       state = recordTutorialZoomProgress(state, snapshot);
-      persistStateIfChanged();
-      render();
+      if (persistStateIfChanged()) render();
     },
     syncVisitedPois(visitedPoiIds) {
       state = recordVisitedPois(state, visitedPoiIds);
-      persistStateIfChanged();
-      render();
+      if (persistStateIfChanged()) render();
     },
     markGitshelvesVisited() {
       state = recordGitshelvesVisited(state);
-      persistStateIfChanged();
-      render();
+      if (persistStateIfChanged()) render();
     },
   };
 };

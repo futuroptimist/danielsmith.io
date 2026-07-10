@@ -61,6 +61,48 @@ describe('tutorial controller', () => {
     expect(controller.getState().currentPageId).toBe('welcomeMovement');
   });
 
+  it('skips panel rerenders when progress snapshots do not change state', () => {
+    const storage = new MemoryStorage();
+    const controller = createTutorialController({ storage });
+    const panel = {
+      element: document.createElement('aside'),
+      open: vi.fn(),
+      close: vi.fn(),
+      toggle: vi.fn(),
+      isOpen: vi.fn(() => false),
+      setStrings: vi.fn(),
+      setState: vi.fn(),
+      setShowOnStartup: vi.fn(),
+      dispose: vi.fn(),
+    };
+    controller.setPanel(panel);
+    panel.setState.mockClear();
+
+    controller.recordMovementProgress({
+      right: 0,
+      forward: 0.1,
+      deltaSeconds: 1,
+      moved: true,
+    });
+    controller.recordZoomProgress({
+      currentZoom: 6,
+      minZoom: 0.65,
+      maxZoom: 12,
+    });
+    controller.syncVisitedPois([]);
+
+    expect(panel.setState).not.toHaveBeenCalled();
+
+    controller.recordMovementProgress({
+      right: 0,
+      forward: 1,
+      deltaSeconds: 0.25,
+      moved: true,
+    });
+
+    expect(panel.setState).toHaveBeenCalledTimes(1);
+  });
+
   it('manual selection works when a stored page is unlocked', () => {
     const storage = new MemoryStorage();
     const state = unlockTutorialPage(

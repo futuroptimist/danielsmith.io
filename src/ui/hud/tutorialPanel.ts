@@ -1,4 +1,4 @@
-import type { TutorialPanelStrings } from '../../assets/i18n';
+import { formatMessage, type TutorialPanelStrings } from '../../assets/i18n';
 import {
   getTutorialPageOrder,
   type TutorialPageId,
@@ -56,15 +56,6 @@ export function createTutorialPanel({
   element.setAttribute('role', 'dialog');
   element.setAttribute('aria-modal', 'false');
 
-  const formatTemplate = (
-    template: string,
-    values: Record<string, string | number>
-  ) =>
-    Object.entries(values).reduce(
-      (message, [key, value]) => message.split(`{${key}}`).join(String(value)),
-      template
-    );
-
   const createStatusChip = ({
     label,
     complete,
@@ -79,9 +70,9 @@ export function createTutorialPanel({
     const chip = document.createElement('span');
     chip.className = `tutorial-panel__chip tutorial-panel__chip--${complete ? 'complete' : 'incomplete'}`;
     chip.dataset.testid = testId;
-    chip.setAttribute('role', 'status');
     chip.setAttribute('aria-label', ariaLabel);
     chip.textContent = complete ? `${label} ✓` : label;
+    if (complete) chip.title = currentStrings.actions.checkmarkLabel;
     return chip;
   };
 
@@ -107,7 +98,7 @@ export function createTutorialPanel({
           createStatusChip({
             label: actions.movementDirections[direction],
             complete,
-            ariaLabel: formatTemplate(actions.movementChipAriaTemplate, {
+            ariaLabel: formatMessage(actions.movementChipAriaTemplate, {
               direction: actions.movementDirections[direction],
               status,
             }),
@@ -140,7 +131,7 @@ export function createTutorialPanel({
           createStatusChip({
             label: String(label),
             complete: Boolean(complete),
-            ariaLabel: formatTemplate(actions.zoomChipAriaTemplate, {
+            ariaLabel: formatMessage(actions.zoomChipAriaTemplate, {
               direction: String(label),
               status,
             }),
@@ -158,12 +149,12 @@ export function createTutorialPanel({
       const status = complete ? actions.complete : actions.incomplete;
       body.append(
         createStatusChip({
-          label: formatTemplate(actions.poiCounterTemplate, {
+          label: formatMessage(actions.poiCounterTemplate, {
             count,
             goal: progress.pois.visitedCountGoal,
           }),
           complete,
-          ariaLabel: formatTemplate(actions.poiCounterAriaTemplate, {
+          ariaLabel: formatMessage(actions.poiCounterAriaTemplate, {
             count,
             goal: progress.pois.visitedCountGoal,
             status,
@@ -181,7 +172,7 @@ export function createTutorialPanel({
         createStatusChip({
           label: actions.gitshelvesObjective,
           complete,
-          ariaLabel: formatTemplate(actions.gitshelvesAriaTemplate, { status }),
+          ariaLabel: formatMessage(actions.gitshelvesAriaTemplate, { status }),
           testId: 'tutorial-gitshelves-status',
         }),
         hint

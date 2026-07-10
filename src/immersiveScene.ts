@@ -3639,8 +3639,13 @@ export function initializeImmersiveScene(
     onNext: () => tutorialController.nextPage(),
     onToggleShowOnStartup: (value) =>
       tutorialController.setShowOnStartup(value),
-    onTextMode: () =>
-      hudPanelCoordinator?.activateTextMode() ?? activateTextMode(),
+    onTextMode: () => {
+      if (hudPanelCoordinator) {
+        hudPanelCoordinator.activateTextMode();
+        return;
+      }
+      activateTextMode();
+    },
   });
   tutorialController.setPanel(tutorialPanel);
   const removeTutorialVisitedSubscription = poiVisitedState.subscribe(

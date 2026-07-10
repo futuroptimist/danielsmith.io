@@ -113,6 +113,19 @@ describe('tutorial action tracking', () => {
     expect(state.completedPageIds).toContain('findGitshelves');
   });
 
+  it('merges visited POI snapshots so tutorial progress remains monotonic', () => {
+    let state = recordVisitedPois(createDefaultTutorialState(), [
+      'a',
+      'b',
+      'c',
+    ]);
+
+    state = recordVisitedPois(state, ['b']);
+
+    expect(state.progress.pois.visitedPoiIds).toEqual(['a', 'b', 'c']);
+    expect(state.completedPageIds).toContain('visitPois');
+  });
+
   it('persists and sanitizes action progress', () => {
     const state = sanitizeTutorialState({
       version: 1,

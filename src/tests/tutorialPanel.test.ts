@@ -56,6 +56,26 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
+  it('renders progress chips as static labels without live-region roles', () => {
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
+    });
+
+    panel.open();
+
+    const chip = panel.element.querySelector(
+      '[data-testid="tutorial-movement-forward"]'
+    );
+    expect(chip?.getAttribute('aria-label')?.toLowerCase()).toContain(
+      'incomplete'
+    );
+    expect(chip?.getAttribute('role')).toBeNull();
+
+    panel.dispose();
+  });
+
   it('renders state-driven navigation and callbacks', () => {
     const strings = getTutorialPanelStrings('en');
     let state = unlockTutorialPage(createDefaultTutorialState(), 'zoom');
