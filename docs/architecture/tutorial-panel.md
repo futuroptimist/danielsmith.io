@@ -5,9 +5,9 @@ replaces the removed implicit guided/narration concepts with a user-controlled,
 localized, non-modal panel that can stay open while the visitor completes gameplay
 actions.
 
-This document is design-only. It defines the architecture, contracts, persistence,
-layout, accessibility, and test plan for a future implementation without adding runtime
-Tutorial code yet.
+This document describes the implemented Tutorial shell and state plumbing plus the
+remaining action-tracking work. It defines the architecture, contracts, persistence,
+layout, accessibility, and test plan for the runtime Tutorial panel.
 
 ## Current architecture summary
 
@@ -90,9 +90,10 @@ Future implementation should keep the Tutorial system small and composable:
 | -------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | HUD coordination     | `src/ui/hud/hudPanelCoordinator.ts`                                   | Add `tutorial` as a top-level non-modal HUD panel, enforce one top-level panel at a time for Controls/Tutorial/Settings, and keep Tutorial compatible with POI panels. |
 | Tutorial UI          | `src/ui/hud/tutorialPanel.ts`                                         | Render the panel shell, sidebar, body, navigation, options, localized labels, and DOM events.                                                                          |
-| Tutorial state       | `src/ui/hud/tutorialState.ts`                                         | Pure state machine, progress reducer, unlock rules, monotonic completion, current page handling, corrupt-data fallback.                                                |
-| Tutorial persistence | `src/ui/hud/tutorialPersistence.ts`                                   | Versioned localStorage load/save for progress and show-on-startup preference.                                                                                          |
-| Tutorial tracking    | `src/ui/hud/tutorialTracking.ts`                                      | Adapters for movement, zoom, and POI visited events; no DOM rendering.                                                                                                 |
+| Tutorial state       | `src/systems/tutorial/tutorialState.ts`                               | Pure state machine, placeholder progress schema, unlock rules, monotonic completion, current page handling, corrupt-data fallback.                                     |
+| Tutorial persistence | `src/systems/tutorial/tutorialStorage.ts`                             | Versioned localStorage load/save for progress and show-on-startup preference using safe read/write helpers.                                                            |
+| Tutorial controller  | `src/systems/tutorial/tutorialController.ts`                          | Owns in-memory Tutorial state, show-on-startup preference, UI callbacks, persistence-on-change, and no-op future tracking methods.                                     |
+| Tutorial tracking    | Future `src/systems/tutorial/*` adapters                              | Adapters for movement, zoom, and POI visited events; no DOM rendering.                                                                                                 |
 | HUD menu data        | `src/ui/hud/hudMenu.ts` or existing `controlOverlay` helpers          | Shared metadata for Controls, Tutorial, Text, Settings labels/key badges.                                                                                              |
 | i18n types           | `src/assets/i18n/types.ts`                                            | Add `TutorialPanelStrings` and `ControlOverlayStrings.menu.tutorial`.                                                                                                  |
 | locale strings       | `src/assets/i18n/locales/*.ts`                                        | Add Tutorial copy for all supported locales and pseudo-locale wrappers.                                                                                                |
@@ -204,6 +205,36 @@ Tutorial must be non-modal and gameplay-permissive:
   generalize this into a shared HUD-focus predicate or equivalent event-routing contract so
   focus on Tutorial sidebar, navigation, option, and other non-text controls still permits
   `Q` / `E` cycling and keyboard POI interaction. Text-entry targets must remain blocked.
+
+## Persistence and startup behavior
+
+Tutorial state is persisted in two versioned localStorage keys:
+
+- `danielsmith.io:tutorial:v1:progress` stores the sanitized `TutorialState`
+  payload from `src/systems/tutorial/tutorialState.ts`, including the active
+  page, unlocked pages, completed pages, and placeholder progress fields.
+- `danielsmith.io:tutorial:v1:showOnStartup` stores the independent startup
+  preference as `true` or `false`. Missing or malformed values default to
+  `true`.
+
+`src/systems/tutorial/tutorialStorage.ts` exposes `readTutorialState`,
+`writeTutorialState`, `readTutorialShowOnStartup`,
+`writeTutorialShowOnStartup`, and `createTutorialStorageAdapter`. These helpers
+catch unavailable storage, storage exceptions, corrupt JSON, malformed page ids,
+and unsupported versions. Progress falls back to the default state and startup
+preference falls back to enabled without crashing or erasing progress.
+
+`src/systems/tutorial/tutorialController.ts` connects the HUD panel callbacks to
+the state helpers and storage adapter. It persists progress only after state
+changes and persists startup preference changes immediately. Dismiss closes the
+panel for the current load only; it does not clear progress and does not change
+`showOnStartup`. Manual HUD-button or `R` hotkey opens remain available even
+when startup display is disabled.
+
+Gameplay action tracking for movement, zoom, POI visits, and Gitshelves is
+intentionally deferred until after this state plumbing. The state schema includes
+serializable placeholder progress fields so the later adapters can update the
+same persisted payload without replacing the storage contract.
 
 ## Tutorial pages and completion rules
 
@@ -333,34 +364,37 @@ Progress rules:
 - Future migrations bump `v1` to `v2` and may read/migrate old data before writing the new
   key.
 
-Suggested `v1` progress shape:
+Implemented `v1` progress shape:
 
 ```ts
-interface TutorialProgressV1 {
+interface TutorialState {
   version: 1;
-  currentPageId?: TutorialPageId;
+  currentPageId: TutorialPageId;
   unlockedPageIds: TutorialPageId[];
   completedPageIds: TutorialPageId[];
-  movementDurations: {
-    forward: number;
-    left: number;
-    backward: number;
-    right: number;
+  progress: {
+    movement: {
+      forwardSeconds: number;
+      leftSeconds: number;
+      backwardSeconds: number;
+      rightSeconds: number;
+      forwardComplete: boolean;
+      leftComplete: boolean;
+      backwardComplete: boolean;
+      rightComplete: boolean;
+    };
+    zoom: {
+      zoomInComplete: boolean;
+      zoomOutComplete: boolean;
+    };
+    pois: {
+      visitedPoiIds: string[];
+      visitedCountGoal: 3;
+    };
+    gitshelves: {
+      completed: boolean;
+    };
   };
-  movementCompleted: {
-    forward: boolean;
-    left: boolean;
-    backward: boolean;
-    right: boolean;
-  };
-  zoomCompleted: {
-    in: boolean;
-    out: boolean;
-  };
-  visitedPoiIds?: string[];
-  visitedPoiCountCompleted: boolean;
-  gitshelvesCompleted: boolean;
-  updatedAt?: string;
 }
 ```
 
@@ -383,10 +417,11 @@ type TutorialPageId =
 Unlock rules:
 
 1. `welcomeMovement` is always unlocked.
-2. `zoom` unlocks when all four movement directions are complete.
-3. `visitPois` unlocks when zoom-in and zoom-out are complete.
-4. `findGitshelves` unlocks when at least three unique POIs are visited.
-5. Tutorial MVP is complete when Gitshelves has been visited/interacted with.
+2. Later pages remain locked until action tracking updates the state.
+3. Future movement tracking unlocks `zoom` when all four movement directions are complete.
+4. Future zoom tracking unlocks `visitPois` when zoom-in and zoom-out are complete.
+5. Future POI tracking unlocks `findGitshelves` when at least three unique POIs are visited.
+6. Tutorial completion is true when every page has a monotonic completed flag.
 
 Behavior:
 
