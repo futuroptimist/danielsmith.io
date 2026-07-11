@@ -138,6 +138,96 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
+  it('renders task status groups as block content between copy and navigation', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: {
+        ...createDefaultTutorialState(),
+        currentPageId: 'visitPois',
+        unlockedPageIds: [
+          'welcomeMovement',
+          'zoom',
+          'visitPois',
+          'findGitshelves',
+        ],
+        completedPageIds: ['welcomeMovement', 'zoom', 'visitPois'],
+        progress: {
+          ...createDefaultTutorialState().progress,
+          pois: {
+            ...createDefaultTutorialState().progress.pois,
+            visitedPoiIds: ['a', 'b', 'c'],
+          },
+        },
+      },
+    });
+
+    const body = panel.element.querySelector<HTMLElement>(
+      '[data-testid="tutorial-body"]'
+    );
+    const copy = body?.querySelector('.tutorial-panel__copy');
+    const progress = body?.querySelector('.tutorial-panel__progress');
+    const counter = progress?.querySelector(
+      '[data-testid="tutorial-poi-counter"]'
+    );
+
+    expect(body).not.toBeNull();
+    expect(progress).not.toBeNull();
+    expect(counter).not.toBeNull();
+    expect(counter?.parentElement).toBe(progress);
+    expect(copy?.nextElementSibling).toBe(progress);
+    expect(progress?.nextElementSibling).toBeNull();
+    expect(copy?.textContent).toBe(strings.pages.visitPois.body);
+    expect(copy?.textContent).not.toContain(counter?.textContent ?? '3/3');
+    expect(
+      panel.element.querySelector('[data-testid="tutorial-navigation"]')
+    ).not.toBeNull();
+
+    panel.setState({
+      ...createDefaultTutorialState(),
+      currentPageId: 'findGitshelves',
+      unlockedPageIds: [
+        'welcomeMovement',
+        'zoom',
+        'visitPois',
+        'findGitshelves',
+      ],
+      completedPageIds: [
+        'welcomeMovement',
+        'zoom',
+        'visitPois',
+        'findGitshelves',
+      ],
+      progress: {
+        ...createDefaultTutorialState().progress,
+        gitshelves: { completed: true },
+      },
+    });
+
+    const gitshelvesBody = panel.element.querySelector<HTMLElement>(
+      '[data-testid="tutorial-body"]'
+    );
+    const gitshelvesCopy = gitshelvesBody?.querySelector(
+      '.tutorial-panel__copy'
+    );
+    const gitshelvesProgress = gitshelvesBody?.querySelector(
+      '.tutorial-panel__progress'
+    );
+    const gitshelvesStatus = gitshelvesProgress?.querySelector(
+      '[data-testid="tutorial-gitshelves-status"]'
+    );
+
+    expect(gitshelvesProgress).not.toBeNull();
+    expect(gitshelvesStatus?.parentElement).toBe(gitshelvesProgress);
+    expect(gitshelvesCopy?.nextElementSibling).toBe(gitshelvesProgress);
+    expect(gitshelvesCopy?.textContent).not.toContain(
+      gitshelvesStatus?.textContent ?? strings.actions.gitshelvesObjective
+    );
+
+    panel.dispose();
+  });
+
   it('renders final page content without duplicating the Gitshelves hint', () => {
     const strings = getTutorialPanelStrings('en');
     const panel = createTutorialPanel({
