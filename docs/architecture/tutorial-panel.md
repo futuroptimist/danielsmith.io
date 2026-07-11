@@ -119,13 +119,16 @@ crashing immersive startup. The state sanitizer drops unknown page ids, removes 
 page ids, always unlocks `welcomeMovement`, and falls back to the first unlocked page
 when the stored current page is invalid or locked.
 
-The controller persists progress only when the serialized state changes and persists the
-show-on-startup preference only when that preference changes. Dismiss closes the current
-panel instance for the active page load only; it does not alter either storage key.
+The controller persists progress only after meaningful changes and persists the
+show-on-startup preference only when that preference changes. Movement durations stay in
+memory during high-frequency frames and are written at bounded `0.05s` duration buckets,
+or immediately when completion/unlock state changes. Dismiss closes the current panel
+instance for the active page load only; it does not alter either storage key.
 
-Gameplay action tracking is intentionally not implemented in the current state plumbing.
-The progress object includes movement, zoom, POI, and Gitshelves placeholder fields so
-future runtime adapters can update a stable schema without changing storage keys.
+Gameplay action tracking is implemented through pure reducers for movement, zoom, POI,
+and Gitshelves progress. Controller updates rerender the panel only when visible
+completion, counter, unlock, or current-page state changes; ordinary gameplay progress
+does not also rewrite the show-on-startup control.
 
 ## Universal HUD menu architecture
 
@@ -308,8 +311,10 @@ Completion:
 - Use existing `PoiVisitedState` semantics.
 - Clicking/tapping/interacting with a POI marks it visited through the shared POI primitive.
 - Count unique visited POI ids only.
-- Counter increments from `0/3` to `3/3`.
-- At `3/3`, the counter turns bright yellow and receives a checkmark/status indicator.
+- Counter increments from `0/3` to `3/3` before the page is completed.
+- At `3/3`, the counter turns bright yellow and receives a checkmark/status indicator;
+  after completion, the rendered counter remains `3/3` even if the shared POI snapshot
+  is later reset or partially restored.
 - Do not create duplicate Tutorial-only shadow visited state if the shared visited set is
   available. Persist Tutorial page flags separately but derive the count from the shared set
   where possible.
@@ -413,6 +418,11 @@ Unlock rules:
 3. `visitPois` unlocks when zoom-in and zoom-out are complete.
 4. `findGitshelves` unlocks when at least three unique POIs are visited.
 5. Tutorial MVP is complete when Gitshelves has been visited/interacted with.
+
+Completion is derived in page order. Early zoom, POI, or Gitshelves actions are retained
+in the progress object, but a later page is not marked complete until its page has been
+unlocked by the earlier prerequisites; once the prerequisite unlocks, completion cascades
+immediately.
 
 Behavior:
 
@@ -628,3 +638,31 @@ Future implementation is ready when:
 - No runtime Tutorial implementation lands before this design-only document is reviewed.
 - Localization and z-fighting guardrails remain at least as strict as they are today.
 - `docs/assets/game-launch.png` remains untouched.
+
+## Implemented action tracking contracts
+
+Tutorial progress is driven by the pure helpers in
+`src/systems/tutorial/tutorialState.ts` and persisted by
+`src/systems/tutorial/tutorialController.ts` only when serialized state changes.
+The runtime feeds those helpers from `src/immersiveScene.ts` so Tutorial progress
+continues while the panel is closed and repaints immediately when it is open.
+
+- Movement uses `recordMovementInputProgress(...)` with camera-relative canonical
+  input components: positive forward is W/ArrowUp/joystick-away, negative
+  forward is S/ArrowDown/joystick-toward, negative right is A/ArrowLeft, and
+  positive right is D/ArrowRight. A direction completes after 0.25 seconds of
+  meaningful input above the deadzone and only after a movement step reports
+  actual motion, so blocked movement and analog drift do not count.
+- Zoom uses `recordZoomProgress(...)` with the active runtime min/max zoom values
+  supplied by the scene. The helper completes zoom-in or zoom-out when either the
+  target or actual camera zoom reaches the matching bound within one percent of
+  the runtime zoom range.
+- POI progress uses the shared `PoiVisitedState` subscription from
+  `src/scene/poi/visitedState.ts`. The shared snapshot is authoritative for the live
+  counter until the POI page completes, so an explicit reset or partial restore can
+  reduce the displayed `0/3` through `2/3` count. Once the page has completed, the
+  visible counter stays clamped at `3/3` and persisted completed/unlocked Tutorial page
+  flags remain monotonic when that shared snapshot shrinks.
+- Gitshelves completion is keyed to the stable POI id
+  `gitshelves-living-room-installation`. Its placement remains on the upper
+  floor, so the localized Tutorial hint directs visitors upstairs.

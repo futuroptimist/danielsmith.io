@@ -9,10 +9,12 @@ import { TUTORIAL_SHOW_ON_STARTUP_STORAGE_KEY } from '../systems/tutorial/tutori
 
 class MemoryStorage implements Pick<Storage, 'getItem' | 'setItem'> {
   values = new Map<string, string>();
+  setCalls: string[] = [];
   getItem(key: string) {
     return this.values.get(key) ?? null;
   }
   setItem(key: string, value: string) {
+    this.setCalls.push(key);
     this.values.set(key, value);
   }
 }
@@ -59,6 +61,97 @@ describe('tutorial controller', () => {
     controller.previousPage();
 
     expect(controller.getState().currentPageId).toBe('welcomeMovement');
+  });
+
+  it('skips panel rerenders when progress snapshots do not change state', () => {
+    const storage = new MemoryStorage();
+    const controller = createTutorialController({ storage });
+    const panel = {
+      element: document.createElement('aside'),
+      open: vi.fn(),
+      close: vi.fn(),
+      toggle: vi.fn(),
+      isOpen: vi.fn(() => false),
+      setStrings: vi.fn(),
+      setState: vi.fn(),
+      setShowOnStartup: vi.fn(),
+      dispose: vi.fn(),
+    };
+    controller.setPanel(panel);
+    panel.setState.mockClear();
+
+    controller.recordMovementProgress({
+      right: 0,
+      forward: 0.1,
+      deltaSeconds: 1,
+      moved: true,
+    });
+    controller.recordZoomProgress({
+      currentZoom: 6,
+      minZoom: 0.65,
+      maxZoom: 12,
+    });
+    controller.syncVisitedPois([]);
+
+    expect(panel.setState).not.toHaveBeenCalled();
+
+    controller.recordMovementProgress({
+      right: 0,
+      forward: 1,
+      deltaSeconds: 0.25,
+      moved: true,
+    });
+
+    expect(panel.setState).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps sub-bucket movement in memory without writing every frame', () => {
+    const storage = new MemoryStorage();
+    const controller = createTutorialController({ storage });
+
+    controller.recordMovementProgress({
+      right: 0,
+      forward: 1,
+      deltaSeconds: 0.01,
+      moved: true,
+    });
+    controller.recordMovementProgress({
+      right: 0,
+      forward: 1,
+      deltaSeconds: 0.01,
+      moved: true,
+    });
+
+    expect(controller.getState().progress.movement.forwardSeconds).toBe(0.02);
+    expect(storage.setCalls).not.toContain(
+      'danielsmith.io:tutorial:v1:progress'
+    );
+
+    controller.recordMovementProgress({
+      right: 0,
+      forward: 1,
+      deltaSeconds: 0.03,
+      moved: true,
+    });
+
+    expect(storage.setCalls).toContain('danielsmith.io:tutorial:v1:progress');
+  });
+
+  it('persists movement completion immediately and records progress while closed', () => {
+    const storage = new MemoryStorage();
+    const controller = createTutorialController({ storage });
+
+    controller.recordMovementProgress({
+      right: 0,
+      forward: 1,
+      deltaSeconds: 0.25,
+      moved: true,
+    });
+
+    expect(controller.getState().progress.movement.forwardComplete).toBe(true);
+    expect(storage.getItem('danielsmith.io:tutorial:v1:progress')).toContain(
+      'forwardComplete'
+    );
   });
 
   it('manual selection works when a stored page is unlocked', () => {

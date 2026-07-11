@@ -56,6 +56,174 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
+  it('renders progress chips with localized completion text and static labels', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: {
+        ...createDefaultTutorialState(),
+        progress: {
+          ...createDefaultTutorialState().progress,
+          movement: {
+            ...createDefaultTutorialState().progress.movement,
+            forwardComplete: true,
+          },
+        },
+      },
+    });
+
+    panel.open();
+
+    const completedChip = panel.element.querySelector(
+      '[data-testid="tutorial-movement-forward"]'
+    );
+    const incompleteChip = panel.element.querySelector(
+      '[data-testid="tutorial-movement-backward"]'
+    );
+    expect(completedChip?.getAttribute('aria-label')?.toLowerCase()).toContain(
+      'complete'
+    );
+    expect(completedChip?.textContent).toContain('✓');
+    expect(completedChip?.textContent).toContain(
+      strings.actions.checkmarkLabel
+    );
+    expect(incompleteChip?.textContent).not.toContain('✓');
+    expect(completedChip?.getAttribute('role')).toBeNull();
+    expect(incompleteChip?.getAttribute('role')).toBeNull();
+
+    panel.setState({
+      ...createDefaultTutorialState(),
+      currentPageId: 'zoom',
+      unlockedPageIds: ['welcomeMovement', 'zoom'],
+      completedPageIds: ['welcomeMovement'],
+      progress: {
+        ...createDefaultTutorialState().progress,
+        zoom: {
+          zoomInComplete: true,
+          zoomOutComplete: false,
+        },
+      },
+    });
+
+    const completedZoomChip = panel.element.querySelector(
+      '[data-testid="tutorial-zoom-in"]'
+    );
+    const incompleteZoomChip = panel.element.querySelector(
+      '[data-testid="tutorial-zoom-out"]'
+    );
+    expect(completedZoomChip?.textContent).toContain('✓');
+    expect(completedZoomChip?.textContent).toContain(
+      strings.actions.checkmarkLabel
+    );
+    expect(incompleteZoomChip?.textContent).not.toContain('✓');
+
+    panel.dispose();
+  });
+
+  it('renders final page content without duplicating the Gitshelves hint', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: {
+        ...createDefaultTutorialState(),
+        currentPageId: 'findGitshelves',
+        unlockedPageIds: [
+          'welcomeMovement',
+          'zoom',
+          'visitPois',
+          'findGitshelves',
+        ],
+        completedPageIds: [
+          'welcomeMovement',
+          'zoom',
+          'visitPois',
+          'findGitshelves',
+        ],
+        progress: {
+          ...createDefaultTutorialState().progress,
+          gitshelves: { completed: true },
+        },
+      },
+    });
+
+    const bodyText =
+      panel.element.querySelector('[data-testid="tutorial-body"]')
+        ?.textContent ?? '';
+    expect(bodyText).toContain(strings.pages.findGitshelves.body);
+    expect(
+      panel.element.querySelector('[data-testid="tutorial-gitshelves-status"]')
+        ?.textContent
+    ).toContain(strings.actions.checkmarkLabel);
+    expect(
+      panel.element.querySelector('[data-testid="tutorial-gitshelves-status"]')
+        ?.textContent
+    ).toContain('✓');
+    expect(bodyText.split(strings.actions.gitshelvesHint).length - 1).toBe(1);
+
+    panel.dispose();
+  });
+
+  it('keeps a completed POI page visually complete after a shared reset', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: {
+        ...createDefaultTutorialState(),
+        currentPageId: 'visitPois',
+        unlockedPageIds: [
+          'welcomeMovement',
+          'zoom',
+          'visitPois',
+          'findGitshelves',
+        ],
+        completedPageIds: ['welcomeMovement', 'zoom', 'visitPois'],
+        progress: {
+          ...createDefaultTutorialState().progress,
+          pois: {
+            ...createDefaultTutorialState().progress.pois,
+            visitedPoiIds: ['remaining-shared-poi'],
+          },
+        },
+      },
+    });
+
+    const counter = panel.element.querySelector(
+      '[data-testid="tutorial-poi-counter"]'
+    );
+
+    expect(counter?.textContent).toContain('3/3');
+    expect(counter?.textContent).toContain('✓');
+    expect(counter?.textContent).toContain(strings.actions.checkmarkLabel);
+    expect(counter?.getAttribute('aria-label')?.toLowerCase()).toContain(
+      'complete'
+    );
+
+    panel.dispose();
+  });
+
+  it('invokes the text-mode callback once', () => {
+    let textModeClicks = 0;
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
+      onTextMode: () => {
+        textModeClicks += 1;
+      },
+    });
+
+    panel.element
+      .querySelector<HTMLButtonElement>('[data-testid="tutorial-text-mode"]')
+      ?.click();
+
+    expect(textModeClicks).toBe(1);
+
+    panel.dispose();
+  });
+
   it('renders state-driven navigation and callbacks', () => {
     const strings = getTutorialPanelStrings('en');
     let state = unlockTutorialPage(createDefaultTutorialState(), 'zoom');

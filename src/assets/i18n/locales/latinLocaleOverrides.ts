@@ -1028,6 +1028,129 @@ export function buildLatinLocaleOverrides(
               : copy.locale === 'pt'
                 ? 'Etapa atual'
                 : 'Paso actual',
+        actions: {
+          textModeLabel:
+            copy.locale === 'hu'
+              ? 'Váltás csak szöveges verzióra'
+              : copy.locale === 'de'
+                ? 'Zur Textversion wechseln'
+                : copy.locale === 'pt'
+                  ? 'Mudar para a versão somente texto'
+                  : 'Cambiar a la versión solo texto',
+          textModeTitle:
+            copy.locale === 'hu'
+              ? 'A csak szöveges portfólióverzió megnyitása'
+              : copy.locale === 'de'
+                ? 'Die reine Textversion des Portfolios öffnen'
+                : copy.locale === 'pt'
+                  ? 'Abrir a versão somente texto do portfólio'
+                  : 'Abrir la versión solo texto del portafolio',
+          textModeAriaLabel:
+            copy.locale === 'hu'
+              ? 'Váltás a csak szöveges portfólióverzióra'
+              : copy.locale === 'de'
+                ? 'Zur reinen Textversion des Portfolios wechseln'
+                : copy.locale === 'pt'
+                  ? 'Mudar para a versão somente texto do portfólio'
+                  : 'Cambiar a la versión solo texto del portafolio',
+          complete:
+            copy.locale === 'hu'
+              ? 'Kész'
+              : copy.locale === 'de'
+                ? 'Abgeschlossen'
+                : copy.locale === 'pt'
+                  ? 'Concluído'
+                  : 'Completado',
+          incomplete:
+            copy.locale === 'hu'
+              ? 'Nincs kész'
+              : copy.locale === 'de'
+                ? 'Unvollständig'
+                : copy.locale === 'pt'
+                  ? 'Incompleto'
+                  : 'Incompleto',
+          checkmarkLabel:
+            copy.locale === 'hu'
+              ? 'Kész'
+              : copy.locale === 'de'
+                ? 'Abgeschlossen'
+                : copy.locale === 'pt'
+                  ? 'Concluído'
+                  : 'Completado',
+          movementPrompt:
+            copy.locale === 'hu'
+              ? 'Mozogj 0,25 másodpercig minden irányba.'
+              : copy.locale === 'de'
+                ? 'Bewege dich 0,25 Sekunden in jede Richtung.'
+                : copy.locale === 'pt'
+                  ? 'Mova-se por 0,25 segundo em cada direção.'
+                  : 'Muévete 0,25 segundos en cada dirección.',
+          movementDirections: {
+            forward: 'W',
+            left: 'A',
+            backward: 'S',
+            right: 'D',
+          },
+          movementChipAriaTemplate: '{direction}: {status}',
+          zoomPrompt:
+            copy.locale === 'hu'
+              ? 'Érd el mindkét zoomhatárt.'
+              : copy.locale === 'de'
+                ? 'Erreiche beide Zoomgrenzen.'
+                : copy.locale === 'pt'
+                  ? 'Alcance os dois limites de zoom.'
+                  : 'Alcanza ambos límites de zoom.',
+          zoomInLabel:
+            copy.locale === 'hu'
+              ? 'Be'
+              : copy.locale === 'de'
+                ? 'Rein'
+                : copy.locale === 'pt'
+                  ? 'Aproximar'
+                  : 'Acercar',
+          zoomOutLabel:
+            copy.locale === 'hu'
+              ? 'Ki'
+              : copy.locale === 'de'
+                ? 'Raus'
+                : copy.locale === 'pt'
+                  ? 'Afastar'
+                  : 'Alejar',
+          zoomChipAriaTemplate: 'Zoom {direction}: {status}',
+          poiCounterTemplate:
+            copy.locale === 'hu'
+              ? '{count}/{goal} POI meglátogatva'
+              : copy.locale === 'de'
+                ? '{count}/{goal} POIs besucht'
+                : copy.locale === 'pt'
+                  ? '{count}/{goal} POIs visitados'
+                  : '{count}/{goal} POI visitados',
+          poiCounterAriaTemplate:
+            copy.locale === 'hu'
+              ? '{count}/{goal} projektkiállítás meglátogatva: {status}'
+              : copy.locale === 'de'
+                ? '{count} von {goal} Projektausstellungen besucht: {status}'
+                : copy.locale === 'pt'
+                  ? '{count} de {goal} exibições de projeto visitadas: {status}'
+                  : '{count} de {goal} exhibiciones de proyecto visitadas: {status}',
+          gitshelvesObjective:
+            copy.locale === 'hu'
+              ? 'Gitshelves meglátogatva'
+              : copy.locale === 'de'
+                ? 'Gitshelves besucht'
+                : copy.locale === 'pt'
+                  ? 'Gitshelves visitado'
+                  : 'Gitshelves visitado',
+          gitshelvesHint:
+            copy.locale === 'hu'
+              ? 'Tipp: nézz körül fent.'
+              : copy.locale === 'de'
+                ? 'Hinweis: Schau oben nach.'
+                : copy.locale === 'pt'
+                  ? 'Dica: confira o andar de cima.'
+                  : 'Pista: revisa arriba.',
+          gitshelvesAriaTemplate: 'Gitshelves: {status}',
+        },
         completedStepLabel:
           copy.locale === 'hu'
             ? 'Kész'
@@ -1048,23 +1171,23 @@ export function buildLatinLocaleOverrides(
                     : 'Bienvenida',
             body:
               copy.locale === 'hu'
-                ? 'Az oktatási előrehaladás hamarosan érkezik. Az első lépés bemutatja a mozgást a portfólióban.'
+                ? 'Üdvözöllek Daniel Smith interaktív portfóliójában. Ez a tér projektkiállításként mutatja be a munkákat. Mozogj W, A, S és D irányokban; a nyilak és az érintéses joystick is számít. Ha nem szeretnél immerzív módot használni, válts a csak szöveges verzióra.'
                 : copy.locale === 'de'
-                  ? 'Der Tutorial-Fortschritt folgt bald. Dieser erste Schritt führt die Bewegung durch das Portfolio ein.'
+                  ? 'Willkommen in Daniel Smiths interaktivem Portfolio. Der Raum zeigt Projekte als erkundbare Exponate. Bewege dich mit W, A, S und D in alle Richtungen; Pfeiltasten und Touch-Joystick zählen ebenfalls. Wenn du den immersiven Modus nicht bevorzugst, wechsle zur Textversion.'
                   : copy.locale === 'pt'
-                    ? 'O progresso do tutorial chegará em breve. Esta primeira etapa apresentará o movimento pelo portfólio.'
-                    : 'El progreso del tutorial llegará pronto. Este primer paso presentará el movimiento por el portafolio.',
+                    ? 'Boas-vindas ao portfólio interativo de Daniel Smith. Este espaço apresenta projetos como exibições exploráveis. Mova-se nas quatro direções com W, A, S e D; setas e joystick de toque também contam. Se preferir não usar o modo imersivo, mude para a versão somente texto.'
+                    : 'Bienvenida al portafolio interactivo de Daniel Smith. Este espacio muestra proyectos como exhibiciones explorables. Muévete en las cuatro direcciones con W, A, S y D; las flechas y el joystick táctil también cuentan. Si prefieres no usar el modo inmersivo, cambia a la versión solo texto.',
           },
           zoom: {
             title: 'Zoom',
             body:
               copy.locale === 'hu'
-                ? 'Ez a helyőrző a zoomvezérlést tanítja majd, miközben a jelenet játszható marad.'
+                ? 'Nagyíts teljesen be és teljesen ki. Használd az egér görgőjét, a többujjas csippentést, vagy a Shift + = és Shift + - billentyűket.'
                 : copy.locale === 'de'
-                  ? 'Dieser Platzhalter erklärt später die Zoomsteuerung, während die Szene spielbar bleibt.'
+                  ? 'Zoome ganz hinein und ganz heraus. Nutze das Mausrad, Multitouch-Pinch oder Shift + = und Shift + -.'
                   : copy.locale === 'pt'
-                    ? 'Este espaço reservado ensinará os controles de zoom mantendo a cena jogável.'
-                    : 'Este marcador enseñará los controles de zoom mientras mantiene la escena jugable.',
+                    ? 'Aproxime e afaste até os limites. Use a roda do mouse, pinça multitoque ou Shift + = e Shift + -.'
+                    : 'Acerca y aleja hasta los límites. Usa la rueda del mouse, pinza multitáctil o Shift + = y Shift + -.',
           },
           visitPois: {
             title:
@@ -1077,12 +1200,12 @@ export function buildLatinLocaleOverrides(
                     : 'Visitar POI',
             body:
               copy.locale === 'hu'
-                ? 'Ez a helyőrző három projekt-POI meglátogatását fogja követni.'
+                ? 'A POI-k projektkiállítások. A panelek összefoglalókat, eredményeket, metrikákat, linkeket és kontextust mutatnak. Kattints, koppints vagy lépj interakcióba egy POI-val, hogy meglátogatottnak jelöld.'
                 : copy.locale === 'de'
-                  ? 'Dieser Platzhalter verfolgt später Besuche bei drei Projekt-POIs.'
+                  ? 'POIs sind Projektexponate. Ihre Panels zeigen Zusammenfassungen, Ergebnisse, Metriken, Links und Kontext. Klicke, tippe oder interagiere mit einem POI, um ihn als besucht zu markieren.'
                   : copy.locale === 'pt'
-                    ? 'Este espaço reservado acompanhará visitas a três pontos de interesse de projetos.'
-                    : 'Este marcador seguirá las visitas a tres puntos de interés de proyectos.',
+                    ? 'POIs são exibições de projetos. Seus painéis mostram resumos, resultados, métricas, links e contexto. Clique, toque ou interaja com um POI para marcá-lo como visitado.'
+                    : 'Los POI son exhibiciones de proyectos. Sus paneles muestran resúmenes, resultados, métricas, enlaces y contexto. Haz clic, toca o interactúa con un POI para marcarlo como visitado.',
           },
           findGitshelves: {
             title:
@@ -1095,12 +1218,12 @@ export function buildLatinLocaleOverrides(
                     : 'Encontrar Gitshelves',
             body:
               copy.locale === 'hu'
-                ? 'Ez a helyőrző a Gitshelves kiállításhoz vezeti majd a látogatókat.'
+                ? 'Találd meg a Gitshelves POI-t, és lépj vele interakcióba. Tipp: nézz körül fent.'
                 : copy.locale === 'de'
-                  ? 'Dieser Platzhalter führt Besucher später zur Gitshelves-Ausstellung.'
+                  ? 'Finde den Gitshelves-POI und interagiere damit. Hinweis: Schau oben nach.'
                   : copy.locale === 'pt'
-                    ? 'Este espaço reservado guiará visitantes até a exibição Gitshelves.'
-                    : 'Este marcador guiará a los visitantes a la exhibición Gitshelves.',
+                    ? 'Encontre e interaja com o POI Gitshelves. Dica: confira o andar de cima.'
+                    : 'Encuentra e interactúa con el POI Gitshelves. Pista: revisa arriba.',
           },
         },
       },

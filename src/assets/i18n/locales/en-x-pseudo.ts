@@ -559,30 +559,57 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       lockedStepLabel: wrap('Locked'),
       unlockedStepLabel: wrap('Unlocked'),
       activeStepLabel: wrap('Current step'),
+      actions: {
+        textModeLabel: wrap('Switch to text-only version'),
+        textModeTitle: wrap('Open the text-only portfolio version'),
+        textModeAriaLabel: wrap('Switch to the text-only portfolio version'),
+        complete: wrap('Complete'),
+        incomplete: wrap('Incomplete'),
+        checkmarkLabel: wrap('Completed'),
+        movementPrompt: wrap('Move for 0.25 seconds in each direction.'),
+        movementDirections: {
+          forward: 'W',
+          left: 'A',
+          backward: 'S',
+          right: 'D',
+        },
+        movementChipAriaTemplate: wrap('{direction}: {status}'),
+        zoomPrompt: wrap('Reach both zoom limits.'),
+        zoomInLabel: wrap('In'),
+        zoomOutLabel: wrap('Out'),
+        zoomChipAriaTemplate: wrap('Zoom {direction}: {status}'),
+        poiCounterTemplate: wrap('{count}/{goal} POIs visited'),
+        poiCounterAriaTemplate: wrap(
+          '{count} of {goal} project exhibits visited: {status}'
+        ),
+        gitshelvesObjective: wrap('Gitshelves visited'),
+        gitshelvesHint: wrap('Hint: check upstairs.'),
+        gitshelvesAriaTemplate: wrap('Gitshelves objective: {status}'),
+      },
       completedStepLabel: wrap('Completed'),
       pages: {
         welcomeMovement: {
           title: wrap('Welcome'),
           body: wrap(
-            'Tutorial progress arrives soon. This first step will introduce movement through the portfolio.'
+            'Welcome to Daniel Smith’s interactive portfolio. Move with W, A, S, D; arrow keys and touch joystick count too. Text-only mode is available.'
           ),
         },
         zoom: {
           title: wrap('Zoom'),
           body: wrap(
-            'This placeholder will teach zoom controls while keeping the scene playable.'
+            'Zoom all the way in and all the way out with wheel, pinch, or Shift + = and Shift + -.'
           ),
         },
         visitPois: {
           title: wrap('Visit POIs'),
           body: wrap(
-            'This placeholder will track visits to three project points of interest.'
+            'POIs are project exhibits. Open panels for details and visit three unique POIs.'
           ),
         },
         findGitshelves: {
           title: wrap('Find Gitshelves'),
           body: wrap(
-            'This placeholder will guide visitors to the Gitshelves exhibit.'
+            'Find and interact with Gitshelves. Hint: check upstairs.'
           ),
         },
       },

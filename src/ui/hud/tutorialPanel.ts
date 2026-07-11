@@ -1,4 +1,4 @@
-import type { TutorialPanelStrings } from '../../assets/i18n';
+import { formatMessage, type TutorialPanelStrings } from '../../assets/i18n';
 import {
   getTutorialPageOrder,
   type TutorialPageId,
@@ -28,6 +28,7 @@ export function createTutorialPanel({
   onPrevious,
   onNext,
   onToggleShowOnStartup,
+  onTextMode,
 }: {
   container: HTMLElement;
   strings: TutorialPanelStrings;
@@ -39,6 +40,7 @@ export function createTutorialPanel({
   onPrevious?: () => void;
   onNext?: () => void;
   onToggleShowOnStartup?: (value: boolean) => void;
+  onTextMode?: () => void;
 }): TutorialPanelHandle {
   let currentStrings = strings;
   let open = false;
@@ -53,6 +55,130 @@ export function createTutorialPanel({
   element.dataset.role = 'tutorial-panel';
   element.setAttribute('role', 'dialog');
   element.setAttribute('aria-modal', 'false');
+
+  const createStatusChip = ({
+    label,
+    complete,
+    ariaLabel,
+    testId,
+  }: {
+    label: string;
+    complete: boolean;
+    ariaLabel: string;
+    testId: string;
+  }) => {
+    const chip = document.createElement('span');
+    chip.className = `tutorial-panel__chip tutorial-panel__chip--${complete ? 'complete' : 'incomplete'}`;
+    chip.dataset.testid = testId;
+    chip.setAttribute('aria-label', ariaLabel);
+    chip.textContent = complete
+      ? `${label} ✓ ${currentStrings.actions.checkmarkLabel}`
+      : label;
+    return chip;
+  };
+
+  const appendPageProgress = (body: HTMLElement) => {
+    const actions = currentStrings.actions;
+    const progress = currentState.progress;
+    const pageId = currentState.currentPageId;
+    if (pageId === 'welcomeMovement') {
+      const prompt = document.createElement('p');
+      prompt.className = 'tutorial-panel__progress-prompt';
+      prompt.textContent = actions.movementPrompt;
+      const chips = document.createElement('div');
+      chips.className = 'tutorial-panel__chips';
+      const directions = [
+        ['forward', progress.movement.forwardComplete],
+        ['left', progress.movement.leftComplete],
+        ['backward', progress.movement.backwardComplete],
+        ['right', progress.movement.rightComplete],
+      ] as const;
+      directions.forEach(([direction, complete]) => {
+        const status = complete ? actions.complete : actions.incomplete;
+        chips.append(
+          createStatusChip({
+            label: actions.movementDirections[direction],
+            complete,
+            ariaLabel: formatMessage(actions.movementChipAriaTemplate, {
+              direction: actions.movementDirections[direction],
+              status,
+            }),
+            testId: `tutorial-movement-${direction}`,
+          })
+        );
+      });
+      const textMode = document.createElement('button');
+      textMode.type = 'button';
+      textMode.className =
+        'overlay__menu-button tutorial-panel__button--text-mode';
+      textMode.dataset.testid = 'tutorial-text-mode';
+      textMode.textContent = actions.textModeLabel;
+      textMode.title = actions.textModeTitle;
+      textMode.setAttribute('aria-label', actions.textModeAriaLabel);
+      textMode.addEventListener('click', () => onTextMode?.());
+      body.append(prompt, chips, textMode);
+    } else if (pageId === 'zoom') {
+      const prompt = document.createElement('p');
+      prompt.className = 'tutorial-panel__progress-prompt';
+      prompt.textContent = actions.zoomPrompt;
+      const chips = document.createElement('div');
+      chips.className = 'tutorial-panel__chips';
+      [
+        [actions.zoomInLabel, progress.zoom.zoomInComplete, 'in'],
+        [actions.zoomOutLabel, progress.zoom.zoomOutComplete, 'out'],
+      ].forEach(([label, complete, id]) => {
+        const status = complete ? actions.complete : actions.incomplete;
+        chips.append(
+          createStatusChip({
+            label: String(label),
+            complete: Boolean(complete),
+            ariaLabel: formatMessage(actions.zoomChipAriaTemplate, {
+              direction: String(label),
+              status,
+            }),
+            testId: `tutorial-zoom-${id}`,
+          })
+        );
+      });
+      body.append(prompt, chips);
+    } else if (pageId === 'visitPois') {
+      const completedPages = new Set(currentState.completedPageIds);
+      const complete = completedPages.has('visitPois');
+      const count = complete
+        ? progress.pois.visitedCountGoal
+        : Math.min(
+            progress.pois.visitedPoiIds.length,
+            progress.pois.visitedCountGoal
+          );
+      const status = complete ? actions.complete : actions.incomplete;
+      body.append(
+        createStatusChip({
+          label: formatMessage(actions.poiCounterTemplate, {
+            count,
+            goal: progress.pois.visitedCountGoal,
+          }),
+          complete,
+          ariaLabel: formatMessage(actions.poiCounterAriaTemplate, {
+            count,
+            goal: progress.pois.visitedCountGoal,
+            status,
+          }),
+          testId: 'tutorial-poi-counter',
+        })
+      );
+    } else if (pageId === 'findGitshelves') {
+      const complete = progress.gitshelves.completed;
+      const status = complete ? actions.complete : actions.incomplete;
+      body.append(
+        createStatusChip({
+          label: actions.gitshelvesObjective,
+          complete,
+          ariaLabel: formatMessage(actions.gitshelvesAriaTemplate, { status }),
+          testId: 'tutorial-gitshelves-status',
+        })
+      );
+    }
+  };
 
   const render = () => {
     element.replaceChildren();
@@ -143,6 +269,7 @@ export function createTutorialPanel({
       currentStrings.pages[currentState.currentPageId].body;
     element.setAttribute('aria-describedby', pageBody.id);
     body.append(pageHeading, pageBody);
+    appendPageProgress(body);
 
     const nav = document.createElement('div');
     nav.className = 'tutorial-panel__nav';
