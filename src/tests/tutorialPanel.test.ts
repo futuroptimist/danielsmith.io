@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { getTutorialPanelStrings } from '../assets/i18n';
+import { formatMessage, getTutorialPanelStrings } from '../assets/i18n';
 import {
   createDefaultTutorialState,
   unlockTutorialPage,
 } from '../systems/tutorial/tutorialState';
 import { createTutorialPanel } from '../ui/hud/tutorialPanel';
+
+const getVisibleText = (chip: Element | null | undefined) =>
+  chip?.querySelector('.tutorial-panel__chip-visible')?.textContent;
+
+const getHiddenStatusText = (chip: Element | null | undefined) =>
+  chip?.querySelector('.visually-hidden')?.textContent;
 
 describe('createTutorialPanel', () => {
   it('renders the shell zones and localized placeholder controls', () => {
@@ -96,23 +102,20 @@ describe('createTutorialPanel', () => {
     const incompleteChip = panel.element.querySelector(
       '[data-testid="tutorial-movement-backward"]'
     );
-    expect(completedChip?.getAttribute('aria-label')).toMatch(/\bComplete\b/);
-    expect(completedChip?.textContent).toBe(
+    expect(getVisibleText(completedChip)).toBe(
       `${strings.actions.movementDirections.forward} ✓`
     );
-    expect(completedChip?.textContent).not.toContain(
+    expect(getHiddenStatusText(completedChip)).toBe(
       strings.actions.checkmarkLabel
     );
-    expect(incompleteChip?.textContent).toBe(
+    expect(getVisibleText(incompleteChip)).toBe(
       strings.actions.movementDirections.backward
     );
-    expect(incompleteChip?.getAttribute('aria-label')).toMatch(
-      /\bIncomplete\b/
+    expect(getHiddenStatusText(incompleteChip)).toBe(
+      strings.actions.incomplete
     );
     expect(completedChip?.getAttribute('data-status')).toBe('complete');
     expect(incompleteChip?.getAttribute('data-status')).toBe('incomplete');
-    expect(completedChip?.getAttribute('role')).toBe('img');
-    expect(incompleteChip?.getAttribute('role')).toBe('img');
     expect(
       completedChip?.closest('[data-testid="tutorial-progress"]')
     ).not.toBeNull();
@@ -137,18 +140,17 @@ describe('createTutorialPanel', () => {
     const incompleteZoomChip = panel.element.querySelector(
       '[data-testid="tutorial-zoom-out"]'
     );
-    expect(completedZoomChip?.textContent).toBe(
+    expect(getVisibleText(completedZoomChip)).toBe(
       `${strings.actions.zoomInLabel} ✓`
     );
-    expect(completedZoomChip?.textContent).not.toContain(
+    expect(getHiddenStatusText(completedZoomChip)).toBe(
       strings.actions.checkmarkLabel
     );
-    expect(completedZoomChip?.getAttribute('aria-label')).toMatch(
-      /\bComplete\b/
+    expect(getVisibleText(incompleteZoomChip)).toBe(
+      strings.actions.zoomOutLabel
     );
-    expect(incompleteZoomChip?.textContent).toBe(strings.actions.zoomOutLabel);
-    expect(incompleteZoomChip?.getAttribute('aria-label')).toMatch(
-      /\bIncomplete\b/
+    expect(getHiddenStatusText(incompleteZoomChip)).toBe(
+      strings.actions.incomplete
     );
     expect(
       completedZoomChip?.closest('[data-testid="tutorial-progress"]')
@@ -177,14 +179,11 @@ describe('createTutorialPanel', () => {
     const pseudoChip = pseudoPanel.element.querySelector(
       '[data-testid="tutorial-movement-forward"]'
     );
-    expect(pseudoChip?.textContent).toBe(
+    expect(getVisibleText(pseudoChip)).toBe(
       `${pseudoStrings.actions.movementDirections.forward} ✓`
     );
-    expect(pseudoChip?.textContent).not.toContain(
+    expect(getHiddenStatusText(pseudoChip)).toBe(
       pseudoStrings.actions.checkmarkLabel
-    );
-    expect(pseudoChip?.getAttribute('aria-label')).toContain(
-      pseudoStrings.actions.complete
     );
     pseudoPanel.dispose();
 
@@ -206,13 +205,10 @@ describe('createTutorialPanel', () => {
     const zhChip = zhPanel.element.querySelector(
       '[data-testid="tutorial-movement-forward"]'
     );
-    expect(zhChip?.textContent).toBe(
+    expect(getVisibleText(zhChip)).toBe(
       `${zhStrings.actions.movementDirections.forward} ✓`
     );
-    expect(zhChip?.textContent).not.toContain(zhStrings.actions.checkmarkLabel);
-    expect(zhChip?.getAttribute('aria-label')).toContain(
-      zhStrings.actions.complete
-    );
+    expect(getHiddenStatusText(zhChip)).toBe(zhStrings.actions.checkmarkLabel);
     zhPanel.dispose();
   });
 
@@ -289,14 +285,11 @@ describe('createTutorialPanel', () => {
     const gitshelvesStatus = panel.element.querySelector(
       '[data-testid="tutorial-gitshelves-status"]'
     );
-    expect(gitshelvesStatus?.textContent).toBe(
+    expect(getVisibleText(gitshelvesStatus)).toBe(
       `${strings.actions.gitshelvesObjective} ✓`
     );
-    expect(gitshelvesStatus?.textContent).not.toContain(
+    expect(getHiddenStatusText(gitshelvesStatus)).toBe(
       strings.actions.checkmarkLabel
-    );
-    expect(gitshelvesStatus?.getAttribute('aria-label')).toMatch(
-      /\bComplete\b/
     );
     expect(
       panel.element
@@ -337,10 +330,13 @@ describe('createTutorialPanel', () => {
       '[data-testid="tutorial-poi-counter"]'
     );
 
-    expect(counter?.textContent).toContain('3/3');
-    expect(counter?.textContent).toContain('✓');
-    expect(counter?.textContent).not.toContain(strings.actions.checkmarkLabel);
-    expect(counter?.getAttribute('aria-label')).toMatch(/\bComplete\b/);
+    expect(getVisibleText(counter)).toBe(
+      `${formatMessage(strings.actions.poiCounterTemplate, {
+        count: 3,
+        goal: 3,
+      })} ✓`
+    );
+    expect(getHiddenStatusText(counter)).toBe(strings.actions.checkmarkLabel);
 
     panel.dispose();
   });
