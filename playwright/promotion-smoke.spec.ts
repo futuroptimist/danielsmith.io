@@ -16,7 +16,15 @@ const HEALTH_PATHS = ['/livez', '/healthz'] as const;
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
 type StepHeaders = Partial<
-  Record<'cache-control' | 'content-type' | 'location', string>
+  Record<
+    | 'cache-control'
+    | 'content-length'
+    | 'content-type'
+    | 'etag'
+    | 'last-modified'
+    | 'location',
+    string
+  >
 >;
 
 type HeaderProvider = Pick<APIResponse | Response, 'headers'>;
@@ -33,12 +41,17 @@ type StepEvidence = {
 const evidence: {
   baseUrl: string;
   generatedAt: string;
+  privacy: string;
+  schemaVersion: 1;
   skipResume: boolean;
   summary: Record<StepEvidence['status'], number>;
   steps: StepEvidence[];
 } = {
   baseUrl: normalizeBaseUrl(process.env.PROMOTION_SMOKE_BASE_URL),
   generatedAt: new Date().toISOString(),
+  privacy:
+    'Records endpoint URLs, status codes, selected safe headers, content types, and pass/fail only.',
+  schemaVersion: 1,
   skipResume: isTruthy(process.env.PROMOTION_SMOKE_SKIP_RESUME),
   summary: { fail: 0, pass: 0, skip: 0 },
   steps: [],
@@ -65,7 +78,10 @@ function visibleHeaders(response: HeaderProvider): StepHeaders {
   const headers = response.headers();
   return {
     'cache-control': headers['cache-control'],
+    'content-length': headers['content-length'],
     'content-type': headers['content-type'],
+    etag: headers.etag,
+    'last-modified': headers['last-modified'],
     location: headers.location,
   };
 }
@@ -107,8 +123,21 @@ async function writeEvidence() {
 
 async function expectJsonHealth(response: APIResponse, endpointPath: string) {
   expect(response.status(), `${endpointPath} status code`).toBe(200);
-  const body = await response.json();
-  expect(body, `${endpointPath} JSON body`).toMatchObject({ status: 'ok' });
+  const contentType = response.headers()['content-type'];
+  expect(contentType, `${endpointPath} content type`).toContain(
+    'application/json'
+  );
+
+  const bodyText = await response.text();
+  expect(bodyText, `${endpointPath} should not be HTML fallback`).not.toContain(
+    '<!doctype html>'
+  );
+  expect(bodyText, `${endpointPath} should not be HTML fallback`).not.toContain(
+    '<html'
+  );
+  expect(JSON.parse(bodyText), `${endpointPath} JSON body`).toEqual({
+    status: 'ok',
+  });
 
   const cacheControl = response.headers()['cache-control'];
   if (cacheControl !== undefined && !isLocalPreview()) {
@@ -178,9 +207,9 @@ test.describe('promotion smoke', () => {
           };
         }
 
-        const response = await api.get('/resume.pdf');
-        expect(response.status(), 'GET /resume.pdf status code').toBeLessThan(
-          400
+        const response = await api.get('/resume.pdf', { maxRedirects: 10 });
+        expect(response.status(), 'GET /resume.pdf final status code').toBe(
+          200
         );
         expect(
           response.headers()['content-type'],
