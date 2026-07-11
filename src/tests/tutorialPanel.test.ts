@@ -221,6 +221,121 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
+  it('renders task status chips inside a spaced progress group between copy and navigation', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: {
+        ...createDefaultTutorialState(),
+        currentPageId: 'visitPois',
+        unlockedPageIds: [
+          'welcomeMovement',
+          'zoom',
+          'visitPois',
+          'findGitshelves',
+        ],
+        completedPageIds: ['welcomeMovement', 'zoom', 'visitPois'],
+      },
+    });
+
+    const body = panel.element.querySelector('[data-testid="tutorial-body"]');
+    const copy = panel.element.querySelector('.tutorial-panel__copy');
+    const progress = panel.element.querySelector(
+      '[data-testid="tutorial-progress"]'
+    );
+    const counter = panel.element.querySelector(
+      '[data-testid="tutorial-poi-counter"]'
+    );
+    const nav = panel.element.querySelector(
+      '[data-testid="tutorial-navigation"]'
+    );
+
+    expect(progress).not.toBeNull();
+    expect(progress?.classList.contains('tutorial-panel__progress')).toBe(true);
+    expect(counter?.parentElement).toBe(progress);
+    expect(copy?.parentElement).toBe(body);
+    expect(progress?.parentElement).toBe(body);
+    expect(progress?.previousElementSibling).toBe(copy);
+    expect(nav?.previousElementSibling).toBe(body);
+    expect(copy?.textContent).toBe(strings.pages.visitPois.body);
+    expect(copy?.textContent).not.toContain(counter?.textContent ?? '3/3');
+
+    panel.setState({
+      ...createDefaultTutorialState(),
+      currentPageId: 'findGitshelves',
+      unlockedPageIds: [
+        'welcomeMovement',
+        'zoom',
+        'visitPois',
+        'findGitshelves',
+      ],
+      completedPageIds: [
+        'welcomeMovement',
+        'zoom',
+        'visitPois',
+        'findGitshelves',
+      ],
+      progress: {
+        ...createDefaultTutorialState().progress,
+        gitshelves: { completed: true },
+      },
+    });
+
+    const gitshelvesProgress = panel.element.querySelector(
+      '[data-testid="tutorial-progress"]'
+    );
+    const gitshelvesStatus = panel.element.querySelector(
+      '[data-testid="tutorial-gitshelves-status"]'
+    );
+    const gitshelvesCopy = panel.element.querySelector('.tutorial-panel__copy');
+
+    expect(
+      gitshelvesProgress?.classList.contains('tutorial-panel__progress')
+    ).toBe(true);
+    expect(gitshelvesStatus?.parentElement).toBe(gitshelvesProgress);
+    expect(gitshelvesProgress?.previousElementSibling).toBe(gitshelvesCopy);
+    expect(gitshelvesCopy?.textContent).toBe(strings.pages.findGitshelves.body);
+    expect(gitshelvesCopy?.textContent).not.toContain(
+      gitshelvesStatus?.textContent ?? strings.actions.gitshelvesObjective
+    );
+
+    panel.dispose();
+  });
+
+  it('uses the shared progress group for movement and zoom task chips', () => {
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
+    });
+
+    let progress = panel.element.querySelector(
+      '[data-testid="tutorial-progress"]'
+    );
+    expect(
+      progress?.querySelector('[data-testid="tutorial-movement-forward"]')
+    ).not.toBeNull();
+    expect(progress?.querySelector('.tutorial-panel__chips')).not.toBeNull();
+
+    panel.setState({
+      ...createDefaultTutorialState(),
+      currentPageId: 'zoom',
+      unlockedPageIds: ['welcomeMovement', 'zoom'],
+      completedPageIds: ['welcomeMovement'],
+    });
+
+    progress = panel.element.querySelector('[data-testid="tutorial-progress"]');
+    expect(
+      progress?.querySelector('[data-testid="tutorial-zoom-in"]')
+    ).not.toBeNull();
+    expect(
+      progress?.querySelector('[data-testid="tutorial-zoom-out"]')
+    ).not.toBeNull();
+
+    panel.dispose();
+  });
+
   it('invokes the text-mode callback once', () => {
     let textModeClicks = 0;
     const panel = createTutorialPanel({
