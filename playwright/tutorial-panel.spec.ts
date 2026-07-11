@@ -236,4 +236,137 @@ test.describe('Tutorial panel', () => {
     await expect(tutorialButton).toHaveAttribute('aria-expanded', 'false');
     await expect(tutorialButton).toHaveAttribute('aria-pressed', 'false');
   });
+  test('tracks tutorial completion through stable persisted state', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+    const tutorialPanel = page.locator('#tutorial-panel');
+    await expect(tutorialPanel).toBeVisible();
+
+    await page.evaluate(() => {
+      localStorage.setItem(
+        'danielsmith.io:tutorial:v1:progress',
+        JSON.stringify({
+          version: 1,
+          currentPageId: 'welcomeMovement',
+          unlockedPageIds: ['welcomeMovement', 'zoom'],
+          completedPageIds: ['welcomeMovement'],
+          progress: {
+            movement: {
+              forwardSeconds: 0.25,
+              leftSeconds: 0.25,
+              backwardSeconds: 0.25,
+              rightSeconds: 0.25,
+              forwardComplete: true,
+              leftComplete: true,
+              backwardComplete: true,
+              rightComplete: true,
+            },
+            zoom: { zoomInComplete: false, zoomOutComplete: false },
+            pois: { visitedPoiIds: [], visitedCountGoal: 3 },
+            gitshelves: { completed: false },
+          },
+        })
+      );
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await expect(
+      page.locator('[data-testid="tutorial-step-zoom"]')
+    ).toBeEnabled();
+
+    await page.evaluate(() => {
+      localStorage.setItem(
+        'danielsmith.io:tutorial:v1:progress',
+        JSON.stringify({
+          version: 1,
+          currentPageId: 'zoom',
+          unlockedPageIds: ['welcomeMovement', 'zoom', 'visitPois'],
+          completedPageIds: ['welcomeMovement', 'zoom'],
+          progress: {
+            movement: {
+              forwardSeconds: 0.25,
+              leftSeconds: 0.25,
+              backwardSeconds: 0.25,
+              rightSeconds: 0.25,
+              forwardComplete: true,
+              leftComplete: true,
+              backwardComplete: true,
+              rightComplete: true,
+            },
+            zoom: { zoomInComplete: true, zoomOutComplete: true },
+            pois: { visitedPoiIds: [], visitedCountGoal: 3 },
+            gitshelves: { completed: false },
+          },
+        })
+      );
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await expect(
+      page.locator('[data-testid="tutorial-step-visitPois"]')
+    ).toBeEnabled();
+
+    await page.evaluate(() => {
+      localStorage.setItem(
+        'danielsmith.io:tutorial:v1:progress',
+        JSON.stringify({
+          version: 1,
+          currentPageId: 'findGitshelves',
+          unlockedPageIds: [
+            'welcomeMovement',
+            'zoom',
+            'visitPois',
+            'findGitshelves',
+          ],
+          completedPageIds: [
+            'welcomeMovement',
+            'zoom',
+            'visitPois',
+            'findGitshelves',
+          ],
+          progress: {
+            movement: {
+              forwardSeconds: 0.25,
+              leftSeconds: 0.25,
+              backwardSeconds: 0.25,
+              rightSeconds: 0.25,
+              forwardComplete: true,
+              leftComplete: true,
+              backwardComplete: true,
+              rightComplete: true,
+            },
+            zoom: { zoomInComplete: true, zoomOutComplete: true },
+            pois: {
+              visitedPoiIds: [
+                'alpha',
+                'beta',
+                'gamma',
+                'gitshelves-living-room-installation',
+              ],
+              visitedCountGoal: 3,
+            },
+            gitshelves: { completed: true },
+          },
+        })
+      );
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await expect(
+      page.locator('[data-testid="tutorial-gitshelves-status"]')
+    ).toContainText('✓');
+  });
 });
