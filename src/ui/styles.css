@@ -1263,6 +1263,7 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   color: #ffffff;
 }
 
+.visually-hidden,
 .locale-toggle__status {
   position: absolute;
   width: 1px;
@@ -1271,7 +1272,7 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   margin: -1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
-  white-space: normal;
+  white-space: nowrap;
   border: 0;
 }
 

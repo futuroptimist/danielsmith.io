@@ -1362,6 +1362,9 @@ export function initializeImmersiveScene(
     lowFpsRecoveryMonitor?.reset();
     lowFpsRecoveryPopup?.remove();
     lowFpsRecoveryPopup = null;
+    if (window.portfolio?.tutorial) {
+      clearPortfolioSection('tutorial');
+    }
     disposePortfolioMiniatureTableBuild();
     disposePrReaperInstallationBuild();
     clearPoiModelRoots();

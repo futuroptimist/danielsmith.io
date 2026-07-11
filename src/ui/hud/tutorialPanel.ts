@@ -190,7 +190,7 @@ export function createTutorialPanel({
 
   const render = () => {
     const completedCount = currentState.completedPageIds.length;
-    liveRegion.textContent = `${completedCount} ${currentStrings.completedStepLabel}`;
+    const liveRegionText = `${completedCount} ${currentStrings.completedStepLabel}`;
     element.replaceChildren();
     element.classList.toggle('tutorial-panel--sidebar-collapsed', collapsed);
     const heading = document.createElement('h2');
@@ -343,6 +343,7 @@ export function createTutorialPanel({
     content.append(body, nav, options);
     shell.append(sidebar, content);
     element.append(heading, shell, liveRegion);
+    liveRegion.textContent = liveRegionText;
   };
 
   const handle: TutorialPanelHandle = {
