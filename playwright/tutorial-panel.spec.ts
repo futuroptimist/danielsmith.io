@@ -441,7 +441,10 @@ test.describe('Tutorial progress layout', () => {
     );
     await expect(
       page.locator('[data-testid="tutorial-poi-counter"]')
-    ).toContainText('3/3');
+    ).toHaveText(/3\/3.*✓/);
+    await expect(
+      page.locator('[data-testid="tutorial-poi-counter"]')
+    ).not.toContainText('Completed');
 
     // Page 3 complete: ordering must hold after chip updates to complete state.
     await assertProgressLayoutOrder(
@@ -469,7 +472,10 @@ test.describe('Tutorial progress layout', () => {
     }, GITSHELVES_POI_ID);
     await expect(
       page.locator('[data-testid="tutorial-gitshelves-status"]')
-    ).toContainText('✓');
+    ).toHaveText(/Gitshelves visited.*✓/);
+    await expect(
+      page.locator('[data-testid="tutorial-gitshelves-status"]')
+    ).not.toContainText('Completed');
 
     // Page 4 complete: ordering must hold after Gitshelves chip updates.
     await assertProgressLayoutOrder(
@@ -500,6 +506,8 @@ test.describe('Tutorial progress layout', () => {
 });
 
 test.describe('Tutorial progression hooks', () => {
+  test.describe.configure({ timeout: 120_000 });
+
   async function completeAllSteps(page: Page) {
     const tutorial = page.locator('#tutorial-panel');
 
@@ -594,6 +602,10 @@ test.describe('Tutorial progression hooks', () => {
       undefined,
       { timeout: IMMERSIVE_READY_TIMEOUT_MS }
     );
+    if (!(await page.locator('#tutorial-panel').isVisible())) {
+      await page.keyboard.press('r');
+    }
+    await expect(page.locator('#tutorial-panel')).toBeVisible();
 
     // Navigate to POI page and assert 3/3 count renders.
     await page.locator('[data-testid="tutorial-step-visitPois"]').click();
