@@ -22,6 +22,10 @@ import type {
 import type { KeyBindingAction } from '../systems/controls/keyBindings';
 import type { GitHubRepoStatsDiagnostics } from '../systems/github/repoStats';
 import type { FloorId, StairTransitionZone } from '../systems/movement/stairs';
+import type {
+  TutorialPageId,
+  TutorialState,
+} from '../systems/tutorial/tutorialState';
 
 export type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
 export interface PortfolioKeyBindingsApi {
@@ -102,6 +106,16 @@ export interface PortfolioApi {
     getCameraZoomTarget?(): number;
     getInitialCameraFraming?(): InitialCameraFramingDebug | undefined;
     setCameraPanForTest?(input: { x: number; y: number }): void;
+  };
+  tutorial?: {
+    getState(): TutorialState;
+    getShowOnStartup(): boolean;
+    selectPage(pageId: TutorialPageId): void;
+    setShowOnStartup(value: boolean): void;
+    completeMovementForTest(): void;
+    completeZoomForTest(): void;
+    markVisitedPoisForTest(poiIds: readonly string[]): void;
+    markGitshelvesVisitedForTest(): void;
   };
   poi?: {
     getTooltipState(): {
