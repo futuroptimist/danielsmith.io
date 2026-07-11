@@ -12,11 +12,20 @@ import {
 
 const DEFAULT_BASE_URL = 'https://staging.danielsmith.io';
 const EVIDENCE_DIR = path.join('test-results', 'promotion-smoke');
-const HEALTH_PATHS = ['/livez', '/healthz'] as const;
+const HEALTH_PATHS = ['/healthz', '/livez'] as const;
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
 type StepHeaders = Partial<
-  Record<'cache-control' | 'content-type' | 'location', string>
+  Record<
+    | 'cache-control'
+    | 'content-disposition'
+    | 'content-length'
+    | 'content-type'
+    | 'etag'
+    | 'last-modified'
+    | 'location',
+    string
+  >
 >;
 
 type HeaderProvider = Pick<APIResponse | Response, 'headers'>;
@@ -31,12 +40,14 @@ type StepEvidence = {
 };
 
 const evidence: {
+  schemaVersion: 1;
   baseUrl: string;
   generatedAt: string;
   skipResume: boolean;
   summary: Record<StepEvidence['status'], number>;
   steps: StepEvidence[];
 } = {
+  schemaVersion: 1,
   baseUrl: normalizeBaseUrl(process.env.PROMOTION_SMOKE_BASE_URL),
   generatedAt: new Date().toISOString(),
   skipResume: isTruthy(process.env.PROMOTION_SMOKE_SKIP_RESUME),
@@ -65,7 +76,11 @@ function visibleHeaders(response: HeaderProvider): StepHeaders {
   const headers = response.headers();
   return {
     'cache-control': headers['cache-control'],
+    'content-disposition': headers['content-disposition'],
+    'content-length': headers['content-length'],
     'content-type': headers['content-type'],
+    etag: headers.etag,
+    'last-modified': headers['last-modified'],
     location: headers.location,
   };
 }
@@ -108,7 +123,13 @@ async function writeEvidence() {
 async function expectJsonHealth(response: APIResponse, endpointPath: string) {
   expect(response.status(), `${endpointPath} status code`).toBe(200);
   const body = await response.json();
-  expect(body, `${endpointPath} JSON body`).toMatchObject({ status: 'ok' });
+  expect(body, `${endpointPath} JSON body`).toEqual({ status: 'ok' });
+  const contentType = response.headers()['content-type'];
+  if (!isLocalPreview()) {
+    expect(contentType, `${endpointPath} content type`).toContain(
+      'application/json'
+    );
+  }
 
   const cacheControl = response.headers()['cache-control'];
   if (cacheControl !== undefined && !isLocalPreview()) {
@@ -178,14 +199,18 @@ test.describe('promotion smoke', () => {
           };
         }
 
-        const response = await api.get('/resume.pdf');
-        expect(response.status(), 'GET /resume.pdf status code').toBeLessThan(
-          400
+        const response = await api.get('/resume.pdf', { maxRedirects: 10 });
+        expect(response.status(), 'GET /resume.pdf final status code').toBe(
+          200
         );
         expect(
           response.headers()['content-type'],
-          'GET /resume.pdf content type'
+          'GET /resume.pdf final content type'
         ).toContain('pdf');
+        const pdfSignature = (await response.body()).subarray(0, 5).toString();
+        expect(pdfSignature, 'GET /resume.pdf final PDF signature').toBe(
+          '%PDF-'
+        );
         return {
           finalUrl: response.url(),
           headers: visibleHeaders(response),
