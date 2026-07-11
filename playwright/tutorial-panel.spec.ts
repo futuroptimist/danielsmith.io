@@ -335,6 +335,170 @@ test.describe('Tutorial panel', () => {
   });
 });
 
+test.describe('Tutorial progress layout', () => {
+  // Assert the vertical ordering: copy → status chip → navigation.
+  // Each element must start at least `gap` px below the bottom edge of the
+  // preceding element. scrollIntoView is called on the status chip so that the
+  // check is reliable inside the overflow-scrollable panel body on mobile.
+  async function assertProgressLayoutOrder(
+    page: Page,
+    statusSelector: string,
+    gap = 4
+  ) {
+    const boxes = await page.evaluate((statusSel: string) => {
+      const copy = document.querySelector<HTMLElement>('.tutorial-panel__copy');
+      const status = document.querySelector<HTMLElement>(statusSel);
+      const nav = document.querySelector<HTMLElement>(
+        '[data-testid="tutorial-navigation"]'
+      );
+      if (!copy || !status || !nav) return null;
+      status.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      const copyRect = copy.getBoundingClientRect();
+      const statusRect = status.getBoundingClientRect();
+      const navRect = nav.getBoundingClientRect();
+      return {
+        copyBottom: copyRect.bottom,
+        statusTop: statusRect.top,
+        statusBottom: statusRect.bottom,
+        navTop: navRect.top,
+      };
+    }, statusSelector);
+
+    expect(
+      boxes,
+      `.tutorial-panel__copy, ${statusSelector}, and tutorial-navigation must be present`
+    ).not.toBeNull();
+    // Status begins at least `gap` px below the copy bottom edge.
+    expect(boxes!.statusTop).toBeGreaterThanOrEqual(boxes!.copyBottom + gap);
+    // Navigation begins at least `gap` px below the status bottom edge.
+    expect(boxes!.navTop).toBeGreaterThanOrEqual(boxes!.statusBottom + gap);
+  }
+
+  // Advance through pages 1 and 2, then navigate to page 3 (visitPois).
+  async function advanceToPage3(page: Page) {
+    await page.evaluate(() => {
+      const api = window.portfolio?.tutorial;
+      if (!api) throw new Error('Tutorial portfolio API unavailable');
+      api.recordMovementProgress({
+        right: 0,
+        forward: 1,
+        deltaSeconds: 0.25,
+        moved: true,
+      });
+      api.recordMovementProgress({
+        right: -1,
+        forward: 0,
+        deltaSeconds: 0.25,
+        moved: true,
+      });
+      api.recordMovementProgress({
+        right: 0,
+        forward: -1,
+        deltaSeconds: 0.25,
+        moved: true,
+      });
+      api.recordMovementProgress({
+        right: 1,
+        forward: 0,
+        deltaSeconds: 0.25,
+        moved: true,
+      });
+    });
+    await expect(
+      page.locator('[data-testid="tutorial-step-zoom"]')
+    ).toBeEnabled();
+    await page.locator('[data-testid="tutorial-step-zoom"]').click();
+    await page.evaluate(() => {
+      const api = window.portfolio?.tutorial;
+      if (!api) throw new Error('Tutorial portfolio API unavailable');
+      api.recordFullZoomRange();
+    });
+    await expect(
+      page.locator('[data-testid="tutorial-step-visitPois"]')
+    ).toBeEnabled();
+    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
+  }
+
+  // Run the full set of layout checks across pages 3 and 4 at whatever viewport
+  // is already set. Covers incomplete and complete states within a single flow.
+  async function runLayoutChecks(page: Page) {
+    await advanceToPage3(page);
+
+    // Page 3 incomplete: poi counter must sit below copy and above navigation.
+    await assertProgressLayoutOrder(
+      page,
+      '[data-testid="tutorial-poi-counter"]'
+    );
+
+    // Complete page 3 via the portfolio API.
+    await page.evaluate(
+      (ids) => {
+        const api = window.portfolio?.tutorial;
+        if (!api) throw new Error('Tutorial portfolio API unavailable');
+        api.syncVisitedPois(ids);
+      },
+      [...STABLE_POI_IDS]
+    );
+    await expect(
+      page.locator('[data-testid="tutorial-poi-counter"]')
+    ).toContainText('3/3');
+
+    // Page 3 complete: ordering must hold after chip updates to complete state.
+    await assertProgressLayoutOrder(
+      page,
+      '[data-testid="tutorial-poi-counter"]'
+    );
+
+    // Advance to page 4 (findGitshelves).
+    await expect(
+      page.locator('[data-testid="tutorial-step-findGitshelves"]')
+    ).toBeEnabled();
+    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
+
+    // Page 4 incomplete: gitshelves chip must sit below copy and above navigation.
+    await assertProgressLayoutOrder(
+      page,
+      '[data-testid="tutorial-gitshelves-status"]'
+    );
+
+    // Complete page 4.
+    await page.evaluate((id) => {
+      const api = window.portfolio?.tutorial;
+      if (!api) throw new Error('Tutorial portfolio API unavailable');
+      api.syncVisitedPois([id]);
+    }, GITSHELVES_POI_ID);
+    await expect(
+      page.locator('[data-testid="tutorial-gitshelves-status"]')
+    ).toContainText('✓');
+
+    // Page 4 complete: ordering must hold after Gitshelves chip updates.
+    await assertProgressLayoutOrder(
+      page,
+      '[data-testid="tutorial-gitshelves-status"]'
+    );
+  }
+
+  test('progress group is below copy and above navigation (desktop)', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+    await runLayoutChecks(page);
+  });
+
+  test('progress group is below copy and above navigation (mobile 390×740)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 740 });
+    await waitForImmersiveMode(page);
+    await page.waitForFunction(
+      () => document.documentElement.dataset.hudLayout === 'mobile',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await runLayoutChecks(page);
+  });
+});
+
 test.describe('Tutorial progression hooks', () => {
   async function completeAllSteps(page: Page) {
     const tutorial = page.locator('#tutorial-panel');

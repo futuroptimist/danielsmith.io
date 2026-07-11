@@ -2424,6 +2424,14 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   color: var(--hud-surface-muted-text);
   line-height: 1.55;
 }
+.tutorial-panel__progress {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+  max-width: 100%;
+  margin-block: 0.7rem 0.35rem;
+}
 .tutorial-panel__nav,
 .tutorial-panel__options {
   display: flex;
@@ -2485,14 +2493,20 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 0.75rem 0;
+  max-width: 100%;
+  margin: 0;
 }
 
 .tutorial-panel__chip {
+  display: inline-flex;
+  max-width: 100%;
   border: 1px solid rgba(250, 204, 21, 0.55);
   border-radius: 999px;
   padding: 0.3rem 0.65rem;
   font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .tutorial-panel__chip--incomplete {
@@ -2507,5 +2521,5 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
 
 .tutorial-panel__progress-prompt,
 .tutorial-panel__hint {
-  margin: 0.75rem 0 0;
+  margin: 0;
 }
