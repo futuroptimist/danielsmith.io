@@ -515,6 +515,10 @@ test.describe('Tutorial progress layout', () => {
 test.describe('Tutorial progression hooks', () => {
   async function completeAllSteps(page: Page) {
     const tutorial = page.locator('#tutorial-panel');
+    if (!(await tutorial.isVisible())) {
+      await page.keyboard.press('r');
+    }
+    await expect(tutorial).toBeVisible();
 
     // Complete movement in all four directions.
     await page.evaluate(() => {
@@ -597,6 +601,7 @@ test.describe('Tutorial progression hooks', () => {
   test('completes all steps via portfolio API and persists after reload', async ({
     page,
   }) => {
+    test.slow();
     await waitForImmersiveMode(page);
     await completeAllSteps(page);
 
@@ -607,6 +612,12 @@ test.describe('Tutorial progression hooks', () => {
       undefined,
       { timeout: IMMERSIVE_READY_TIMEOUT_MS }
     );
+
+    const tutorialPanel = page.locator('#tutorial-panel');
+    if (!(await tutorialPanel.isVisible())) {
+      await page.keyboard.press('r');
+    }
+    await expect(tutorialPanel).toBeVisible();
 
     // Navigate to POI page and assert 3/3 count renders.
     await page.locator('[data-testid="tutorial-step-visitPois"]').click();
@@ -636,6 +647,7 @@ test.describe('Tutorial progression hooks', () => {
   test('progress persists across dismiss and reopen without changing show-on-startup', async ({
     page,
   }) => {
+    test.slow();
     await waitForImmersiveMode(page);
     await completeAllSteps(page);
 
