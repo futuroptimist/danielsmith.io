@@ -183,7 +183,9 @@ The Tutorial panel has four zones:
 
 - Contains localized heading, purpose text, instructions, and progress UI for the active
   page.
-- Uses progress chips/checkmarks for active tasks.
+- Uses progress chips/checkmarks for active tasks. Progress and completion groups are
+  block-level layout elements with vertical spacing from both the body copy above and the
+  navigation row below, so localized text can wrap without crowding status badges.
 - Never hardcodes English strings in runtime components.
 - Includes a Text-only escape on the first page using the same Text action behavior and
   button styling as the existing Text menu path.

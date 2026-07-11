@@ -108,6 +108,9 @@ describe('createTutorialPanel', () => {
     expect(incompleteChip?.getAttribute('data-status')).toBe('incomplete');
     expect(completedChip?.getAttribute('role')).toBeNull();
     expect(incompleteChip?.getAttribute('role')).toBeNull();
+    expect(
+      completedChip?.closest('[data-testid="tutorial-progress"]')
+    ).not.toBeNull();
 
     panel.setState({
       ...createDefaultTutorialState(),
@@ -134,6 +137,46 @@ describe('createTutorialPanel', () => {
       strings.actions.checkmarkLabel
     );
     expect(incompleteZoomChip?.textContent).not.toContain('✓');
+    expect(
+      completedZoomChip?.closest('[data-testid="tutorial-progress"]')
+    ).not.toBeNull();
+
+    panel.dispose();
+  });
+
+  it('renders page progress in a block-level group after copy and before navigation', () => {
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      state: {
+        ...createDefaultTutorialState(),
+        currentPageId: 'visitPois',
+        unlockedPageIds: ['welcomeMovement', 'zoom', 'visitPois'],
+        completedPageIds: ['welcomeMovement', 'zoom', 'visitPois'],
+      },
+    });
+
+    const body = panel.element.querySelector('[data-testid="tutorial-body"]');
+    const copy = panel.element.querySelector('.tutorial-panel__copy');
+    const progress = panel.element.querySelector(
+      '[data-testid="tutorial-progress"]'
+    );
+    const navigation = panel.element.querySelector(
+      '[data-testid="tutorial-navigation"]'
+    );
+    const counter = panel.element.querySelector(
+      '[data-testid="tutorial-poi-counter"]'
+    );
+
+    expect(progress).not.toBeNull();
+    expect(progress?.classList.contains('tutorial-panel__progress')).toBe(true);
+    expect(counter?.parentElement).toBe(progress);
+    expect(copy?.parentElement).toBe(body);
+    expect(progress?.parentElement).toBe(body);
+    expect(copy?.nextElementSibling).toBe(progress);
+    expect(progress?.compareDocumentPosition(navigation as Node)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
 
     panel.dispose();
   });
@@ -177,6 +220,11 @@ describe('createTutorialPanel', () => {
       panel.element.querySelector('[data-testid="tutorial-gitshelves-status"]')
         ?.textContent
     ).toContain('✓');
+    expect(
+      panel.element
+        .querySelector('[data-testid="tutorial-gitshelves-status"]')
+        ?.closest('[data-testid="tutorial-progress"]')
+    ).not.toBeNull();
     expect(bodyText.split(strings.actions.gitshelvesHint).length - 1).toBe(1);
 
     panel.dispose();

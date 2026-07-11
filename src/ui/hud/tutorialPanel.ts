@@ -99,6 +99,9 @@ export function createTutorialPanel({
   };
 
   const appendPageProgress = (body: HTMLElement) => {
+    const progressGroup = document.createElement('div');
+    progressGroup.className = 'tutorial-panel__progress';
+    progressGroup.dataset.testid = 'tutorial-progress';
     const actions = currentStrings.actions;
     const progress = currentState.progress;
     const pageId = currentState.currentPageId;
@@ -137,7 +140,7 @@ export function createTutorialPanel({
       textMode.title = actions.textModeTitle;
       textMode.setAttribute('aria-label', actions.textModeAriaLabel);
       textMode.addEventListener('click', () => onTextMode?.());
-      body.append(prompt, chips, textMode);
+      progressGroup.append(prompt, chips, textMode);
     } else if (pageId === 'zoom') {
       const prompt = document.createElement('p');
       prompt.className = 'tutorial-panel__progress-prompt';
@@ -161,7 +164,7 @@ export function createTutorialPanel({
           })
         );
       });
-      body.append(prompt, chips);
+      progressGroup.append(prompt, chips);
     } else if (pageId === 'visitPois') {
       const completedPages = new Set(currentState.completedPageIds);
       const complete = completedPages.has('visitPois');
@@ -172,7 +175,7 @@ export function createTutorialPanel({
             progress.pois.visitedCountGoal
           );
       const status = complete ? actions.complete : actions.incomplete;
-      body.append(
+      progressGroup.append(
         createStatusChip({
           label: formatMessage(actions.poiCounterTemplate, {
             count,
@@ -190,7 +193,7 @@ export function createTutorialPanel({
     } else if (pageId === 'findGitshelves') {
       const complete = progress.gitshelves.completed;
       const status = complete ? actions.complete : actions.incomplete;
-      body.append(
+      progressGroup.append(
         createStatusChip({
           label: actions.gitshelvesObjective,
           complete,
@@ -198,6 +201,9 @@ export function createTutorialPanel({
           testId: 'tutorial-gitshelves-status',
         })
       );
+    }
+    if (progressGroup.childElementCount > 0) {
+      body.append(progressGroup);
     }
   };
 
