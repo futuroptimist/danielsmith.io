@@ -47,6 +47,8 @@ export function createTutorialPanel({
   let collapsed = false;
   let currentState = state;
   let currentShowOnStartup = showOnStartup;
+  let completionAnnouncement = '';
+  let previousCompletedPageIds = new Set(currentState.completedPageIds);
 
   const element = document.createElement('aside');
   element.className = 'tutorial-panel';
@@ -189,6 +191,12 @@ export function createTutorialPanel({
     heading.textContent = currentStrings.heading;
     element.setAttribute('aria-labelledby', heading.id);
 
+    const liveRegion = document.createElement('p');
+    liveRegion.className = 'tutorial-panel__live-region';
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.setAttribute('aria-atomic', 'true');
+    liveRegion.textContent = completionAnnouncement;
+
     const shell = document.createElement('div');
     shell.className = 'tutorial-panel__shell';
 
@@ -329,7 +337,7 @@ export function createTutorialPanel({
     content.className = 'tutorial-panel__content';
     content.append(body, nav, options);
     shell.append(sidebar, content);
-    element.append(heading, shell);
+    element.append(heading, liveRegion, shell);
   };
 
   const handle: TutorialPanelHandle = {
@@ -361,6 +369,14 @@ export function createTutorialPanel({
       render();
     },
     setState(next) {
+      const completed = new Set(next.completedPageIds);
+      const newlyCompleted = next.completedPageIds.find(
+        (pageId) => !previousCompletedPageIds.has(pageId)
+      );
+      completionAnnouncement = newlyCompleted
+        ? `${currentStrings.pages[newlyCompleted].title} ${currentStrings.completedStepLabel}`
+        : completionAnnouncement;
+      previousCompletedPageIds = completed;
       currentState = next;
       render();
     },

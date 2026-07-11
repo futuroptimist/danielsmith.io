@@ -317,4 +317,29 @@ describe('createTutorialPanel', () => {
 
     panel.dispose();
   });
+  it('announces newly completed pages with a polite live region', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: createDefaultTutorialState(),
+    });
+
+    panel.setState({
+      ...createDefaultTutorialState(),
+      completedPageIds: ['welcomeMovement'],
+      unlockedPageIds: ['welcomeMovement', 'zoom'],
+    });
+
+    const liveRegion = panel.element.querySelector(
+      '.tutorial-panel__live-region'
+    );
+    expect(liveRegion?.getAttribute('aria-live')).toBe('polite');
+    expect(liveRegion?.textContent).toContain(
+      strings.pages.welcomeMovement.title
+    );
+    expect(liveRegion?.textContent).toContain(strings.completedStepLabel);
+
+    panel.dispose();
+  });
 });

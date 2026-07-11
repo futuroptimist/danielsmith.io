@@ -666,3 +666,33 @@ continues while the panel is closed and repaints immediately when it is open.
 - Gitshelves completion is keyed to the stable POI id
   `gitshelves-living-room-installation`. Its placement remains on the upper
   floor, so the localized Tutorial hint directs visitors upstairs.
+
+## Production polish notes
+
+The implemented Tutorial panel keeps progress rendering declarative and avoids
+per-frame DOM churn. Movement samples may arrive from keyboard, arrows, or the
+mobile virtual joystick, but the controller writes progress only when visible
+state changes or the accumulated movement bucket advances. Zoom completion uses
+the runtime zoom bounds with a one-percent tolerance instead of duplicated
+constants. POI progress consumes the shared visited-POI state and records stable
+POI ids only; the Gitshelves objective is keyed by
+`gitshelves-living-room-installation`, never localized title text.
+
+The panel exposes non-modal `role="dialog"` semantics, keeps `aria-modal` false,
+links heading/body copy with `aria-labelledby` and `aria-describedby`, and
+announces newly completed steps through a polite live region. Progress chips
+combine localized status labels with a checkmark and high-contrast yellow states
+so completion is not color-only. The HUD grid remains a 2x2 grid at every
+viewport size and allows localized labels to wrap or truncate inside each cell.
+
+Playwright coverage may seed the versioned localStorage progress key for stable
+state-flow assertions when full scene traversal would make the browser test
+flaky. That mirrors the storage contract and does not add production-only
+shortcuts. The storage keys remain:
+
+- `danielsmith.io:tutorial:v1:progress`
+- `danielsmith.io:tutorial:v1:showOnStartup`
+
+Future Tutorial pages must add locale strings for every supported locale, keep
+key labels as intentional untranslated tokens, and avoid storing localized copy
+in persisted progress.
