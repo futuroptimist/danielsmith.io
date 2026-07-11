@@ -500,7 +500,10 @@ import {
   type ResponsiveControlOverlayHandle,
 } from './ui/hud/responsiveControlOverlay';
 import { applySettingsControlOrder } from './ui/hud/settingsOrder';
-import { createTutorialPanel } from './ui/hud/tutorialPanel';
+import {
+  createTutorialPanel,
+  type TutorialPanelHandle,
+} from './ui/hud/tutorialPanel';
 import {
   createContinuousSoftwareImmersiveUrl,
   createImmersiveModeUrl,
@@ -1341,6 +1344,10 @@ export function initializeImmersiveScene(
   let debugCoordinatesOverlay: HTMLElement | null = null;
   let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
+  let partiallyInitializedTutorialPanel: TutorialPanelHandle | null = null;
+  let removePartiallyInitializedTutorialVisitedSubscription:
+    | (() => void)
+    | null = null;
   function disposePartiallyInitializedImmersiveResources() {
     if (
       immersiveLifecycle === 'disposed' ||
@@ -1364,6 +1371,14 @@ export function initializeImmersiveScene(
     lowFpsRecoveryPopup = null;
     if (window.portfolio?.tutorial) {
       clearPortfolioSection('tutorial');
+    }
+    if (removePartiallyInitializedTutorialVisitedSubscription) {
+      removePartiallyInitializedTutorialVisitedSubscription();
+      removePartiallyInitializedTutorialVisitedSubscription = null;
+    }
+    if (partiallyInitializedTutorialPanel) {
+      partiallyInitializedTutorialPanel.dispose();
+      partiallyInitializedTutorialPanel = null;
     }
     disposePortfolioMiniatureTableBuild();
     disposePrReaperInstallationBuild();
@@ -3650,6 +3665,7 @@ export function initializeImmersiveScene(
       activateTextMode();
     },
   });
+  partiallyInitializedTutorialPanel = tutorialPanel;
   tutorialController.setPanel(tutorialPanel);
   setPortfolioSection('tutorial', {
     recordMovementProgress: (input) =>
@@ -3682,6 +3698,8 @@ export function initializeImmersiveScene(
       tutorialController.syncVisitedPois(visited);
     }
   );
+  removePartiallyInitializedTutorialVisitedSubscription =
+    removeTutorialVisitedSubscription;
   const hudSettingsContainer =
     helpModal.settingsContainer ??
     (() => {
@@ -6406,6 +6424,7 @@ export function initializeImmersiveScene(
     removeSelectionListener();
     removeVisitedSubscription();
     removeTutorialVisitedSubscription();
+    removePartiallyInitializedTutorialVisitedSubscription = null;
     interactionTimeline.dispose();
     poiTooltipOverlay.dispose();
     poiWorldTooltip.dispose();
@@ -6482,6 +6501,7 @@ export function initializeImmersiveScene(
       document.documentElement.removeAttribute('data-poi-detail-visible');
     }
     tutorialPanel.dispose();
+    partiallyInitializedTutorialPanel = null;
     if (responsiveControlOverlay) {
       responsiveControlOverlay.dispose();
       responsiveControlOverlay = null;
