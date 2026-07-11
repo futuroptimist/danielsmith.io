@@ -161,7 +161,7 @@ describe('tutorial action tracking', () => {
     ]);
   });
 
-  it('uses the shared POI snapshot for live counts while page flags stay monotonic', () => {
+  it('keeps shared POI progress monotonic when later syncs are partial', () => {
     let state = recordVisitedPois(createDefaultTutorialState(), [
       'a',
       'b',
@@ -188,7 +188,7 @@ describe('tutorial action tracking', () => {
 
     state = recordVisitedPois(state, ['b']);
 
-    expect(state.progress.pois.visitedPoiIds).toEqual(['b']);
+    expect(state.progress.pois.visitedPoiIds).toEqual(['a', 'b', 'c']);
     expect(state.completedPageIds).toContain('visitPois');
     expect(state.unlockedPageIds).toContain('findGitshelves');
   });

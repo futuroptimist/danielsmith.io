@@ -364,9 +364,10 @@ export const recordVisitedPois = (
   visitedPoiIds: Iterable<string>
 ): TutorialState => {
   const sanitized = sanitizeTutorialState(state);
-  const nextVisited = uniqueStrings(
-    [...visitedPoiIds].filter((id) => typeof id === 'string')
-  );
+  const nextVisited = uniqueStrings([
+    ...sanitized.progress.pois.visitedPoiIds,
+    ...[...visitedPoiIds].filter((id) => typeof id === 'string'),
+  ]);
   const gitshelvesCompleted =
     sanitized.progress.gitshelves.completed ||
     nextVisited.includes(GITSHELVES_POI_ID);
