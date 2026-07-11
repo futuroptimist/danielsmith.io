@@ -16,7 +16,10 @@ const HEALTH_PATHS = ['/livez', '/healthz'] as const;
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
 type StepHeaders = Partial<
-  Record<'cache-control' | 'content-type' | 'location', string>
+  Record<
+    'cache-control' | 'content-type' | 'etag' | 'last-modified' | 'location',
+    string
+  >
 >;
 
 type HeaderProvider = Pick<APIResponse | Response, 'headers'>;
@@ -66,6 +69,8 @@ function visibleHeaders(response: HeaderProvider): StepHeaders {
   return {
     'cache-control': headers['cache-control'],
     'content-type': headers['content-type'],
+    etag: headers.etag,
+    'last-modified': headers['last-modified'],
     location: headers.location,
   };
 }
@@ -108,7 +113,11 @@ async function writeEvidence() {
 async function expectJsonHealth(response: APIResponse, endpointPath: string) {
   expect(response.status(), `${endpointPath} status code`).toBe(200);
   const body = await response.json();
-  expect(body, `${endpointPath} JSON body`).toMatchObject({ status: 'ok' });
+  expect(body, `${endpointPath} JSON body`).toEqual({
+    check: endpointPath.slice(1),
+    service: 'danielsmith.io',
+    status: 'ok',
+  });
 
   const cacheControl = response.headers()['cache-control'];
   if (cacheControl !== undefined && !isLocalPreview()) {
@@ -186,6 +195,11 @@ test.describe('promotion smoke', () => {
           response.headers()['content-type'],
           'GET /resume.pdf content type'
         ).toContain('pdf');
+        const body = await response.body();
+        expect(
+          body.subarray(0, 5).toString('utf8'),
+          'GET /resume.pdf final response bytes'
+        ).toBe('%PDF-');
         return {
           finalUrl: response.url(),
           headers: visibleHeaders(response),
