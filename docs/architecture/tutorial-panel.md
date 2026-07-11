@@ -186,6 +186,9 @@ The Tutorial panel has four zones:
 - Uses progress chips/checkmarks for active tasks. Progress and completion groups are
   block-level layout elements with vertical spacing from both the body copy above and the
   navigation row below, so localized text can wrap without crowding status badges.
+- Completed visual badges show the localized label plus a checkmark; localized
+  completed/incomplete semantics remain available through visually hidden status text,
+  accessible labels, and live announcements instead of visible status words.
 - Never hardcodes English strings in runtime components.
 - Includes a Text-only escape on the first page using the same Text action behavior and
   button styling as the existing Text menu path.

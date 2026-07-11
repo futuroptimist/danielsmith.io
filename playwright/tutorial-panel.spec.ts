@@ -439,9 +439,16 @@ test.describe('Tutorial progress layout', () => {
       },
       [...STABLE_POI_IDS]
     );
+    const poiCounter = page.locator('[data-testid="tutorial-poi-counter"]');
     await expect(
-      page.locator('[data-testid="tutorial-poi-counter"]')
+      poiCounter.locator('.tutorial-panel__chip-visible')
     ).toContainText('3/3');
+    await expect(
+      poiCounter.locator('.tutorial-panel__chip-visible')
+    ).toContainText('✓');
+    await expect(poiCounter.locator('.visually-hidden')).toHaveText(
+      'Completed'
+    );
 
     // Page 3 complete: ordering must hold after chip updates to complete state.
     await assertProgressLayoutOrder(
@@ -467,9 +474,15 @@ test.describe('Tutorial progress layout', () => {
       if (!api) throw new Error('Tutorial portfolio API unavailable');
       api.syncVisitedPois([id]);
     }, GITSHELVES_POI_ID);
+    const gitshelvesStatus = page.locator(
+      '[data-testid="tutorial-gitshelves-status"]'
+    );
     await expect(
-      page.locator('[data-testid="tutorial-gitshelves-status"]')
+      gitshelvesStatus.locator('.tutorial-panel__chip-visible')
     ).toContainText('✓');
+    await expect(gitshelvesStatus.locator('.visually-hidden')).toHaveText(
+      'Completed'
+    );
 
     // Page 4 complete: ordering must hold after Gitshelves chip updates.
     await assertProgressLayoutOrder(

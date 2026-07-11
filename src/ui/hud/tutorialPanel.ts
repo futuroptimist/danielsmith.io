@@ -92,9 +92,18 @@ export function createTutorialPanel({
     chip.dataset.testid = testId;
     chip.setAttribute('aria-label', ariaLabel);
     chip.dataset.status = complete ? 'complete' : 'incomplete';
-    chip.textContent = complete
-      ? `${label} ✓ ${currentStrings.actions.checkmarkLabel}`
-      : label;
+
+    const visible = document.createElement('span');
+    visible.className = 'tutorial-panel__chip-visible';
+    visible.textContent = complete ? `${label} ✓` : label;
+
+    const status = document.createElement('span');
+    status.className = 'visually-hidden';
+    status.textContent = complete
+      ? currentStrings.actions.checkmarkLabel
+      : currentStrings.actions.incomplete;
+
+    chip.append(visible, status);
     return chip;
   };
 
