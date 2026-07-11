@@ -16,7 +16,7 @@
     "test:ci": "vitest run",
     "typecheck": "tsc --noEmit --project tsconfig.typecheck.json",
     "docs:check": "node scripts/check-docs.cjs && npm run links:check",
-    "smoke": "npm run build && node scripts/assert-dist.cjs",
+    "smoke": "npm run build && node scripts/assert-dist.cjs && node scripts/check-nginx-observability.cjs",
     "press-kit": "tsx scripts/generate-press-kit.ts",
     "check": "npm run check:static && npm run docs:check && npm run smoke && npm run perf:budget",
     "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts",

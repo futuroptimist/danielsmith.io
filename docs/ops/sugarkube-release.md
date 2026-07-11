@@ -4,6 +4,8 @@ Use this runbook to release `danielsmith.io` to Sugarkube without local image bu
 application remains a static Vite/Three.js site served by nginx on port `8080`; it exposes
 `/livez` and `/healthz` and does not include any backend, database, API, queue, or compute-node
 components.
+The [static-site observability contract](observability.md) defines the public probes, Kubernetes
+metadata signals, privacy boundary, and promotion smoke evidence used for release sign-off.
 
 ## Release contract
 
