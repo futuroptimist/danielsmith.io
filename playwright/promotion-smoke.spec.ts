@@ -12,11 +12,22 @@ import {
 
 const DEFAULT_BASE_URL = 'https://staging.danielsmith.io';
 const EVIDENCE_DIR = path.join('test-results', 'promotion-smoke');
-const HEALTH_PATHS = ['/livez', '/healthz'] as const;
+const HEALTH_PATHS = [
+  { path: '/livez', check: 'liveness' },
+  { path: '/healthz', check: 'readiness' },
+] as const;
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 
 type StepHeaders = Partial<
-  Record<'cache-control' | 'content-type' | 'location', string>
+  Record<
+    | 'cache-control'
+    | 'content-length'
+    | 'content-type'
+    | 'etag'
+    | 'last-modified'
+    | 'location',
+    string
+  >
 >;
 
 type HeaderProvider = Pick<APIResponse | Response, 'headers'>;
@@ -65,7 +76,10 @@ function visibleHeaders(response: HeaderProvider): StepHeaders {
   const headers = response.headers();
   return {
     'cache-control': headers['cache-control'],
+    'content-length': headers['content-length'],
     'content-type': headers['content-type'],
+    etag: headers.etag,
+    'last-modified': headers['last-modified'],
     location: headers.location,
   };
 }
@@ -105,10 +119,26 @@ async function writeEvidence() {
   );
 }
 
-async function expectJsonHealth(response: APIResponse, endpointPath: string) {
+async function expectJsonHealth(
+  response: APIResponse,
+  endpointPath: string,
+  expectedCheck: string
+) {
   expect(response.status(), `${endpointPath} status code`).toBe(200);
-  const body = await response.json();
-  expect(body, `${endpointPath} JSON body`).toMatchObject({ status: 'ok' });
+  expect(
+    response.headers()['content-type'],
+    `${endpointPath} content type`
+  ).toContain('application/json');
+  const text = await response.text();
+  expect(text, `${endpointPath} must not be HTML fallback`).not.toContain(
+    '<!doctype html'
+  );
+  const body = JSON.parse(text);
+  expect(body, `${endpointPath} JSON body`).toEqual({
+    status: 'ok',
+    service: 'danielsmith.io',
+    check: expectedCheck,
+  });
 
   const cacheControl = response.headers()['cache-control'];
   if (cacheControl !== undefined && !isLocalPreview()) {
@@ -158,10 +188,10 @@ test.describe('promotion smoke', () => {
         };
       });
 
-      for (const healthPath of HEALTH_PATHS) {
+      for (const { path: healthPath, check } of HEALTH_PATHS) {
         await recordStep(`GET ${healthPath} JSON health`, async () => {
           const response = await api.get(healthPath);
-          await expectJsonHealth(response, healthPath);
+          await expectJsonHealth(response, healthPath, check);
           return {
             finalUrl: response.url(),
             headers: visibleHeaders(response),
@@ -178,9 +208,9 @@ test.describe('promotion smoke', () => {
           };
         }
 
-        const response = await api.get('/resume.pdf');
-        expect(response.status(), 'GET /resume.pdf status code').toBeLessThan(
-          400
+        const response = await api.get('/resume.pdf', { maxRedirects: 5 });
+        expect(response.status(), 'GET /resume.pdf final status code').toBe(
+          200
         );
         expect(
           response.headers()['content-type'],
