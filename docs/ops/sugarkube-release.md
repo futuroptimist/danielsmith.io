@@ -21,6 +21,9 @@ components.
 Cloudflare DNS, tunnel, and route setup are separate from Helm deployment. Confirm those routes
 outside this app repo before expecting the public hostnames to resolve.
 
+For monitoring boundaries, paging-critical paths, and promotion evidence handling, see
+[the static-site observability contract](observability.md).
+
 ## Runtime GitHub metrics cache
 
 The chart includes an optional `githubMetricsCache` sidecar for Sugarkube environments that should
