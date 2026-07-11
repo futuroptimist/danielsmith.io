@@ -1053,14 +1053,6 @@ export function buildLatinLocaleOverrides(
                 : copy.locale === 'pt'
                   ? 'Mudar para a versão somente texto do portfólio'
                   : 'Cambiar a la versión solo texto del portafolio',
-          complete:
-            copy.locale === 'hu'
-              ? 'Kész'
-              : copy.locale === 'de'
-                ? 'Abgeschlossen'
-                : copy.locale === 'pt'
-                  ? 'Concluído'
-                  : 'Completado',
           incomplete:
             copy.locale === 'hu'
               ? 'Nincs kész'

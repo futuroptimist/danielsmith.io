@@ -549,7 +549,6 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         textModeLabel: 'Switch to text-only version',
         textModeTitle: 'Open the text-only portfolio version',
         textModeAriaLabel: 'Switch to the text-only portfolio version',
-        complete: 'Complete',
         incomplete: 'Incomplete',
         checkmarkLabel: 'Completed',
         movementPrompt: 'Move for 0.25 seconds in each direction.',

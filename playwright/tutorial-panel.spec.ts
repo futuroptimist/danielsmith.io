@@ -442,6 +442,9 @@ test.describe('Tutorial progress layout', () => {
     await expect(
       page.locator('[data-testid="tutorial-poi-counter"]')
     ).toContainText('3/3');
+    await expect(
+      page.locator('[data-testid="tutorial-poi-counter"]')
+    ).not.toContainText('Completed');
 
     // Page 3 complete: ordering must hold after chip updates to complete state.
     await assertProgressLayoutOrder(
@@ -470,6 +473,9 @@ test.describe('Tutorial progress layout', () => {
     await expect(
       page.locator('[data-testid="tutorial-gitshelves-status"]')
     ).toContainText('✓');
+    await expect(
+      page.locator('[data-testid="tutorial-gitshelves-status"]')
+    ).not.toContainText('Completed');
 
     // Page 4 complete: ordering must hold after Gitshelves chip updates.
     await assertProgressLayoutOrder(

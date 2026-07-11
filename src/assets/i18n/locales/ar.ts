@@ -435,7 +435,6 @@ export const AR_OVERRIDES: LocaleOverrides = {
         textModeLabel: 'التبديل إلى النسخة النصية فقط',
         textModeTitle: 'فتح نسخة المحفظة النصية فقط',
         textModeAriaLabel: 'التبديل إلى نسخة المحفظة النصية فقط',
-        complete: 'مكتمل',
         incomplete: 'غير مكتمل',
         checkmarkLabel: 'مكتمل',
         movementPrompt: 'تحرك لمدة 0.25 ثانية في كل اتجاه.',
