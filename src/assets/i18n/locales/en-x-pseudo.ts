@@ -563,7 +563,6 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         textModeLabel: wrap('Switch to text-only version'),
         textModeTitle: wrap('Open the text-only portfolio version'),
         textModeAriaLabel: wrap('Switch to the text-only portfolio version'),
-        complete: wrap('Complete'),
         incomplete: wrap('Incomplete'),
         checkmarkLabel: wrap('Completed'),
         movementPrompt: wrap('Move for 0.25 seconds in each direction.'),

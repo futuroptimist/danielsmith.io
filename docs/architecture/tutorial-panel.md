@@ -269,7 +269,8 @@ Visual indicators:
 
 - Incomplete chips use dark yellow.
 - Complete chips use bright yellow.
-- Every chip also includes a checkmark or localized/computed screen-reader status so the UI
+- Complete chips visibly show the compact label plus checkmark, while localized
+  completed/incomplete status remains available through screen-reader labels so the UI
   does not rely on color alone.
 
 Text-only escape:
@@ -545,8 +546,9 @@ Sidebar:
 
 Progress chips:
 
-- Use checkmark/status text plus color.
-- Expose completed/incomplete screen-reader labels.
+- Use compact visible labels; completed badges append only a checkmark.
+- Expose localized completed/incomplete screen-reader labels and completion
+  announcements.
 - Use an `aria-live="polite"` region for task completion announcements.
 
 Buttons/forms:

@@ -40,7 +40,6 @@ export interface TutorialPanelActionStrings {
   textModeLabel: string;
   textModeTitle: string;
   textModeAriaLabel: string;
-  complete: string;
   incomplete: string;
   checkmarkLabel: string;
   movementPrompt: string;

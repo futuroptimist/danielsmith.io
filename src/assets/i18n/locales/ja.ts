@@ -454,7 +454,6 @@ export const JA_OVERRIDES: LocaleOverrides = {
         textModeLabel: 'テキスト専用版に切り替え',
         textModeTitle: 'テキスト専用のポートフォリオを開く',
         textModeAriaLabel: 'テキスト専用のポートフォリオに切り替え',
-        complete: '完了',
         incomplete: '未完了',
         checkmarkLabel: '完了',
         movementPrompt: '各方向に0.25秒移動します。',

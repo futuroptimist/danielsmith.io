@@ -92,9 +92,7 @@ export function createTutorialPanel({
     chip.dataset.testid = testId;
     chip.setAttribute('aria-label', ariaLabel);
     chip.dataset.status = complete ? 'complete' : 'incomplete';
-    chip.textContent = complete
-      ? `${label} ✓ ${currentStrings.actions.checkmarkLabel}`
-      : label;
+    chip.textContent = complete ? `${label} ✓` : label;
     return chip;
   };
 
@@ -118,7 +116,7 @@ export function createTutorialPanel({
         ['right', progress.movement.rightComplete],
       ] as const;
       directions.forEach(([direction, complete]) => {
-        const status = complete ? actions.complete : actions.incomplete;
+        const status = complete ? actions.checkmarkLabel : actions.incomplete;
         chips.append(
           createStatusChip({
             label: actions.movementDirections[direction],
@@ -151,7 +149,7 @@ export function createTutorialPanel({
         [actions.zoomInLabel, progress.zoom.zoomInComplete, 'in'],
         [actions.zoomOutLabel, progress.zoom.zoomOutComplete, 'out'],
       ].forEach(([label, complete, id]) => {
-        const status = complete ? actions.complete : actions.incomplete;
+        const status = complete ? actions.checkmarkLabel : actions.incomplete;
         chips.append(
           createStatusChip({
             label: String(label),
@@ -174,7 +172,7 @@ export function createTutorialPanel({
             progress.pois.visitedPoiIds.length,
             progress.pois.visitedCountGoal
           );
-      const status = complete ? actions.complete : actions.incomplete;
+      const status = complete ? actions.checkmarkLabel : actions.incomplete;
       progressGroup.append(
         createStatusChip({
           label: formatMessage(actions.poiCounterTemplate, {
@@ -192,7 +190,7 @@ export function createTutorialPanel({
       );
     } else if (pageId === 'findGitshelves') {
       const complete = progress.gitshelves.completed;
-      const status = complete ? actions.complete : actions.incomplete;
+      const status = complete ? actions.checkmarkLabel : actions.incomplete;
       progressGroup.append(
         createStatusChip({
           label: actions.gitshelvesObjective,

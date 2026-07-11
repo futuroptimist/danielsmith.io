@@ -71,7 +71,7 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
-  it('renders progress chips with localized completion text and static labels', () => {
+  it('renders compact progress chips with localized accessible status labels', () => {
     const strings = getTutorialPanelStrings('en');
     const panel = createTutorialPanel({
       container: document.body,
@@ -99,11 +99,14 @@ describe('createTutorialPanel', () => {
     expect(completedChip?.getAttribute('aria-label')?.toLowerCase()).toContain(
       'complete'
     );
-    expect(completedChip?.textContent).toContain('✓');
-    expect(completedChip?.textContent).toContain(
+    expect(completedChip?.textContent).toBe('W ✓');
+    expect(completedChip?.textContent).not.toContain(
       strings.actions.checkmarkLabel
     );
-    expect(incompleteChip?.textContent).not.toContain('✓');
+    expect(incompleteChip?.textContent).toBe('S');
+    expect(incompleteChip?.getAttribute('aria-label')?.toLowerCase()).toContain(
+      'incomplete'
+    );
     expect(completedChip?.getAttribute('data-status')).toBe('complete');
     expect(incompleteChip?.getAttribute('data-status')).toBe('incomplete');
     expect(completedChip?.getAttribute('role')).toBeNull();
@@ -132,16 +135,74 @@ describe('createTutorialPanel', () => {
     const incompleteZoomChip = panel.element.querySelector(
       '[data-testid="tutorial-zoom-out"]'
     );
-    expect(completedZoomChip?.textContent).toContain('✓');
-    expect(completedZoomChip?.textContent).toContain(
+    expect(completedZoomChip?.textContent).toBe('In ✓');
+    expect(completedZoomChip?.textContent).not.toContain(
       strings.actions.checkmarkLabel
     );
-    expect(incompleteZoomChip?.textContent).not.toContain('✓');
+    expect(
+      completedZoomChip?.getAttribute('aria-label')?.toLowerCase()
+    ).toContain('completed');
+    expect(incompleteZoomChip?.textContent).toBe('Out');
+    expect(
+      incompleteZoomChip?.getAttribute('aria-label')?.toLowerCase()
+    ).toContain('incomplete');
     expect(
       completedZoomChip?.closest('[data-testid="tutorial-progress"]')
     ).not.toBeNull();
 
     panel.dispose();
+  });
+
+  it('does not visibly render completed status words in pseudo or Chinese badges', () => {
+    const pseudoStrings = getTutorialPanelStrings('en-x-pseudo');
+    const zhStrings = getTutorialPanelStrings('zh-Hans');
+    const completedState = {
+      ...createDefaultTutorialState(),
+      progress: {
+        ...createDefaultTutorialState().progress,
+        movement: {
+          ...createDefaultTutorialState().progress.movement,
+          forwardComplete: true,
+        },
+      },
+    };
+    const pseudoPanel = createTutorialPanel({
+      container: document.body,
+      strings: pseudoStrings,
+      state: completedState,
+    });
+    const zhPanel = createTutorialPanel({
+      container: document.body,
+      strings: zhStrings,
+      state: completedState,
+    });
+
+    const pseudoChip = pseudoPanel.element.querySelector(
+      '[data-testid="tutorial-movement-forward"]'
+    );
+    const zhChip = zhPanel.element.querySelector(
+      '[data-testid="tutorial-movement-forward"]'
+    );
+
+    expect(pseudoChip?.textContent).toBe(
+      `${pseudoStrings.actions.movementDirections.forward} ✓`
+    );
+    expect(pseudoChip?.textContent).not.toContain(
+      pseudoStrings.actions.checkmarkLabel
+    );
+    expect(pseudoChip?.getAttribute('aria-label')).toContain(
+      pseudoStrings.actions.checkmarkLabel
+    );
+    expect(zhChip?.textContent).toBe(
+      `${zhStrings.actions.movementDirections.forward} ✓`
+    );
+    expect(zhChip?.textContent).not.toContain(zhStrings.actions.checkmarkLabel);
+    expect(zhChip?.getAttribute('aria-label')).toContain(
+      zhStrings.actions.checkmarkLabel
+    );
+
+    pseudoPanel.dispose();
+    zhPanel.dispose();
   });
 
   it('renders page progress in a block-level group after copy and before navigation', () => {
@@ -217,11 +278,11 @@ describe('createTutorialPanel', () => {
     expect(
       panel.element.querySelector('[data-testid="tutorial-gitshelves-status"]')
         ?.textContent
-    ).toContain(strings.actions.checkmarkLabel);
+    ).toBe('Gitshelves visited ✓');
     expect(
       panel.element.querySelector('[data-testid="tutorial-gitshelves-status"]')
         ?.textContent
-    ).toContain('✓');
+    ).not.toContain(strings.actions.checkmarkLabel);
     expect(
       panel.element
         .querySelector('[data-testid="tutorial-gitshelves-status"]')
@@ -261,9 +322,8 @@ describe('createTutorialPanel', () => {
       '[data-testid="tutorial-poi-counter"]'
     );
 
-    expect(counter?.textContent).toContain('3/3');
-    expect(counter?.textContent).toContain('✓');
-    expect(counter?.textContent).toContain(strings.actions.checkmarkLabel);
+    expect(counter?.textContent).toBe('3/3 POIs visited ✓');
+    expect(counter?.textContent).not.toContain(strings.actions.checkmarkLabel);
     expect(counter?.getAttribute('aria-label')?.toLowerCase()).toContain(
       'complete'
     );

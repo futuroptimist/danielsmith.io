@@ -442,7 +442,6 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         textModeLabel: '切换到纯文本版本',
         textModeTitle: '打开纯文本作品集版本',
         textModeAriaLabel: '切换到纯文本作品集版本',
-        complete: '完成',
         incomplete: '未完成',
         checkmarkLabel: '已完成',
         movementPrompt: '向每个方向移动 0.25 秒。',
