@@ -241,8 +241,8 @@ test.describe('Tutorial panel', () => {
     if (!boxes) {
       throw new Error('Expected Tutorial and POI overlays to be mounted.');
     }
-    // Tutorial must be inside the viewport.
-    expect(boxes.tutorial.top).toBeGreaterThanOrEqual(0);
+    // Tutorial must be inside the viewport (±1 px rounding tolerance on every edge).
+    expect(boxes.tutorial.top).toBeGreaterThanOrEqual(-1);
     expect(boxes.tutorial.bottom).toBeLessThanOrEqual(boxes.viewportHeight + 1);
     expect(boxes.tutorial.left).toBeGreaterThanOrEqual(-1);
     expect(boxes.tutorial.right).toBeLessThanOrEqual(boxes.viewportWidth + 1);

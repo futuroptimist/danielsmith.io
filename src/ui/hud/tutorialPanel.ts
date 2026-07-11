@@ -359,10 +359,14 @@ export function createTutorialPanel({
     // After the visual render, announce newly completed pages. Diff against the
     // IDs that were already complete before this render to avoid replaying stale
     // announcements on unrelated rerenders (collapse, setStrings, etc.).
-    const newlyCompleted = currentState.completedPageIds.filter(
-      (id) => !prevCompletedIds.has(id)
-    );
-    prevCompletedIds = new Set(currentState.completedPageIds);
+    // Single-pass: build the next set and collect new IDs simultaneously.
+    const newlyCompleted: TutorialPageId[] = [];
+    const nextCompletedIds = new Set<TutorialPageId>();
+    for (const id of currentState.completedPageIds) {
+      nextCompletedIds.add(id);
+      if (!prevCompletedIds.has(id)) newlyCompleted.push(id);
+    }
+    prevCompletedIds = nextCompletedIds;
 
     if (newlyCompleted.length > 0) {
       const titles = newlyCompleted.map((id) => currentStrings.pages[id].title);
