@@ -194,6 +194,7 @@ test.describe('small-screen HUD regression coverage', () => {
       const hud = page.locator('#control-overlay');
       const hudMenu = page.locator('[data-role="hud-menu"]');
       const controlsButton = page.locator('[data-role="controls-button"]');
+      const tutorialButton = page.locator('[data-role="tutorial-button"]');
       const textButton = page.locator('[data-role="text-mode-button"]');
       const settingsButton = page.locator('[data-role="settings-button"]');
       const controlsPopover = page.locator('[data-role="controls-popover"]');
@@ -205,8 +206,9 @@ test.describe('small-screen HUD regression coverage', () => {
       );
       await expect(hud).toBeVisible();
       await expect(hudMenu).toBeVisible();
-      await expect(hudMenu.getByRole('button')).toHaveCount(3);
+      await expect(hudMenu.getByRole('button')).toHaveCount(4);
       await expect(controlsButton).toHaveAccessibleName(/Open controls.*C/);
+      await expect(tutorialButton).toHaveAccessibleName(/Open tutorial.*R/);
       await expect(textButton).toHaveAccessibleName(/text mode.*T/i);
       await expect(settingsButton).toHaveAccessibleName(
         /(?:Open settings|Settings).*H/
