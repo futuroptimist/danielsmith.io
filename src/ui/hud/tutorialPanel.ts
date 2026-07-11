@@ -90,6 +90,7 @@ export function createTutorialPanel({
     const chip = document.createElement('span');
     chip.className = `tutorial-panel__chip tutorial-panel__chip--${complete ? 'complete' : 'incomplete'}`;
     chip.dataset.testid = testId;
+    chip.setAttribute('role', 'img');
     chip.setAttribute('aria-label', ariaLabel);
     chip.dataset.status = complete ? 'complete' : 'incomplete';
     chip.textContent = complete ? `${label} ✓` : label;

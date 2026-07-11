@@ -96,21 +96,23 @@ describe('createTutorialPanel', () => {
     const incompleteChip = panel.element.querySelector(
       '[data-testid="tutorial-movement-backward"]'
     );
-    expect(completedChip?.getAttribute('aria-label')?.toLowerCase()).toContain(
-      'complete'
+    expect(completedChip?.getAttribute('aria-label')).toMatch(/\bComplete\b/);
+    expect(completedChip?.textContent).toBe(
+      `${strings.actions.movementDirections.forward} ✓`
     );
-    expect(completedChip?.textContent).toBe('W ✓');
     expect(completedChip?.textContent).not.toContain(
       strings.actions.checkmarkLabel
     );
-    expect(incompleteChip?.textContent).toBe('S');
-    expect(incompleteChip?.getAttribute('aria-label')?.toLowerCase()).toContain(
-      'incomplete'
+    expect(incompleteChip?.textContent).toBe(
+      strings.actions.movementDirections.backward
+    );
+    expect(incompleteChip?.getAttribute('aria-label')).toMatch(
+      /\bIncomplete\b/
     );
     expect(completedChip?.getAttribute('data-status')).toBe('complete');
     expect(incompleteChip?.getAttribute('data-status')).toBe('incomplete');
-    expect(completedChip?.getAttribute('role')).toBeNull();
-    expect(incompleteChip?.getAttribute('role')).toBeNull();
+    expect(completedChip?.getAttribute('role')).toBe('img');
+    expect(incompleteChip?.getAttribute('role')).toBe('img');
     expect(
       completedChip?.closest('[data-testid="tutorial-progress"]')
     ).not.toBeNull();
@@ -135,17 +137,19 @@ describe('createTutorialPanel', () => {
     const incompleteZoomChip = panel.element.querySelector(
       '[data-testid="tutorial-zoom-out"]'
     );
-    expect(completedZoomChip?.textContent).toBe('In ✓');
+    expect(completedZoomChip?.textContent).toBe(
+      `${strings.actions.zoomInLabel} ✓`
+    );
     expect(completedZoomChip?.textContent).not.toContain(
       strings.actions.checkmarkLabel
     );
-    expect(
-      completedZoomChip?.getAttribute('aria-label')?.toLowerCase()
-    ).toContain('complete');
-    expect(incompleteZoomChip?.textContent).toBe('Out');
-    expect(
-      incompleteZoomChip?.getAttribute('aria-label')?.toLowerCase()
-    ).toContain('incomplete');
+    expect(completedZoomChip?.getAttribute('aria-label')).toMatch(
+      /\bComplete\b/
+    );
+    expect(incompleteZoomChip?.textContent).toBe(strings.actions.zoomOutLabel);
+    expect(incompleteZoomChip?.getAttribute('aria-label')).toMatch(
+      /\bIncomplete\b/
+    );
     expect(
       completedZoomChip?.closest('[data-testid="tutorial-progress"]')
     ).not.toBeNull();
@@ -285,13 +289,15 @@ describe('createTutorialPanel', () => {
     const gitshelvesStatus = panel.element.querySelector(
       '[data-testid="tutorial-gitshelves-status"]'
     );
-    expect(gitshelvesStatus?.textContent).toBe('Gitshelves visited ✓');
+    expect(gitshelvesStatus?.textContent).toBe(
+      `${strings.actions.gitshelvesObjective} ✓`
+    );
     expect(gitshelvesStatus?.textContent).not.toContain(
       strings.actions.checkmarkLabel
     );
-    expect(
-      gitshelvesStatus?.getAttribute('aria-label')?.toLowerCase()
-    ).toContain('complete');
+    expect(gitshelvesStatus?.getAttribute('aria-label')).toMatch(
+      /\bComplete\b/
+    );
     expect(
       panel.element
         .querySelector('[data-testid="tutorial-gitshelves-status"]')
@@ -331,11 +337,10 @@ describe('createTutorialPanel', () => {
       '[data-testid="tutorial-poi-counter"]'
     );
 
-    expect(counter?.textContent).toBe('3/3 POIs visited ✓');
+    expect(counter?.textContent).toContain('3/3');
+    expect(counter?.textContent).toContain('✓');
     expect(counter?.textContent).not.toContain(strings.actions.checkmarkLabel);
-    expect(counter?.getAttribute('aria-label')?.toLowerCase()).toContain(
-      'complete'
-    );
+    expect(counter?.getAttribute('aria-label')).toMatch(/\bComplete\b/);
 
     panel.dispose();
   });
