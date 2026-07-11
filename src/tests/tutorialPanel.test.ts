@@ -56,7 +56,7 @@ describe('createTutorialPanel', () => {
     panel.dispose();
   });
 
-  it('renders progress chips as static labels without live-region roles', () => {
+  it('renders progress chips with localized completion text and static labels', () => {
     const strings = getTutorialPanelStrings('en');
     const panel = createTutorialPanel({
       container: document.body,
@@ -75,14 +75,48 @@ describe('createTutorialPanel', () => {
 
     panel.open();
 
-    const chip = panel.element.querySelector(
+    const completedChip = panel.element.querySelector(
       '[data-testid="tutorial-movement-forward"]'
     );
-    expect(chip?.getAttribute('aria-label')?.toLowerCase()).toContain(
+    const incompleteChip = panel.element.querySelector(
+      '[data-testid="tutorial-movement-backward"]'
+    );
+    expect(completedChip?.getAttribute('aria-label')?.toLowerCase()).toContain(
       'complete'
     );
-    expect(chip?.textContent).toContain(strings.actions.checkmarkLabel);
-    expect(chip?.getAttribute('role')).toBeNull();
+    expect(completedChip?.textContent).toContain('✓');
+    expect(completedChip?.textContent).toContain(
+      strings.actions.checkmarkLabel
+    );
+    expect(incompleteChip?.textContent).not.toContain('✓');
+    expect(completedChip?.getAttribute('role')).toBeNull();
+    expect(incompleteChip?.getAttribute('role')).toBeNull();
+
+    panel.setState({
+      ...createDefaultTutorialState(),
+      currentPageId: 'zoom',
+      unlockedPageIds: ['welcomeMovement', 'zoom'],
+      completedPageIds: ['welcomeMovement'],
+      progress: {
+        ...createDefaultTutorialState().progress,
+        zoom: {
+          zoomInComplete: true,
+          zoomOutComplete: false,
+        },
+      },
+    });
+
+    const completedZoomChip = panel.element.querySelector(
+      '[data-testid="tutorial-zoom-in"]'
+    );
+    const incompleteZoomChip = panel.element.querySelector(
+      '[data-testid="tutorial-zoom-out"]'
+    );
+    expect(completedZoomChip?.textContent).toContain('✓');
+    expect(completedZoomChip?.textContent).toContain(
+      strings.actions.checkmarkLabel
+    );
+    expect(incompleteZoomChip?.textContent).not.toContain('✓');
 
     panel.dispose();
   });
@@ -122,6 +156,10 @@ describe('createTutorialPanel', () => {
       panel.element.querySelector('[data-testid="tutorial-gitshelves-status"]')
         ?.textContent
     ).toContain(strings.actions.checkmarkLabel);
+    expect(
+      panel.element.querySelector('[data-testid="tutorial-gitshelves-status"]')
+        ?.textContent
+    ).toContain('✓');
     expect(bodyText.split(strings.actions.gitshelvesHint).length - 1).toBe(1);
 
     panel.dispose();
@@ -157,6 +195,7 @@ describe('createTutorialPanel', () => {
     );
 
     expect(counter?.textContent).toContain('3/3');
+    expect(counter?.textContent).toContain('✓');
     expect(counter?.textContent).toContain(strings.actions.checkmarkLabel);
     expect(counter?.getAttribute('aria-label')?.toLowerCase()).toContain(
       'complete'

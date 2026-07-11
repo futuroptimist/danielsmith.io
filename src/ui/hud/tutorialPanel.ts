@@ -72,7 +72,7 @@ export function createTutorialPanel({
     chip.dataset.testid = testId;
     chip.setAttribute('aria-label', ariaLabel);
     chip.textContent = complete
-      ? `${label} ${currentStrings.actions.checkmarkLabel}`
+      ? `${label} ✓ ${currentStrings.actions.checkmarkLabel}`
       : label;
     return chip;
   };
