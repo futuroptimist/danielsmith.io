@@ -550,4 +550,48 @@ describe('createPerformanceFailoverHandler', () => {
       'portfolioMiniatureTable.dispose();'
     );
   });
+
+  it('tracks tutorial resources so partial teardown clears the panel and visited subscription', () => {
+    const immersiveSceneSource = readFileSync('src/immersiveScene.ts', 'utf8');
+    const partialStart = immersiveSceneSource.indexOf(
+      'function disposePartiallyInitializedImmersiveResources()'
+    );
+    const partialEnd = immersiveSceneSource.indexOf(
+      'function disposeInitializedOrPartialImmersiveResources()',
+      partialStart
+    );
+    const partialSource = immersiveSceneSource.slice(partialStart, partialEnd);
+    const clearTutorialApiIndex = partialSource.indexOf(
+      "clearPortfolioSection('tutorial');"
+    );
+    const unsubscribeIndex = partialSource.indexOf(
+      'removePartiallyInitializedTutorialVisitedSubscription();'
+    );
+    const disposePanelIndex = partialSource.indexOf(
+      'partiallyInitializedTutorialPanel.dispose();'
+    );
+
+    expect(immersiveSceneSource).toContain(
+      'let partiallyInitializedTutorialPanel: TutorialPanelHandle | null = null;'
+    );
+    expect(immersiveSceneSource).toContain(
+      'let removePartiallyInitializedTutorialVisitedSubscription:'
+    );
+    expect(immersiveSceneSource).toContain(
+      'partiallyInitializedTutorialPanel = tutorialPanel;'
+    );
+    expect(immersiveSceneSource).toContain(
+      `removePartiallyInitializedTutorialVisitedSubscription =
+    removeTutorialVisitedSubscription;`
+    );
+    expect(clearTutorialApiIndex).toBeGreaterThanOrEqual(0);
+    expect(unsubscribeIndex).toBeGreaterThan(clearTutorialApiIndex);
+    expect(disposePanelIndex).toBeGreaterThan(unsubscribeIndex);
+    expect(partialSource).toContain(
+      'removePartiallyInitializedTutorialVisitedSubscription = null;'
+    );
+    expect(partialSource).toContain(
+      'partiallyInitializedTutorialPanel = null;'
+    );
+  });
 });

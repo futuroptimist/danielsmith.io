@@ -500,7 +500,10 @@ import {
   type ResponsiveControlOverlayHandle,
 } from './ui/hud/responsiveControlOverlay';
 import { applySettingsControlOrder } from './ui/hud/settingsOrder';
-import { createTutorialPanel } from './ui/hud/tutorialPanel';
+import {
+  createTutorialPanel,
+  type TutorialPanelHandle,
+} from './ui/hud/tutorialPanel';
 import {
   createContinuousSoftwareImmersiveUrl,
   createImmersiveModeUrl,
@@ -1341,6 +1344,10 @@ export function initializeImmersiveScene(
   let debugCoordinatesOverlay: HTMLElement | null = null;
   let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
+  let partiallyInitializedTutorialPanel: TutorialPanelHandle | null = null;
+  let removePartiallyInitializedTutorialVisitedSubscription:
+    | (() => void)
+    | null = null;
   function disposePartiallyInitializedImmersiveResources() {
     if (
       immersiveLifecycle === 'disposed' ||
@@ -1362,6 +1369,17 @@ export function initializeImmersiveScene(
     lowFpsRecoveryMonitor?.reset();
     lowFpsRecoveryPopup?.remove();
     lowFpsRecoveryPopup = null;
+    if (window.portfolio?.tutorial) {
+      clearPortfolioSection('tutorial');
+    }
+    if (removePartiallyInitializedTutorialVisitedSubscription) {
+      removePartiallyInitializedTutorialVisitedSubscription();
+      removePartiallyInitializedTutorialVisitedSubscription = null;
+    }
+    if (partiallyInitializedTutorialPanel) {
+      partiallyInitializedTutorialPanel.dispose();
+      partiallyInitializedTutorialPanel = null;
+    }
     disposePortfolioMiniatureTableBuild();
     disposePrReaperInstallationBuild();
     clearPoiModelRoots();
@@ -3647,12 +3665,41 @@ export function initializeImmersiveScene(
       activateTextMode();
     },
   });
+  partiallyInitializedTutorialPanel = tutorialPanel;
   tutorialController.setPanel(tutorialPanel);
+  setPortfolioSection('tutorial', {
+    recordMovementProgress: (input) =>
+      tutorialController.recordMovementProgress(input),
+    recordZoomProgress: (snapshot) =>
+      tutorialController.recordZoomProgress(snapshot),
+    recordFullZoomRange: () => {
+      tutorialController.recordZoomProgress({
+        currentZoom: MAX_CAMERA_ZOOM,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      });
+      tutorialController.recordZoomProgress({
+        currentZoom: MIN_CAMERA_ZOOM,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      });
+    },
+    syncVisitedPois: (visitedPoiIds) => {
+      for (const id of visitedPoiIds) {
+        poiVisitedState.markVisited(id as PoiId);
+      }
+    },
+    markGitshelvesVisited: () => {
+      poiVisitedState.markVisited('gitshelves-living-room-installation');
+    },
+  });
   const removeTutorialVisitedSubscription = poiVisitedState.subscribe(
     (visited) => {
       tutorialController.syncVisitedPois(visited);
     }
   );
+  removePartiallyInitializedTutorialVisitedSubscription =
+    removeTutorialVisitedSubscription;
   const hudSettingsContainer =
     helpModal.settingsContainer ??
     (() => {
@@ -6377,6 +6424,7 @@ export function initializeImmersiveScene(
     removeSelectionListener();
     removeVisitedSubscription();
     removeTutorialVisitedSubscription();
+    removePartiallyInitializedTutorialVisitedSubscription = null;
     interactionTimeline.dispose();
     poiTooltipOverlay.dispose();
     poiWorldTooltip.dispose();
@@ -6453,6 +6501,7 @@ export function initializeImmersiveScene(
       document.documentElement.removeAttribute('data-poi-detail-visible');
     }
     tutorialPanel.dispose();
+    partiallyInitializedTutorialPanel = null;
     if (responsiveControlOverlay) {
       responsiveControlOverlay.dispose();
       responsiveControlOverlay = null;
@@ -6516,6 +6565,9 @@ export function initializeImmersiveScene(
     }
     if (window.portfolio?.githubMetrics) {
       clearPortfolioSection('githubMetrics');
+    }
+    if (window.portfolio?.tutorial) {
+      clearPortfolioSection('tutorial');
     }
     if (window.portfolio?.audio) {
       clearPortfolioSection('audio');

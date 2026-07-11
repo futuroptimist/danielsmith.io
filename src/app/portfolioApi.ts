@@ -64,6 +64,24 @@ export interface PortfolioApi {
   githubMetrics?: {
     getDiagnostics(): GitHubRepoStatsDiagnostics;
   };
+  tutorial?: {
+    recordMovementProgress(input: {
+      right: number;
+      forward: number;
+      deltaSeconds: number;
+      moved: boolean;
+    }): void;
+    recordZoomProgress(snapshot: {
+      currentZoom?: number;
+      targetZoom?: number;
+      minZoom: number;
+      maxZoom: number;
+    }): void;
+    /** Records both the min and max zoom extremes using the scene's actual constants. */
+    recordFullZoomRange(): void;
+    syncVisitedPois(visitedPoiIds: string[]): void;
+    markGitshelvesVisited(): void;
+  };
   audio?: {
     getState(): {
       preferenceEnabled: boolean;
