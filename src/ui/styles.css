@@ -1276,6 +1276,18 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   border: 0;
 }
 
+.tutorial-panel__live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .overlay {
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 1rem);
@@ -1547,7 +1559,16 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 }
 
 :root[data-hud-layout='mobile'][data-hud-tutorial-open][data-poi-detail-visible] {
-  --hud-combined-panel-height: min(18dvh, calc((100dvh - 9rem) / 2));
+  /* Divide usable viewport height evenly: subtract tutorial top offset (7rem),
+     bottom HUD safe zone (8.5rem), safe-area insets, and an explicit inter-panel
+     gutter (0.5rem), then halve the remainder so each panel gets equal space. */
+  --hud-combined-panel-height: calc(
+    (
+        100dvh - 7rem - 8.5rem - 0.5rem - env(safe-area-inset-top, 0px) -
+          env(safe-area-inset-bottom, 0px)
+      ) /
+      2
+  );
 }
 
 :root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible]

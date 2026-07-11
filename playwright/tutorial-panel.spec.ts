@@ -16,6 +16,7 @@ declare global {
           minZoom: number;
           maxZoom: number;
         }): void;
+        recordFullZoomRange(): void;
         syncVisitedPois(visitedPoiIds: string[]): void;
         markGitshelvesVisited(): void;
       };
@@ -26,6 +27,14 @@ declare global {
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const IMMERSIVE_PREVIEW_URL =
   '/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous';
+
+// Three stable, non-Gitshelves POI IDs from the registry.
+const STABLE_POI_IDS = [
+  'futuroptimist-living-room-tv',
+  'tokenplace-studio-cluster',
+  'gabriel-studio-sentry',
+] as const;
+const GITSHELVES_POI_ID = 'gitshelves-living-room-installation';
 
 async function mockHardwareRenderer(page: Page) {
   await page.addInitScript(() => {
@@ -205,7 +214,55 @@ test.describe('Tutorial panel', () => {
     await expect(poiOverlay).toBeVisible();
   });
 
-  test('does not overlap POI details on mobile', async ({ page }) => {
+  async function assertPanelBoundsNoOverlap(page: Page) {
+    const boxes = await page.evaluate(() => {
+      const tutorial = document.querySelector<HTMLElement>('#tutorial-panel');
+      const poi = document.querySelector<HTMLElement>('.poi-tooltip-overlay');
+      if (!tutorial || !poi) return null;
+      const tutorialBox = tutorial.getBoundingClientRect();
+      const poiBox = poi.getBoundingClientRect();
+      return {
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        tutorial: {
+          top: tutorialBox.top,
+          bottom: tutorialBox.bottom,
+          left: tutorialBox.left,
+          right: tutorialBox.right,
+        },
+        poi: {
+          top: poiBox.top,
+          bottom: poiBox.bottom,
+          left: poiBox.left,
+          right: poiBox.right,
+        },
+      };
+    });
+    if (!boxes) {
+      throw new Error('Expected Tutorial and POI overlays to be mounted.');
+    }
+    // Tutorial must be inside the viewport.
+    expect(boxes.tutorial.top).toBeGreaterThanOrEqual(0);
+    expect(boxes.tutorial.bottom).toBeLessThanOrEqual(boxes.viewportHeight + 1);
+    expect(boxes.tutorial.left).toBeGreaterThanOrEqual(-1);
+    expect(boxes.tutorial.right).toBeLessThanOrEqual(boxes.viewportWidth + 1);
+    // POI must be inside the viewport.
+    expect(boxes.poi.top).toBeGreaterThanOrEqual(0);
+    expect(boxes.poi.bottom).toBeLessThanOrEqual(boxes.viewportHeight + 1);
+    // Panels must not substantially overlap: tutorial bottom <= POI top.
+    expect(boxes.tutorial.bottom).toBeLessThanOrEqual(boxes.poi.top + 1);
+    // Visible scene area must exist outside the union of both panels.
+    const unionTop = Math.min(boxes.tutorial.top, boxes.poi.top);
+    const unionBottom = Math.max(boxes.tutorial.bottom, boxes.poi.bottom);
+    const sceneAreaFraction =
+      (boxes.viewportHeight - (unionBottom - unionTop)) / boxes.viewportHeight;
+    expect(sceneAreaFraction).toBeGreaterThan(0.05);
+    return boxes;
+  }
+
+  test('does not overlap POI details on mobile (portrait 390×740)', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 390, height: 740 });
     await waitForImmersiveMode(page);
     await page.waitForFunction(
@@ -221,26 +278,28 @@ test.describe('Tutorial panel', () => {
       await page.keyboard.press('r');
     }
     await expect(page.locator('#tutorial-panel')).toBeVisible();
+    await assertPanelBoundsNoOverlap(page);
+  });
 
-    const boxes = await page.evaluate(() => {
-      const tutorial = document.querySelector<HTMLElement>('#tutorial-panel');
-      const poi = document.querySelector<HTMLElement>('.poi-tooltip-overlay');
-      if (!tutorial || !poi) return null;
-      const tutorialBox = tutorial.getBoundingClientRect();
-      const poiBox = poi.getBoundingClientRect();
-      return {
-        viewportHeight: window.innerHeight,
-        tutorial: { top: tutorialBox.top, bottom: tutorialBox.bottom },
-        poi: { top: poiBox.top, bottom: poiBox.bottom },
-      };
-    });
+  test('does not overlap POI details on mobile (landscape 740×390)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 740, height: 390 });
+    await waitForImmersiveMode(page);
+    await page.waitForFunction(
+      () => document.documentElement.dataset.hudLayout === 'mobile',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
 
-    if (!boxes) {
-      throw new Error('Expected Tutorial and POI overlays to be mounted.');
+    await page.keyboard.press('c');
+    await openPoiDetail(page);
+    await page.keyboard.press('f');
+    if (!(await page.locator('#tutorial-panel').isVisible())) {
+      await page.keyboard.press('r');
     }
-    expect(boxes.tutorial.bottom).toBeLessThanOrEqual(boxes.poi.top + 1);
-    expect(boxes.tutorial.top).toBeGreaterThan(0);
-    expect(boxes.poi.bottom).toBeLessThanOrEqual(boxes.viewportHeight);
+    await expect(page.locator('#tutorial-panel')).toBeVisible();
+    await assertPanelBoundsNoOverlap(page);
   });
 
   test('Dismiss clears active and ARIA state', async ({ page }) => {
@@ -259,36 +318,50 @@ test.describe('Tutorial panel', () => {
     await expect(tutorialButton).toHaveAttribute('aria-expanded', 'false');
     await expect(tutorialButton).toHaveAttribute('aria-pressed', 'false');
   });
+
+  test('R closes an open Tutorial then reopens it', async ({ page }) => {
+    await waitForImmersiveMode(page);
+
+    const tutorialPanel = page.locator('#tutorial-panel');
+    await expect(tutorialPanel).toBeVisible();
+
+    // R should close the already-open Tutorial.
+    await page.keyboard.press('r');
+    await expect(tutorialPanel).toBeHidden();
+
+    // R should reopen it.
+    await page.keyboard.press('r');
+    await expect(tutorialPanel).toBeVisible();
+  });
 });
 
 test.describe('Tutorial progression hooks', () => {
-  test('completes movement, zoom, POI visits, and Gitshelves via portfolio API', async ({
-    page,
-  }) => {
-    await waitForImmersiveMode(page);
+  async function completeAllSteps(page: Page) {
+    const tutorial = page.locator('#tutorial-panel');
 
+    // Complete movement in all four directions.
     await page.evaluate(() => {
-      const tutorial = window.portfolio?.tutorial;
-      if (!tutorial) throw new Error('Tutorial portfolio API unavailable');
-      tutorial.recordMovementProgress({
+      const api = window.portfolio?.tutorial;
+      if (!api) throw new Error('Tutorial portfolio API unavailable');
+      api.recordMovementProgress({
         right: 0,
         forward: 1,
         deltaSeconds: 0.25,
         moved: true,
       });
-      tutorial.recordMovementProgress({
+      api.recordMovementProgress({
         right: -1,
         forward: 0,
         deltaSeconds: 0.25,
         moved: true,
       });
-      tutorial.recordMovementProgress({
+      api.recordMovementProgress({
         right: 0,
         forward: -1,
         deltaSeconds: 0.25,
         moved: true,
       });
-      tutorial.recordMovementProgress({
+      api.recordMovementProgress({
         right: 1,
         forward: 0,
         deltaSeconds: 0.25,
@@ -301,19 +374,11 @@ test.describe('Tutorial progression hooks', () => {
     ).toBeEnabled();
     await page.locator('[data-testid="tutorial-step-zoom"]').click();
 
+    // Complete zoom using the scene's own min/max constants via the helper.
     await page.evaluate(() => {
-      const tutorial = window.portfolio?.tutorial;
-      if (!tutorial) throw new Error('Tutorial portfolio API unavailable');
-      tutorial.recordZoomProgress({
-        currentZoom: 12,
-        minZoom: 0.65,
-        maxZoom: 12,
-      });
-      tutorial.recordZoomProgress({
-        currentZoom: 0.65,
-        minZoom: 0.65,
-        maxZoom: 12,
-      });
+      const api = window.portfolio?.tutorial;
+      if (!api) throw new Error('Tutorial portfolio API unavailable');
+      api.recordFullZoomRange();
     });
 
     await expect(
@@ -321,11 +386,15 @@ test.describe('Tutorial progression hooks', () => {
     ).toBeEnabled();
     await page.locator('[data-testid="tutorial-step-visitPois"]').click();
 
-    await page.evaluate(() => {
-      const tutorial = window.portfolio?.tutorial;
-      if (!tutorial) throw new Error('Tutorial portfolio API unavailable');
-      tutorial.syncVisitedPois(['first-poi', 'second-poi', 'third-poi']);
-    });
+    // Mark three real stable POIs visited through the shared poiVisitedState.
+    await page.evaluate(
+      (ids) => {
+        const api = window.portfolio?.tutorial;
+        if (!api) throw new Error('Tutorial portfolio API unavailable');
+        api.syncVisitedPois(ids);
+      },
+      [...STABLE_POI_IDS]
+    );
 
     await expect(
       page.locator('[data-testid="tutorial-poi-counter"]')
@@ -335,24 +404,88 @@ test.describe('Tutorial progression hooks', () => {
     ).toBeEnabled();
     await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
 
-    await page.evaluate(() => {
-      const tutorial = window.portfolio?.tutorial;
-      if (!tutorial) throw new Error('Tutorial portfolio API unavailable');
-      tutorial.markGitshelvesVisited();
-    });
+    // Mark Gitshelves visited through syncVisitedPois so it flows through poiVisitedState.
+    await page.evaluate((id) => {
+      const api = window.portfolio?.tutorial;
+      if (!api) throw new Error('Tutorial portfolio API unavailable');
+      api.syncVisitedPois([id]);
+    }, GITSHELVES_POI_ID);
 
     await expect(
       page.locator('[data-testid="tutorial-gitshelves-status"]')
     ).toContainText('✓');
+    return tutorial;
+  }
 
+  test('completes all steps via portfolio API and persists after reload', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+    await completeAllSteps(page);
+
+    // Reload and verify persisted progress.
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForFunction(
       () => document.documentElement.dataset.appMode === 'immersive',
       undefined,
       { timeout: IMMERSIVE_READY_TIMEOUT_MS }
     );
+
+    // Navigate to POI page and assert 3/3 count renders.
+    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
     await expect(
-      page.locator('[data-testid="tutorial-step-findGitshelves"]')
-    ).toBeEnabled();
+      page.locator('[data-testid="tutorial-poi-counter"]')
+    ).toContainText('3/3');
+
+    // Navigate to Gitshelves page and assert completion chip.
+    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
+    await expect(
+      page.locator('[data-testid="tutorial-gitshelves-status"]')
+    ).toContainText('✓');
+
+    // All four steps must remain enabled after reload.
+    for (const stepId of [
+      'welcomeMovement',
+      'zoom',
+      'visitPois',
+      'findGitshelves',
+    ]) {
+      await expect(
+        page.locator(`[data-testid="tutorial-step-${stepId}"]`)
+      ).toBeEnabled();
+    }
+  });
+
+  test('progress persists across dismiss and reopen without changing show-on-startup', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+    await completeAllSteps(page);
+
+    const tutorialPanel = page.locator('#tutorial-panel');
+    const showOnStartup = page.locator(
+      '[data-testid="tutorial-show-on-startup"]'
+    );
+    await expect(showOnStartup).toBeChecked();
+
+    // Dismiss the Tutorial.
+    await page.locator('[data-testid="tutorial-dismiss"]').click();
+    await expect(tutorialPanel).toBeHidden();
+    // show-on-startup must not have been modified by the dismiss.
+    await expect(showOnStartup).toBeChecked();
+
+    // Reopen and verify all steps remain complete.
+    await page.keyboard.press('r');
+    await expect(tutorialPanel).toBeVisible();
+
+    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
+    await expect(
+      page.locator('[data-testid="tutorial-poi-counter"]')
+    ).toContainText('3/3');
+
+    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
+    await expect(
+      page.locator('[data-testid="tutorial-gitshelves-status"]')
+    ).toContainText('✓');
   });
 });

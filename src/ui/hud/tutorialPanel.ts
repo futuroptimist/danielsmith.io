@@ -57,11 +57,24 @@ export function createTutorialPanel({
   element.setAttribute('aria-modal', 'false');
   element.tabIndex = -1;
 
+  // Live region: mounted once on element and never removed by re-renders so
+  // screen readers maintain a stable subscription to its aria-live region.
   const liveRegion = document.createElement('p');
-  liveRegion.className = 'visually-hidden';
+  liveRegion.className = 'tutorial-panel__live-region';
   liveRegion.setAttribute('aria-live', 'polite');
   liveRegion.setAttribute('aria-atomic', 'true');
   liveRegion.dataset.testid = 'tutorial-status-live';
+  element.appendChild(liveRegion);
+
+  // Wrapper for the visual content that is rebuilt on each render.
+  // Keeping it separate from liveRegion means replaceChildren only touches
+  // visual nodes; liveRegion stays mounted on element throughout.
+  const contentWrapper = document.createElement('div');
+  element.appendChild(contentWrapper);
+
+  // Seed with the initial completed IDs so the first render produces no
+  // announcement for pages that were already complete on construction.
+  let prevCompletedIds = new Set<TutorialPageId>(state.completedPageIds);
 
   const createStatusChip = ({
     label,
@@ -189,9 +202,6 @@ export function createTutorialPanel({
   };
 
   const render = () => {
-    const completedCount = currentState.completedPageIds.length;
-    const liveRegionText = `${completedCount} ${currentStrings.completedStepLabel}`;
-    element.replaceChildren();
     element.classList.toggle('tutorial-panel--sidebar-collapsed', collapsed);
     const heading = document.createElement('h2');
     heading.className = 'tutorial-panel__heading';
@@ -342,8 +352,24 @@ export function createTutorialPanel({
     content.className = 'tutorial-panel__content';
     content.append(body, nav, options);
     shell.append(sidebar, content);
-    element.append(heading, shell, liveRegion);
-    liveRegion.textContent = liveRegionText;
+
+    // Replace only the visual content; liveRegion stays mounted on element.
+    contentWrapper.replaceChildren(heading, shell);
+
+    // After the visual render, announce newly completed pages. Diff against the
+    // IDs that were already complete before this render to avoid replaying stale
+    // announcements on unrelated rerenders (collapse, setStrings, etc.).
+    const newlyCompleted = currentState.completedPageIds.filter(
+      (id) => !prevCompletedIds.has(id)
+    );
+    prevCompletedIds = new Set(currentState.completedPageIds);
+
+    if (newlyCompleted.length > 0) {
+      const titles = newlyCompleted.map((id) => currentStrings.pages[id].title);
+      liveRegion.textContent = `${titles.join(', ')} — ${currentStrings.completedStepLabel}`;
+    } else {
+      liveRegion.textContent = '';
+    }
   };
 
   const handle: TutorialPanelHandle = {

@@ -3652,15 +3652,30 @@ export function initializeImmersiveScene(
   });
   tutorialController.setPanel(tutorialPanel);
   setPortfolioSection('tutorial', {
-    getState: () => tutorialController.getState(),
-    getShowOnStartup: () => tutorialController.getShowOnStartup(),
     recordMovementProgress: (input) =>
       tutorialController.recordMovementProgress(input),
     recordZoomProgress: (snapshot) =>
       tutorialController.recordZoomProgress(snapshot),
-    syncVisitedPois: (visitedPoiIds) =>
-      tutorialController.syncVisitedPois(visitedPoiIds),
-    markGitshelvesVisited: () => tutorialController.markGitshelvesVisited(),
+    recordFullZoomRange: () => {
+      tutorialController.recordZoomProgress({
+        currentZoom: MAX_CAMERA_ZOOM,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      });
+      tutorialController.recordZoomProgress({
+        currentZoom: MIN_CAMERA_ZOOM,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      });
+    },
+    syncVisitedPois: (visitedPoiIds) => {
+      for (const id of visitedPoiIds) {
+        poiVisitedState.markVisited(id as PoiId);
+      }
+    },
+    markGitshelvesVisited: () => {
+      poiVisitedState.markVisited('gitshelves-living-room-installation');
+    },
   });
   const removeTutorialVisitedSubscription = poiVisitedState.subscribe(
     (visited) => {

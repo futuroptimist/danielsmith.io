@@ -22,7 +22,6 @@ import type {
 import type { KeyBindingAction } from '../systems/controls/keyBindings';
 import type { GitHubRepoStatsDiagnostics } from '../systems/github/repoStats';
 import type { FloorId, StairTransitionZone } from '../systems/movement/stairs';
-import type { TutorialState } from '../systems/tutorial/tutorialState';
 
 export type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
 export interface PortfolioKeyBindingsApi {
@@ -66,8 +65,6 @@ export interface PortfolioApi {
     getDiagnostics(): GitHubRepoStatsDiagnostics;
   };
   tutorial?: {
-    getState(): TutorialState;
-    getShowOnStartup(): boolean;
     recordMovementProgress(input: {
       right: number;
       forward: number;
@@ -80,6 +77,8 @@ export interface PortfolioApi {
       minZoom: number;
       maxZoom: number;
     }): void;
+    /** Records both the min and max zoom extremes using the scene's actual constants. */
+    recordFullZoomRange(): void;
     syncVisitedPois(visitedPoiIds: string[]): void;
     markGitshelvesVisited(): void;
   };

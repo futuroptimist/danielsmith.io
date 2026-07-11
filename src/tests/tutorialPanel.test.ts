@@ -60,10 +60,13 @@ describe('createTutorialPanel', () => {
     expect(panel.element.getAttribute('aria-describedby')).toBe(
       'tutorial-panel-description'
     );
-    expect(
-      panel.element.querySelector('[data-testid="tutorial-status-live"]')
-        ?.textContent
-    ).toContain(strings.completedStepLabel);
+    // Live region is present but empty on first render (no new completions).
+    const liveRegion = panel.element.querySelector(
+      '[data-testid="tutorial-status-live"]'
+    );
+    expect(liveRegion).not.toBeNull();
+    expect(liveRegion?.getAttribute('aria-live')).toBe('polite');
+    expect(liveRegion?.textContent).toBe('');
 
     panel.dispose();
   });
@@ -333,6 +336,162 @@ describe('createTutorialPanel', () => {
 
     expect(panel.isOpen()).toBe(false);
     expect(panel.element.hidden).toBe(true);
+
+    panel.dispose();
+  });
+
+  it('live region node is the same object across rerenders', () => {
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings: getTutorialPanelStrings('en'),
+      state: createDefaultTutorialState(),
+    });
+
+    const first = panel.element.querySelector(
+      '[data-testid="tutorial-status-live"]'
+    );
+    expect(first).not.toBeNull();
+
+    // Trigger sidebar collapse → rerender.
+    panel.element
+      .querySelector<HTMLButtonElement>(
+        '[data-testid="tutorial-sidebar-collapse"]'
+      )
+      ?.click();
+    const afterCollapse = panel.element.querySelector(
+      '[data-testid="tutorial-status-live"]'
+    );
+    expect(afterCollapse).toBe(first);
+
+    // Trigger setStrings → rerender.
+    panel.setStrings(getTutorialPanelStrings('en'));
+    const afterStrings = panel.element.querySelector(
+      '[data-testid="tutorial-status-live"]'
+    );
+    expect(afterStrings).toBe(first);
+
+    panel.dispose();
+  });
+
+  it('announces newly completed pages by title after setState, not on initial render', () => {
+    const strings = getTutorialPanelStrings('en');
+    const initial = createDefaultTutorialState();
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: initial,
+    });
+
+    const liveRegion = panel.element.querySelector<HTMLElement>(
+      '[data-testid="tutorial-status-live"]'
+    );
+    expect(liveRegion).not.toBeNull();
+
+    // Initial render: no announcement even with an empty completedPageIds.
+    expect(liveRegion?.textContent).toBe('');
+
+    // Complete the first page.
+    panel.setState({
+      ...initial,
+      currentPageId: 'zoom',
+      unlockedPageIds: ['welcomeMovement', 'zoom'],
+      completedPageIds: ['welcomeMovement'],
+    });
+    expect(liveRegion?.textContent).toContain(
+      strings.pages.welcomeMovement.title
+    );
+    expect(liveRegion?.textContent).toContain(strings.completedStepLabel);
+
+    panel.dispose();
+  });
+
+  it('announces all newly completed pages in a single batched setState', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: createDefaultTutorialState(),
+    });
+
+    const liveRegion = panel.element.querySelector<HTMLElement>(
+      '[data-testid="tutorial-status-live"]'
+    );
+
+    // Batch: two pages become complete in one setState call.
+    panel.setState({
+      ...createDefaultTutorialState(),
+      currentPageId: 'visitPois',
+      unlockedPageIds: ['welcomeMovement', 'zoom', 'visitPois'],
+      completedPageIds: ['welcomeMovement', 'zoom'],
+    });
+
+    const text = liveRegion?.textContent ?? '';
+    expect(text).toContain(strings.pages.welcomeMovement.title);
+    expect(text).toContain(strings.pages.zoom.title);
+    expect(text).toContain(strings.completedStepLabel);
+
+    panel.dispose();
+  });
+
+  it('clears stale announcement text on unrelated rerenders', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: createDefaultTutorialState(),
+    });
+
+    const liveRegion = panel.element.querySelector<HTMLElement>(
+      '[data-testid="tutorial-status-live"]'
+    );
+
+    // Complete a page → announcement fires.
+    panel.setState({
+      ...createDefaultTutorialState(),
+      currentPageId: 'zoom',
+      unlockedPageIds: ['welcomeMovement', 'zoom'],
+      completedPageIds: ['welcomeMovement'],
+    });
+    expect(liveRegion?.textContent?.length).toBeGreaterThan(0);
+
+    // Unrelated rerender: sidebar collapse. No new completions → text cleared.
+    panel.element
+      .querySelector<HTMLButtonElement>(
+        '[data-testid="tutorial-sidebar-collapse"]'
+      )
+      ?.click();
+    expect(liveRegion?.textContent).toBe('');
+
+    // setStrings rerender must not replay the old announcement.
+    panel.setStrings(getTutorialPanelStrings('en'));
+    expect(liveRegion?.textContent).toBe('');
+
+    panel.dispose();
+  });
+
+  it('does not announce pages already complete in the initial state', () => {
+    const strings = getTutorialPanelStrings('en');
+    const panel = createTutorialPanel({
+      container: document.body,
+      strings,
+      state: {
+        ...createDefaultTutorialState(),
+        currentPageId: 'zoom',
+        unlockedPageIds: ['welcomeMovement', 'zoom'],
+        completedPageIds: ['welcomeMovement'],
+      },
+    });
+
+    const liveRegion = panel.element.querySelector<HTMLElement>(
+      '[data-testid="tutorial-status-live"]'
+    );
+
+    // The initial render must not announce 'welcomeMovement' even though it is complete.
+    expect(liveRegion?.textContent).toBe('');
+
+    // An unrelated rerender also must not announce it.
+    panel.setStrings(getTutorialPanelStrings('en'));
+    expect(liveRegion?.textContent).toBe('');
 
     panel.dispose();
   });
