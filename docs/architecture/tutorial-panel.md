@@ -269,7 +269,8 @@ Visual indicators:
 
 - Incomplete chips use dark yellow.
 - Complete chips use bright yellow.
-- Every chip also includes a checkmark or localized/computed screen-reader status so the UI
+- Complete chips visibly show the localized label plus a checkmark; localized
+  completed/incomplete state remains available through accessibility labels so the UI
   does not rely on color alone.
 
 Text-only escape:
@@ -299,7 +300,8 @@ Completion:
 
 Visual indicators:
 
-- `In` and `Out` chips, localized, with checkmarks/status labels.
+- `In` and `Out` chips, localized, with compact checkmarks when complete and
+  localized completed/incomplete accessibility labels.
 
 ### Page 3: `visitPois`
 
@@ -314,9 +316,10 @@ Completion:
 - Clicking/tapping/interacting with a POI marks it visited through the shared POI primitive.
 - Count unique visited POI ids only.
 - Counter increments from `0/3` to `3/3` before the page is completed.
-- At `3/3`, the counter turns bright yellow and receives a checkmark/status indicator;
-  after completion, the rendered counter remains `3/3` even if the shared POI snapshot
-  is later reset or partially restored.
+- At `3/3`, the counter turns bright yellow and visibly shows the counter label plus
+  a checkmark; localized completed/incomplete state remains available to assistive
+  technology. After completion, the rendered counter remains `3/3` even if the shared
+  POI snapshot is later reset or partially restored.
 - Do not create duplicate Tutorial-only shadow visited state if the shared visited set is
   available. Persist Tutorial page flags separately but derive the count from the shared set
   where possible.
