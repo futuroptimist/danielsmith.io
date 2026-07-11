@@ -169,12 +169,14 @@ describe('createTutorialPanel', () => {
     );
 
     expect(progress).not.toBeNull();
+    expect(navigation).not.toBeNull();
     expect(progress?.classList.contains('tutorial-panel__progress')).toBe(true);
     expect(counter?.parentElement).toBe(progress);
     expect(copy?.parentElement).toBe(body);
     expect(progress?.parentElement).toBe(body);
     expect(copy?.nextElementSibling).toBe(progress);
-    expect(progress?.compareDocumentPosition(navigation as Node)).toBe(
+    const progressPosition = progress!.compareDocumentPosition(navigation!);
+    expect(progressPosition & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING
     );
 
