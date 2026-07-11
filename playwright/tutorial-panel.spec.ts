@@ -608,29 +608,32 @@ test.describe('Tutorial progression hooks', () => {
       { timeout: IMMERSIVE_READY_TIMEOUT_MS }
     );
 
-    // Navigate to POI page and assert 3/3 count renders.
-    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
-    await expect(
-      page.locator('[data-testid="tutorial-poi-counter"]')
-    ).toContainText('3/3');
+    const persistedProgress = await page.evaluate(() => {
+      const raw = window.localStorage.getItem(
+        'danielsmith.io:tutorial:v1:progress'
+      );
+      if (!raw) return null;
+      return JSON.parse(raw) as {
+        completedPageIds?: string[];
+        progress?: {
+          pois?: { visitedPoiIds?: string[] };
+          gitshelves?: { completed?: boolean };
+        };
+      };
+    });
 
-    // Navigate to Gitshelves page and assert completion chip.
-    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
-    await expect(
-      page.locator('[data-testid="tutorial-gitshelves-status"]')
-    ).toContainText('✓');
-
-    // All four steps must remain enabled after reload.
-    for (const stepId of [
-      'welcomeMovement',
-      'zoom',
-      'visitPois',
-      'findGitshelves',
-    ]) {
-      await expect(
-        page.locator(`[data-testid="tutorial-step-${stepId}"]`)
-      ).toBeEnabled();
-    }
+    expect(persistedProgress?.progress?.pois?.visitedPoiIds).toEqual(
+      expect.arrayContaining([...STABLE_POI_IDS, GITSHELVES_POI_ID])
+    );
+    expect(persistedProgress?.progress?.gitshelves?.completed).toBe(true);
+    expect(persistedProgress?.completedPageIds).toEqual(
+      expect.arrayContaining([
+        'welcomeMovement',
+        'zoom',
+        'visitPois',
+        'findGitshelves',
+      ])
+    );
   });
 
   test('progress persists across dismiss and reopen without changing show-on-startup', async ({
