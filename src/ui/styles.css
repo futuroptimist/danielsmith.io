@@ -2481,18 +2481,31 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   padding: 0 0 0.75rem;
 }
 
+.tutorial-panel__progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-block: 0.7rem 0.15rem;
+}
+
 .tutorial-panel__chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 0.75rem 0;
+  min-width: 0;
 }
 
 .tutorial-panel__chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
   border: 1px solid rgba(250, 204, 21, 0.55);
   border-radius: 999px;
   padding: 0.3rem 0.65rem;
   font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .tutorial-panel__chip--incomplete {
@@ -2507,5 +2520,5 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
 
 .tutorial-panel__progress-prompt,
 .tutorial-panel__hint {
-  margin: 0.75rem 0 0;
+  margin: 0;
 }

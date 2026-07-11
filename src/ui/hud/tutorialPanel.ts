@@ -98,11 +98,19 @@ export function createTutorialPanel({
     return chip;
   };
 
+  const createProgressGroup = () => {
+    const group = document.createElement('div');
+    group.className = 'tutorial-panel__progress';
+    group.dataset.testid = 'tutorial-progress';
+    return group;
+  };
+
   const appendPageProgress = (body: HTMLElement) => {
     const actions = currentStrings.actions;
     const progress = currentState.progress;
     const pageId = currentState.currentPageId;
     if (pageId === 'welcomeMovement') {
+      const group = createProgressGroup();
       const prompt = document.createElement('p');
       prompt.className = 'tutorial-panel__progress-prompt';
       prompt.textContent = actions.movementPrompt;
@@ -137,8 +145,10 @@ export function createTutorialPanel({
       textMode.title = actions.textModeTitle;
       textMode.setAttribute('aria-label', actions.textModeAriaLabel);
       textMode.addEventListener('click', () => onTextMode?.());
-      body.append(prompt, chips, textMode);
+      group.append(prompt, chips, textMode);
+      body.append(group);
     } else if (pageId === 'zoom') {
+      const group = createProgressGroup();
       const prompt = document.createElement('p');
       prompt.className = 'tutorial-panel__progress-prompt';
       prompt.textContent = actions.zoomPrompt;
@@ -161,8 +171,10 @@ export function createTutorialPanel({
           })
         );
       });
-      body.append(prompt, chips);
+      group.append(prompt, chips);
+      body.append(group);
     } else if (pageId === 'visitPois') {
+      const group = createProgressGroup();
       const completedPages = new Set(currentState.completedPageIds);
       const complete = completedPages.has('visitPois');
       const count = complete
@@ -172,7 +184,7 @@ export function createTutorialPanel({
             progress.pois.visitedCountGoal
           );
       const status = complete ? actions.complete : actions.incomplete;
-      body.append(
+      group.append(
         createStatusChip({
           label: formatMessage(actions.poiCounterTemplate, {
             count,
@@ -187,10 +199,12 @@ export function createTutorialPanel({
           testId: 'tutorial-poi-counter',
         })
       );
+      body.append(group);
     } else if (pageId === 'findGitshelves') {
+      const group = createProgressGroup();
       const complete = progress.gitshelves.completed;
       const status = complete ? actions.complete : actions.incomplete;
-      body.append(
+      group.append(
         createStatusChip({
           label: actions.gitshelvesObjective,
           complete,
@@ -198,6 +212,7 @@ export function createTutorialPanel({
           testId: 'tutorial-gitshelves-status',
         })
       );
+      body.append(group);
     }
   };
 
