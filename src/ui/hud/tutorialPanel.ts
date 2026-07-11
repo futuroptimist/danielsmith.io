@@ -55,6 +55,13 @@ export function createTutorialPanel({
   element.dataset.role = 'tutorial-panel';
   element.setAttribute('role', 'dialog');
   element.setAttribute('aria-modal', 'false');
+  element.tabIndex = -1;
+
+  const liveRegion = document.createElement('p');
+  liveRegion.className = 'visually-hidden';
+  liveRegion.setAttribute('aria-live', 'polite');
+  liveRegion.setAttribute('aria-atomic', 'true');
+  liveRegion.dataset.testid = 'tutorial-status-live';
 
   const createStatusChip = ({
     label,
@@ -71,6 +78,7 @@ export function createTutorialPanel({
     chip.className = `tutorial-panel__chip tutorial-panel__chip--${complete ? 'complete' : 'incomplete'}`;
     chip.dataset.testid = testId;
     chip.setAttribute('aria-label', ariaLabel);
+    chip.dataset.status = complete ? 'complete' : 'incomplete';
     chip.textContent = complete
       ? `${label} ✓ ${currentStrings.actions.checkmarkLabel}`
       : label;
@@ -181,6 +189,8 @@ export function createTutorialPanel({
   };
 
   const render = () => {
+    const completedCount = currentState.completedPageIds.length;
+    liveRegion.textContent = `${completedCount} ${currentStrings.completedStepLabel}`;
     element.replaceChildren();
     element.classList.toggle('tutorial-panel--sidebar-collapsed', collapsed);
     const heading = document.createElement('h2');
@@ -278,6 +288,7 @@ export function createTutorialPanel({
     previous.type = 'button';
     previous.className = 'tutorial-panel__button';
     previous.textContent = currentStrings.previousLabel;
+    previous.setAttribute('aria-label', currentStrings.previousLabel);
     const currentIndex = pageOrder.indexOf(currentState.currentPageId);
     const hasPreviousUnlockedPage = pageOrder
       .slice(0, currentIndex)
@@ -288,6 +299,7 @@ export function createTutorialPanel({
     next.type = 'button';
     next.className = 'tutorial-panel__button tutorial-panel__button--primary';
     next.textContent = currentStrings.nextLabel;
+    next.setAttribute('aria-label', currentStrings.nextLabel);
     const nextPage = pageOrder[currentIndex + 1];
     next.disabled = !nextPage || !unlocked.has(nextPage);
     next.addEventListener('click', () => onNext?.());
@@ -316,6 +328,7 @@ export function createTutorialPanel({
     dismiss.dataset.testid = 'tutorial-dismiss';
     dismiss.textContent = currentStrings.dismissLabel;
     dismiss.title = currentStrings.dismissTitle;
+    dismiss.setAttribute('aria-label', currentStrings.dismissTitle);
     dismiss.addEventListener('click', () => {
       if (onRequestClose) {
         onRequestClose();
@@ -329,7 +342,7 @@ export function createTutorialPanel({
     content.className = 'tutorial-panel__content';
     content.append(body, nav, options);
     shell.append(sidebar, content);
-    element.append(heading, shell);
+    element.append(heading, shell, liveRegion);
   };
 
   const handle: TutorialPanelHandle = {

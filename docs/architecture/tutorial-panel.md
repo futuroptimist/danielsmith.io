@@ -666,3 +666,47 @@ continues while the panel is closed and repaints immediately when it is open.
 - Gitshelves completion is keyed to the stable POI id
   `gitshelves-living-room-installation`. Its placement remains on the upper
   floor, so the localized Tutorial hint directs visitors upstairs.
+
+## Production polish notes
+
+The implemented Tutorial panel is a non-modal, gameplay-permissive HUD surface. It uses
+`role="dialog"` with `aria-modal="false"`, labels the panel from the Tutorial heading,
+and describes it from the active page body. Opening the Tutorial does not move focus into
+the panel, so keyboard movement, zoom, POI cycling, and POI interaction remain available.
+Escape closes the active top-level HUD panel before selected POI details.
+
+The HUD menu remains a universal 2x2 grid in this order: Controls, Tutorial, Text,
+Settings. Labels may wrap inside each pill so localized strings and key badges do not
+force the grid wider than the viewport. The menu and Tutorial panel include safe-area
+inset calculations for notched mobile viewports.
+
+Tutorial progress is stored as versioned, locale-neutral state only:
+
+- `danielsmith.io:tutorial:v1:progress`
+- `danielsmith.io:tutorial:v1:showOnStartup`
+
+The progress key stores ids, booleans, counters, and numeric movement buckets; localized
+strings are never persisted. Corrupt or mismatched versions reset to the default v1 state.
+Dismiss is intentionally current-load/session-only and does not write a storage key.
+
+Action tracking contracts:
+
+- Movement records actual successful movement snapshots after collision resolution.
+  Keyboard, arrow-key, and virtual joystick input share the same camera-relative
+  movement vector and only increment progress when movement was not blocked.
+- Zoom completion derives from actual camera zoom snapshots and accepts values within a
+  one-percent tolerance of the configured min and max zoom bounds.
+- POI progress mirrors the shared visited POI state. Page three counts unique visited POI
+  ids from that source rather than a separate shadow counter.
+- Gitshelves completion depends on the stable POI id
+  `gitshelves-living-room-installation`, not localized title text.
+
+Playwright uses the existing `window.portfolio` debug namespace for deterministic
+Tutorial progression checks. The `portfolio.tutorial` section exposes state-neutral test
+helpers for recording movement, zoom, visited POI ids, and Gitshelves completion. These
+helpers drive the same controller methods as runtime gameplay events and should not be
+used for user-facing product flows.
+
+Future Tutorial pages must add strings to every supported locale, including
+`en-x-pseudo`, and must keep intentional key labels such as `W`, `A`, `S`, `D`, and `R`
+untranslated. New progress must remain versioned and locale-neutral.

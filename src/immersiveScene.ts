@@ -3648,6 +3648,17 @@ export function initializeImmersiveScene(
     },
   });
   tutorialController.setPanel(tutorialPanel);
+  setPortfolioSection('tutorial', {
+    getState: () => tutorialController.getState(),
+    getShowOnStartup: () => tutorialController.getShowOnStartup(),
+    recordMovementProgress: (input) =>
+      tutorialController.recordMovementProgress(input),
+    recordZoomProgress: (snapshot) =>
+      tutorialController.recordZoomProgress(snapshot),
+    syncVisitedPois: (visitedPoiIds) =>
+      tutorialController.syncVisitedPois(visitedPoiIds),
+    markGitshelvesVisited: () => tutorialController.markGitshelvesVisited(),
+  });
   const removeTutorialVisitedSubscription = poiVisitedState.subscribe(
     (visited) => {
       tutorialController.syncVisitedPois(visited);
@@ -6516,6 +6527,9 @@ export function initializeImmersiveScene(
     }
     if (window.portfolio?.githubMetrics) {
       clearPortfolioSection('githubMetrics');
+    }
+    if (window.portfolio?.tutorial) {
+      clearPortfolioSection('tutorial');
     }
     if (window.portfolio?.audio) {
       clearPortfolioSection('audio');

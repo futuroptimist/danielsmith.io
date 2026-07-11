@@ -1,5 +1,28 @@
 import { expect, test, type Page } from '@playwright/test';
 
+declare global {
+  interface Window {
+    portfolio?: {
+      tutorial?: {
+        recordMovementProgress(input: {
+          right: number;
+          forward: number;
+          deltaSeconds: number;
+          moved: boolean;
+        }): void;
+        recordZoomProgress(snapshot: {
+          currentZoom?: number;
+          targetZoom?: number;
+          minZoom: number;
+          maxZoom: number;
+        }): void;
+        syncVisitedPois(visitedPoiIds: string[]): void;
+        markGitshelvesVisited(): void;
+      };
+    };
+  }
+}
+
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const IMMERSIVE_PREVIEW_URL =
   '/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous';
@@ -235,5 +258,101 @@ test.describe('Tutorial panel', () => {
     await expect(html).not.toHaveAttribute('data-active-hud-panel', 'tutorial');
     await expect(tutorialButton).toHaveAttribute('aria-expanded', 'false');
     await expect(tutorialButton).toHaveAttribute('aria-pressed', 'false');
+  });
+});
+
+test.describe('Tutorial progression hooks', () => {
+  test('completes movement, zoom, POI visits, and Gitshelves via portfolio API', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+
+    await page.evaluate(() => {
+      const tutorial = window.portfolio?.tutorial;
+      if (!tutorial) throw new Error('Tutorial portfolio API unavailable');
+      tutorial.recordMovementProgress({
+        right: 0,
+        forward: 1,
+        deltaSeconds: 0.25,
+        moved: true,
+      });
+      tutorial.recordMovementProgress({
+        right: -1,
+        forward: 0,
+        deltaSeconds: 0.25,
+        moved: true,
+      });
+      tutorial.recordMovementProgress({
+        right: 0,
+        forward: -1,
+        deltaSeconds: 0.25,
+        moved: true,
+      });
+      tutorial.recordMovementProgress({
+        right: 1,
+        forward: 0,
+        deltaSeconds: 0.25,
+        moved: true,
+      });
+    });
+
+    await expect(
+      page.locator('[data-testid="tutorial-step-zoom"]')
+    ).toBeEnabled();
+    await page.locator('[data-testid="tutorial-step-zoom"]').click();
+
+    await page.evaluate(() => {
+      const tutorial = window.portfolio?.tutorial;
+      if (!tutorial) throw new Error('Tutorial portfolio API unavailable');
+      tutorial.recordZoomProgress({
+        currentZoom: 12,
+        minZoom: 0.65,
+        maxZoom: 12,
+      });
+      tutorial.recordZoomProgress({
+        currentZoom: 0.65,
+        minZoom: 0.65,
+        maxZoom: 12,
+      });
+    });
+
+    await expect(
+      page.locator('[data-testid="tutorial-step-visitPois"]')
+    ).toBeEnabled();
+    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
+
+    await page.evaluate(() => {
+      const tutorial = window.portfolio?.tutorial;
+      if (!tutorial) throw new Error('Tutorial portfolio API unavailable');
+      tutorial.syncVisitedPois(['first-poi', 'second-poi', 'third-poi']);
+    });
+
+    await expect(
+      page.locator('[data-testid="tutorial-poi-counter"]')
+    ).toContainText('3/3');
+    await expect(
+      page.locator('[data-testid="tutorial-step-findGitshelves"]')
+    ).toBeEnabled();
+    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
+
+    await page.evaluate(() => {
+      const tutorial = window.portfolio?.tutorial;
+      if (!tutorial) throw new Error('Tutorial portfolio API unavailable');
+      tutorial.markGitshelvesVisited();
+    });
+
+    await expect(
+      page.locator('[data-testid="tutorial-gitshelves-status"]')
+    ).toContainText('✓');
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'immersive',
+      undefined,
+      { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+    );
+    await expect(
+      page.locator('[data-testid="tutorial-step-findGitshelves"]')
+    ).toBeEnabled();
   });
 });

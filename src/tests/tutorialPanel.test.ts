@@ -52,6 +52,18 @@ describe('createTutorialPanel', () => {
         ?.getAttribute('aria-controls')
     ).toBe('tutorial-panel-steps');
     expect(panel.element.querySelector('#tutorial-panel-steps')).not.toBeNull();
+    expect(panel.element.getAttribute('role')).toBe('dialog');
+    expect(panel.element.getAttribute('aria-modal')).toBe('false');
+    expect(panel.element.getAttribute('aria-labelledby')).toBe(
+      'tutorial-panel-heading'
+    );
+    expect(panel.element.getAttribute('aria-describedby')).toBe(
+      'tutorial-panel-description'
+    );
+    expect(
+      panel.element.querySelector('[data-testid="tutorial-status-live"]')
+        ?.textContent
+    ).toContain(strings.completedStepLabel);
 
     panel.dispose();
   });
@@ -89,6 +101,8 @@ describe('createTutorialPanel', () => {
       strings.actions.checkmarkLabel
     );
     expect(incompleteChip?.textContent).not.toContain('✓');
+    expect(completedChip?.getAttribute('data-status')).toBe('complete');
+    expect(incompleteChip?.getAttribute('data-status')).toBe('incomplete');
     expect(completedChip?.getAttribute('role')).toBeNull();
     expect(incompleteChip?.getAttribute('role')).toBeNull();
 
@@ -249,6 +263,11 @@ describe('createTutorialPanel', () => {
         '[data-testid="tutorial-show-on-startup"]'
       )?.checked
     ).toBe(false);
+    expect(
+      panel.element
+        .querySelector('[data-testid="tutorial-step-zoom"]')
+        ?.getAttribute('aria-disabled')
+    ).toBe('false');
     panel.element
       .querySelector<HTMLButtonElement>('[data-testid="tutorial-step-zoom"]')
       ?.click();
