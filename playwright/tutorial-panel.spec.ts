@@ -236,4 +236,97 @@ test.describe('Tutorial panel', () => {
     await expect(tutorialButton).toHaveAttribute('aria-expanded', 'false');
     await expect(tutorialButton).toHaveAttribute('aria-pressed', 'false');
   });
+
+  test('completes movement, zoom, POI visit, and Gitshelves pages through test hooks', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+
+    await page.evaluate(() =>
+      window.portfolio?.tutorial?.completeMovementForTest()
+    );
+    await expect(
+      page.locator('[data-testid="tutorial-step-zoom"]')
+    ).not.toBeDisabled();
+
+    await page.locator('[data-testid="tutorial-step-zoom"]').click();
+    await page.evaluate(() =>
+      window.portfolio?.tutorial?.completeZoomForTest()
+    );
+    await expect(
+      page.locator('[data-testid="tutorial-step-visitPois"]')
+    ).not.toBeDisabled();
+
+    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
+    await page.evaluate(() =>
+      window.portfolio?.tutorial?.markVisitedPoisForTest([
+        'futuroptimist-living-room-tv',
+        'tokenplace-studio-cluster',
+        'danielsmith-portfolio-table',
+      ])
+    );
+    await expect(
+      page.locator('[data-testid="tutorial-poi-counter"]')
+    ).toContainText('3/3');
+    await expect(
+      page.locator('[data-testid="tutorial-step-findGitshelves"]')
+    ).not.toBeDisabled();
+
+    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
+    await page.evaluate(() =>
+      window.portfolio?.tutorial?.markGitshelvesVisitedForTest()
+    );
+    await expect(
+      page.locator('[data-testid="tutorial-gitshelves-status"]')
+    ).toContainText('Completed');
+
+    const stored = await page.evaluate(() =>
+      window.localStorage.getItem('danielsmith.io:tutorial:v1:progress')
+    );
+    expect(stored).toContain('gitshelves-living-room-installation');
+  });
+
+  test('keeps Controls, Settings, Text, and Controls-time gameplay shortcuts working', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+
+    await page.keyboard.press('c');
+    await expect(page.locator('[data-role="controls-popover"]')).toBeVisible();
+    await openPoiDetail(page);
+    const firstPoi = await page
+      .locator('.poi-tooltip-overlay__title')
+      .textContent();
+    await page.keyboard.press('e');
+    await expect(page.locator('.poi-tooltip-overlay__title')).not.toHaveText(
+      firstPoi ?? ''
+    );
+
+    const beforeZoom = await page.evaluate(() =>
+      window.portfolio?.graphics?.getCameraZoomTarget?.()
+    );
+    await page.keyboard.press('Shift+-');
+    const afterZoomOut = await page.evaluate(() =>
+      window.portfolio?.graphics?.getCameraZoomTarget?.()
+    );
+    expect(afterZoomOut).not.toBe(beforeZoom);
+    await page.keyboard.press('Shift+=');
+    const afterZoomIn = await page.evaluate(() =>
+      window.portfolio?.graphics?.getCameraZoomTarget?.()
+    );
+    expect(afterZoomIn).not.toBe(afterZoomOut);
+
+    await page.keyboard.press('h');
+    await expect(page.locator('.help-modal')).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await page.locator('[data-role="text-mode-button"]').click();
+    await page.waitForFunction(
+      () => document.documentElement.dataset.appMode === 'fallback',
+      undefined,
+      {
+        timeout: IMMERSIVE_READY_TIMEOUT_MS,
+      }
+    );
+  });
 });

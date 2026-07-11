@@ -47,6 +47,7 @@ export function createTutorialPanel({
   let collapsed = false;
   let currentState = state;
   let currentShowOnStartup = showOnStartup;
+  let announcedCompletedPages = new Set(currentState.completedPageIds);
 
   const element = document.createElement('aside');
   element.className = 'tutorial-panel';
@@ -181,8 +182,24 @@ export function createTutorialPanel({
   };
 
   const render = () => {
+    const previousCompletedPages = announcedCompletedPages;
+    const nextCompletedPages = new Set(currentState.completedPageIds);
+    const newlyCompletedPage = currentState.completedPageIds.find(
+      (pageId) => !previousCompletedPages.has(pageId)
+    );
+    announcedCompletedPages = nextCompletedPages;
+
     element.replaceChildren();
     element.classList.toggle('tutorial-panel--sidebar-collapsed', collapsed);
+    const liveRegion = document.createElement('p');
+    liveRegion.className = 'sr-only';
+    liveRegion.dataset.testid = 'tutorial-live-region';
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.setAttribute('aria-atomic', 'true');
+    if (newlyCompletedPage) {
+      liveRegion.textContent = `${currentStrings.pages[newlyCompletedPage].title} — ${currentStrings.completedStepLabel}`;
+    }
+
     const heading = document.createElement('h2');
     heading.className = 'tutorial-panel__heading';
     heading.id = 'tutorial-panel-heading';
@@ -329,7 +346,7 @@ export function createTutorialPanel({
     content.className = 'tutorial-panel__content';
     content.append(body, nav, options);
     shell.append(sidebar, content);
-    element.append(heading, shell);
+    element.append(liveRegion, heading, shell);
   };
 
   const handle: TutorialPanelHandle = {

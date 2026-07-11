@@ -666,3 +666,28 @@ continues while the panel is closed and repaints immediately when it is open.
 - Gitshelves completion is keyed to the stable POI id
   `gitshelves-living-room-installation`. Its placement remains on the upper
   floor, so the localized Tutorial hint directs visitors upstairs.
+
+## Production polish notes
+
+The Tutorial implementation is production code, with one intentionally narrow test/debug API
+surface exposed through `window.portfolio.tutorial`. The API lets Playwright exercise the pure
+state reducers without relying on fragile screen coordinates or long animation timing. It is a
+thin adapter around the same controller paths used by gameplay:
+
+- `getState()` and `getShowOnStartup()` inspect current runtime state.
+- `selectPage(pageId)` mirrors sidebar navigation and still respects locked pages.
+- `setShowOnStartup(value)` writes only `danielsmith.io:tutorial:v1:showOnStartup`.
+- `completeMovementForTest()` records the same movement snapshots as keyboard, arrow-key, and
+  virtual joystick motion, including the `moved: true` guard that prevents blocked movement from
+  completing the movement page.
+- `completeZoomForTest()` records the runtime min/max zoom thresholds instead of duplicated
+  constants.
+- `markVisitedPoisForTest(ids)` marks stable POI ids in the shared `PoiVisitedState`, so the
+  Tutorial counter, marker badges, and POI panel state use one source of truth.
+- `markGitshelvesVisitedForTest()` marks the stable `gitshelves-living-room-installation` id;
+  localized POI titles are never used for completion.
+
+Future pages should follow the same contracts: keep persisted Tutorial state locale-free, add all
+runtime copy to every supported locale and the pseudo-locale, update the hardcoded-string guard
+only for justified non-user-visible tokens, and prefer pure reducer tests plus focused Playwright
+flows over screenshots.

@@ -3648,6 +3648,52 @@ export function initializeImmersiveScene(
     },
   });
   tutorialController.setPanel(tutorialPanel);
+  setPortfolioSection('tutorial', {
+    getState: () => tutorialController.getState(),
+    getShowOnStartup: () => tutorialController.getShowOnStartup(),
+    selectPage: (pageId) => tutorialController.selectPage(pageId),
+    setShowOnStartup: (value) => tutorialController.setShowOnStartup(value),
+    completeMovementForTest: () => {
+      (
+        [
+          { right: 0, forward: 1 },
+          { right: -1, forward: 0 },
+          { right: 0, forward: -1 },
+          { right: 1, forward: 0 },
+        ] as const
+      ).forEach((input) =>
+        tutorialController.recordMovementProgress({
+          ...input,
+          deltaSeconds: 0.25,
+          moved: true,
+        })
+      );
+    },
+    completeZoomForTest: () => {
+      tutorialController.recordZoomProgress({
+        currentZoom: MAX_CAMERA_ZOOM,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      });
+      tutorialController.recordZoomProgress({
+        currentZoom: MIN_CAMERA_ZOOM,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      });
+    },
+    markVisitedPoisForTest: (poiIds) => {
+      poiIds.forEach((poiId) => {
+        const definition = poiDefinitionsById.get(poiId as PoiId);
+        if (definition) poiVisitedState.markVisited(definition.id);
+      });
+    },
+    markGitshelvesVisitedForTest: () => {
+      const definition = poiDefinitionsById.get(
+        'gitshelves-living-room-installation'
+      );
+      if (definition) poiVisitedState.markVisited(definition.id);
+    },
+  });
   const removeTutorialVisitedSubscription = poiVisitedState.subscribe(
     (visited) => {
       tutorialController.syncVisitedPois(visited);
@@ -6510,6 +6556,9 @@ export function initializeImmersiveScene(
     }
     if (window.portfolio?.poi) {
       clearPortfolioSection('poi');
+    }
+    if (window.portfolio?.tutorial) {
+      clearPortfolioSection('tutorial');
     }
     if (window.portfolio?.graphics) {
       clearPortfolioSection('graphics');
