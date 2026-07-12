@@ -1256,7 +1256,7 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     z: stairTopZ + stairDirection * 1.8,
     floorId: 'upper' as const,
   };
-  const normalLoftSpace = { x: 8.15, z: -11.82, floorId: 'upper' as const };
+  const normalLoftSpace = { x: 5.5, z: -9, floorId: 'upper' as const };
   const normalLoftEastNudge = {
     ...normalLoftSpace,
     x: normalLoftSpace.x + 0.45,
