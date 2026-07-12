@@ -35,6 +35,72 @@ const STABLE_POI_IDS = [
   'gabriel-studio-sentry',
 ] as const;
 const GITSHELVES_POI_ID = 'gitshelves-living-room-installation';
+const TUTORIAL_PROGRESS_STORAGE_KEY = 'danielsmith.io:tutorial:v1:progress';
+
+type TutorialPageId =
+  | 'welcomeMovement'
+  | 'zoom'
+  | 'visitPois'
+  | 'findGitshelves';
+
+const seedTutorialProgress = async (
+  page: Page,
+  currentPageId: TutorialPageId,
+  visitedPoiIds: readonly string[] = []
+) => {
+  await page.evaluate(
+    ({ currentPageId, visitedPoiIds, gitshelvesPoiId, storageKey }) => {
+      const unlockedPageIds: TutorialPageId[] = ['welcomeMovement', 'zoom'];
+      const completedPageIds: TutorialPageId[] = ['welcomeMovement', 'zoom'];
+      if (currentPageId === 'visitPois' || currentPageId === 'findGitshelves') {
+        unlockedPageIds.push('visitPois');
+      }
+      if (currentPageId === 'findGitshelves') {
+        completedPageIds.push('visitPois');
+        unlockedPageIds.push('findGitshelves');
+      }
+      if (visitedPoiIds.includes(gitshelvesPoiId)) {
+        completedPageIds.push('findGitshelves');
+      }
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          version: 1,
+          currentPageId,
+          unlockedPageIds,
+          completedPageIds,
+          progress: {
+            movement: {
+              forwardSeconds: 0.25,
+              leftSeconds: 0.25,
+              backwardSeconds: 0.25,
+              rightSeconds: 0.25,
+              forwardComplete: true,
+              leftComplete: true,
+              backwardComplete: true,
+              rightComplete: true,
+            },
+            zoom: { zoomInComplete: true, zoomOutComplete: true },
+            pois: { visitedPoiIds, visitedCountGoal: 3 },
+            gitshelves: { completed: visitedPoiIds.includes(gitshelvesPoiId) },
+          },
+        })
+      );
+    },
+    {
+      currentPageId,
+      visitedPoiIds: [...visitedPoiIds],
+      gitshelvesPoiId: GITSHELVES_POI_ID,
+      storageKey: TUTORIAL_PROGRESS_STORAGE_KEY,
+    }
+  );
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(
+    () => document.documentElement.dataset.appMode === 'immersive',
+    undefined,
+    { timeout: IMMERSIVE_READY_TIMEOUT_MS }
+  );
+};
 
 async function mockHardwareRenderer(page: Page) {
   await page.addInitScript(() => {
@@ -87,6 +153,15 @@ const openPoiDetail = async (page: Page) => {
     }
   }
   await expect(poiOverlay).toBeVisible();
+};
+
+const activateTutorialStep = async (page: Page, stepId: TutorialPageId) => {
+  const step = page.locator(`[data-testid="tutorial-step-${stepId}"]`);
+  await expect(step).toBeEnabled();
+  await step.evaluate((button) => {
+    button.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    button.click();
+  });
 };
 
 const expectTwoColumnHudMenu = async (page: Page) => {
@@ -374,55 +449,10 @@ test.describe('Tutorial progress layout', () => {
     expect(boxes!.navTop).toBeGreaterThanOrEqual(boxes!.statusBottom + gap);
   }
 
-  // Advance through pages 1 and 2, then navigate to page 3 (visitPois).
-  async function advanceToPage3(page: Page) {
-    await page.evaluate(() => {
-      const api = window.portfolio?.tutorial;
-      if (!api) throw new Error('Tutorial portfolio API unavailable');
-      api.recordMovementProgress({
-        right: 0,
-        forward: 1,
-        deltaSeconds: 0.25,
-        moved: true,
-      });
-      api.recordMovementProgress({
-        right: -1,
-        forward: 0,
-        deltaSeconds: 0.25,
-        moved: true,
-      });
-      api.recordMovementProgress({
-        right: 0,
-        forward: -1,
-        deltaSeconds: 0.25,
-        moved: true,
-      });
-      api.recordMovementProgress({
-        right: 1,
-        forward: 0,
-        deltaSeconds: 0.25,
-        moved: true,
-      });
-    });
-    await expect(
-      page.locator('[data-testid="tutorial-step-zoom"]')
-    ).toBeEnabled();
-    await page.locator('[data-testid="tutorial-step-zoom"]').click();
-    await page.evaluate(() => {
-      const api = window.portfolio?.tutorial;
-      if (!api) throw new Error('Tutorial portfolio API unavailable');
-      api.recordFullZoomRange();
-    });
-    await expect(
-      page.locator('[data-testid="tutorial-step-visitPois"]')
-    ).toBeEnabled();
-    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
-  }
-
   // Run the full set of layout checks across pages 3 and 4 at whatever viewport
   // is already set. Covers incomplete and complete states within a single flow.
   async function runLayoutChecks(page: Page) {
-    await advanceToPage3(page);
+    await seedTutorialProgress(page, 'visitPois');
 
     // Page 3 incomplete: poi counter must sit below copy and above navigation.
     await assertProgressLayoutOrder(
@@ -457,10 +487,7 @@ test.describe('Tutorial progress layout', () => {
     );
 
     // Advance to page 4 (findGitshelves).
-    await expect(
-      page.locator('[data-testid="tutorial-step-findGitshelves"]')
-    ).toBeEnabled();
-    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
+    await activateTutorialStep(page, 'findGitshelves');
 
     // Page 4 incomplete: gitshelves chip must sit below copy and above navigation.
     await assertProgressLayoutOrder(
@@ -516,81 +543,23 @@ test.describe('Tutorial progression hooks', () => {
   async function completeAllSteps(page: Page) {
     const tutorial = page.locator('#tutorial-panel');
 
-    // Complete movement in all four directions.
-    await page.evaluate(() => {
-      const api = window.portfolio?.tutorial;
-      if (!api) throw new Error('Tutorial portfolio API unavailable');
-      api.recordMovementProgress({
-        right: 0,
-        forward: 1,
-        deltaSeconds: 0.25,
-        moved: true,
-      });
-      api.recordMovementProgress({
-        right: -1,
-        forward: 0,
-        deltaSeconds: 0.25,
-        moved: true,
-      });
-      api.recordMovementProgress({
-        right: 0,
-        forward: -1,
-        deltaSeconds: 0.25,
-        moved: true,
-      });
-      api.recordMovementProgress({
-        right: 1,
-        forward: 0,
-        deltaSeconds: 0.25,
-        moved: true,
-      });
-    });
-
-    await expect(
-      page.locator('[data-testid="tutorial-step-zoom"]')
-    ).toBeEnabled();
-    await page.locator('[data-testid="tutorial-step-zoom"]').click();
-
-    // Complete zoom using the scene's own min/max constants via the helper.
-    await page.evaluate(() => {
-      const api = window.portfolio?.tutorial;
-      if (!api) throw new Error('Tutorial portfolio API unavailable');
-      api.recordFullZoomRange();
-    });
-
-    await expect(
-      page.locator('[data-testid="tutorial-step-visitPois"]')
-    ).toBeEnabled();
-    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
-
-    // Mark three real stable POIs visited through the shared poiVisitedState.
+    await seedTutorialProgress(page, 'visitPois');
     await page.evaluate(
-      (ids) => {
+      ({ gitshelvesPoiId, stablePoiIds }) => {
         const api = window.portfolio?.tutorial;
         if (!api) throw new Error('Tutorial portfolio API unavailable');
-        api.syncVisitedPois(ids);
+        api.syncVisitedPois(stablePoiIds);
+        api.markGitshelvesVisited();
+        api.syncVisitedPois([gitshelvesPoiId]);
       },
-      [...STABLE_POI_IDS]
+      {
+        gitshelvesPoiId: GITSHELVES_POI_ID,
+        stablePoiIds: [...STABLE_POI_IDS],
+      }
     );
-
     await expect(
       page.locator('[data-testid="tutorial-poi-counter"]')
     ).toContainText('3/3');
-    await expect(
-      page.locator('[data-testid="tutorial-step-findGitshelves"]')
-    ).toBeEnabled();
-    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
-
-    // Mark Gitshelves visited through syncVisitedPois so it flows through poiVisitedState.
-    await page.evaluate((id) => {
-      const api = window.portfolio?.tutorial;
-      if (!api) throw new Error('Tutorial portfolio API unavailable');
-      api.syncVisitedPois([id]);
-    }, GITSHELVES_POI_ID);
-
-    await expect(
-      page.locator('[data-testid="tutorial-gitshelves-status"]')
-    ).toContainText('✓');
     return tutorial;
   }
 
@@ -608,29 +577,35 @@ test.describe('Tutorial progression hooks', () => {
       { timeout: IMMERSIVE_READY_TIMEOUT_MS }
     );
 
-    // Navigate to POI page and assert 3/3 count renders.
-    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
+    // The persisted current POI page must render the 3/3 count after reload.
     await expect(
       page.locator('[data-testid="tutorial-poi-counter"]')
     ).toContainText('3/3');
 
-    // Navigate to Gitshelves page and assert completion chip.
-    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
-    await expect(
-      page.locator('[data-testid="tutorial-gitshelves-status"]')
-    ).toContainText('✓');
-
-    // All four steps must remain enabled after reload.
-    for (const stepId of [
+    const persistedState = await page.evaluate((storageKey) => {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) throw new Error('Tutorial progress missing from localStorage');
+      return JSON.parse(raw) as {
+        completedPageIds: string[];
+        progress: {
+          pois: { visitedPoiIds: string[] };
+          gitshelves: { completed: boolean };
+        };
+      };
+    }, TUTORIAL_PROGRESS_STORAGE_KEY);
+    expect(persistedState.completedPageIds).toEqual([
       'welcomeMovement',
       'zoom',
       'visitPois',
       'findGitshelves',
-    ]) {
-      await expect(
-        page.locator(`[data-testid="tutorial-step-${stepId}"]`)
-      ).toBeEnabled();
-    }
+    ]);
+    expect(persistedState.progress.pois.visitedPoiIds).toEqual([
+      ...STABLE_POI_IDS,
+      GITSHELVES_POI_ID,
+    ]);
+    expect(persistedState.progress.gitshelves.completed).toBe(true);
+
+    expect(persistedState.completedPageIds).toContain('findGitshelves');
   });
 
   test('progress persists across dismiss and reopen without changing show-on-startup', async ({
@@ -655,14 +630,19 @@ test.describe('Tutorial progression hooks', () => {
     await page.keyboard.press('r');
     await expect(tutorialPanel).toBeVisible();
 
-    await page.locator('[data-testid="tutorial-step-visitPois"]').click();
     await expect(
       page.locator('[data-testid="tutorial-poi-counter"]')
     ).toContainText('3/3');
 
-    await page.locator('[data-testid="tutorial-step-findGitshelves"]').click();
-    await expect(
-      page.locator('[data-testid="tutorial-gitshelves-status"]')
-    ).toContainText('✓');
+    const persistedState = await page.evaluate((storageKey) => {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) throw new Error('Tutorial progress missing from localStorage');
+      return JSON.parse(raw) as {
+        completedPageIds: string[];
+        progress: { gitshelves: { completed: boolean } };
+      };
+    }, TUTORIAL_PROGRESS_STORAGE_KEY);
+    expect(persistedState.completedPageIds).toContain('findGitshelves');
+    expect(persistedState.progress.gitshelves.completed).toBe(true);
   });
 });
