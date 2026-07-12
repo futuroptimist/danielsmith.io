@@ -23,6 +23,8 @@
 helm.sh/chart: {{ include "danielsmith.chart" . }}
 app.kubernetes.io/name: danielsmith
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: web
+app.kubernetes.io/part-of: danielsmith-io
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
