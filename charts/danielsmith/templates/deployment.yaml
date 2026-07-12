@@ -16,7 +16,7 @@ spec:
         {{- with .Values.podLabels }}
 {{ toYaml . | nindent 8 }}
         {{- end }}
-        {{- include "danielsmith.selectorLabels" . | nindent 8 }}
+        {{- include "danielsmith.labels" . | nindent 8 }}
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
