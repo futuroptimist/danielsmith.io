@@ -39,6 +39,10 @@ type StepEvidence = {
   statusCode?: number;
 };
 
+type StepResult = Omit<StepEvidence, 'name' | 'status'> & {
+  status?: StepEvidence['status'];
+};
+
 const evidence: {
   schemaVersion: 1;
   baseUrl: string;
@@ -67,11 +71,6 @@ function endpointUrl(endpointPath: string) {
   return new URL(endpointPath, `${evidence.baseUrl}/`).toString();
 }
 
-function isLocalPreview() {
-  const hostname = new URL(evidence.baseUrl).hostname;
-  return hostname === '127.0.0.1' || hostname === 'localhost';
-}
-
 function visibleHeaders(response: HeaderProvider): StepHeaders {
   const headers = response.headers();
   return {
@@ -85,20 +84,43 @@ function visibleHeaders(response: HeaderProvider): StepHeaders {
   };
 }
 
-async function recordStep(
-  name: string,
-  run: () => Promise<
-    Omit<StepEvidence, 'name' | 'status'> & { status?: StepEvidence['status'] }
-  >
-) {
+function failStep(
+  message: string,
+  response?: APIResponse | Response | null
+): StepResult {
+  return {
+    finalUrl: response?.url(),
+    headers: response ? visibleHeaders(response) : undefined,
+    message,
+    status: 'fail',
+    statusCode: response?.status(),
+  };
+}
+
+function passStep(response: APIResponse | Response): StepResult {
+  return {
+    finalUrl: response.url(),
+    headers: visibleHeaders(response),
+    status: 'pass',
+    statusCode: response.status(),
+  };
+}
+
+async function recordStep(name: string, run: () => Promise<StepResult>) {
   try {
     const result = await run();
     const status = result.status ?? 'pass';
     evidence.steps.push({ name, status, ...result });
     evidence.summary[status] += 1;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    evidence.steps.push({ name, status: 'fail', message });
+    evidence.steps.push({
+      name,
+      status: 'fail',
+      message:
+        error instanceof Error && error.message
+          ? 'Promotion smoke assertion failed.'
+          : 'Promotion smoke step failed.',
+    });
     evidence.summary.fail += 1;
   }
 }
@@ -120,21 +142,72 @@ async function writeEvidence() {
   );
 }
 
-async function expectJsonHealth(response: APIResponse, endpointPath: string) {
-  expect(response.status(), `${endpointPath} status code`).toBe(200);
-  const body = await response.json();
-  expect(body, `${endpointPath} JSON body`).toEqual({ status: 'ok' });
+async function assertJsonHealth(
+  response: APIResponse,
+  endpointPath: string
+): Promise<StepResult> {
+  const step = passStep(response);
+
+  if (response.status() !== 200) {
+    return failStep(`${endpointPath} did not return HTTP 200.`, response);
+  }
+
   const contentType = response.headers()['content-type'];
-  if (!isLocalPreview()) {
-    expect(contentType, `${endpointPath} content type`).toContain(
-      'application/json'
+  if (!contentType?.includes('application/json')) {
+    return failStep(
+      `${endpointPath} did not return an application/json content type.`,
+      response
     );
   }
 
   const cacheControl = response.headers()['cache-control'];
-  if (cacheControl !== undefined && !isLocalPreview()) {
-    expect(cacheControl, `${endpointPath} cache-control`).toContain('no-store');
+  if (!cacheControl?.includes('no-store')) {
+    return failStep(
+      `${endpointPath} did not return Cache-Control: no-store.`,
+      response
+    );
   }
+
+  const body = await response.text();
+  return body === '{"status":"ok"}'
+    ? step
+    : failStep(
+        `${endpointPath} did not return the expected JSON body.`,
+        response
+      );
+}
+
+async function assertRootHtml(response: APIResponse): Promise<StepResult> {
+  if (response.status() !== 200) {
+    return failStep('GET / did not return HTTP 200.', response);
+  }
+
+  const body = await response.text();
+  if (!body.includes('<title>danielsmith.io</title>')) {
+    return failStep('GET / did not return the expected app HTML.', response);
+  }
+
+  return /placeholder|coming soon/i.test(body)
+    ? failStep('GET / returned placeholder content.', response)
+    : passStep(response);
+}
+
+async function assertResumePdf(response: APIResponse): Promise<StepResult> {
+  if (response.status() !== 200) {
+    return failStep('GET /resume.pdf did not return HTTP 200.', response);
+  }
+
+  if (!response.headers()['content-type']?.includes('pdf')) {
+    return failStep(
+      'GET /resume.pdf did not return a PDF content type.',
+      response
+    );
+  }
+
+  const pdfSignature = (await response.body()).subarray(0, 5).toString();
+  return pdfSignature === '%PDF-'
+    ? passStep(response)
+    : failStep('GET /resume.pdf did not return a PDF signature.', response);
 }
 
 async function assertWebGlSupported(page: Page) {
@@ -164,30 +237,13 @@ test.describe('promotion smoke', () => {
     try {
       await recordStep('GET / app HTML', async () => {
         const response = await api.get('/');
-        expect(response.status(), 'GET / status code').toBe(200);
-        const body = await response.text();
-        expect(body, 'GET / should be this app HTML').toContain(
-          '<title>danielsmith.io</title>'
-        );
-        expect(body, 'GET / should not be a placeholder').not.toMatch(
-          /placeholder|coming soon/i
-        );
-        return {
-          finalUrl: response.url(),
-          headers: visibleHeaders(response),
-          statusCode: response.status(),
-        };
+        return assertRootHtml(response);
       });
 
       for (const healthPath of HEALTH_PATHS) {
         await recordStep(`GET ${healthPath} JSON health`, async () => {
           const response = await api.get(healthPath);
-          await expectJsonHealth(response, healthPath);
-          return {
-            finalUrl: response.url(),
-            headers: visibleHeaders(response),
-            statusCode: response.status(),
-          };
+          return assertJsonHealth(response, healthPath);
         });
       }
 
@@ -200,22 +256,7 @@ test.describe('promotion smoke', () => {
         }
 
         const response = await api.get('/resume.pdf', { maxRedirects: 10 });
-        expect(response.status(), 'GET /resume.pdf final status code').toBe(
-          200
-        );
-        expect(
-          response.headers()['content-type'],
-          'GET /resume.pdf final content type'
-        ).toContain('pdf');
-        const pdfSignature = (await response.body()).subarray(0, 5).toString();
-        expect(pdfSignature, 'GET /resume.pdf final PDF signature').toBe(
-          '%PDF-'
-        );
-        return {
-          finalUrl: response.url(),
-          headers: visibleHeaders(response),
-          statusCode: response.status(),
-        };
+        return assertResumePdf(response);
       });
 
       await recordStep('/?mode=text text fallback', async () => {

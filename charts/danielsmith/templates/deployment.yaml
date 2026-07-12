@@ -16,9 +16,7 @@ spec:
         {{- with .Values.podLabels }}
 {{ toYaml . | nindent 8 }}
         {{- end }}
-        {{- include "danielsmith.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: web
-        app.kubernetes.io/part-of: danielsmith-io
+        {{- include "danielsmith.labels" . | nindent 8 }}
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
