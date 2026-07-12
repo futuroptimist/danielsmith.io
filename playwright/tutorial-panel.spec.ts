@@ -158,10 +158,8 @@ const openPoiDetail = async (page: Page) => {
 const activateTutorialStep = async (page: Page, stepId: TutorialPageId) => {
   const step = page.locator(`[data-testid="tutorial-step-${stepId}"]`);
   await expect(step).toBeEnabled();
-  await step.evaluate((button) => {
-    button.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    button.click();
-  });
+  await step.scrollIntoViewIfNeeded();
+  await step.click();
 };
 
 const expectTwoColumnHudMenu = async (page: Page) => {
@@ -540,7 +538,7 @@ test.describe('Tutorial progress layout', () => {
 });
 
 test.describe('Tutorial progression hooks', () => {
-  async function completeAllSteps(page: Page) {
+  async function seedMovementZoomAndCompletePoiSteps(page: Page) {
     const tutorial = page.locator('#tutorial-panel');
 
     await seedTutorialProgress(page, 'visitPois');
@@ -563,11 +561,70 @@ test.describe('Tutorial progression hooks', () => {
     return tutorial;
   }
 
-  test('completes all steps via portfolio API and persists after reload', async ({
+  test('movement directions unlock zoom, real click on zoom unlocks visit POIs', async ({
     page,
   }) => {
     await waitForImmersiveMode(page);
-    await completeAllSteps(page);
+
+    const tutorial = page.locator('#tutorial-panel');
+    await expect(tutorial).toBeVisible();
+
+    // Record all four canonical movement directions via the portfolio API.
+    await page.evaluate(() => {
+      const api = window.portfolio?.tutorial;
+      if (!api) throw new Error('Tutorial portfolio API unavailable');
+      api.recordMovementProgress({
+        right: 0,
+        forward: 1,
+        deltaSeconds: 0.3,
+        moved: true,
+      });
+      api.recordMovementProgress({
+        right: 0,
+        forward: -1,
+        deltaSeconds: 0.3,
+        moved: true,
+      });
+      api.recordMovementProgress({
+        right: 1,
+        forward: 0,
+        deltaSeconds: 0.3,
+        moved: true,
+      });
+      api.recordMovementProgress({
+        right: -1,
+        forward: 0,
+        deltaSeconds: 0.3,
+        moved: true,
+      });
+    });
+
+    // Zoom step must now be unlocked (enabled) in the tutorial panel.
+    const zoomStep = page.locator('[data-testid="tutorial-step-zoom"]');
+    await expect(zoomStep).toBeEnabled();
+
+    // Navigate to the Zoom step via a real Playwright click (tests actionability).
+    await zoomStep.scrollIntoViewIfNeeded();
+    await zoomStep.click();
+
+    // Complete zoom via the portfolio API.
+    await page.evaluate(() => {
+      const api = window.portfolio?.tutorial;
+      if (!api) throw new Error('Tutorial portfolio API unavailable');
+      api.recordFullZoomRange();
+    });
+
+    // Visit POIs step must now be unlocked.
+    await expect(
+      page.locator('[data-testid="tutorial-step-visitPois"]')
+    ).toBeEnabled();
+  });
+
+  test('seeded movement/zoom prerequisites and POI completion persist after reload', async ({
+    page,
+  }) => {
+    await waitForImmersiveMode(page);
+    await seedMovementZoomAndCompletePoiSteps(page);
 
     // Reload and verify persisted progress.
     await page.reload({ waitUntil: 'domcontentloaded' });
@@ -612,7 +669,7 @@ test.describe('Tutorial progression hooks', () => {
     page,
   }) => {
     await waitForImmersiveMode(page);
-    await completeAllSteps(page);
+    await seedMovementZoomAndCompletePoiSteps(page);
 
     const tutorialPanel = page.locator('#tutorial-panel');
     const showOnStartup = page.locator(
