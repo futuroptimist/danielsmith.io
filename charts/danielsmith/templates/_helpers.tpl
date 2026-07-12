@@ -32,7 +32,6 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- define "danielsmith.selectorLabels" -}}
 app.kubernetes.io/name: danielsmith
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/component: web
 {{- end -}}
 
 {{- define "danielsmith.serviceAccountName" -}}

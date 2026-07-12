@@ -28,10 +28,8 @@ health:
 
 - `/` must serve the application HTML from this repository rather than a legacy
   placeholder.
-- `/healthz` must return static nginx JSON with HTTP 200 and `Cache-Control:
-no-store`.
-- `/livez` must return static nginx JSON with HTTP 200 and `Cache-Control:
-no-store`.
+- `/healthz` must return static nginx JSON with HTTP 200 and `Cache-Control: no-store`.
+- `/livez` must return static nginx JSON with HTTP 200 and `Cache-Control: no-store`.
 - `/resume.pdf` must return or redirect to a final PDF response with a PDF
   content type.
 
