@@ -17,6 +17,9 @@ jobs:
       pull-requests: write
       issues: write
       actions: read # Required for Claude to read CI results on PRs
+      # Required for the Claude GitHub App OIDC exchange; this is independent
+      # of the Anthropic CLAUDE_CODE_OAUTH_TOKEN.
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
