@@ -5,6 +5,8 @@ import type { PoiAnalytics, PoiDefinition } from './types';
 
 export type PoiSelectionInputMethod = 'keyboard' | 'pointer' | 'touch';
 
+export const POI_CYCLE_KEYS = ['q', 'e'] as const;
+
 export interface PoiSelectionContext {
   inputMethod: PoiSelectionInputMethod;
 }
@@ -369,19 +371,15 @@ export class PoiInteractionManager {
     const { key } = event;
     const normalizedKey = key.toLowerCase();
 
-    const isCycleKey =
-      key === 'ArrowRight' ||
-      key === 'ArrowLeft' ||
-      normalizedKey === 'e' ||
-      normalizedKey === 'q';
+    const isCycleKey = (POI_CYCLE_KEYS as readonly string[]).includes(
+      normalizedKey
+    );
 
     if (isCycleKey) {
       this.cancelScheduledHoverPick();
-      if (normalizedKey === 'e' || normalizedKey === 'q') {
-        event.preventDefault();
-      }
+      event.preventDefault();
 
-      const direction = key === 'ArrowRight' || normalizedKey === 'e' ? 1 : -1;
+      const direction = normalizedKey === 'e' ? 1 : -1;
       this.moveKeyboardFocus(direction);
       return;
     }

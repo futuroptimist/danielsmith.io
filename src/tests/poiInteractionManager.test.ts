@@ -295,7 +295,7 @@ describe('PoiInteractionManager', () => {
       inputMethod: 'touch',
     });
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
     expect(hoveredEvents).toHaveLength(4);
     expect(hoveredEvents[3]?.detail).toEqual({
       poi: definition,
@@ -773,19 +773,11 @@ describe('PoiInteractionManager', () => {
     );
     keyboardManager.start();
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
     expect(poi.focusTarget).toBe(1);
     expect(secondPoi.focusTarget).toBe(0);
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
-    expect(poi.focusTarget).toBe(0);
-    expect(secondPoi.focusTarget).toBe(1);
-
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
-    expect(poi.focusTarget).toBe(1);
-    expect(secondPoi.focusTarget).toBe(0);
-
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
     expect(poi.focusTarget).toBe(0);
     expect(secondPoi.focusTarget).toBe(1);
 
@@ -794,6 +786,15 @@ describe('PoiInteractionManager', () => {
     expect(secondPoi.focusTarget).toBe(0);
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'q' }));
+    expect(poi.focusTarget).toBe(0);
+    expect(secondPoi.focusTarget).toBe(1);
+
+    // Arrow keys are reserved for player movement and must not cycle POI focus.
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(poi.focusTarget).toBe(0);
+    expect(secondPoi.focusTarget).toBe(1);
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
     expect(poi.focusTarget).toBe(0);
     expect(secondPoi.focusTarget).toBe(1);
 
@@ -807,7 +808,7 @@ describe('PoiInteractionManager', () => {
     const customEventHandler = vi.fn();
     window.addEventListener('poi:selected', customEventHandler);
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
 
     expect(listener).toHaveBeenNthCalledWith(1, definition, {
@@ -950,7 +951,7 @@ describe('PoiInteractionManager', () => {
     const handler = disabledManager as unknown as {
       handleKeyDown(event: KeyboardEvent): void;
     };
-    handler.handleKeyDown(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    handler.handleKeyDown(new KeyboardEvent('keydown', { key: 'e' }));
     expect(poi.focusTarget).toBe(0);
     disabledManager.dispose();
   });
