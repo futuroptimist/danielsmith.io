@@ -273,11 +273,11 @@
       "id": "audit:src:scene:poi:interactionManager",
       "sourceFiles": ["src/scene/poi/interactionManager.ts"],
       "proxyFiles": [],
-      "syncRevision": 5,
-      "syncNote": "POI keyboard gating changed only runtime input handling; no miniature geometry impact.",
-      "sourceFingerprint": "fed9ef20e52038937ed374fada4060cec26c2d613147d6f92d011b06d9ee73a4",
+      "syncRevision": 6,
+      "syncNote": "Restricted POI cycling to Q/E only (dropped ArrowLeft/ArrowRight aliases so they no longer conflict with player movement); no miniature geometry impact.",
+      "sourceFingerprint": "d7baf5c4749cf044ab4a0f3644a0a2db35869e3dc3068fb4596204194509bfe6",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "f161b16b55ea43e5d46f8a32e9b1290ee5efb4a95734d8a25b6ef94ac1605565"
+      "metadataFingerprint": "f198168c7c91ac0196d116b777466249969d973d83c93a828702a3dd55518ccf"
     },
     {
       "id": "audit:src:scene:poi:modelTriangles",
