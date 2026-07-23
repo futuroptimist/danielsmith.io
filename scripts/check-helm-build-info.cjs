@@ -46,11 +46,34 @@ assertIncludes(
 );
 assertIncludes(
   defaultRender,
+  'name: seed-build-info',
+  'default render should seed build-info into the shared runtime volume'
+);
+assertIncludes(
+  defaultRender,
   `- name: build-info
-              mountPath: /usr/share/nginx/html/runtime/build-info.json
-              subPath: build-info.json
+              mountPath: /build-info
+              readOnly: true
+            - name: runtime-data
+              mountPath: /runtime`,
+  'init container should receive the ConfigMap source and writable runtime volume'
+);
+assertIncludes(
+  defaultRender,
+  `- name: runtime-data
+              mountPath: /usr/share/nginx/html/runtime
               readOnly: true`,
-  'nginx should mount build-info.json as a single read-only file, not the whole runtime dir'
+  'nginx should mount the seeded runtime directory read-only when metrics are disabled'
+);
+assertExcludes(
+  defaultRender,
+  'mountPath: /usr/share/nginx/html/runtime/build-info.json',
+  'nginx should not use a nested build-info file mount'
+);
+assertExcludes(
+  defaultRender,
+  'subPath: build-info.json',
+  'build-info should not use subPath because nested mounts break under read-only parents'
 );
 
 const stagingRender = render([
@@ -138,8 +161,26 @@ assertIncludes(
 );
 assertIncludes(
   cacheEnabledRender,
+  `- name: runtime-data
+              mountPath: /usr/share/nginx/html/runtime
+              readOnly: true`,
+  'nginx should mount the shared runtime volume read-only when metrics are enabled'
+);
+assertIncludes(
+  cacheEnabledRender,
+  `- name: runtime-data
+              mountPath: /cache`,
+  'github-metrics should mount the same runtime volume writable at its output directory'
+);
+assertExcludes(
+  cacheEnabledRender,
+  'mountPath: /usr/share/nginx/html/runtime/build-info.json',
+  'metrics-enabled render must not contain a nested build-info mount under runtime'
+);
+assertExcludes(
+  cacheEnabledRender,
   'subPath: build-info.json',
-  'build-info subPath mount should coexist with the whole-directory metrics cache mount'
+  'metrics-enabled render must avoid subPath build-info mounts'
 );
 
 assertExcludes(

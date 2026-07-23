@@ -25,10 +25,11 @@ outside this app repo before expecting the public hostnames to resolve.
 
 ## Runtime build-info contract
 
-The chart renders `/runtime/build-info.json` into a ConfigMap and mounts it into nginx for every
-Sugarkube deployment. The browser reads this JSON to show the Settings & Help footer release
-identity. Because the same immutable image is promoted from staging to production, this file is
-resolved at deploy time rather than baked into the Vite build.
+The chart renders `/runtime/build-info.json` into a ConfigMap and seeds it into the shared
+runtime volume before nginx starts for every Sugarkube deployment. The browser reads this JSON to
+show the Settings & Help footer release identity. Because the same immutable image is promoted
+from staging to production, this file is resolved at deploy time rather than baked into the Vite
+build.
 
 The JSON contract is:
 
@@ -40,7 +41,7 @@ The JSON contract is:
 When chart behavior changes, bump `charts/danielsmith/Chart.yaml` so production's displayed version
 advances with the published Helm chart. The deployment template includes a `checksum/build-info` pod
 annotation, so changing only the ingress host, image tag, or chart app version still rolls pods and
-refreshes the mounted file. After staging or production deploys, validate the public file alongside
+refreshes the seeded file. After staging or production deploys, validate the public file alongside
 health checks:
 
 ```bash
