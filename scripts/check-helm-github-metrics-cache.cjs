@@ -55,8 +55,8 @@ assertExcludes(
 );
 assertExcludes(
   defaultRender,
-  'github-metrics-cache',
-  'disabled cache should not render shared cache volume'
+  'name: github-metrics-config',
+  'disabled cache should not render the sidecar config volume'
 );
 
 const enabledRender = render(['--set', 'githubMetricsCache.enabled=true']);
@@ -82,14 +82,14 @@ assertIncludes(
 );
 assertIncludes(
   enabledRender,
-  `- name: github-metrics-cache
+  `- name: runtime
               mountPath: /usr/share/nginx/html/runtime
               readOnly: true`,
   'nginx should mount the runtime cache directory read-only instead of the document root'
 );
 assertIncludes(
   enabledRender,
-  `- name: github-metrics-cache
+  `- name: runtime
               mountPath: /cache`,
   'sidecar should mount the cache directory writable by omitting readOnly'
 );

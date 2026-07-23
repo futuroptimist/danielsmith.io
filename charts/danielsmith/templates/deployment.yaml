@@ -27,6 +27,24 @@ spec:
       automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: seed-build-info
+          image: {{ include "danielsmith.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - cp /build-info/build-info.json /runtime/build-info.json
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: build-info
+              mountPath: /build-info
+              readOnly: true
+            - name: runtime
+              mountPath: /runtime
       containers:
         - name: {{ .Chart.Name }}
           image: {{ include "danielsmith.image" . | quote }}
@@ -62,15 +80,9 @@ spec:
               mountPath: /var/cache/nginx
             - name: var-run
               mountPath: /var/run
-            - name: build-info
-              mountPath: /usr/share/nginx/html/runtime/build-info.json
-              subPath: build-info.json
-              readOnly: true
-            {{- if .Values.githubMetricsCache.enabled }}
-            - name: github-metrics-cache
+            - name: runtime
               mountPath: {{ include "danielsmith.githubMetricsCache.publicDir" . }}
               readOnly: true
-            {{- end }}
           {{- if or (gt (len .Values.env) 0) (gt (len .Values.extraEnv) 0) }}
           env:
             {{- if kindIs "map" .Values.env }}
@@ -122,7 +134,7 @@ spec:
             - name: github-metrics-config
               mountPath: /etc/github-metrics
               readOnly: true
-            - name: github-metrics-cache
+            - name: runtime
               mountPath: {{ include "danielsmith.githubMetricsCache.outputDir" . }}
         {{- end }}
       volumes:
@@ -135,9 +147,9 @@ spec:
         - name: build-info
           configMap:
             name: {{ include "danielsmith.fullname" . }}-build-info
-        {{- if .Values.githubMetricsCache.enabled }}
-        - name: github-metrics-cache
+        - name: runtime
           emptyDir: {}
+        {{- if .Values.githubMetricsCache.enabled }}
         - name: github-metrics-config
           configMap:
             name: {{ include "danielsmith.fullname" . }}-github-metrics-cache

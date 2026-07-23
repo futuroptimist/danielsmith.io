@@ -46,11 +46,41 @@ assertIncludes(
 );
 assertIncludes(
   defaultRender,
+  `initContainers:
+        - name: seed-build-info`,
+  'default render should seed build-info before nginx starts'
+);
+assertIncludes(
+  defaultRender,
   `- name: build-info
-              mountPath: /usr/share/nginx/html/runtime/build-info.json
-              subPath: build-info.json
+              mountPath: /build-info
+              readOnly: true
+            - name: runtime
+              mountPath: /runtime`,
+  'build-info init container should receive ConfigMap source and writable runtime volume'
+);
+assertIncludes(
+  defaultRender,
+  `- name: runtime
+              mountPath: /usr/share/nginx/html/runtime
               readOnly: true`,
-  'nginx should mount build-info.json as a single read-only file, not the whole runtime dir'
+  'nginx should mount the seeded runtime directory read-only'
+);
+assertIncludes(
+  defaultRender,
+  `- name: runtime
+          emptyDir: {}`,
+  'build-info should remain available from an always-present runtime emptyDir'
+);
+assertExcludes(
+  defaultRender,
+  'mountPath: /usr/share/nginx/html/runtime/build-info.json',
+  'nginx must not use a nested build-info file mount beneath the runtime directory'
+);
+assertExcludes(
+  defaultRender,
+  'subPath: build-info.json',
+  'build-info must not use subPath because that can require nested mountpoint creation'
 );
 
 const stagingRender = render([
@@ -138,8 +168,26 @@ assertIncludes(
 );
 assertIncludes(
   cacheEnabledRender,
+  `- name: runtime
+              mountPath: /usr/share/nginx/html/runtime
+              readOnly: true`,
+  'nginx should still mount the shared runtime volume read-only when metrics are enabled'
+);
+assertIncludes(
+  cacheEnabledRender,
+  `- name: runtime
+              mountPath: /cache`,
+  'github-metrics should mount that same runtime volume writable at its output directory'
+);
+assertExcludes(
+  cacheEnabledRender,
+  'mountPath: /usr/share/nginx/html/runtime/build-info.json',
+  'metrics-enabled render must not nest build-info below the read-only runtime mount'
+);
+assertExcludes(
+  cacheEnabledRender,
   'subPath: build-info.json',
-  'build-info subPath mount should coexist with the whole-directory metrics cache mount'
+  'metrics-enabled render must not use build-info subPath mounts'
 );
 
 assertExcludes(
