@@ -25,11 +25,12 @@ outside this app repo before expecting the public hostnames to resolve.
 
 ## Runtime build-info contract
 
-The chart renders `/runtime/build-info.json` into a ConfigMap, then an init container seeds it
-into the runtime `emptyDir` that nginx mounts read-only for every Sugarkube deployment. The browser
-reads this JSON to show the Settings & Help footer release identity. Because the same immutable
-image is promoted from staging to production, this file is resolved at deploy time rather than baked
-into the Vite build.
+The chart renders `/runtime/build-info.json` into a ConfigMap, then an init container seeds the
+image's baked `/usr/share/nginx/html/runtime/` assets into the runtime `emptyDir` and overlays the
+Helm-rendered build-info file before nginx mounts the directory read-only for every Sugarkube
+deployment. The browser reads this JSON to show the Settings & Help footer release identity. Because
+the same immutable image is promoted from staging to production, this file is resolved at deploy time
+rather than baked into the Vite build.
 
 The JSON contract is:
 
@@ -63,8 +64,9 @@ unless environment values opt in.
 
 When enabled, the sidecar uses the public GitHub REST API without a token, GitHub App credential,
 or Kubernetes Secret. On startup and then every `githubMetricsCache.refreshIntervalSeconds`
-(default `3600`), it fetches the configured public repositories, writes an atomic JSON cache to the
-same runtime `emptyDir`, and nginx serves that file at `githubMetricsCache.publicPath` (default
+(default `3600`), it fetches the configured public repositories and overwrites the neutral
+`github-metrics.json` placeholder that the init container copied from the image into the same runtime
+`emptyDir`. Nginx serves that file at `githubMetricsCache.publicPath` (default
 `/runtime/github-metrics.json`) with `Cache-Control: no-store`. The sidecar mounts the runtime
 volume read-write at its output directory while nginx keeps read-only access. Runtime public paths
 must be absolute, normalized, under `/runtime/`, and inside a non-root directory so the shared

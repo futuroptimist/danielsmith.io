@@ -34,7 +34,9 @@ spec:
           command:
             - sh
             - -c
-            - cp /build-info/build-info.json /runtime/build-info.json
+            - >-
+              cp -a /usr/share/nginx/html/runtime/. /runtime/ &&
+              cp /build-info/build-info.json /runtime/build-info.json
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           resources:
