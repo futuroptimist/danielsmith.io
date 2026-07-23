@@ -53,7 +53,7 @@ assertIncludes(
 assertIncludes(
   defaultRender,
   `- >-
-              cp -a /usr/share/nginx/html/runtime/. /runtime/ &&
+              cp -R /usr/share/nginx/html/runtime/. /runtime/ &&
               cp /build-info/build-info.json /runtime/build-info.json`,
   'build-info init container should seed baked runtime assets before overlaying build-info'
 );

@@ -35,7 +35,7 @@ spec:
             - sh
             - -c
             - >-
-              cp -a /usr/share/nginx/html/runtime/. /runtime/ &&
+              cp -R /usr/share/nginx/html/runtime/. /runtime/ &&
               cp /build-info/build-info.json /runtime/build-info.json
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
