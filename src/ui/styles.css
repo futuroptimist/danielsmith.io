@@ -1780,6 +1780,21 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   color: rgba(224, 243, 255, 0.9);
 }
 
+.help-modal__build-info {
+  margin-top: 1.4rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(104, 202, 255, 0.24);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-align: center;
+  color: rgba(180, 214, 240, 0.65);
+}
+
+.help-modal__build-info[hidden] {
+  display: none;
+}
+
 .poi-narrative-log {
   margin-top: 1.5rem;
   padding-top: 0.75rem;

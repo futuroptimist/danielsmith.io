@@ -513,6 +513,9 @@ export const AR_OVERRIDES: LocaleOverrides = {
           ],
         },
       ],
+      buildInfo: {
+        ariaLabel: 'إصدار التطبيق',
+      },
       announcements: {
         open: 'تم فتح قائمة المساعدة. راجع عناصر التحكم والإعدادات.',
         close: 'تم إغلاق قائمة المساعدة.',

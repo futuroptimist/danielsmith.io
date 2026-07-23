@@ -1386,6 +1386,16 @@ export function buildLatinLocaleOverrides(
           description: s.languageDescription,
         },
         sections: buildLatinHelpSections(copy.locale),
+        buildInfo: {
+          ariaLabel:
+            copy.locale === 'de'
+              ? 'App-Build'
+              : copy.locale === 'hu'
+                ? 'Alkalmazás build'
+                : copy.locale === 'pt'
+                  ? 'Compilação do app'
+                  : 'Compilación de la app',
+        },
         announcements: {
           open:
             copy.locale === 'de'

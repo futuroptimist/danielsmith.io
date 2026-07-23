@@ -17,10 +17,11 @@ spec:
 {{ toYaml . | nindent 8 }}
         {{- end }}
         {{- include "danielsmith.labels" . | nindent 8 }}
-      {{- with .Values.podAnnotations }}
       annotations:
+        checksum/build-info: {{ include "danielsmith.buildInfo.json" . | sha256sum }}
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "danielsmith.serviceAccountName" . }}
       automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
@@ -61,6 +62,10 @@ spec:
               mountPath: /var/cache/nginx
             - name: var-run
               mountPath: /var/run
+            - name: build-info
+              mountPath: /usr/share/nginx/html/runtime/build-info.json
+              subPath: build-info.json
+              readOnly: true
             {{- if .Values.githubMetricsCache.enabled }}
             - name: github-metrics-cache
               mountPath: {{ include "danielsmith.githubMetricsCache.publicDir" . }}
@@ -127,6 +132,9 @@ spec:
           emptyDir: {}
         - name: var-run
           emptyDir: {}
+        - name: build-info
+          configMap:
+            name: {{ include "danielsmith.fullname" . }}-build-info
         {{- if .Values.githubMetricsCache.enabled }}
         - name: github-metrics-cache
           emptyDir: {}

@@ -115,3 +115,38 @@ immutable `main-<shortsha>` tag or `image.digest`.
 {{- define "danielsmith.githubMetricsCache.publicDir" -}}
 {{- printf "/usr/share/nginx/html/%s" (dir (trimPrefix "/" .Values.githubMetricsCache.publicPath)) | clean -}}
 {{- end -}}
+
+{{/*
+Environment derived purely from the deploy-time ingress host, since Sugarkube
+promotes the same immutable image tag from staging to prod unchanged (see
+docs/ops/sugarkube-release.md) — there is no other reliable signal available
+at Helm render time.
+*/}}
+{{- define "danielsmith.buildInfo.environment" -}}
+{{- if eq .Values.ingress.host "danielsmith.io" -}}
+prod
+{{- else if eq .Values.ingress.host "staging.danielsmith.io" -}}
+staging
+{{- else -}}
+dev
+{{- end -}}
+{{- end -}}
+
+{{/*
+Displayed tag: prod shows the semver chart AppVersion (matches token.place's
+staging-immutable-ref / prod-semver split), staging/dev show the actual
+deployed image reference (digest if pinned, otherwise the immutable tag).
+*/}}
+{{- define "danielsmith.buildInfo.tag" -}}
+{{- if eq (include "danielsmith.buildInfo.environment" .) "prod" -}}
+{{- printf "v%s" .Chart.AppVersion -}}
+{{- else if .Values.image.digest -}}
+{{- .Values.image.digest -}}
+{{- else -}}
+{{- .Values.image.tag -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "danielsmith.buildInfo.json" -}}
+{{- dict "schemaVersion" 1 "environment" (include "danielsmith.buildInfo.environment" .) "tag" (include "danielsmith.buildInfo.tag" .) | toPrettyJson -}}
+{{- end -}}

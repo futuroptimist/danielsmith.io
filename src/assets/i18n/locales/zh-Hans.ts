@@ -516,6 +516,9 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
           ],
         },
       ],
+      buildInfo: {
+        ariaLabel: '应用构建',
+      },
       announcements: {
         open: '帮助菜单已打开。请查看控制和设置。',
         close: '帮助菜单已关闭。',

@@ -33,6 +33,7 @@ export interface HelpModalOptions {
 export interface HelpModalHandle {
   readonly element: HTMLElement;
   readonly settingsContainer: HTMLElement | null;
+  readonly buildInfoContainer: HTMLElement | null;
   open(): void;
   close(): void;
   toggle(force?: boolean): void;
@@ -228,6 +229,12 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
     modal.appendChild(sectionWrapper);
   });
 
+  const buildInfoContainer = document.createElement('div');
+  buildInfoContainer.className = 'help-modal__build-info';
+  buildInfoContainer.setAttribute('role', 'note');
+  buildInfoContainer.hidden = true;
+  modal.appendChild(buildInfoContainer);
+
   backdrop.appendChild(modal);
   container.appendChild(backdrop);
 
@@ -371,6 +378,7 @@ export function createHelpModal(options: HelpModalOptions): HelpModalHandle {
   const handleResult: HelpModalHandle = {
     element: modal,
     settingsContainer,
+    buildInfoContainer,
     open: openModal,
     close: closeModal,
     toggle: toggleModal,

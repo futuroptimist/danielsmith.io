@@ -16,10 +16,42 @@ components.
 - Helm chart version: immutable; bump `charts/danielsmith/Chart.yaml` when chart content changes
 - Runtime: nginx static-site container listening on port `8080`
 - Health endpoints: `/livez` and `/healthz`
+- Runtime build info: `/runtime/build-info.json` served by nginx, rendered by Helm from the
+  deploy-time ingress host and chart `AppVersion`
 - Optional runtime GitHub metrics cache: `/runtime/github-metrics.json` served by nginx
 
 Cloudflare DNS, tunnel, and route setup are separate from Helm deployment. Confirm those routes
 outside this app repo before expecting the public hostnames to resolve.
+
+## Runtime build-info contract
+
+The chart renders `/runtime/build-info.json` into a ConfigMap and mounts it into nginx for every
+Sugarkube deployment. The browser reads this JSON to show the Settings & Help footer release
+identity. Because the same immutable image is promoted from staging to production, this file is
+resolved at deploy time rather than baked into the Vite build.
+
+The JSON contract is:
+
+- `schemaVersion: 1`
+- `environment`: `staging`, `prod`, or `dev`, derived from the deployed ingress host
+- `tag`: staging shows the immutable image tag (`main-<shortsha>`); production shows the semver
+  chart application version (`v<Chart.AppVersion>`)
+
+When chart behavior changes, bump `charts/danielsmith/Chart.yaml` so production's displayed version
+advances with the published Helm chart. The deployment template includes a `checksum/build-info` pod
+annotation, so changing only the ingress host, image tag, or chart app version still rolls pods and
+refreshes the mounted file. After staging or production deploys, validate the public file alongside
+health checks:
+
+```bash
+curl -fsS https://staging.danielsmith.io/runtime/build-info.json
+curl -fsS https://danielsmith.io/runtime/build-info.json
+```
+
+Expected staging output includes `"environment":"staging"` and `"tag":"main-<shortsha>"` for the
+selected immutable image. Expected production output includes `"environment":"prod"` and a semver
+`"tag":"v<Chart.AppVersion>"`. Treat stale or mismatched values as release blockers because the
+Settings & Help footer uses this endpoint as operator-visible release identity.
 
 ## Runtime GitHub metrics cache
 
@@ -159,6 +191,7 @@ status codes, headers, final URLs, and resume contract in one repeatable artifac
 ```bash
 curl -fsS https://staging.danielsmith.io/livez
 curl -fsS https://staging.danielsmith.io/healthz
+curl -fsS https://staging.danielsmith.io/runtime/build-info.json
 curl -fsS https://staging.danielsmith.io/
 ```
 
@@ -214,6 +247,7 @@ Legacy curl probes remain useful for triage:
 ```bash
 curl -fsS https://danielsmith.io/livez
 curl -fsS https://danielsmith.io/healthz
+curl -fsS https://danielsmith.io/runtime/build-info.json
 curl -fsS https://danielsmith.io/
 ```
 

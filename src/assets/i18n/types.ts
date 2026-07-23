@@ -221,6 +221,10 @@ export interface LocaleToggleStrings {
   failureAnnouncementTemplate: string;
 }
 
+export interface HelpModalBuildInfoStrings {
+  ariaLabel: string;
+}
+
 export interface HelpModalStrings {
   heading: string;
   description: string;
@@ -228,6 +232,7 @@ export interface HelpModalStrings {
   closeAriaLabel: string;
   settings: HelpModalSettingsStrings;
   sections: readonly HelpModalSectionStrings[];
+  buildInfo: HelpModalBuildInfoStrings;
   announcements: {
     open: string;
     close: string;
