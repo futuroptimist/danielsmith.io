@@ -22,10 +22,14 @@ const normalizeBuildInfo = (value: unknown): BuildInfo | null => {
   if (!isBuildInfoEnvironment(value.environment)) {
     return null;
   }
-  if (typeof value.tag !== 'string' || value.tag.trim().length === 0) {
+  if (typeof value.tag !== 'string') {
     return null;
   }
-  return { environment: value.environment, tag: value.tag };
+  const tag = value.tag.trim();
+  if (tag.length === 0) {
+    return null;
+  }
+  return { environment: value.environment, tag };
 };
 
 export async function fetchBuildInfo(

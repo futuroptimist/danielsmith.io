@@ -23,6 +23,22 @@ describe('fetchBuildInfo', () => {
     );
   });
 
+  it('trims surrounding whitespace from a valid tag', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 1,
+        environment: 'prod',
+        tag: '  v0.1.2\n',
+      }),
+    });
+
+    await expect(fetchBuildInfo(fetchImpl)).resolves.toEqual({
+      environment: 'prod',
+      tag: 'v0.1.2',
+    });
+  });
+
   it('returns null when the response is not ok', async () => {
     const fetchImpl = vi.fn().mockResolvedValue({ ok: false });
     await expect(fetchBuildInfo(fetchImpl)).resolves.toBeNull();
