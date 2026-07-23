@@ -24,6 +24,7 @@
     "test:e2e": "playwright test",
     "links:check": "node scripts/check-links.cjs",
     "helm:cache:test": "node scripts/check-helm-github-metrics-cache.cjs",
+    "helm:build-info:test": "node scripts/check-helm-build-info.cjs",
     "collider:inspect": "tsx scripts/colliderInspect.ts",
     "collider:audit:geometry": "tsx scripts/colliderGeometryAudit.ts",
     "collider:audit:reachability": "tsx scripts/colliderReachabilityAudit.ts",

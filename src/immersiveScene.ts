@@ -368,6 +368,10 @@ import {
   createFootstepBuffer,
 } from './systems/audio/proceduralBuffers';
 import {
+  fetchBuildInfo,
+  type BuildInfo,
+} from './systems/buildInfo/buildInfoService';
+import {
   applyPinchCameraZoom,
   applyCameraZoomStep,
   applyWheelCameraZoomStep,
@@ -3632,6 +3636,24 @@ export function initializeImmersiveScene(
     container: document.body,
     content: helpModalStrings,
   });
+  let latestBuildInfo: BuildInfo | null = null;
+  const applyBuildInfoLabel = () => {
+    const container = helpModal.buildInfoContainer;
+    if (!container || !latestBuildInfo) {
+      return;
+    }
+    const label = `${latestBuildInfo.environment} ${latestBuildInfo.tag}`;
+    container.textContent = label;
+    container.setAttribute(
+      'aria-label',
+      `${helpModalStrings.buildInfo.ariaLabel}: ${label}`
+    );
+    container.hidden = false;
+  };
+  void fetchBuildInfo().then((info) => {
+    latestBuildInfo = info;
+    applyBuildInfoLabel();
+  });
   let tutorialStorage: Storage | null = null;
   try {
     tutorialStorage = window.localStorage;
@@ -4193,6 +4215,7 @@ export function initializeImmersiveScene(
     );
     softwareRendererWarning?.setStrings(softwareRendererWarningStrings);
     helpModal.setContent(helpModalStrings);
+    applyBuildInfoLabel();
     tutorialPanel.setStrings(tutorialPanelStrings);
     hudCustomizationSection?.setStrings(hudCustomizationStrings);
     graphicsQualityControl?.setStrings({

@@ -319,4 +319,21 @@ describe('createHelpModal', () => {
       arabicContent.sections[0].items[0].label
     );
   });
+
+  it('renders a hidden build-info footer as the last child of the panel', () => {
+    const handle = createHelpModal({
+      container: document.body,
+      content: cloneContent(),
+    });
+
+    expect(handle.buildInfoContainer).toBeInstanceOf(HTMLElement);
+    expect(handle.buildInfoContainer?.hidden).toBe(true);
+    expect(handle.element.lastElementChild).toBe(handle.buildInfoContainer);
+
+    handle.buildInfoContainer!.textContent = 'staging main-af1cabad';
+    handle.buildInfoContainer!.hidden = false;
+    expect(handle.buildInfoContainer?.textContent).toBe(
+      'staging main-af1cabad'
+    );
+  });
 });

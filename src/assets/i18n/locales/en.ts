@@ -633,6 +633,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
           ],
         },
       ],
+      buildInfo: {
+        ariaLabel: 'App build',
+      },
       announcements: {
         open: 'Help menu opened. Review controls and settings.',
         close: 'Help menu closed.',
