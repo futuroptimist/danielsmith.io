@@ -139,6 +139,9 @@ describe('PoiTooltipOverlay', () => {
       root.querySelector('.poi-tooltip-overlay__environments-label')
         ?.textContent
     ).toBe('Environments');
+    expect(root.getAttribute('aria-describedby')?.split(' ')).toContain(
+      section?.id
+    );
   });
 
   it('omits the environment section when no verified destinations exist', () => {

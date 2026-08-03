@@ -186,6 +186,7 @@ export class PoiTooltipOverlay {
 
     this.environmentsSection = documentTarget.createElement('div');
     this.environmentsSection.className = 'poi-tooltip-overlay__environments';
+    this.environmentsSection.id = `${this.instanceId}-environments-section`;
     this.environmentsLabel = documentTarget.createElement('h3');
     this.environmentsLabel.className =
       'poi-tooltip-overlay__environments-label';
@@ -341,7 +342,7 @@ export class PoiTooltipOverlay {
       describedByIds.push(this.linksList.id);
     }
     if (!this.environmentsSection.hidden) {
-      describedByIds.push(this.environmentsLabel.id);
+      describedByIds.push(this.environmentsSection.id);
     }
     if (!this.debugDetails.hidden) {
       describedByIds.push(this.debugDetails.id);
