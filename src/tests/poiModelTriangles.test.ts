@@ -113,6 +113,8 @@ describe('POI model triangle registry', () => {
     const staleCounterName = ['countPoiModel', 'Triangles'].join('');
 
     expect(immersiveSceneSource).not.toContain(staleCounterName);
+    expect(immersiveSceneSource).not.toContain('formattedTriangles');
+    expect(immersiveSceneSource).not.toContain("label: 'Model'");
     expect(immersiveSceneSource).toContain(
       'modelTriangles: getPoiModelTriangleCount(definition.id) ?? 0'
     );

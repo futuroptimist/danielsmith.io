@@ -2805,23 +2805,6 @@ export function initializeImmersiveScene(
       wallNetworkEndpoint: wallEndpoint,
     });
     addPoiStructure(sugarkubePoi, deployment.group);
-    const triangleCount = getPoiModelTriangleCount(sugarkubePoi.definition.id);
-    if (triangleCount !== null) {
-      const formattedTriangles = new Intl.NumberFormat(undefined, {
-        maximumFractionDigits: 0,
-      }).format(triangleCount);
-      const modelMetric = sugarkubePoi.definition.metrics?.find(
-        (metric) => metric.label === 'Model'
-      );
-      if (modelMetric) {
-        modelMetric.value = `${formattedTriangles} triangles`;
-      } else {
-        sugarkubePoi.definition.metrics = [
-          ...(sugarkubePoi.definition.metrics ?? []),
-          { label: 'Model', value: `${formattedTriangles} triangles` },
-        ];
-      }
-    }
     deployment.colliders.forEach((collider) =>
       getPoiColliderTarget(sugarkubePoi).push(collider)
     );
