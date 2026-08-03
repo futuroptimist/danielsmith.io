@@ -405,7 +405,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/validation.ts'],
     syncRevision: 2,
-    syncNote: 'Environment metadata validation changed; miniature geometry is unchanged.',
+    syncNote:
+      'Environment metadata validation changed; miniature geometry is unchanged.',
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },
