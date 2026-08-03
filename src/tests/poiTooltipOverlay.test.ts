@@ -234,11 +234,17 @@ describe('PoiTooltipOverlay', () => {
     overlay.setHovered(sugarkube!);
 
     const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const metricRows = Array.from(
+      root.querySelectorAll('.poi-tooltip-overlay__metric')
+    );
     expect(
-      Array.from(root.querySelectorAll('.poi-tooltip-overlay__metric')).some(
+      metricRows.some(
         (metric) =>
-          metric.textContent?.includes('Model') ||
-          metric.textContent?.includes('triangles')
+          metric.querySelector('.poi-tooltip-overlay__metric-label')
+            ?.textContent === 'Model' ||
+          metric
+            .querySelector('.poi-tooltip-overlay__metric-value')
+            ?.textContent?.includes('triangles')
       )
     ).toBe(false);
     expect(root.querySelector('[data-poi-debug]')).toHaveProperty(
