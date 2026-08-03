@@ -543,6 +543,14 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       debugDetailsLabel: wrap('Debug details'),
       debugPoiAnchor: wrap('POI anchor'),
       debugModelTriangles: wrap('Model triangles'),
+      environments: wrap('Environments'),
+      environmentLabels: {
+        staging: wrap('Staging'),
+        production: wrap('Production'),
+      },
+      environmentLinkAriaTemplate: wrap(
+        'Open {environment} environment for {title}'
+      ),
       discoveryAnnouncementTemplate: wrap('{title} discovered. {summary}'),
     },
     tutorialPanel: {

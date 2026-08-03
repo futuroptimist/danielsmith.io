@@ -2106,12 +2106,72 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 }
 
 .poi-tooltip-overlay__metrics,
-.poi-tooltip-overlay__links {
+.poi-tooltip-overlay__links,
+.poi-tooltip-overlay__environment-list {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
   gap: 0.45rem;
+}
+
+.poi-tooltip-overlay__environments {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.poi-tooltip-overlay__environments[hidden] {
+  display: none;
+}
+
+.poi-tooltip-overlay__environments-label {
+  margin: 0;
+  color: rgba(141, 217, 255, 0.98);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.poi-tooltip-overlay__environment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.poi-tooltip-overlay__environment {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.62rem;
+  border: 1px solid rgba(143, 214, 255, 0.42);
+  border-radius: 999px;
+  color: #bcecff;
+  background: rgba(61, 201, 255, 0.14);
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.poi-tooltip-overlay__environment--production {
+  border-color: rgba(144, 255, 204, 0.42);
+  color: #b7ffda;
+  background: rgba(90, 255, 177, 0.12);
+}
+
+.poi-tooltip-overlay__environment:hover,
+.poi-tooltip-overlay__environment:focus-visible {
+  border-color: rgba(255, 255, 255, 0.82);
+  color: #ffffff;
+  background: rgba(143, 214, 255, 0.26);
+  outline: none;
+}
+
+.poi-tooltip-overlay__environment:focus-visible {
+  box-shadow: 0 0 0 3px rgba(143, 214, 255, 0.46);
 }
 
 .poi-tooltip-overlay__metric {

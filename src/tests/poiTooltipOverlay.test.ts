@@ -112,6 +112,46 @@ describe('PoiTooltipOverlay', () => {
     container.remove();
   });
 
+  it('renders verified environment badges as accessible external links', () => {
+    overlay.setHovered({
+      ...basePoi,
+      environments: [
+        { id: 'staging', href: 'https://staging.example.test' },
+        { id: 'production', href: 'https://example.test' },
+      ],
+    });
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const section = root.querySelector('.poi-tooltip-overlay__environments');
+    const links = root.querySelectorAll<HTMLAnchorElement>(
+      '.poi-tooltip-overlay__environment'
+    );
+    expect(section?.getAttribute('hidden')).toBe(null);
+    expect(links).toHaveLength(2);
+    expect(links[0]?.textContent).toBe('Staging');
+    expect(links[0]?.href).toBe('https://staging.example.test/');
+    expect(links[0]?.target).toBe('_blank');
+    expect(links[0]?.rel).toBe('noopener noreferrer');
+    expect(links[0]?.getAttribute('aria-label')).toBe(
+      'Open Staging environment for Futuroptimist'
+    );
+    expect(
+      root.querySelector('.poi-tooltip-overlay__environments-label')
+        ?.textContent
+    ).toBe('Environments');
+    expect(root.getAttribute('aria-describedby')?.split(' ')).toContain(
+      section?.id
+    );
+  });
+
+  it('omits the environment section when no verified destinations exist', () => {
+    overlay.setHovered(basePoi);
+    const section = container.querySelector(
+      '.poi-tooltip-overlay__environments'
+    ) as HTMLElement;
+    expect(section.hidden).toBe(true);
+  });
+
   it('renders hovered POI metadata and exposes links', () => {
     overlay.setHovered(basePoi);
 

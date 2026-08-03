@@ -16,6 +16,13 @@ export type PoiId =
 
 export type PoiCategory = 'project' | 'environment';
 
+export type PoiEnvironmentId = 'staging' | 'production';
+
+export interface PoiEnvironment {
+  id: PoiEnvironmentId;
+  href: string;
+}
+
 export type PoiInteraction = 'inspect' | 'activate';
 
 export interface PoiMetricGitHubStarsSource {
@@ -123,6 +130,8 @@ export interface PoiDefinition {
   outcome?: PoiOutcome;
   metrics?: PoiMetric[];
   links?: PoiLink[];
+  /** Verified public deployment destinations; omitted when no URL is established. */
+  environments?: PoiEnvironment[];
   /** Optional note to surface prototype status in tooltips. */
   status?: 'prototype' | 'live';
   pedestal?: PoiPedestalConfig;

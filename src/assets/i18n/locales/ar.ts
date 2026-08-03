@@ -415,6 +415,9 @@ export const AR_OVERRIDES: LocaleOverrides = {
       debugDetailsLabel: 'Debug details',
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
+      environments: 'البيئات',
+      environmentLabels: { staging: 'الاختبار', production: 'الإنتاج' },
+      environmentLinkAriaTemplate: 'فتح بيئة {environment} للمشروع {title}',
       discoveryAnnouncementTemplate: 'تم اكتشاف {title}. {summary}',
     },
     tutorialPanel: {

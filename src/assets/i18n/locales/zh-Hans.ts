@@ -422,6 +422,9 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       debugDetailsLabel: 'Debug details',
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
+      environments: '环境',
+      environmentLabels: { staging: '预发布', production: '生产' },
+      environmentLinkAriaTemplate: '打开 {title} 的{environment}环境',
       discoveryAnnouncementTemplate: '已发现 {title}。{summary}',
     },
     tutorialPanel: {

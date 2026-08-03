@@ -424,6 +424,9 @@ export const JA_OVERRIDES: LocaleOverrides = {
       debugDetailsLabel: 'Debug details',
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
+      environments: '環境',
+      environmentLabels: { staging: 'ステージング', production: '本番' },
+      environmentLinkAriaTemplate: '{title} の {environment} 環境を開く',
       discoveryAnnouncementTemplate: '{title} を発見しました。{summary}',
     },
     lowFpsRecovery: {

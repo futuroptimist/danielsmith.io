@@ -528,6 +528,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       debugDetailsLabel: 'Debug details',
       debugPoiAnchor: 'POI anchor',
       debugModelTriangles: 'Model triangles',
+      environments: 'Environments',
+      environmentLabels: { staging: 'Staging', production: 'Production' },
+      environmentLinkAriaTemplate: 'Open {environment} environment for {title}',
       discoveryAnnouncementTemplate: '{title} discovered. {summary}',
     },
 
@@ -707,6 +710,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
         { label: 'Security', value: 'API v1 relay-blind E2EE baseline' },
       ],
+      environments: [
+        { id: 'staging', href: 'https://staging.token.place' },
+        { id: 'production', href: 'https://token.place' },
+      ],
       links: [
         { label: 'Site', href: 'https://token.place' },
         {
@@ -813,6 +820,9 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         { label: 'Stack', value: 'Node.js 20+ · npm scripts' },
         { label: 'Safety', value: 'Local-only warning for secrets and PII' },
       ],
+      environments: [
+        { id: 'staging', href: 'https://staging.jobbot3000.tech' },
+      ],
       links: [
         {
           label: 'GitHub',
@@ -911,6 +921,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
         { label: 'Stack', value: 'Vite · Three.js · accessibility HUD' },
         { label: 'Deploy', value: 'CI smoke + docs + lint gates' },
+      ],
+      environments: [
+        { id: 'staging', href: 'https://staging.danielsmith.io' },
+        { id: 'production', href: 'https://danielsmith.io' },
       ],
       links: [
         { label: 'Live Site', href: 'https://danielsmith.io' },
@@ -1041,6 +1055,10 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
         { label: 'Game', value: 'Resource management · quests · exploration' },
         { label: 'Docs', value: 'Public docs and developer guide' },
+      ],
+      environments: [
+        { id: 'staging', href: 'https://staging.democratized.space' },
+        { id: 'production', href: 'https://democratized.space' },
       ],
       links: [
         {
