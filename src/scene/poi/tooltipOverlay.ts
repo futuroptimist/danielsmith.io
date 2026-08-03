@@ -46,6 +46,7 @@ const getPoiRenderContentKey = (poi: PoiDefinition): string =>
     outcome: poi.outcome ?? null,
     metrics: poi.metrics ?? [],
     links: poi.links ?? [],
+    environments: poi.environments ?? [],
   });
 
 export class PoiTooltipOverlay {
@@ -58,6 +59,9 @@ export class PoiTooltipOverlay {
   private readonly outcomeValue: HTMLSpanElement;
   private readonly metricsList: HTMLUListElement;
   private readonly linksList: HTMLUListElement;
+  private readonly environmentsSection: HTMLDivElement;
+  private readonly environmentsLabel: HTMLHeadingElement;
+  private readonly environmentsList: HTMLUListElement;
   private readonly debugDetails: HTMLDListElement;
   private readonly statusBadge: HTMLSpanElement;
   private readonly visitedBadge: HTMLSpanElement;
@@ -179,6 +183,17 @@ export class PoiTooltipOverlay {
     this.linksList.id = `${this.instanceId}-links`;
     this.linksList.setAttribute('aria-label', this.strings.relatedCaseStudies);
     this.root.appendChild(this.linksList);
+
+    this.environmentsSection = documentTarget.createElement('div');
+    this.environmentsSection.className = 'poi-tooltip-overlay__environments';
+    this.environmentsLabel = documentTarget.createElement('h3');
+    this.environmentsLabel.className =
+      'poi-tooltip-overlay__environments-label';
+    this.environmentsSection.appendChild(this.environmentsLabel);
+    this.environmentsList = documentTarget.createElement('ul');
+    this.environmentsList.className = 'poi-tooltip-overlay__environment-list';
+    this.environmentsSection.appendChild(this.environmentsList);
+    this.root.appendChild(this.environmentsSection);
 
     this.debugDetails = documentTarget.createElement('dl');
     this.debugDetails.className = 'poi-tooltip-overlay__debug';
@@ -325,6 +340,9 @@ export class PoiTooltipOverlay {
     if (!this.linksList.hidden) {
       describedByIds.push(this.linksList.id);
     }
+    if (!this.environmentsSection.hidden) {
+      describedByIds.push(this.environmentsLabel.id);
+    }
     if (!this.debugDetails.hidden) {
       describedByIds.push(this.debugDetails.id);
     }
@@ -382,6 +400,7 @@ export class PoiTooltipOverlay {
     this.renderOutcome(poi);
     this.renderMetrics(poi);
     this.renderLinks(poi);
+    this.renderEnvironments(poi);
   }
 
   private renderOutcome(poi: PoiDefinition) {
@@ -488,6 +507,38 @@ export class PoiTooltipOverlay {
       detail.dataset.poiDebugTriangles = 'true';
     }
     this.debugDetails.append(term, detail);
+  }
+
+  private renderEnvironments(poi: PoiDefinition) {
+    this.environmentsList.innerHTML = '';
+    const environments = poi.environments ?? [];
+    this.environmentsSection.hidden = environments.length === 0;
+    if (environments.length === 0) {
+      return;
+    }
+
+    this.environmentsLabel.id = `${this.instanceId}-environments`;
+    this.environmentsLabel.textContent = this.strings.environments;
+    for (const environment of environments) {
+      const item = document.createElement('li');
+      item.className = 'poi-tooltip-overlay__environment-item';
+      const anchor = document.createElement('a');
+      anchor.className = `poi-tooltip-overlay__environment poi-tooltip-overlay__environment--${environment.id}`;
+      anchor.href = environment.href;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      const label = this.strings.environmentLabels[environment.id];
+      anchor.textContent = label;
+      anchor.setAttribute(
+        'aria-label',
+        formatMessage(this.strings.environmentLinkAriaTemplate, {
+          environment: label,
+          title: poi.title,
+        })
+      );
+      item.appendChild(anchor);
+      this.environmentsList.appendChild(item);
+    }
   }
 
   private renderLinks(poi: PoiDefinition) {

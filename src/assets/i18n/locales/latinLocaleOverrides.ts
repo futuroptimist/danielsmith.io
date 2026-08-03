@@ -1354,6 +1354,40 @@ export function buildLatinLocaleOverrides(
         debugDetailsLabel: 'Debug details',
         debugPoiAnchor: 'POI anchor',
         debugModelTriangles: 'Model triangles',
+        environments:
+          copy.locale === 'de'
+            ? 'Umgebungen'
+            : copy.locale === 'hu'
+              ? 'Környezetek'
+              : copy.locale === 'pt'
+                ? 'Ambientes'
+                : 'Entornos',
+        environmentLabels: {
+          staging:
+            copy.locale === 'de'
+              ? 'Staging'
+              : copy.locale === 'hu'
+                ? 'Staging'
+                : copy.locale === 'pt'
+                  ? 'Staging'
+                  : 'Staging',
+          production:
+            copy.locale === 'de'
+              ? 'Produktion'
+              : copy.locale === 'hu'
+                ? 'Éles'
+                : copy.locale === 'pt'
+                  ? 'Produção'
+                  : 'Producción',
+        },
+        environmentLinkAriaTemplate:
+          copy.locale === 'de'
+            ? '{environment}-Umgebung für {title} öffnen'
+            : copy.locale === 'hu'
+              ? '{title} {environment} környezetének megnyitása'
+              : copy.locale === 'pt'
+                ? 'Abrir o ambiente {environment} de {title}'
+                : 'Abrir el entorno {environment} de {title}',
       },
       helpModal: {
         heading: s.settingsHelp,

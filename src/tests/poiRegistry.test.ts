@@ -11,6 +11,37 @@ import {
 describe('POI registry', () => {
   const pois = getPoiDefinitions();
 
+  it('uses the verified deployment matrix without implying unsupported environments', () => {
+    const environments = new Map(
+      pois.map((poi) => [
+        poi.id,
+        (poi.environments ?? []).map((environment) => [
+          environment.id,
+          environment.href,
+        ]),
+      ])
+    );
+
+    expect(environments.get('dspace-backyard-rocket')).toEqual([
+      ['staging', 'https://staging.democratized.space'],
+      ['production', 'https://democratized.space'],
+    ]);
+    expect(environments.get('tokenplace-studio-cluster')).toEqual([
+      ['staging', 'https://staging.token.place'],
+      ['production', 'https://token.place'],
+    ]);
+    expect(environments.get('danielsmith-portfolio-table')).toEqual([
+      ['staging', 'https://staging.danielsmith.io'],
+      ['production', 'https://danielsmith.io'],
+    ]);
+    expect(environments.get('jobbot-studio-terminal')).toEqual([
+      ['staging', 'https://staging.jobbot3000.tech'],
+    ]);
+    expect(
+      [...environments.values()].filter((entries) => entries.length > 0)
+    ).toHaveLength(4);
+  });
+
   it('uses unique identifiers', () => {
     const ids = pois.map((poi) => poi.id);
     const uniqueIds = new Set(ids);

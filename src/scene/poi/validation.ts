@@ -20,6 +20,14 @@ export type PoiValidationIssue =
       position: { x: number; z: number };
     }
   | { type: 'overlap'; poiId: PoiId; otherPoiId: PoiId }
+  | { type: 'invalid-environment-url'; poiId: PoiId; environment: string }
+  | { type: 'duplicate-environment'; poiId: PoiId; environment: string }
+  | { type: 'unsupported-environment'; poiId: PoiId; environment: string }
+  | {
+      type: 'missing-metadata';
+      poiId: PoiId;
+      field: 'outcome' | 'metrics' | 'links';
+    }
   | {
       type: 'doorway-blocked';
       poiId: PoiId;
@@ -119,6 +127,47 @@ export function validatePoiDefinitions(
     }
 
     const roomEntry = roomLookup.get(definition.roomId);
+    for (const [field, value] of [
+      ['outcome', definition.outcome],
+      ['metrics', definition.metrics],
+      ['links', definition.links],
+    ] as const) {
+      if (value === undefined) {
+        issues.push({ type: 'missing-metadata', poiId: definition.id, field });
+      }
+    }
+
+    const seenEnvironments = new Set<string>();
+    for (const environment of definition.environments ?? []) {
+      if (seenEnvironments.has(environment.id)) {
+        issues.push({
+          type: 'duplicate-environment',
+          poiId: definition.id,
+          environment: environment.id,
+        });
+      }
+      seenEnvironments.add(environment.id);
+      if (environment.id !== 'staging' && environment.id !== 'production') {
+        issues.push({
+          type: 'unsupported-environment',
+          poiId: definition.id,
+          environment: environment.id,
+        });
+      }
+      try {
+        const url = new URL(environment.href);
+        if (url.protocol !== 'https:') {
+          throw new Error('HTTPS required');
+        }
+      } catch {
+        issues.push({
+          type: 'invalid-environment-url',
+          poiId: definition.id,
+          environment: environment.id,
+        });
+      }
+    }
+
     if (!roomEntry) {
       issues.push({
         type: 'invalid-room',

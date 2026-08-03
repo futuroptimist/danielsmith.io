@@ -36,6 +36,46 @@ describe('validatePoiDefinitions', () => {
     expect(issues).toHaveLength(0);
   });
 
+  it('requires standardized metadata collections', () => {
+    const incomplete = clonePoi({
+      outcome: undefined,
+      metrics: undefined,
+      links: undefined,
+    });
+    const issues = validatePoiDefinitions([incomplete], {
+      floorPlanLevels: FLOOR_PLAN_LEVELS,
+    });
+    expect(issues).toEqual(
+      expect.arrayContaining([
+        { type: 'missing-metadata', poiId: incomplete.id, field: 'outcome' },
+        { type: 'missing-metadata', poiId: incomplete.id, field: 'metrics' },
+        { type: 'missing-metadata', poiId: incomplete.id, field: 'links' },
+      ])
+    );
+  });
+
+  it('validates verified environment destinations', () => {
+    const invalid = clonePoi({
+      environments: [
+        { id: 'staging', href: 'http://staging.example.test' },
+        { id: 'staging', href: 'https://duplicate.example.test' },
+      ],
+    });
+    const issues = validatePoiDefinitions([invalid], {
+      floorPlanLevels: FLOOR_PLAN_LEVELS,
+    });
+    expect(issues).toContainEqual({
+      type: 'invalid-environment-url',
+      poiId: invalid.id,
+      environment: 'staging',
+    });
+    expect(issues).toContainEqual({
+      type: 'duplicate-environment',
+      poiId: invalid.id,
+      environment: 'staging',
+    });
+  });
+
   it('detects duplicate identifiers', () => {
     const duplicate: PoiDefinition = {
       ...baseDefinitions[1],

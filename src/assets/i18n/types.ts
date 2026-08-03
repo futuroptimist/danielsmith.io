@@ -1,6 +1,7 @@
 import type {
   PoiId,
   PoiInteraction,
+  PoiEnvironment,
   PoiMetricSource,
   PoiOutcome,
 } from '../../scene/poi/types';
@@ -357,6 +358,9 @@ export interface PoiOverlayChromeStrings {
   debugDetailsLabel: string;
   debugPoiAnchor: string;
   debugModelTriangles: string;
+  environments: string;
+  environmentLabels: Record<PoiEnvironment['id'], string>;
+  environmentLinkAriaTemplate: string;
 }
 
 export type StructuredDataEntityType = 'Person' | 'Organization';
@@ -460,6 +464,7 @@ export interface PoiCopy {
     source?: PoiMetricSource;
   }>;
   links?: ReadonlyArray<{ label: string; href: string }>;
+  environments?: ReadonlyArray<PoiEnvironment>;
   interactionPrompt?: string;
 }
 
