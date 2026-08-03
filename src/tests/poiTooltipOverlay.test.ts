@@ -225,6 +225,42 @@ describe('PoiTooltipOverlay', () => {
     expect(root.getAttribute('aria-describedby')).not.toContain('debug');
   });
 
+  it('keeps Sugarkube triangles out of metadata while exposing debug details', () => {
+    const sugarkube = getPoiDefinitions().find(
+      (poi) => poi.id === 'sugarkube-backyard-greenhouse'
+    );
+    expect(sugarkube).toBeDefined();
+
+    overlay.setHovered(sugarkube!);
+
+    const root = container.querySelector('.poi-tooltip-overlay') as HTMLElement;
+    const metricRows = Array.from(
+      root.querySelectorAll('.poi-tooltip-overlay__metric')
+    );
+    expect(
+      metricRows.some(
+        (metric) =>
+          metric.querySelector('.poi-tooltip-overlay__metric-label')
+            ?.textContent === 'Model' ||
+          metric
+            .querySelector('.poi-tooltip-overlay__metric-value')
+            ?.textContent?.includes('triangles')
+      )
+    ).toBe(false);
+    expect(root.querySelector('[data-poi-debug]')).toHaveProperty(
+      'hidden',
+      true
+    );
+
+    overlay.setDebugDetailsEnabled(true);
+
+    expect(root.querySelector('[data-poi-debug]')).toHaveProperty(
+      'hidden',
+      false
+    );
+    expect(root.querySelector('[data-poi-debug-triangles]')).toBeTruthy();
+  });
+
   it('toggles localized anchor and triangle debug details immediately', () => {
     overlay.dispose();
     let modelTriangles = 1234;
