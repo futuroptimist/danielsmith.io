@@ -313,21 +313,21 @@
       "id": "audit:src:scene:poi:tooltipOverlay",
       "sourceFiles": ["src/scene/poi/tooltipOverlay.ts"],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "Review cleanup only restores scene disposal and removes stale overlay copy; miniature geometry is unchanged.",
-      "sourceFingerprint": "e646faf6bf9c5da92a54e2b02b1388b2611c525126a592486d9da8a3fcb50f8b",
+      "syncRevision": 4,
+      "syncNote": "Environment links were added to the overlay; miniature geometry is unchanged.",
+      "sourceFingerprint": "43d94523a9efd9f195ddaad44c7857a0da55ef75074fc7c80e83d3cb5b24bd11",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "4404dc24dec3a3836d93ea9d795c58ffdfe6ce929ce6bcae2100a11210c2e080"
+      "metadataFingerprint": "14c514f4ff8449f97b28acec1902cf0434e4e47f41413111e4beade8f6bbdefa"
     },
     {
       "id": "audit:src:scene:poi:validation",
       "sourceFiles": ["src/scene/poi/validation.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "474fb2836596df62b02babaa96df9b93a775088b491b6d32b32c80aa582743f1",
+      "syncRevision": 2,
+      "syncNote": "Environment metadata validation changed; miniature geometry is unchanged.",
+      "sourceFingerprint": "feb19714dc47971022af7e961efc508f3199a07db57b72899fba76207ac4de5b",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "5b426e1a59e647744df925b6dc872637a8fda306e6f65ace1091e61b90c4d8f3"
+      "metadataFingerprint": "85264bcf91639943dae99ef6e0344deca6724783e78df523d17441bc38c04474"
     },
     {
       "id": "audit:src:scene:poi:visitedState",
@@ -501,11 +501,11 @@
         "src/scene/structures/axelNavigator.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 9,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "5e821e509471fd2acd2e6aed5db113e5f811a892f7cda64939797aa47c4ff4ab",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "cdd056b10ee531daf1a7ec36525b938cbf44fa7edcfd78330c45d6bec1c251c2"
+      "syncRevision": 10,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "961caad0f818c1f26079fdbe669037fa83e5c8d5fe9bedc452b50ac7bc7cd773",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "11711f5e09e500c393d8dd36548b601fb194091e4b32a7b4eee5b38b87d8f9f6"
     },
     {
       "id": "poi:danielsmith-portfolio-table",
@@ -521,11 +521,11 @@
         "src/scene/miniature/poiProxyRegistry.ts",
         "src/scene/structures/portfolioMiniatureTable.ts"
       ],
-      "syncRevision": 8,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "98b6fa1ada7091307fb7cd5facd6540181cb6ca6e0b9da70126e62668dd41373",
-      "proxyFingerprint": "fc48fd2c47ae5b2b172229494717d5b53d534342ea4db57e7ee9ebb57a83ad03",
-      "metadataFingerprint": "0715d6648645d1da7685d58e3b11981006202e5c53acd6e4053566a6749e03ee"
+      "syncRevision": 9,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "cead9fbb202897b974fd80b54764f400b2151b5fa5fd15cbb375383ee4ed1684",
+      "proxyFingerprint": "5296fe1f8b374c5c5e71b79f358b044bc14f7e1af9112d5d50a6d499b58a70ec",
+      "metadataFingerprint": "957d6ae091597a4ae328777cae928273f76f2052f71f2204dc7713d7bf1932f9"
     },
     {
       "id": "poi:dspace-backyard-rocket",
@@ -536,11 +536,11 @@
         "src/scene/structures/modelRocket.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "618b035f4ba492e0e0d96e309ed25a41e7f827b41f7f6b75c508f1e2d5033921",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "140c2ac05c957840f74c4bcc02fe9fac9c7f6a95b3477cf1c53bf51c6c3c2b9f"
+      "syncRevision": 12,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "0b4c38308193a4a822399d3fe273f09d8278e402a847fb310b8499157fa7a26b",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "70a0f302744a260944d3c1e11693a6e6007aaa5b60e287933b817f3329da6d85"
     },
     {
       "id": "poi:f2clipboard-kitchen-console",
@@ -551,11 +551,11 @@
         "src/scene/structures/f2ClipboardConsole.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "2eceb72848c2f1bfd4b98a37f854d2ab3a025a145072c5baa7baf9575747e668",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "1b9ce5bedd8465755cb0513806022c500a18318b646982144875120245cd6af0"
+      "syncRevision": 12,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "3b65e93cdf9c529e9eb47d3eb67e64bec6c98109fc19d550399d28b7f6e893e6",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "f39c8e94093c0889bfd3220d35fcfbabc0708017ce9cce41b0ce21e03a42ec86"
     },
     {
       "id": "poi:flywheel-studio-flywheel",
@@ -568,11 +568,11 @@
         "src/scene/structures/flywheelEnergyNetwork.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 31,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "dbfe80401dbe55c154e98779e17fd9fae8fc47f7be0f92474015b9d00941849d",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "4a660bc2ed7ecabfb4772e84ba563af633956ea894d14d3e75954e1a966d65b9"
+      "syncRevision": 32,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "e2f81e3d990ef6cf788f3320aca9a87f60987a49980bb6a8087723573bacc1de",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "3608e396d9c36ba3f223862c8f658558c679226d456d420c8bde592195c67d36"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
@@ -583,11 +583,11 @@
         "src/scene/structures/mediaWall.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "7e7ffb83512b2fccace4dd55f8d732421c4323335d24b2da72b7b27b0ad83ecc",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "3f3f416d8e742ae34f265aa8988f6d579917b82627df6fcae8580f76183746e1"
+      "syncRevision": 9,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "fc716d739427a356552fbda2f1899e08c01bbdfba1f0ee12246d28a05e80fa95",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "d9ea558574e24df8b01911de5a82a8de0065ad6ede74a5869d1eb2cebd2c3614"
     },
     {
       "id": "poi:gabriel-studio-sentry",
@@ -598,11 +598,11 @@
         "src/scene/structures/gabrielSentry.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "b4f6a77803daef2f3706daea9eb68f5982ca9d1bc9b87b069fe5312cb182db73",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "9d020fccfc479022b4721516ccfdb6eeedc82b9be8349e63f5bcb2fa2ee10063"
+      "syncRevision": 12,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "cc6837d08017c747bda6662b5c63ce49641e29bde55c204cbd0f1785bcfada04",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "b8918ce67a15344882afee315f4fb4c773a9e306fb52ab2064366921beabee38"
     },
     {
       "id": "poi:gitshelves-living-room-installation",
@@ -613,11 +613,11 @@
         "src/scene/structures/gitshelves.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "c29042c83f04ba1df884266f851e40a51d0bf456cefdabe2a72110bf9ab5cd1d",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "f6d42f53e7e445197045ce0ef67c3b7ea243d551118f5c6010f55df2e411f173"
+      "syncRevision": 12,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "6c4de983b50fd559ae4b30217f7d7c051078e498422cb24a36663c90a772294a",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "7a4c88ed6fb59fb21dc818626f646b2676ed68aadecf09920e8de8a61779d3c0"
     },
     {
       "id": "poi:jobbot-studio-terminal",
@@ -628,11 +628,11 @@
         "src/scene/structures/jobbotTerminal.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 9,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "8131482624fa6d9b1f0bdf1cfcb94e14c13eb3a0dbf7260d7f96917ef96f75f3",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "7f687020bb4716f185ec07cdbc04e280b76a4102c9b9fdc22572ea8641a7ecef"
+      "syncRevision": 10,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "f9acd24ffb098b54c93568b01fcbb86f2c654e396482c5fd493525a1a9c41fe8",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "793baf3ec4077d50bcf64968a0e90e24d99f28776c7baa1fd28bc06422c0e8ef"
     },
     {
       "id": "poi:markers-labels",
@@ -663,11 +663,11 @@
         "src/ui/accessibility/animationPreferences.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 23,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "02d52b817f5f6abe5f240bd0d638c165e00cbd838be9dfdfcd9cdc46b8a8acb1",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "78c2a8491daec106f82aaa914e7a1ebcc6f61900d5b7714a4b49be59e03b46f5"
+      "syncRevision": 24,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "54dee88ea4ca89572ec7963a523368fa4247cb601118efd04c53b659cf540a5d",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "a71ef24c1869c2dcaec6833d0492195331cab08b88c3efb98c9e2757523096a5"
     },
     {
       "id": "poi:sigma-kitchen-workbench",
@@ -678,11 +678,11 @@
         "src/scene/structures/sigmaWorkbench.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "100d6919303a548f10bc81c071ae2893f946ed7d17d1a474e49cf85439de5c78",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "4e9a2870c5e30c4b9797d2bed1b99414f3521883d9b3a706e44b20ef5a421e53"
+      "syncRevision": 12,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "834e6f6dc34a0bd133b2445febb47536fcaa265a5eb9a5d249065447927f03d5",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "d942f9c5bb35a925176d98fda86de373ef71cadcaf458eff825b0b9366f608b5"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
@@ -693,11 +693,11 @@
         "src/scene/structures/sugarkubeDeployment.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "bbcc0fb9fae4cdfc09b3c00496118ec3a92dc0b786d0a8d5fc53a9c2b4eed39f",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "41b63d0df18a01992b7596a4a80be4a9444de708400851a9d075db7a5588514e"
+      "syncRevision": 9,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "e459cdd3355704b69597bbe10a18781229beb90dc776aa1677ea47120f476b2e",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "ee72e4e3f2522d6b757b89ee35d59fe7e6a3a0c32e5678a7e71d5b4e10cf4dbf"
     },
     {
       "id": "poi:tight-collider-bounds",
@@ -718,11 +718,11 @@
         "src/scene/structures/tokenPlaceWorkstation.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 8,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "7bfec92f4d1017742dc6acaad6996656fdb3a4f1742cdf8ff78f72bb3b51665f",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "5bb7cc492696464bc0c75c4d10d7d6293307777d502f96383bcb718c892e2738"
+      "syncRevision": 9,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "f317b71dd4beedce8c3538cc79c3336a9dcaef9d2023ab1bf89acc0a4523ebfa",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "d1bc54c1b9f00da1a73c02bfe4ec53da8b44b5131a0e53dde2c4afa8ff67a1cc"
     },
     {
       "id": "poi:wove-kitchen-loom",
@@ -733,11 +733,11 @@
         "src/scene/structures/woveLoom.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 9,
-      "syncNote": "POI registry copy metadata was slimmed down; tabletop proxy geometry remains unchanged.",
-      "sourceFingerprint": "edf0283b35a02f3a730c5d67082c7fa419d36c3d25ac4c43dbdb699f5778236c",
-      "proxyFingerprint": "3ece2554cc62cb2779a850b6100c4e87390dc5a0446e3d3a7981ce9d51d503eb",
-      "metadataFingerprint": "af8c907081362edcc6a351dd43772a06ef2991d8dafdb62e5db27ff395932061"
+      "syncRevision": 10,
+      "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
+      "sourceFingerprint": "50ced0e8745bfc0a83d43c98beaeccbf078dcc49b8f58fd4dc5f05126f710982",
+      "proxyFingerprint": "9b2ed528650ad9ee09c368372a023aba00393b8d9c95b891e3796495f552bb08",
+      "metadataFingerprint": "d049d60cbfaaedcc6716a2e3e1ecca3f53e58a449275c3ab4cf1440d6a80d10c"
     },
     {
       "id": "structure:greenhouse",
