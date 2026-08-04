@@ -6,7 +6,9 @@ may replace it in a future release.
 
 ## v0.1.3 — current release candidate
 
-Reconstructed from the current `main` tip, `c40dff25`, because no `v0.1.3` tag exists yet.
+Reconstructed from baseline commit `c40dff25`, the last `main` revision before this
+release-preparation work, plus the changes listed here. `v0.1.3` remains intentionally untagged
+until the final release candidate is confirmed.
 
 - Added localized POI environment badges and assistive-technology descriptions.
 - Removed a duplicate Sugarkube triangle metric and narrowed its regression assertion.
