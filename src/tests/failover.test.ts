@@ -38,19 +38,25 @@ const createStorage = (): Storage => {
   } as Storage;
 };
 
+const resetStorage = (name: 'localStorage' | 'sessionStorage'): void => {
+  try {
+    const storage = window[name];
+    if (storage) {
+      storage.clear();
+      return;
+    }
+  } catch {
+    // Replace storage when jsdom exposes an opaque-origin accessor.
+  }
+  Object.defineProperty(window, name, {
+    configurable: true,
+    value: createStorage(),
+  });
+};
+
 beforeEach(() => {
-  if (!window.localStorage) {
-    Object.defineProperty(window, 'localStorage', {
-      configurable: true,
-      value: createStorage(),
-    });
-  }
-  if (!window.sessionStorage) {
-    Object.defineProperty(window, 'sessionStorage', {
-      configurable: true,
-      value: createStorage(),
-    });
-  }
+  resetStorage('localStorage');
+  resetStorage('sessionStorage');
 });
 
 describe('isWebglSupported', () => {

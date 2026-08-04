@@ -3624,13 +3624,25 @@ export function initializeImmersiveScene(
   let latestBuildInfo: BuildInfo | null = null;
   const applyBuildInfoLabel = () => {
     const container = helpModal.buildInfoContainer;
-    if (!container || !latestBuildInfo) {
+    if (!container) {
       return;
     }
-    const label = formatBuildInfoLabel(latestBuildInfo);
     container.textContent = '';
-    const labelElement = document.createElement('span');
-    labelElement.textContent = label;
+    if (latestBuildInfo) {
+      const label = formatBuildInfoLabel(latestBuildInfo);
+      const labelElement = document.createElement('span');
+      labelElement.textContent = label;
+      container.appendChild(labelElement);
+      container.setAttribute(
+        'aria-label',
+        `${helpModalStrings.buildInfo.ariaLabel}: ${label}`
+      );
+    } else {
+      container.setAttribute(
+        'aria-label',
+        helpModalStrings.buildInfo.changelogAriaLabel
+      );
+    }
     const changelogLink = document.createElement('a');
     changelogLink.href = CHANGELOG_URL;
     changelogLink.textContent = helpModalStrings.buildInfo.changelogLabel;
@@ -3640,13 +3652,10 @@ export function initializeImmersiveScene(
     );
     changelogLink.target = '_blank';
     changelogLink.rel = 'noopener noreferrer';
-    container.append(labelElement, changelogLink);
-    container.setAttribute(
-      'aria-label',
-      `${helpModalStrings.buildInfo.ariaLabel}: ${label}`
-    );
+    container.appendChild(changelogLink);
     container.hidden = false;
   };
+  applyBuildInfoLabel();
   void fetchBuildInfo().then((info) => {
     latestBuildInfo = info;
     applyBuildInfoLabel();

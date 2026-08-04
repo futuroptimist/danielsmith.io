@@ -12,7 +12,7 @@ Reconstructed from the current `main` tip, `c40dff25`, because no `v0.1.3` tag e
 - Removed a duplicate Sugarkube triangle metric and narrowed its regression assertion.
 - Added the runtime changelog link and matching build identity to Settings & Help and text-only
   mode.
-- Updated the Helm application version to `v0.1.3` and chart package version to `0.2.7`.
+- Updated the Helm application version to `0.1.3` and chart package version to `0.2.7`.
 
 Reference: [`c40dff25`](https://github.com/futuroptimist/danielsmith.io/commit/c40dff25).
 
