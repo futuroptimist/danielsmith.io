@@ -4,11 +4,12 @@ Release notes for the immersive danielsmith.io portfolio. The in-app link curren
 this repository Markdown page as a temporary wiki/documentation surface; a native changelog view
 may replace it in a future release.
 
-## v0.1.3 — current release candidate
+## v0.1.3 — tagged release
 
-Reconstructed from baseline commit `c40dff25`, the last `main` revision before this
-release-preparation work, plus the changes listed here. `v0.1.3` remains intentionally untagged
-until the final release candidate is confirmed.
+Tag [`v0.1.3`](https://github.com/futuroptimist/danielsmith.io/releases/tag/v0.1.3) points to
+`73e09e94` (the immutable image commit promoted to production). The release notes are reconstructed
+from baseline commit `c40dff25`, the last `main` revision before this release-preparation work, plus
+the changes listed here.
 
 - Added localized POI environment badges and assistive-technology descriptions.
 - Removed a duplicate Sugarkube triangle metric and narrowed its regression assertion.
@@ -16,7 +17,8 @@ until the final release candidate is confirmed.
   mode.
 - Updated the Helm application version to `0.1.3` and chart package version to `0.2.7`.
 
-Reference: [`c40dff25`](https://github.com/futuroptimist/danielsmith.io/commit/c40dff25).
+Reference: [`v0.1.3`](https://github.com/futuroptimist/danielsmith.io/releases/tag/v0.1.3),
+[`73e09e94`](https://github.com/futuroptimist/danielsmith.io/commit/73e09e94).
 
 ## v0.1.2 — tagged release
 
