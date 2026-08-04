@@ -16,11 +16,10 @@ Reconstructed from the current `main` tip, `c40dff25`, because no `v0.1.3` tag e
 
 Reference: [`c40dff25`](https://github.com/futuroptimist/danielsmith.io/commit/c40dff25).
 
-## v0.1.2 — reconstructed release
+## v0.1.2 — tagged release
 
-No `v0.1.2` tag is present in the fetched repository. This section is reconstructed using the
-release merge candidate `2ffca754` (`Merge pull request #1067 ...`), where the chart application
-version became `0.1.2`.
+Tag [`v0.1.2`](https://github.com/futuroptimist/danielsmith.io/releases/tag/v0.1.2) points to
+`2ffca754` (`Merge pull request #1067 ...`), where the chart application version became `0.1.2`.
 
 - Added environment and immutable image-tag identity to the Settings & Help footer.
 - Added deploy-time build-info rendering and runtime asset seeding for staging and production.
@@ -29,13 +28,13 @@ version became `0.1.2`.
 - Added the static-site observability contract and supporting deployment checks.
 - Hardened GitHub metrics cache behavior and CI workflow permissions.
 
-Reference: [`2ffca754`](https://github.com/futuroptimist/danielsmith.io/commit/2ffca754).
+Reference: [`v0.1.2`](https://github.com/futuroptimist/danielsmith.io/releases/tag/v0.1.2),
+[`2ffca754`](https://github.com/futuroptimist/danielsmith.io/commit/2ffca754).
 
-## v0.1.1 — reconstructed release
+## v0.1.1 — tagged release
 
-No `v0.1.1` tag is present in the fetched repository. This section is reconstructed using the
-release merge candidate `7b9c58c9` (`Merge pull request #1057 ...`), where the chart application
-version became `0.1.1`.
+Tag [`v0.1.1`](https://github.com/futuroptimist/danielsmith.io/releases/tag/v0.1.1) points to
+`7b9c58c9` (`Merge pull request #1057 ...`), where the chart application version became `0.1.1`.
 
 - Added the tutorial panel, persisted tutorial progress, action tracking, and completion states.
 - Improved HUD focus behavior, keyboard interaction, controls parity, and settings layout.
@@ -44,7 +43,8 @@ version became `0.1.1`.
 - Added accessibility refinements and browser/regression coverage for the tutorial experience.
 - Established the first release housekeeping and Helm chart versioning groundwork.
 
-Reference: [`7b9c58c9`](https://github.com/futuroptimist/danielsmith.io/commit/7b9c58c9).
+Reference: [`v0.1.1`](https://github.com/futuroptimist/danielsmith.io/releases/tag/v0.1.1),
+[`7b9c58c9`](https://github.com/futuroptimist/danielsmith.io/commit/7b9c58c9).
 
 ## v0.1.0 — tagged baseline
 
