@@ -124,6 +124,7 @@ export const JA_OVERRIDES: LocaleOverrides = {
         clearPreferenceSuccess: '保存したモード設定を消去しました',
         resumeLink: '最新の履歴書をダウンロード',
         githubLink: 'GitHubでプロジェクトを見る',
+        changelogLink: '変更履歴を読む',
       },
       reasonHeadings: {
         manual: 'テキストモードを表示中',
@@ -537,6 +538,8 @@ export const JA_OVERRIDES: LocaleOverrides = {
       ],
       buildInfo: {
         ariaLabel: 'アプリのビルド',
+        changelogLabel: '変更履歴',
+        changelogAriaLabel: 'danielsmith.io の変更履歴を読む',
       },
       announcements: {
         open: 'ヘルプメニューを開きました。操作方法と設定を確認できます。',

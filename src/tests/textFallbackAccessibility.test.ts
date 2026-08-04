@@ -12,6 +12,7 @@ import {
 } from 'vitest';
 
 import { type FallbackReason, renderTextFallback } from '../systems/failover';
+import { CHANGELOG_URL } from '../ui/changelog';
 
 const FALLBACK_REASONS: FallbackReason[] = [
   'manual',
@@ -179,6 +180,56 @@ describe('text fallback accessibility', () => {
       ).toBe(cta);
     }
   );
+
+  it('renders the build identity and changelog link after build info loads', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 1,
+        environment: 'staging',
+        tag: 'main-1748a967ab21',
+      }),
+    } as Response);
+    const container = document.createElement('div');
+
+    renderTextFallback(container, {
+      reason: 'manual',
+      immersiveUrl: 'https://danielsmith.io/?mode=immersive',
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fetchSpy.mockRestore();
+
+    const footer = container.querySelector('.text-fallback__build-info');
+    const label = container.querySelector('.text-fallback__build-label');
+    const link = footer?.querySelector('a');
+    expect(label?.textContent).toBe('staging main-1748a967ab21');
+    expect(label?.hidden).toBe(false);
+    expect(link?.href).toBe(CHANGELOG_URL);
+    expect(footer?.textContent).toBe(
+      'staging main-1748a967ab21Read the changelog'
+    );
+  });
+
+  it('keeps the changelog link while hiding unavailable build identity', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockRejectedValue(new Error('network down'));
+    const container = document.createElement('div');
+
+    renderTextFallback(container, {
+      reason: 'manual',
+      immersiveUrl: 'https://danielsmith.io/?mode=immersive',
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fetchSpy.mockRestore();
+
+    expect(container.querySelector('.text-fallback__build-label')?.hidden).toBe(
+      true
+    );
+    expect(container.querySelector('.text-fallback__build-info a')?.href).toBe(
+      CHANGELOG_URL
+    );
+  });
 
   it('marks the document with the active fallback mode and reason', () => {
     const container = document.createElement('div');

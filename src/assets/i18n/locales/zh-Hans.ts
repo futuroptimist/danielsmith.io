@@ -105,6 +105,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
         clearPreferenceSuccess: '已清除保存的模式偏好',
         resumeLink: '下载最新简历',
         githubLink: '在 GitHub 浏览项目',
+        changelogLink: '阅读变更日志',
       },
       reasonHeadings: {
         manual: '已启用纯文本模式',
@@ -521,6 +522,8 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       ],
       buildInfo: {
         ariaLabel: '应用构建',
+        changelogLabel: '变更日志',
+        changelogAriaLabel: '阅读 danielsmith.io 变更日志',
       },
       announcements: {
         open: '帮助菜单已打开。请查看控制和设置。',

@@ -17,6 +17,7 @@ import {
   getModeAnnouncer,
   initializeModeAnnouncementObserver,
 } from '../../ui/accessibility/modeAnnouncer';
+import { CHANGELOG_URL } from '../../ui/changelog';
 import {
   createImmersiveModeUrl,
   createImmersiveRecoveryUrl,
@@ -25,6 +26,10 @@ import {
   shouldDisablePerformanceFailover,
   TEXT_MODE_VALUE,
 } from '../../ui/immersiveUrl';
+import {
+  fetchBuildInfo,
+  formatBuildInfoLabel,
+} from '../buildInfo/buildInfoService';
 
 import {
   clearModePreference,
@@ -1184,8 +1189,32 @@ export function renderTextFallback(
   if (portfolioSection) {
     section.appendChild(portfolioSection);
   }
+
+  const buildInfoFooter = documentTarget.createElement('footer');
+  buildInfoFooter.className = 'text-fallback__build-info';
+  buildInfoFooter.setAttribute('aria-label', actionStrings.changelogLink);
+  const buildInfoLabel = documentTarget.createElement('span');
+  buildInfoLabel.className = 'text-fallback__build-label';
+  buildInfoLabel.hidden = true;
+  const changelogLink = documentTarget.createElement('a');
+  changelogLink.className = 'text-fallback__link';
+  changelogLink.href = CHANGELOG_URL;
+  changelogLink.textContent = actionStrings.changelogLink;
+  changelogLink.setAttribute('aria-label', actionStrings.changelogLink);
+  changelogLink.target = '_blank';
+  changelogLink.rel = 'noopener noreferrer';
+  buildInfoFooter.append(buildInfoLabel, changelogLink);
+  section.appendChild(buildInfoFooter);
   container.appendChild(section);
   section.focus({ preventScroll: true });
+
+  void fetchBuildInfo().then((buildInfo) => {
+    if (!buildInfo) {
+      return;
+    }
+    buildInfoLabel.textContent = formatBuildInfoLabel(buildInfo);
+    buildInfoLabel.hidden = false;
+  });
 
   try {
     const announcerStrings = getModeAnnouncerStrings(resolvedLocale);

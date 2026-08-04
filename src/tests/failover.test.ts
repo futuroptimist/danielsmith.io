@@ -24,6 +24,41 @@ const IMMERSIVE_SEARCH = IMMERSIVE_URL.includes('?')
   ? `?${IMMERSIVE_URL.split('?')[1]}`
   : '';
 
+const createStorage = (): Storage => {
+  const values = new Map<string, string>();
+  return {
+    clear: () => values.clear(),
+    getItem: (key) => values.get(key) ?? null,
+    key: (index) => Array.from(values.keys())[index] ?? null,
+    get length() {
+      return values.size;
+    },
+    removeItem: (key) => values.delete(key),
+    setItem: (key, value) => values.set(key, String(value)),
+  } as Storage;
+};
+
+const resetStorage = (name: 'localStorage' | 'sessionStorage'): void => {
+  try {
+    const storage = window[name];
+    if (storage) {
+      storage.clear();
+      return;
+    }
+  } catch {
+    // Replace storage when jsdom exposes an opaque-origin accessor.
+  }
+  Object.defineProperty(window, name, {
+    configurable: true,
+    value: createStorage(),
+  });
+};
+
+beforeEach(() => {
+  resetStorage('localStorage');
+  resetStorage('sessionStorage');
+});
+
 describe('isWebglSupported', () => {
   it('returns true when any WebGL context is available', () => {
     const supported = isWebglSupported({

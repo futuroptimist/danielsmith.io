@@ -133,6 +133,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
         clearPreferenceSuccess: wrap('Saved mode preference cleared'),
         resumeLink: wrap('Download the latest résumé'),
         githubLink: wrap('Explore projects on GitHub'),
+        changelogLink: wrap('Read the changelog'),
       },
       reasonHeadings: {
         manual: wrap('Text-only mode enabled'),
@@ -673,6 +674,8 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       ],
       buildInfo: {
         ariaLabel: wrap('App build'),
+        changelogLabel: wrap('Changelog'),
+        changelogAriaLabel: wrap('Read the danielsmith.io changelog'),
       },
       announcements: {
         open: wrap('Help menu opened. Review controls and settings.'),

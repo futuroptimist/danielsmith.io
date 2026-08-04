@@ -369,6 +369,7 @@ import {
 } from './systems/audio/proceduralBuffers';
 import {
   fetchBuildInfo,
+  formatBuildInfoLabel,
   type BuildInfo,
 } from './systems/buildInfo/buildInfoService';
 import {
@@ -467,6 +468,7 @@ import {
   createAccessibilityPresetManager,
   type AccessibilityPresetManager,
 } from './ui/accessibility/presetManager';
+import { CHANGELOG_URL } from './ui/changelog';
 import {
   createAudioSubtitles,
   type AudioSubtitlesHandle,
@@ -3622,17 +3624,38 @@ export function initializeImmersiveScene(
   let latestBuildInfo: BuildInfo | null = null;
   const applyBuildInfoLabel = () => {
     const container = helpModal.buildInfoContainer;
-    if (!container || !latestBuildInfo) {
+    if (!container) {
       return;
     }
-    const label = `${latestBuildInfo.environment} ${latestBuildInfo.tag}`;
-    container.textContent = label;
-    container.setAttribute(
+    container.textContent = '';
+    if (latestBuildInfo) {
+      const label = formatBuildInfoLabel(latestBuildInfo);
+      const labelElement = document.createElement('span');
+      labelElement.textContent = label;
+      container.appendChild(labelElement);
+      container.setAttribute(
+        'aria-label',
+        `${helpModalStrings.buildInfo.ariaLabel}: ${label}`
+      );
+    } else {
+      container.setAttribute(
+        'aria-label',
+        helpModalStrings.buildInfo.changelogAriaLabel
+      );
+    }
+    const changelogLink = document.createElement('a');
+    changelogLink.href = CHANGELOG_URL;
+    changelogLink.textContent = helpModalStrings.buildInfo.changelogLabel;
+    changelogLink.setAttribute(
       'aria-label',
-      `${helpModalStrings.buildInfo.ariaLabel}: ${label}`
+      helpModalStrings.buildInfo.changelogAriaLabel
     );
+    changelogLink.target = '_blank';
+    changelogLink.rel = 'noopener noreferrer';
+    container.appendChild(changelogLink);
     container.hidden = false;
   };
+  applyBuildInfoLabel();
   void fetchBuildInfo().then((info) => {
     latestBuildInfo = info;
     applyBuildInfoLabel();

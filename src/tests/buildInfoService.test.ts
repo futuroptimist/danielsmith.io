@@ -29,13 +29,13 @@ describe('fetchBuildInfo', () => {
       json: async () => ({
         schemaVersion: 1,
         environment: 'prod',
-        tag: '  v0.1.2\n',
+        tag: '  v0.1.3\n',
       }),
     });
 
     await expect(fetchBuildInfo(fetchImpl)).resolves.toEqual({
       environment: 'prod',
-      tag: 'v0.1.2',
+      tag: 'v0.1.3',
     });
   });
 

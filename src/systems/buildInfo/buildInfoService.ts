@@ -5,6 +5,9 @@ export interface BuildInfo {
   tag: string;
 }
 
+export const formatBuildInfoLabel = (buildInfo: BuildInfo): string =>
+  `${buildInfo.environment} ${buildInfo.tag}`;
+
 const BUILD_INFO_URL = '/runtime/build-info.json';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
