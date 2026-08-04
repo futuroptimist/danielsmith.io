@@ -224,8 +224,9 @@ export interface LocaleToggleStrings {
 
 export interface HelpModalBuildInfoStrings {
   ariaLabel: string;
+  changelogLabel: string;
+  changelogAriaLabel: string;
 }
-
 export interface HelpModalStrings {
   heading: string;
   description: string;
@@ -443,6 +444,7 @@ export interface SiteTextFallbackStrings {
     clearPreferenceSuccess: string;
     resumeLink: string;
     githubLink: string;
+    changelogLink: string;
   };
   reasonHeadings: Record<FallbackReason, string>;
   reasonDescriptions: Record<FallbackReason, string>;

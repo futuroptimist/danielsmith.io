@@ -118,7 +118,7 @@ assertIncludes(
 );
 assertIncludes(
   prodRender,
-  '"tag": "v0.1.2"',
+  '"tag": "v0.1.3"',
   'prod should display the semver Chart.AppVersion, not the raw image tag'
 );
 

@@ -129,6 +129,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         clearPreferenceSuccess: 'Saved mode preference cleared',
         resumeLink: 'Download the latest résumé',
         githubLink: 'Explore projects on GitHub',
+        changelogLink: 'Read the changelog',
       },
       reasonHeadings: {
         manual: 'Text-only mode enabled',
@@ -638,6 +639,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       ],
       buildInfo: {
         ariaLabel: 'App build',
+        changelogLabel: 'Changelog',
+        changelogAriaLabel: 'Read the danielsmith.io changelog',
       },
       announcements: {
         open: 'Help menu opened. Review controls and settings.',

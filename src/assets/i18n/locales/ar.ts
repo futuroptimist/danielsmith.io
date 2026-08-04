@@ -123,6 +123,7 @@ export const AR_OVERRIDES: LocaleOverrides = {
         clearPreferenceSuccess: 'تم مسح تفضيل الوضع المحفوظ',
         resumeLink: 'تحميل أحدث سيرة ذاتية',
         githubLink: 'استكشاف المشاريع على GitHub',
+        changelogLink: 'قراءة سجل التغييرات',
       },
       reasonHeadings: {
         manual: 'تم تفعيل الوضع النصي',
@@ -518,6 +519,8 @@ export const AR_OVERRIDES: LocaleOverrides = {
       ],
       buildInfo: {
         ariaLabel: 'إصدار التطبيق',
+        changelogLabel: 'سجل التغييرات',
+        changelogAriaLabel: 'قراءة سجل تغييرات danielsmith.io',
       },
       announcements: {
         open: 'تم فتح قائمة المساعدة. راجع عناصر التحكم والإعدادات.',

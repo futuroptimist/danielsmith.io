@@ -850,6 +850,14 @@ export function buildLatinLocaleOverrides(
                   ? 'Aktuellen Lebenslauf herunterladen'
                   : 'Legfrissebb önéletrajz letöltése',
           githubLink: 'GitHub',
+          changelogLink:
+            copy.locale === 'de'
+              ? 'Änderungsprotokoll lesen'
+              : copy.locale === 'hu'
+                ? 'Változásnapló olvasása'
+                : copy.locale === 'pt'
+                  ? 'Ler o changelog'
+                  : 'Leer el registro de cambios',
         },
       },
     },
@@ -1429,6 +1437,22 @@ export function buildLatinLocaleOverrides(
                 : copy.locale === 'pt'
                   ? 'Compilação do app'
                   : 'Compilación de la app',
+          changelogLabel:
+            copy.locale === 'de'
+              ? 'Änderungsprotokoll'
+              : copy.locale === 'hu'
+                ? 'Változásnapló'
+                : copy.locale === 'pt'
+                  ? 'Changelog'
+                  : 'Registro de cambios',
+          changelogAriaLabel:
+            copy.locale === 'de'
+              ? 'Das danielsmith.io Änderungsprotokoll lesen'
+              : copy.locale === 'hu'
+                ? 'A danielsmith.io változásnaplójának olvasása'
+                : copy.locale === 'pt'
+                  ? 'Ler o changelog do danielsmith.io'
+                  : 'Leer el registro de cambios de danielsmith.io',
         },
         announcements: {
           open:

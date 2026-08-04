@@ -24,6 +24,35 @@ const IMMERSIVE_SEARCH = IMMERSIVE_URL.includes('?')
   ? `?${IMMERSIVE_URL.split('?')[1]}`
   : '';
 
+const createStorage = (): Storage => {
+  const values = new Map<string, string>();
+  return {
+    clear: () => values.clear(),
+    getItem: (key) => values.get(key) ?? null,
+    key: (index) => Array.from(values.keys())[index] ?? null,
+    get length() {
+      return values.size;
+    },
+    removeItem: (key) => values.delete(key),
+    setItem: (key, value) => values.set(key, String(value)),
+  } as Storage;
+};
+
+beforeEach(() => {
+  if (!window.localStorage) {
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: createStorage(),
+    });
+  }
+  if (!window.sessionStorage) {
+    Object.defineProperty(window, 'sessionStorage', {
+      configurable: true,
+      value: createStorage(),
+    });
+  }
+});
+
 describe('isWebglSupported', () => {
   it('returns true when any WebGL context is available', () => {
     const supported = isWebglSupported({

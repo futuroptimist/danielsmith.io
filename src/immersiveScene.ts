@@ -369,6 +369,7 @@ import {
 } from './systems/audio/proceduralBuffers';
 import {
   fetchBuildInfo,
+  formatBuildInfoLabel,
   type BuildInfo,
 } from './systems/buildInfo/buildInfoService';
 import {
@@ -467,6 +468,7 @@ import {
   createAccessibilityPresetManager,
   type AccessibilityPresetManager,
 } from './ui/accessibility/presetManager';
+import { CHANGELOG_URL } from './ui/changelog';
 import {
   createAudioSubtitles,
   type AudioSubtitlesHandle,
@@ -3625,8 +3627,20 @@ export function initializeImmersiveScene(
     if (!container || !latestBuildInfo) {
       return;
     }
-    const label = `${latestBuildInfo.environment} ${latestBuildInfo.tag}`;
-    container.textContent = label;
+    const label = formatBuildInfoLabel(latestBuildInfo);
+    container.textContent = '';
+    const labelElement = document.createElement('span');
+    labelElement.textContent = label;
+    const changelogLink = document.createElement('a');
+    changelogLink.href = CHANGELOG_URL;
+    changelogLink.textContent = helpModalStrings.buildInfo.changelogLabel;
+    changelogLink.setAttribute(
+      'aria-label',
+      helpModalStrings.buildInfo.changelogAriaLabel
+    );
+    changelogLink.target = '_blank';
+    changelogLink.rel = 'noopener noreferrer';
+    container.append(labelElement, changelogLink);
     container.setAttribute(
       'aria-label',
       `${helpModalStrings.buildInfo.ariaLabel}: ${label}`
