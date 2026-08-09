@@ -1,30 +1,39 @@
 {
-  "minimumPlainCharacters": 3000,
+  "minimumPlainCharacters": 2700,
   "requiredTerms": [
     "Daniel Smith",
+    "Software Engineer — AI Systems, Platform & Reliability",
+    "Pacifica, CA (San Francisco Bay Area)",
     "daniel@danielsmith.io",
     "Summary",
     "Skills",
     "Experience",
     "Education",
-    "Independent Open Source Engineering",
+    "Independent Software Engineer — AI Products & Infrastructure",
+    "Jun 2025 — Present",
     "YouTube (Google)",
-    "Site Reliability Engineer, L4",
+    "Site Reliability Engineer",
+    "Promoted in 2021",
     "The University of Southern Mississippi",
+    "M.S. Computer Science (2016)",
+    "B.S. Computer Science (2015)"
+  ],
+  "prohibitedTerms": [
+    "Site Reliability Engineer, L4",
     "Jones County Junior College"
   ],
   "sectionOrderPairs": [
-    ["Summary", "Skills"],
-    ["Skills", "Experience"],
+    ["Summary", "Experience"],
+    ["Experience", "Skills"],
+    ["Skills", "Education"],
     ["Experience", "Education"]
   ],
   "educationPairing": {
     "severity": "error",
     "nearbyWindowCharacters": 0,
     "pairs": [
-      ["M.S. Computer Science", "Aug 2015"],
-      ["B.S. Computer Science", "May 2013"],
-      ["A.A.S. Information System Technology", "Aug 2011"]
+      ["M.S. Computer Science", "2016"],
+      ["B.S. Computer Science", "2015"]
     ]
   }
 }

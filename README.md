@@ -59,7 +59,7 @@ Avatar facing is computed from the camera-relative movement vector; see
   URL for runtime links, while `/resume.docx` is the stable downloadable DOCX
   URL (served from `public/resume.docx`) when a word-processor copy is useful. The immutable
   dated PDF archive for this source snapshot lives at
-  `public/docs/resume/2026-06/resume.pdf`. The separate
+  `public/docs/resume/2026-08/resume.pdf`. The separate
   [resume hosting runbook](docs/ops/resume-hosting.md) documents how the stable
   PDF is deployed to `resume.danielsmith.io`.
 - **Prompt library** – Automation-ready Codex prompts are summarized in
@@ -285,6 +285,6 @@ performance, modes, animation, and more) provide ready-to-run task scaffolding f
 `npm run build` generates distributable assets, and CI asserts that `dist/index.html`
 exists as part of the smoke suite.
 
-[resume-src]: docs/resume/2026-06/resume.tex
+[resume-src]: docs/resume/2026-08/resume.tex
 [prompt-summary]: docs/prompts/summary.md
 [baseline-prompt]: docs/prompts/codex/baseline.md
