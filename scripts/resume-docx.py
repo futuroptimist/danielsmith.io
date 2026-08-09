@@ -15,7 +15,8 @@ from xml.etree import ElementTree as ET
 
 
 WORD_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+OFFICE_REL_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+PACKAGE_REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
 NS = {"w": WORD_NS}
 REQUIRED_LINKS = {
     "mailto:daniel@danielsmith.io",
@@ -42,6 +43,8 @@ def set_value(parent: ET.Element, name: str, value: str) -> ET.Element:
 
 def apply_docx_layout(docx: Path) -> None:
     """Apply compact, deterministic Word styles without altering document content."""
+    ET.register_namespace("w", WORD_NS)
+    ET.register_namespace("r", OFFICE_REL_NS)
     with tempfile.TemporaryDirectory(prefix="resume-docx-layout-") as temp:
         unpacked = Path(temp)
         with zipfile.ZipFile(docx) as archive:
@@ -86,6 +89,8 @@ def apply_docx_layout(docx: Path) -> None:
                 size = "21"
             set_value(run_properties, "sz", size)
             set_value(run_properties, "szCs", size)
+            if style_id == "Normal":
+                set_value(run_properties, "spacing", "-10")
         styles.write(styles_path, encoding="UTF-8", xml_declaration=True)
 
         document_path = unpacked / "word" / "document.xml"
@@ -133,7 +138,7 @@ def verify_links(docx: Path) -> None:
         )
     targets = {
         relationship.get("Target", "")
-        for relationship in relationships.findall(f"{{{REL_NS}}}Relationship")
+        for relationship in relationships.findall(f"{{{PACKAGE_REL_NS}}}Relationship")
         if relationship.get("TargetMode") == "External"
     }
     missing = sorted(REQUIRED_LINKS - targets)
@@ -181,6 +186,27 @@ def run_verify(docx: Path, render_dir: Path) -> None:
     split = re.search(r"[A-Za-z]{2,}-\s*\n\s*[A-Za-z]{2,}", extracted)
     if split:
         raise RuntimeError(f"rendered DOCX contains a split word: {split.group(0)!r}")
+
+    direct_path = render_dir / f"{docx.stem}-pandoc.txt"
+    subprocess.run(
+        ["pandoc", str(docx), "-t", "plain", "-o", str(direct_path)], check=True
+    )
+    direct = direct_path.read_text(encoding="utf-8")
+    for required in ("Pacifica, CA", "end-to-end"):
+        if required not in direct:
+            raise RuntimeError(f"Pandoc extraction is missing required text: {required}")
+
+    direct_hyphenated = set(
+        re.findall(r"(?<![A-Za-z])[A-Za-z]+(?:-[A-Za-z]+)+(?![A-Za-z])", direct)
+    )
+    rendered_normalized = re.sub(r"\s+", " ", extracted)
+    missing_hyphens = sorted(
+        term for term in direct_hyphenated if term not in rendered_normalized
+    )
+    if missing_hyphens:
+        raise RuntimeError(
+            "rendered DOCX changed hyphenated terms: " + ", ".join(missing_hyphens)
+        )
     verify_links(docx)
 
 

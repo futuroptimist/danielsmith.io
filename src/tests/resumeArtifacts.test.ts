@@ -35,6 +35,7 @@ const PANDOC_VERSION = '3.8';
 interface ResumeArtifacts {
   pdfPath: string;
   docxPath: string;
+  pandocPath: string;
   cleanup: () => Promise<void>;
 }
 
@@ -107,6 +108,7 @@ describe('latest resume artifacts stay within a single page', () => {
       return;
     }
     const renderDir = await createTempDir('resume-docx-render-');
+    const currentPath = process.env.PATH ?? '';
     try {
       await execFileAsync(
         'python3',
@@ -118,7 +120,13 @@ describe('latest resume artifacts stay within a single page', () => {
           '--render-dir',
           renderDir,
         ],
-        { cwd: PROJECT_ROOT }
+        {
+          cwd: PROJECT_ROOT,
+          env: {
+            ...process.env,
+            PATH: `${path.dirname(ensured.pandocPath)}${path.delimiter}${currentPath}`,
+          },
+        }
       );
     } finally {
       await rm(renderDir, { recursive: true, force: true });
@@ -182,6 +190,7 @@ async function buildLatestResumeArtifacts(): Promise<ResumeArtifacts> {
   return {
     pdfPath,
     docxPath,
+    pandocPath: pandoc,
     cleanup: async () => {
       await rm(outputDir, { recursive: true, force: true });
     },
