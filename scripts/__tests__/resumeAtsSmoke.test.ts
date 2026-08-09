@@ -20,18 +20,29 @@ afterEach(async () => {
 });
 
 describe('resume ATS smoke', () => {
-  it('fails when PDF extraction splits a hyphenated word across lines', async () => {
+  it('isolates words split across extracted lines from within-line compounds', async () => {
     const pdfPath = await createPdfFixture();
-    const plainPath = path.join(fixtureDir, 'plain.txt');
-    const layoutPath = path.join(fixtureDir, 'layout.txt');
-    const summaryPath = path.join(fixtureDir, 'summary.md');
+    const validPlainPath = path.join(fixtureDir, 'valid-plain.txt');
+    const validLayoutPath = path.join(fixtureDir, 'valid-layout.txt');
+    const validSummaryPath = path.join(fixtureDir, 'valid-summary.md');
+    const invalidPlainPath = path.join(fixtureDir, 'invalid-plain.txt');
+    const invalidLayoutPath = path.join(fixtureDir, 'invalid-layout.txt');
+    const invalidSummaryPath = path.join(fixtureDir, 'invalid-summary.md');
     const configPath = path.join(fixtureDir, 'config.json');
     await createPdfinfoFixture();
-    await writeFile(
-      plainPath,
-      'Summary\nExperience\nrun-\nbooks\nSkills\nEducation\n'
-    );
-    await writeFile(layoutPath, await readFile(plainPath));
+    const validText = [
+      'Summary',
+      'incident-response and OpenAI-compatible runbooks',
+      'Experience',
+      'Skills',
+      'Education',
+      '',
+    ].join('\n');
+    const invalidText = validText.replace('runbooks', 'run-\nbooks');
+    await writeFile(validPlainPath, validText);
+    await writeFile(validLayoutPath, validText);
+    await writeFile(invalidPlainPath, invalidText);
+    await writeFile(invalidLayoutPath, invalidText);
     await writeFile(
       configPath,
       JSON.stringify({
@@ -45,24 +56,51 @@ describe('resume ATS smoke', () => {
     );
 
     await expect(
-      runAtsSmoke(pdfPath, plainPath, layoutPath, summaryPath, configPath)
+      runAtsSmoke(
+        pdfPath,
+        validPlainPath,
+        validLayoutPath,
+        validSummaryPath,
+        configPath
+      )
+    ).resolves.toBeUndefined();
+
+    await expect(
+      runAtsSmoke(
+        pdfPath,
+        invalidPlainPath,
+        invalidLayoutPath,
+        invalidSummaryPath,
+        configPath
+      )
     ).rejects.toMatchObject({
       stdout: expect.stringContaining(
         'No hyphenated line-break artifacts in plain extraction'
       ),
     });
 
-    const summary = await readFile(summaryPath, 'utf8');
-    const failures = summary
-      .split('\n')
-      .filter((line) => line.startsWith('- ❌ '));
-    expect(failures).toEqual([
+    const validSummary = await readFile(validSummaryPath, 'utf8');
+    expect(failedChecklistEntries(validSummary)).toEqual([]);
+    expectMetadataAndPageSizeChecksToPass(validSummary);
+
+    const summary = await readFile(invalidSummaryPath, 'utf8');
+    expect(failedChecklistEntries(summary)).toEqual([
       '- ❌ No hyphenated line-break artifacts in plain extraction — n-\\nb',
     ]);
-    expect(summary).toContain('- ✅ PDF metadata is populated: `Title`');
-    expect(summary).toContain('- ✅ PDF page size is US Letter');
+    expectMetadataAndPageSizeChecksToPass(summary);
   });
 });
+
+function failedChecklistEntries(summary: string): string[] {
+  return summary.split('\n').filter((line) => line.startsWith('- ❌ '));
+}
+
+function expectMetadataAndPageSizeChecksToPass(summary: string): void {
+  for (const field of ['Title', 'Author', 'Subject', 'Keywords']) {
+    expect(summary).toContain(`- ✅ PDF metadata is populated: \`${field}\``);
+  }
+  expect(summary).toContain('- ✅ PDF page size is US Letter');
+}
 
 async function createPdfFixture(): Promise<string> {
   const pdf = await PDFDocument.create();
