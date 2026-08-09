@@ -27,6 +27,7 @@ REQUIRED_LINKS = {
     "https://github.com/futuroptimist/sugarkube",
     "https://democratized.space",
 }
+REQUIRED_TEXT = ("Pacifica, CA", "Summary", "Experience", "Skills", "Education")
 
 
 def word_tag(name: str) -> str:
@@ -131,6 +132,20 @@ def command_output(command: list[str]) -> str:
     return subprocess.run(command, check=True, text=True, capture_output=True).stdout
 
 
+def pandoc_text(docx: Path) -> str:
+    """Extract DOCX text while preserving Pandoc's parser diagnostics."""
+    command = ["pandoc", str(docx), "-t", "plain"]
+    try:
+        return subprocess.run(
+            command, check=True, text=True, capture_output=True
+        ).stdout
+    except subprocess.CalledProcessError as error:
+        detail = (error.stderr or error.stdout or str(error)).strip()
+        raise RuntimeError(f"Pandoc could not parse {docx}: {detail}") from error
+    except OSError as error:
+        raise RuntimeError(f"Pandoc could not parse {docx}: {error}") from error
+
+
 def verify_links(docx: Path) -> None:
     with zipfile.ZipFile(docx) as archive:
         relationships = ET.fromstring(
@@ -179,20 +194,21 @@ def run_verify(docx: Path, render_dir: Path) -> None:
     text_path = render_dir / f"{docx.stem}.txt"
     subprocess.run(["pdftotext", str(rendered_pdf), str(text_path)], check=True)
     extracted = text_path.read_text(encoding="utf-8")
-    if "Pacifica, CA" not in extracted:
-        raise RuntimeError("rendered DOCX does not extract cleanly as 'Pacifica, CA'")
+    for required in (*REQUIRED_TEXT, "end-to-end"):
+        if required not in extracted:
+            raise RuntimeError(
+                f"rendered DOCX extraction is missing required text: {required}"
+            )
     if "Pacif ica" in extracted:
         raise RuntimeError("rendered DOCX contains the split text 'Pacif ica'")
     split = re.search(r"[A-Za-z]{2,}-\s*\n\s*[A-Za-z]{2,}", extracted)
     if split:
         raise RuntimeError(f"rendered DOCX contains a split word: {split.group(0)!r}")
 
+    direct = pandoc_text(docx)
     direct_path = render_dir / f"{docx.stem}-pandoc.txt"
-    subprocess.run(
-        ["pandoc", str(docx), "-t", "plain", "-o", str(direct_path)], check=True
-    )
-    direct = direct_path.read_text(encoding="utf-8")
-    for required in ("Pacifica, CA", "end-to-end"):
+    direct_path.write_text(direct, encoding="utf-8")
+    for required in (*REQUIRED_TEXT, "end-to-end"):
         if required not in direct:
             raise RuntimeError(f"Pandoc extraction is missing required text: {required}")
 
