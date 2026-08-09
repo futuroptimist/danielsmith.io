@@ -1,0 +1,104 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=0.67in]{geometry}
+\usepackage{cmap}
+\usepackage[scaled=0.96]{helvet}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[
+  hidelinks,
+  pdftitle={Daniel Smith - Software Engineer Resume},
+  pdfauthor={Daniel Smith},
+  pdfsubject={Software engineering resume for AI systems, platform, and reliability roles},
+  pdfkeywords={software engineering, AI systems, platform engineering, site reliability, Kubernetes},
+  pdflang={en-US}
+]{hyperref}
+
+\setlist[itemize]{leftmargin=*, itemsep=0.45mm, topsep=0.6mm, parsep=0mm}
+\renewcommand{\familydefault}{\sfdefault}
+\titlespacing*{\section}{0pt}{2.1mm}{0.9mm}
+\titleformat{\section}{\large\bfseries}{}{0pt}{}[\vspace{-0.7mm}\titlerule]
+\setlength\parindent{0pt}
+\setlength\emergencystretch{1.5em}
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\pagestyle{empty}
+
+\begin{document}
+\raggedright
+
+\begin{center}
+  {\LARGE\bfseries Daniel Smith}\\[0.8mm]
+  {\large\bfseries Software Engineer --- AI Systems, Platform \& Reliability}\\[0.6mm]
+  Pacif\/ica, CA (San Francisco Bay Area)\\[0.5mm]
+  \href{mailto:daniel@danielsmith.io}{daniel@danielsmith.io} \enspace|\enspace
+  \href{https://danielsmith.io}{danielsmith.io} \enspace|\enspace
+  \href{https://github.com/futuroptimist}{github.com/futuroptimist} \enspace|\enspace
+  \href{https://linkedin.com/in/danielsmith4483}{linkedin.com/in/danielsmith4483}
+\end{center}
+
+\vspace{-2.5mm}
+\section*{Summary}
+Software engineer with 12+ years building production systems, including nearly seven years at
+YouTube. Ships AI products end to end---from TypeScript/Svelte interfaces and Python/Go APIs to
+local LLM inference---and builds the Kubernetes, delivery, observability, and incident-response
+systems that keep them reliable.
+
+\section*{Experience}
+\textbf{Independent Software Engineer --- AI Products \& Infrastructure} \hfill Remote \\
+Jun 2025 --- Present
+\begin{itemize}
+  \item Built \href{https://token.place}{\textbf{token.place}}, a privacy-focused distributed LLM
+  platform with an OpenAI-compatible API, relay-blind end-to-end encryption, local inference, and
+  failover, cancellation, and recovery f\/lows.
+  \item Implemented Tauri desktop compute-node work for Windows CUDA and macOS Metal targets, plus
+  deterministic long-context validation through the 64K tier using llama.cpp model serving.
+  \item Designed and operated \href{https://github.com/futuroptimist/sugarkube}{\textbf{Sugarkube}},
+  a reusable multi-node Raspberry Pi k3s/Helm platform deploying DSPACE, token.place, and
+  danielsmith.io with immutable OCI releases, environment promotion, health gates, and recovery.
+  \item Shipped Astro, Svelte, and TypeScript products and APIs with browser testing, of\/f\/line and SSR
+  safeguards, privacy and accessibility controls, and WebGL-to-text failover; operated Prometheus,
+  Grafana, PagerDuty, and Cloudf\/lare integrations for monitoring, rollback, and incident response.
+\end{itemize}
+
+\textbf{YouTube (Google)} \hfill San Bruno, CA \\
+\textit{Site Reliability Engineer} \hfill Sep 2018 --- May 2025
+\begin{itemize}
+  \item Owned product-health metrics and leadership dashboards for high-traf\/f\/ic YouTube surfaces,
+  establishing a shared basis for reliability reviews and engineering prioritization.
+  \item Built Python, Go, SQL, and C++ automation for monitoring, anomaly analysis, and operational
+  workf\/lows across large-scale production systems.
+  \item Led on-call and incident response across Core, Trust \& Safety, and Search SRE; provided
+  cross-team reliability guidance, authored reusable playbooks, and mentored engineers. Promoted in
+  2021.
+\end{itemize}
+
+\textbf{Naval Research Laboratory} \hfill Stennis Space Center, MS \\
+\textit{Software Engineer} \hfill Jan 2017 --- Sep 2018
+\begin{itemize}
+  \item Built C++/Qt applications for research data processing; delivered iterative releases,
+  demonstrations, and documentation with a distributed Scrum team.
+\end{itemize}
+
+\textbf{The University of Southern Mississippi} \hfill Hattiesburg, MS \\
+\textit{Software Developer} \hfill Mar 2014 --- Dec 2016
+\begin{itemize}
+  \item Built an Objective-C content-delivery and networking framework for university iOS
+  applications, supporting real-time content updates.
+\end{itemize}
+
+\section*{Skills}
+\textbf{Languages:} Python, Go, TypeScript/JavaScript, SQL, C++, Bash \quad
+\textbf{Product \& AI:} Svelte, React, Astro, Flask, REST/OpenAI-compatible APIs, Tauri, local LLM
+inference/model serving, llama.cpp \\
+\textbf{Systems \& Platform:} Kubernetes, k3s, Helm, Docker/OCI, Linux, Google Cloud, GitHub Actions,
+distributed systems \\
+\textbf{Reliability \& Observability:} SLOs, incident response, Prometheus, Grafana, PagerDuty,
+monitoring and alerting, CI/CD
+
+\section*{Education}
+University of Southern Mississippi --- M.S. Computer Science (2016), B.S. Computer Science (2015),
+GPA 4.0
+
+\end{document}

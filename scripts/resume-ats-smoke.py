@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pdf-pages", required=True, help="Generated PDF page count.")
     parser.add_argument("--plain-text", required=True, help="Plain pdftotext output path.")
     parser.add_argument("--layout-text", required=True, help="Layout pdftotext output path.")
+    parser.add_argument("--pdf-info", required=True, help="pdfinfo output path.")
     parser.add_argument("--summary", required=True, help="GitHub step summary path.")
     parser.add_argument(
         "--config",
@@ -83,6 +84,15 @@ def compact_education_context(education_text: str) -> str:
     return f"{normalized[:257].rstrip()}..."
 
 
+def parse_pdf_info(text: str) -> dict[str, str]:
+    metadata: dict[str, str] = {}
+    for line in text.splitlines():
+        key, separator, value = line.partition(":")
+        if separator:
+            metadata[key.strip()] = value.strip()
+    return metadata
+
+
 def education_pair_observations(
     config: dict,
     plain: str,
@@ -132,6 +142,8 @@ def main() -> int:
     layout_path = Path(args.layout_text)
     plain = plain_path.read_text(encoding="utf-8", errors="replace")
     layout = layout_path.read_text(encoding="utf-8", errors="replace")
+    pdf_info = Path(args.pdf_info).read_text(encoding="utf-8", errors="replace")
+    metadata = parse_pdf_info(pdf_info)
     plain_lines = plain.splitlines()
     failures: list[str] = []
     warnings: list[str] = []
@@ -156,6 +168,17 @@ def main() -> int:
     for term in config.get("requiredTerms", []):
         check(f"Required text present: `{term}`", term in plain)
 
+    for term in config.get("forbiddenTerms", []):
+        check(f"Forbidden text absent: `{term}`", term not in plain)
+
+    for field, expected in config.get("requiredMetadata", {}).items():
+        actual = metadata.get(field, "")
+        check(
+            f"PDF metadata populated: `{field}`",
+            actual == expected,
+            f"expected `{expected}`, found `{actual}`",
+        )
+
     section_names = {
         section for pair in config.get("sectionOrderPairs", []) for section in pair
     }
@@ -175,8 +198,12 @@ def main() -> int:
     warnings.extend(education_warnings)
     failures.extend(education_failures)
 
-    if re.search(r"[A-Za-z]-\n[A-Za-z]", plain):
-        warnings.append("Possible hyphenated line break found in plain extraction.")
+    broken_word = re.search(r"[A-Za-z]-\n[A-Za-z]", plain)
+    check(
+        "No line-ending broken words in plain extraction",
+        broken_word is None,
+        broken_word.group(0).replace("\n", "\\n") if broken_word else "",
+    )
     if re.search(r"\b[A-Za-z]{1,2}\n[A-Za-z]{1,2}\n", plain):
         warnings.append("Possible unusually short wrapped words found in plain extraction.")
 

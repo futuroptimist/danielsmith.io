@@ -93,6 +93,25 @@ describe('latest resume artifacts stay within a single page', () => {
     expect(pageCount).toBe(1);
   });
 
+  it('PDF uses US Letter and includes résumé metadata', async () => {
+    const ensured = ensureArtifactsOrSkip();
+    if (!ensured) {
+      return;
+    }
+    const data = await readFile(ensured.pdfPath);
+    const pdf = await PDFDocument.load(data.toString('base64'));
+    const { height, width } = pdf.getPage(0).getSize();
+
+    expect(width).toBeCloseTo(612, 0);
+    expect(height).toBeCloseTo(792, 0);
+    expect(pdf.getTitle()).toBe('Daniel Smith - Software Engineer Resume');
+    expect(pdf.getAuthor()).toBe('Daniel Smith');
+    expect(pdf.getSubject()).toBe(
+      'Software engineering resume for AI systems, platform, and reliability roles'
+    );
+    expect(pdf.getKeywords()).toContain('AI systems');
+  });
+
   it('DOCX conversion uses only one page', async () => {
     const ensured = ensureArtifactsOrSkip();
     if (!ensured) {

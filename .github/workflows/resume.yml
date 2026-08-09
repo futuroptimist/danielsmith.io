@@ -132,8 +132,10 @@ jobs:
 
           plain_text="${ats_dir}/resume.txt"
           layout_text="${ats_dir}/resume-layout.txt"
+          pdf_info="${ats_dir}/resume-pdfinfo.txt"
           pdftotext "${PDF}" "${plain_text}"
           pdftotext -layout "${PDF}" "${layout_text}"
+          pdfinfo "${PDF}" >"${pdf_info}"
 
           plain_chars=$(wc -m <"${plain_text}" | tr -d '[:space:]')
           layout_chars=$(wc -m <"${layout_text}" | tr -d '[:space:]')
@@ -150,6 +152,7 @@ jobs:
             --pdf-pages "${PDF_PAGES}" \
             --plain-text "${plain_text}" \
             --layout-text "${layout_text}" \
+            --pdf-info "${pdf_info}" \
             --summary "${GITHUB_STEP_SUMMARY}" \
             --config "${ATS_CONFIG}"
 
