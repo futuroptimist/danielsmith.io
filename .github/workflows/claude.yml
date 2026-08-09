@@ -201,7 +201,7 @@ jobs:
       actions: read
       id-token: write
     env:
-      CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: "1"
+      CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
     steps:
       - name: Install required sandbox dependencies
         run: |
