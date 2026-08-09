@@ -132,14 +132,17 @@ jobs:
 
           plain_text="${ats_dir}/resume.txt"
           layout_text="${ats_dir}/resume-layout.txt"
+          pdf_info="${ats_dir}/resume-pdfinfo.txt"
           pdftotext "${PDF}" "${plain_text}"
           pdftotext -layout "${PDF}" "${layout_text}"
+          pdfinfo "${PDF}" >"${pdf_info}"
 
           plain_chars=$(wc -m <"${plain_text}" | tr -d '[:space:]')
           layout_chars=$(wc -m <"${layout_text}" | tr -d '[:space:]')
           echo "ats_dir=${ats_dir}" >>"${GITHUB_OUTPUT}"
           echo "plain_text=${plain_text}" >>"${GITHUB_OUTPUT}"
           echo "layout_text=${layout_text}" >>"${GITHUB_OUTPUT}"
+          echo "pdf_info=${pdf_info}" >>"${GITHUB_OUTPUT}"
           echo "plain_chars=${plain_chars}" >>"${GITHUB_OUTPUT}"
           echo "layout_chars=${layout_chars}" >>"${GITHUB_OUTPUT}"
 
@@ -150,6 +153,7 @@ jobs:
             --pdf-pages "${PDF_PAGES}" \
             --plain-text "${plain_text}" \
             --layout-text "${layout_text}" \
+            --pdf-info "${pdf_info}" \
             --summary "${GITHUB_STEP_SUMMARY}" \
             --config "${ATS_CONFIG}"
 
@@ -161,6 +165,7 @@ jobs:
           path: |
             ${{ steps.ats.outputs.plain_text }}
             ${{ steps.ats.outputs.layout_text }}
+            ${{ steps.ats.outputs.pdf_info }}
           if-no-files-found: error
 
       - name: Upload PDF artifact

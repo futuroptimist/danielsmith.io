@@ -1,5 +1,7 @@
 {
   "minimumPlainCharacters": 3000,
+  "requiredPdfMetadata": ["Title", "Author", "Subject", "Keywords"],
+  "expectedPageSize": "letter",
   "requiredTerms": [
     "Daniel Smith",
     "daniel@danielsmith.io",
@@ -7,24 +9,27 @@
     "Skills",
     "Experience",
     "Education",
-    "Independent Open Source Engineering",
+    "Software Engineer — AI Systems, Platform & Reliability",
+    "Pacifica, CA (San Francisco Bay Area)",
+    "Independent Software Engineer — AI Products & Infrastructure",
     "YouTube (Google)",
-    "Site Reliability Engineer, L4",
-    "The University of Southern Mississippi",
-    "Jones County Junior College"
+    "Site Reliability Engineer",
+    "Promoted in 2021",
+    "University of Southern Mississippi",
+    "M.S. Computer Science (2016)",
+    "B.S. Computer Science (2015)"
   ],
   "sectionOrderPairs": [
-    ["Summary", "Skills"],
-    ["Skills", "Experience"],
-    ["Experience", "Education"]
+    ["Summary", "Experience"],
+    ["Experience", "Skills"],
+    ["Skills", "Education"]
   ],
   "educationPairing": {
     "severity": "error",
     "nearbyWindowCharacters": 0,
     "pairs": [
-      ["M.S. Computer Science", "Aug 2015"],
-      ["B.S. Computer Science", "May 2013"],
-      ["A.A.S. Information System Technology", "Aug 2011"]
+      ["M.S. Computer Science", "2016"],
+      ["B.S. Computer Science", "2015"]
     ]
   }
 }

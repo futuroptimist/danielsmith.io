@@ -7,6 +7,7 @@ import argparse
 import json
 import re
 import sys
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -26,6 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pdf-pages", required=True, help="Generated PDF page count.")
     parser.add_argument("--plain-text", required=True, help="Plain pdftotext output path.")
     parser.add_argument("--layout-text", required=True, help="Layout pdftotext output path.")
+    parser.add_argument("--pdf-info", required=True, help="pdfinfo output path.")
     parser.add_argument("--summary", required=True, help="GitHub step summary path.")
     parser.add_argument(
         "--config",
@@ -83,6 +85,16 @@ def compact_education_context(education_text: str) -> str:
     return f"{normalized[:257].rstrip()}..."
 
 
+def parse_pdf_info(text: str) -> dict[str, str]:
+    """Return the standard `pdfinfo` key/value fields."""
+    fields: dict[str, str] = {}
+    for line in text.splitlines():
+        key, separator, value = line.partition(":")
+        if separator:
+            fields[key.strip()] = value.strip()
+    return fields
+
+
 def education_pair_observations(
     config: dict,
     plain: str,
@@ -132,7 +144,11 @@ def main() -> int:
     layout_path = Path(args.layout_text)
     plain = plain_path.read_text(encoding="utf-8", errors="replace")
     layout = layout_path.read_text(encoding="utf-8", errors="replace")
+    pdf_info = parse_pdf_info(
+        Path(args.pdf_info).read_text(encoding="utf-8", errors="replace")
+    )
     plain_lines = plain.splitlines()
+    normalized_plain = re.sub(r"\s+", " ", unicodedata.normalize("NFKD", plain))
     failures: list[str] = []
     warnings: list[str] = []
     checklist: list[CheckResult] = []
@@ -153,8 +169,20 @@ def main() -> int:
     )
     check("PDF page count is one", args.pdf_pages == "1", args.pdf_pages)
 
+    for field in config.get("requiredPdfMetadata", []):
+        value = pdf_info.get(field, "")
+        check(f"PDF metadata is populated: `{field}`", bool(value), value or "missing")
+    expected_page_size = config.get("expectedPageSize")
+    if expected_page_size:
+        page_size = pdf_info.get("Page size", "")
+        check(
+            f"PDF page size is `{expected_page_size}`",
+            expected_page_size.lower() in page_size.lower(),
+            page_size or "missing",
+        )
+
     for term in config.get("requiredTerms", []):
-        check(f"Required text present: `{term}`", term in plain)
+        check(f"Required text present: `{term}`", term in normalized_plain)
 
     section_names = {
         section for pair in config.get("sectionOrderPairs", []) for section in pair
@@ -175,8 +203,10 @@ def main() -> int:
     warnings.extend(education_warnings)
     failures.extend(education_failures)
 
-    if re.search(r"[A-Za-z]-\n[A-Za-z]", plain):
-        warnings.append("Possible hyphenated line break found in plain extraction.")
+    check(
+        "No words split by line-ending hyphens",
+        re.search(r"[A-Za-z]-\n[A-Za-z]", plain) is None,
+    )
     if re.search(r"\b[A-Za-z]{1,2}\n[A-Za-z]{1,2}\n", plain):
         warnings.append("Possible unusually short wrapped words found in plain extraction.")
 

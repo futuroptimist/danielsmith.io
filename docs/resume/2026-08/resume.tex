@@ -1,0 +1,117 @@
+\documentclass[10pt]{article}
+\usepackage[letterpaper,margin=0.65in]{geometry}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage{microtype}
+\else
+  \usepackage{fontspec}
+  \defaultfontfeatures{Ligatures=NoCommon}
+\fi
+\usepackage[default]{sourcesanspro}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[hidelinks,pdfencoding=auto,psdextra]{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\ifdefined\pdfgentounicode
+  \input{glyphtounicode}
+  \pdfgentounicode=1
+\fi
+\hypersetup{
+  pdftitle={Daniel Smith - Software Engineer - AI Systems, Platform and Reliability},
+  pdfauthor={Daniel Smith},
+  pdfsubject={Resume for software engineering roles in AI systems, platform, and reliability},
+  pdfkeywords={software engineering, AI systems, platform engineering, site reliability, Kubernetes},
+  pdflang={en-US}
+}
+\setlist[itemize]{leftmargin=*,itemsep=0.4mm,topsep=0.5mm,parsep=0mm}
+\titlespacing*{\section}{0pt}{1.7mm}{0.8mm}
+\titleformat{\section}{\large\bfseries}{}{0pt}{}
+\setlength\parindent{0pt}
+\setlength\parskip{0pt}
+\setlength\emergencystretch{1.5em}
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\ifPDFTeX
+  \DisableLigatures{encoding=*,family=*}
+\fi
+\pagestyle{empty}
+
+\begin{document}
+\fontsize{10.5}{11.8}\selectfont
+\raggedright
+
+\begin{center}
+  {\fontsize{22}{24}\selectfont\textbf{Daniel Smith}}\\[0.8mm]
+  {\large\textbf{Software Engineer --- AI Systems, Platform \& Reliability}}\\[0.6mm]
+  Pacifica, CA (San Francisco Bay Area)\\[0.5mm]
+  \href{mailto:daniel@danielsmith.io}{daniel@danielsmith.io} \quad|\quad
+  \href{https://danielsmith.io}{danielsmith.io} \quad|\quad
+  \href{https://github.com/futuroptimist}{github.com/futuroptimist} \quad|\quad
+  \href{https://linkedin.com/in/danielsmith4483}{linkedin.com/in/danielsmith4483}
+\end{center}
+
+\vspace{-2mm}
+\section*{Summary}
+Software engineer with 12+ years building production systems, including nearly seven years at
+YouTube. Ships AI products end to end---from TypeScript/Svelte interfaces and Python/Go APIs to
+local LLM inference---and builds the Kubernetes, delivery, observability, and incident-response
+systems that keep them reliable.
+
+\section*{Experience}
+\textbf{Independent Software Engineer --- AI Products \& Infrastructure} \hfill Remote \\
+\textit{Independent Engineering} \hfill Jun 2025 -- Present
+\begin{itemize}
+  \item Built \href{https://token.place}{\textbf{token.place}}, a privacy-focused distributed LLM
+  platform with an OpenAI-compatible API, relay-blind end-to-end encryption, local inference, and
+  failover, cancellation, and recovery across relays.
+  \item Designed its Tauri desktop compute node for Windows CUDA and macOS Metal targets using
+  llama.cpp model serving; implemented deterministic long-context validation through the 64K tier.
+  \item Operated \href{https://github.com/futuroptimist/sugarkube}{\textbf{Sugarkube}}, a reusable
+  multi-node Raspberry Pi k3s/Helm platform deploying DSPACE, token.place, and danielsmith.io with
+  immutable OCI releases, environment promotion, health gates, rollback, and recovery.
+  \item Implemented Prometheus/Grafana observability plus PagerDuty and Cloudflare integration;
+  shipped accessible Astro, Svelte, and TypeScript products with browser testing, offline/SSR safeguards,
+  privacy protections, and WebGL-to-text failover.
+\end{itemize}
+
+\textbf{YouTube (Google)} \hfill San Bruno, CA \\
+\textit{Site Reliability Engineer} \hfill Sep 2018 -- May 2025
+\begin{itemize}
+  \item Owned product-health metrics and leadership dashboards for high-traffic YouTube surfaces,
+  establishing a shared basis for product and engineering reliability reviews and prioritization.
+  \item Built Python, Go, SQL, and C++ automation for monitoring, anomaly analysis, and operational
+  workflows, improving production signal quality and reducing repetitive investigation.
+  \item Led on-call and incident response across Core, Trust \& Safety, and Search SRE; guided teams
+  across Alphabet, authored reusable playbooks, mentored engineers, and strengthened onboarding.
+  Promoted in 2021.
+\end{itemize}
+
+\textbf{Naval Research Laboratory} \hfill Stennis Space Center, MS \\
+\textit{Software Engineer} \hfill Jan 2017 -- Sep 2018
+\begin{itemize}
+  \item Built C++/Qt data-processing applications for research workflows and delivered iterative
+  releases, demonstrations, and documentation in a distributed Scrum team.
+\end{itemize}
+
+\textbf{The University of Southern Mississippi} \hfill Hattiesburg, MS \\
+\textit{Software Developer} \hfill Mar 2014 -- Dec 2016
+\begin{itemize}
+  \item Built an Objective-C content-delivery and networking framework for university iOS
+  applications, supporting real-time content updates.
+\end{itemize}
+
+\section*{Skills}
+\textbf{Languages:} Python, Go, TypeScript/JavaScript, SQL, C++, Bash \quad
+\textbf{Systems/platform:} Kubernetes, k3s, Helm, Docker/OCI, Linux, Google Cloud, GitHub Actions,
+distributed systems \\
+\textbf{Reliability/observability:} SLOs, incident response, Prometheus, Grafana, PagerDuty,
+monitoring and alerting, CI/CD \\
+\textbf{Product/AI:} Svelte, React, Astro, Flask, REST/OpenAI-compatible APIs, local LLM inference
+and model serving, Tauri, llama.cpp
+
+\section*{Education}
+\textbf{University of Southern Mississippi} --- M.S. Computer Science (2016), B.S. Computer
+Science (2015), GPA: 4.0
+
+\end{document}
