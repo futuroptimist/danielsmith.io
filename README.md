@@ -75,6 +75,9 @@ Avatar facing is computed from the camera-relative movement vector; see
   [`docs/sugarkube_onboarding.md`](docs/sugarkube_onboarding.md),
   [`docs/k3s-sugarkube-staging.md`](docs/k3s-sugarkube-staging.md), and
   [`docs/k3s-sugarkube-prod.md`](docs/k3s-sugarkube-prod.md).
+- **`@claude` workflow** – Required secret and credential-rotation steps for
+  the automated `@claude` GitHub Actions workflow live in
+  [`docs/ops/claude-workflow.md`](docs/ops/claude-workflow.md).
 
 ## Map of the repo
 
