@@ -309,7 +309,7 @@ jobs:
         id: claude
         uses: anthropics/claude-code-action@fa7e2f0a29a126f0b81cdcf360561b36e44cf608 # v1
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           allowed_non_write_users: ${{ needs.authorize.outputs.authorized_actor }}
           include_comments_by_actor: ${{ needs.authorize.outputs.trusted_actors }}
           additional_permissions: |
