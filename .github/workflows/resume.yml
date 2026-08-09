@@ -127,6 +127,7 @@ jobs:
           ATS_CONFIG: docs/resume/ats-smoke.json
         run: |
           set -euo pipefail
+          python3 -m unittest scripts/tests/test_resume_ats_smoke.py
           ats_dir="${RUNNER_TEMP}/resume-ats"
           mkdir -p "${ats_dir}"
 

@@ -93,6 +93,19 @@ describe('latest resume artifacts stay within a single page', () => {
     expect(pageCount).toBe(1);
   });
 
+  it('PDF uses US Letter page dimensions', async () => {
+    const ensured = ensureArtifactsOrSkip();
+    if (!ensured) {
+      return;
+    }
+    const data = await readFile(ensured.pdfPath);
+    const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+    const pdf = await PDFDocument.load(bytes);
+    const { width, height } = pdf.getPage(0).getSize();
+    expect(width).toBeCloseTo(612, 0);
+    expect(height).toBeCloseTo(792, 0);
+  });
+
   it('DOCX conversion uses only one page', async () => {
     const ensured = ensureArtifactsOrSkip();
     if (!ensured) {

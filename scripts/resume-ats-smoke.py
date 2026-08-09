@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -83,6 +84,25 @@ def compact_education_context(education_text: str) -> str:
     return f"{normalized[:257].rstrip()}..."
 
 
+def pdf_metadata(pdf_path: Path) -> dict[str, str]:
+    result = subprocess.run(
+        ["pdfinfo", str(pdf_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    metadata: dict[str, str] = {}
+    for line in result.stdout.splitlines():
+        key, separator, value = line.partition(":")
+        if separator:
+            metadata[key.strip()] = value.strip()
+    return metadata
+
+
+def broken_word_line_breaks(text: str) -> list[str]:
+    return re.findall(r"[A-Za-z]+-\n[A-Za-z]+", text)
+
+
 def education_pair_observations(
     config: dict,
     plain: str,
@@ -153,8 +173,18 @@ def main() -> int:
     )
     check("PDF page count is one", args.pdf_pages == "1", args.pdf_pages)
 
+    try:
+        metadata = pdf_metadata(Path(args.pdf))
+    except (OSError, subprocess.CalledProcessError) as error:
+        check("PDF metadata is readable with pdfinfo", False, str(error))
+        metadata = {}
+    for field in ("Title", "Author", "Subject", "Keywords"):
+        check(f"PDF metadata populated: `{field}`", bool(metadata.get(field)))
+
     for term in config.get("requiredTerms", []):
         check(f"Required text present: `{term}`", term in plain)
+    for term in config.get("forbiddenTerms", []):
+        check(f"Forbidden text absent: `{term}`", term not in plain)
 
     section_names = {
         section for pair in config.get("sectionOrderPairs", []) for section in pair
@@ -175,8 +205,12 @@ def main() -> int:
     warnings.extend(education_warnings)
     failures.extend(education_failures)
 
-    if re.search(r"[A-Za-z]-\n[A-Za-z]", plain):
-        warnings.append("Possible hyphenated line break found in plain extraction.")
+    broken_words = broken_word_line_breaks(plain)
+    check(
+        "No line-ending broken words in plain extraction",
+        not broken_words,
+        ", ".join(broken_words[:5]),
+    )
     if re.search(r"\b[A-Za-z]{1,2}\n[A-Za-z]{1,2}\n", plain):
         warnings.append("Possible unusually short wrapped words found in plain extraction.")
 
