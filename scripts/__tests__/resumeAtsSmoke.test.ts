@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -26,6 +26,7 @@ describe('resume ATS smoke', () => {
     const layoutPath = path.join(fixtureDir, 'layout.txt');
     const summaryPath = path.join(fixtureDir, 'summary.md');
     const configPath = path.join(fixtureDir, 'config.json');
+    await createPdfinfoFixture();
     await writeFile(
       plainPath,
       'Summary\nExperience\nrun-\nbooks\nSkills\nEducation\n'
@@ -50,6 +51,16 @@ describe('resume ATS smoke', () => {
         'No hyphenated line-break artifacts in plain extraction'
       ),
     });
+
+    const summary = await readFile(summaryPath, 'utf8');
+    const failures = summary
+      .split('\n')
+      .filter((line) => line.startsWith('- ❌ '));
+    expect(failures).toEqual([
+      '- ❌ No hyphenated line-break artifacts in plain extraction — n-\\nb',
+    ]);
+    expect(summary).toContain('- ✅ PDF metadata is populated: `Title`');
+    expect(summary).toContain('- ✅ PDF page size is US Letter');
   });
 });
 
@@ -65,6 +76,23 @@ async function createPdfFixture(): Promise<string> {
   const pdfPath = path.join(fixtureDir, 'resume.pdf');
   await writeFile(pdfPath, await pdf.save());
   return pdfPath;
+}
+
+async function createPdfinfoFixture(): Promise<void> {
+  const pdfinfoPath = path.join(fixtureDir, 'pdfinfo');
+  await writeFile(
+    pdfinfoPath,
+    `#!/bin/sh
+cat <<'EOF'
+Title: Résumé test
+Author: Daniel Smith
+Subject: ATS regression fixture
+Keywords: resume, test
+Page size: 612 x 792 pts (letter)
+EOF
+`
+  );
+  await chmod(pdfinfoPath, 0o755);
 }
 
 async function runAtsSmoke(
@@ -94,6 +122,9 @@ async function runAtsSmoke(
       '--config',
       configPath,
     ],
-    { cwd: PROJECT_ROOT }
+    {
+      cwd: PROJECT_ROOT,
+      env: { ...process.env, PATH: `${fixtureDir}:${process.env.PATH}` },
+    }
   );
 }

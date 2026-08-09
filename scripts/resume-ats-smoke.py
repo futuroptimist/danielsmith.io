@@ -100,6 +100,17 @@ def pdf_metadata(pdf_path: Path) -> dict[str, str]:
     }
 
 
+def subprocess_error_detail(error: OSError | subprocess.CalledProcessError) -> str:
+    """Include captured command output when a subprocess check fails."""
+    if isinstance(error, subprocess.CalledProcessError):
+        output = error.stderr or error.stdout
+        if output:
+            if isinstance(output, bytes):
+                output = output.decode("utf-8", errors="replace")
+            return f"{error}: {output.strip()}"
+    return str(error)
+
+
 def education_pair_observations(
     config: dict,
     plain: str,
@@ -173,7 +184,11 @@ def main() -> int:
     try:
         metadata = pdf_metadata(Path(args.pdf))
     except (OSError, subprocess.CalledProcessError) as error:
-        check("PDF metadata is readable with pdfinfo", False, str(error))
+        check(
+            "PDF metadata is readable with pdfinfo",
+            False,
+            subprocess_error_detail(error),
+        )
     else:
         for field in ("Title", "Author", "Subject", "Keywords"):
             check(f"PDF metadata is populated: `{field}`", bool(metadata.get(field)))
