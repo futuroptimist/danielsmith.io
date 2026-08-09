@@ -229,6 +229,14 @@ jobs:
           fetch-tags: true
           persist-credentials: false
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install validation dependencies
+        run: /usr/local/bin/danielsmithio-claude-validate prepare-deps
+
       - name: Create strict Claude settings
         env:
           CLAUDE_SETTINGS: ${{ runner.temp }}/claude-settings.json
