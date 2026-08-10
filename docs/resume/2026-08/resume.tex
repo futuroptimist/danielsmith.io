@@ -52,13 +52,14 @@ systems that keep them reliable.
   relay-blind end-to-end encryption and local inference, with progress reporting, cancellation,
   failover, and recovery.
   \item Validated Tauri compute nodes on Windows CUDA and macOS Metal at deterministic 8K/32K/64K
-  context tiers; a measured 55,254-token local-inference prompt completed in 458.2 seconds at
-  ${\sim}$121.6 prefill tokens/s---21.7 seconds inside an eight-minute budget.
+  context tiers; a measured local-inference run processed a 55,254-token prompt in 458.2 seconds at
+  ${\sim}$121.6 prefill tokens/s---21.8 seconds inside a 480-second budget.
   \item In a \href{https://github.com/futuroptimist/sugarkube}{\textbf{Sugarkube}} node-loss drill
   on a three-node Raspberry Pi k3s/Helm cluster,
   \href{https://democratized.space}{\textbf{DSPACE}},
   \href{https://danielsmith.io}{\textbf{danielsmith.io}}, and
-  \href{https://github.com/futuroptimist/jobbot3000}{\textbf{Jobbot3000}} returned HTTP 200 responses;
+  \href{https://github.com/futuroptimist/jobbot3000}{\textbf{Jobbot3000}}
+  returned HTTP 200 responses;
   \href{https://token.place}{\textbf{token.place}} recovered from one transient 502 in ${\sim}$49
   seconds.
   \item Shipped \href{https://democratized.space}{\textbf{DSPACE}} and
