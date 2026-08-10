@@ -46,20 +46,20 @@ systems that keep them reliable.
 
 \section*{Experience}
 \textbf{Independent Software Engineer --- AI Products \& Infrastructure} \hfill Remote\\
-\textit{Independent Engineering} \hfill Jun 2025 --- Present
+\textit{Selected open-source products} \hfill Jun 2025 --- Present
 \begin{itemize}
-  \item Built \href{https://token.place}{\textbf{token.place}}, a privacy-focused distributed LLM
-  platform with an OpenAI-compatible API, relay-blind end-to-end encryption, local inference, and
-  failover, cancellation, and recovery paths.
-  \item Implemented Tauri desktop compute-node work for
-  \href{https://token.place}{\textbf{token.place}} on Windows CUDA and macOS Metal targets, with
-  deterministic long-context validation through the 64K tier.
-  \item Designed and operated \href{https://github.com/futuroptimist/sugarkube}{\textbf{Sugarkube}},
-  a reusable multi-node Raspberry Pi k3s/Helm platform deploying
-  \href{https://democratized.space}{\textbf{DSPACE}},
-  \href{https://token.place}{\textbf{token.place}}, and
-  \href{https://danielsmith.io}{\textbf{danielsmith.io}} through immutable OCI releases, health
-  gates, promotion, rollback, and recovery.
+  \item Shipped \href{https://token.place}{\textbf{token.place}}: OpenAI-compatible distributed local
+  LLM inference with relay-blind end-to-end encryption and progress, cancellation, failover, and
+  recovery paths.
+  \item Measured Tauri compute nodes on Windows CUDA and macOS Metal with deterministic
+  8K/32K/64K tests: a 55,254-token local-inference prompt finished in 458.2 seconds at
+  ${\sim}$121.6 prefill tokens/s, 21.7 seconds inside a 480-second budget.
+  \item Node-loss drill on \href{https://github.com/futuroptimist/sugarkube}{\textbf{Sugarkube}}'s
+  three-node Raspberry Pi k3s cluster: \href{https://democratized.space}{\textbf{DSPACE}},
+  \href{https://danielsmith.io}{\textbf{danielsmith.io}}, and
+  \href{https://github.com/futuroptimist/jobbot3000}{\textbf{Jobbot3000}} returned sampled HTTP 200
+  responses; \href{https://token.place}{\textbf{token.place}} recovered from one transient 502 in
+  ${\sim}$49s.
   \item Shipped \href{https://democratized.space}{\textbf{DSPACE}} and
   \href{https://danielsmith.io}{\textbf{danielsmith.io}} using Astro/Svelte/TypeScript products and
   APIs with browser testing, offline and SSR safeguards, privacy and accessibility controls, and
