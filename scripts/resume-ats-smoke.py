@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -83,6 +84,33 @@ def compact_education_context(education_text: str) -> str:
     return f"{normalized[:257].rstrip()}..."
 
 
+def pdf_metadata(pdf_path: Path) -> dict[str, str]:
+    """Return normalized pdfinfo fields for metadata and page-size checks."""
+    completed = subprocess.run(
+        ["pdfinfo", str(pdf_path)],
+        check=True,
+        capture_output=True,
+        encoding="utf-8",
+    )
+    return {
+        key.strip(): value.strip()
+        for line in completed.stdout.splitlines()
+        if ":" in line
+        for key, value in [line.split(":", 1)]
+    }
+
+
+def subprocess_error_detail(error: OSError | subprocess.CalledProcessError) -> str:
+    """Include captured command output when a subprocess check fails."""
+    if isinstance(error, subprocess.CalledProcessError):
+        output = error.stderr or error.stdout
+        if output:
+            if isinstance(output, bytes):
+                output = output.decode("utf-8", errors="replace")
+            return f"{error}: {output.strip()}"
+    return str(error)
+
+
 def education_pair_observations(
     config: dict,
     plain: str,
@@ -153,8 +181,28 @@ def main() -> int:
     )
     check("PDF page count is one", args.pdf_pages == "1", args.pdf_pages)
 
+    try:
+        metadata = pdf_metadata(Path(args.pdf))
+    except (OSError, subprocess.CalledProcessError) as error:
+        check(
+            "PDF metadata is readable with pdfinfo",
+            False,
+            subprocess_error_detail(error),
+        )
+    else:
+        for field in ("Title", "Author", "Subject", "Keywords"):
+            check(f"PDF metadata is populated: `{field}`", bool(metadata.get(field)))
+        page_size = metadata.get("Page size", "")
+        is_us_letter = bool(
+            re.search(r"\b612\s+x\s+792\s+pts\b", page_size)
+            or "letter" in page_size.lower()
+        )
+        check("PDF page size is US Letter", is_us_letter, page_size)
+
     for term in config.get("requiredTerms", []):
         check(f"Required text present: `{term}`", term in plain)
+    for term in config.get("prohibitedTerms", []):
+        check(f"Prohibited text absent: `{term}`", term not in plain)
 
     section_names = {
         section for pair in config.get("sectionOrderPairs", []) for section in pair
@@ -175,8 +223,12 @@ def main() -> int:
     warnings.extend(education_warnings)
     failures.extend(education_failures)
 
-    if re.search(r"[A-Za-z]-\n[A-Za-z]", plain):
-        warnings.append("Possible hyphenated line break found in plain extraction.")
+    broken_word = re.search(r"[A-Za-z]-\n[A-Za-z]", plain)
+    check(
+        "No hyphenated line-break artifacts in plain extraction",
+        broken_word is None,
+        broken_word.group(0).replace("\n", "\\n") if broken_word else "",
+    )
     if re.search(r"\b[A-Za-z]{1,2}\n[A-Za-z]{1,2}\n", plain):
         warnings.append("Possible unusually short wrapped words found in plain extraction.")
 

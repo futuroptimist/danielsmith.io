@@ -7,10 +7,16 @@ on:
     paths:
       - 'docs/resume/**'
       - '.github/workflows/resume.yml'
+      - 'scripts/resume-ats-smoke.py'
+      - 'scripts/resume-docx.py'
+      - 'src/tests/resumeArtifacts.test.ts'
   pull_request:
     paths:
       - 'docs/resume/**'
       - '.github/workflows/resume.yml'
+      - 'scripts/resume-ats-smoke.py'
+      - 'scripts/resume-docx.py'
+      - 'src/tests/resumeArtifacts.test.ts'
   workflow_dispatch:
 
 permissions:
@@ -40,7 +46,13 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y latexmk pandoc poppler-utils texlive-full
+          sudo apt-get install -y \
+            fonts-liberation \
+            latexmk \
+            libreoffice-writer \
+            pandoc \
+            poppler-utils \
+            texlive-full
 
       - name: Determine latest resume source
         id: resume
@@ -87,10 +99,19 @@ jobs:
           set -euo pipefail
           latexmk -pdf -interaction=nonstopmode -outdir="${{ steps.resume.outputs.build_dir }}" "${{ steps.resume.outputs.tex }}"
 
-      - name: Generate DOCX with pandoc
+      - name: Generate styled DOCX
         run: |
           set -euo pipefail
-          pandoc "${{ steps.resume.outputs.tex }}" -o "${{ steps.resume.outputs.docx }}"
+          python3 scripts/resume-docx.py build \
+            --source "${{ steps.resume.outputs.tex }}" \
+            --output "${{ steps.resume.outputs.docx }}"
+
+      - name: Verify rendered DOCX
+        run: |
+          set -euo pipefail
+          python3 scripts/resume-docx.py verify \
+            --docx "${{ steps.resume.outputs.docx }}" \
+            --render-dir "${RUNNER_TEMP}/resume-docx-render"
 
       - name: Collect PDF page count
         id: pdfinfo
@@ -230,7 +251,12 @@ jobs:
             local from_ref="$1"
             local to_ref="$2"
             local changed_paths
-            changed_paths="$(git diff --name-only "${from_ref}" "${to_ref}" -- docs/resume .github/workflows/resume.yml)"
+            changed_paths="$(git diff --name-only "${from_ref}" "${to_ref}" -- \
+              docs/resume \
+              .github/workflows/resume.yml \
+              scripts/resume-ats-smoke.py \
+              scripts/resume-docx.py \
+              src/tests/resumeArtifacts.test.ts)"
             if [ -n "${changed_paths}" ]; then
               echo "::error::Refusing to publish stale resume artifacts because resume-affecting paths changed between ${from_ref} and ${to_ref}."
               while IFS= read -r path; do
@@ -309,7 +335,12 @@ jobs:
             local from_ref="$1"
             local to_ref="$2"
             local changed_paths
-            changed_paths="$(git diff --name-only "${from_ref}" "${to_ref}" -- docs/resume .github/workflows/resume.yml)"
+            changed_paths="$(git diff --name-only "${from_ref}" "${to_ref}" -- \
+              docs/resume \
+              .github/workflows/resume.yml \
+              scripts/resume-ats-smoke.py \
+              scripts/resume-docx.py \
+              src/tests/resumeArtifacts.test.ts)"
             if [ -n "${changed_paths}" ]; then
               echo "::error::Refusing to publish stale resume artifacts because resume-affecting paths changed between ${from_ref} and ${to_ref}."
               while IFS= read -r path; do

@@ -14,7 +14,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
-import JSZip from 'jszip';
 import { PDFDocument } from 'pdf-lib';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -36,6 +35,7 @@ const PANDOC_VERSION = '3.8';
 interface ResumeArtifacts {
   pdfPath: string;
   docxPath: string;
+  pandocPath: string;
   cleanup: () => Promise<void>;
 }
 
@@ -98,10 +98,40 @@ describe('latest resume artifacts stay within a single page', () => {
     if (!ensured) {
       return;
     }
-    const { docxPath } = ensured;
-    const pageCount = await countDocxPages(docxPath);
-    expect(pageCount).toBe(1);
-  });
+    const libreOffice = await findOnPath('libreoffice');
+    const pdfInfo = await findOnPath('pdfinfo');
+    const pdfToText = await findOnPath('pdftotext');
+    if (!libreOffice || !pdfInfo || !pdfToText) {
+      console.warn(
+        'Skipping rendered DOCX check because LibreOffice or Poppler is unavailable.'
+      );
+      return;
+    }
+    const renderDir = await createTempDir('resume-docx-render-');
+    const currentPath = process.env.PATH ?? '';
+    try {
+      await execFileAsync(
+        'python3',
+        [
+          path.join(PROJECT_ROOT, 'scripts', 'resume-docx.py'),
+          'verify',
+          '--docx',
+          ensured.docxPath,
+          '--render-dir',
+          renderDir,
+        ],
+        {
+          cwd: PROJECT_ROOT,
+          env: {
+            ...process.env,
+            PATH: `${path.dirname(ensured.pandocPath)}${path.delimiter}${currentPath}`,
+          },
+        }
+      );
+    } finally {
+      await rm(renderDir, { recursive: true, force: true });
+    }
+  }, 30_000);
 });
 
 function ensureArtifactsOrSkip(): ResumeArtifacts | null {
@@ -135,11 +165,23 @@ async function buildLatestResumeArtifacts(): Promise<ResumeArtifacts> {
   const baseName = path.basename(texPath, '.tex');
   const pdfPath = path.join(outputDir, `${baseName}.pdf`);
 
+  const currentPath = process.env.PATH ?? '';
   await execFileAsync(
-    pandoc,
-    [texPath, '-o', path.join(outputDir, `${baseName}.docx`)],
+    'python3',
+    [
+      path.join(PROJECT_ROOT, 'scripts', 'resume-docx.py'),
+      'build',
+      '--source',
+      texPath,
+      '--output',
+      path.join(outputDir, `${baseName}.docx`),
+    ],
     {
       cwd: PROJECT_ROOT,
+      env: {
+        ...process.env,
+        PATH: `${path.dirname(pandoc)}${path.delimiter}${currentPath}`,
+      },
     }
   );
 
@@ -148,6 +190,7 @@ async function buildLatestResumeArtifacts(): Promise<ResumeArtifacts> {
   return {
     pdfPath,
     docxPath,
+    pandocPath: pandoc,
     cleanup: async () => {
       await rm(outputDir, { recursive: true, force: true });
     },
@@ -304,20 +347,4 @@ async function countPdfPages(pdfPath: string): Promise<number> {
   const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
   const pdf = await PDFDocument.load(bytes);
   return pdf.getPageCount();
-}
-
-async function countDocxPages(docxPath: string): Promise<number> {
-  const data = await readFile(docxPath);
-  const zip = await JSZip.loadAsync(data);
-  const appXml = await zip.file('docProps/app.xml')?.async('string');
-  if (!appXml) {
-    throw new Error('docProps/app.xml missing from DOCX.');
-  }
-
-  const match = appXml.match(/<Pages>(\d+)<\/Pages>/);
-  if (!match) {
-    throw new Error('DOCX did not contain a <Pages> element.');
-  }
-
-  return Number.parseInt(match[1], 10);
 }
