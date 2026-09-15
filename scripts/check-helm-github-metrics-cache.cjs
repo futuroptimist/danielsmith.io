@@ -125,8 +125,23 @@ assertIncludes(
 );
 assertIncludes(
   enabledRender,
-  '"subscribers": data.get("subscribers_count", 0) or 0',
+  '"subscribers": bounded_number(data.get("subscribers_count", 0))',
   'rendered script should expose subscribers_count as subscribers'
+);
+assertIncludes(
+  enabledRender,
+  '"state": "warming"',
+  'sidecar should publish bounded initial warmup telemetry'
+);
+assertIncludes(
+  enabledRender,
+  '"retainedDataAgeSeconds"',
+  'sidecar should publish retained-data freshness'
+);
+assertIncludes(
+  enabledRender,
+  'categories.append(failure_category(exc))',
+  'sidecar should reduce upstream failures to bounded categories'
 );
 assertIncludes(
   enabledRender,

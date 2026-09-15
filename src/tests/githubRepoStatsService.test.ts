@@ -33,6 +33,81 @@ const createOptions = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe('GitHub repo stats service', () => {
+  it('exposes bounded runtime cache health without fetching during diagnostics reads', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 2,
+        generatedAt: '2026-06-03T00:00:00.000Z',
+        expiresAt: '2026-06-03T00:10:00.000Z',
+        source: 'github-api',
+        repos: {
+          'futuroptimist/flywheel': {
+            owner: 'futuroptimist',
+            repo: 'flywheel',
+            stars: 12,
+            watchers: 2,
+            forks: 1,
+            openIssues: 0,
+            pushedAt: null,
+          },
+        },
+        errors: {},
+        cache: {
+          enabled: true,
+          state: 'stale',
+          lastSuccessfulRefreshAt: '2026-06-03T00:30:00.000Z',
+          dataCompleteness: 'partial',
+          refreshDurationMs: 123,
+          failureCategories: [
+            'rate_limited',
+            'private-message',
+            'rate_limited',
+          ],
+          configuredRepositoryCount: 999,
+          successfulRepositoryCount: 1,
+          failedRepositoryCount: 2,
+          retainedRepositoryCount: 2,
+          oldestDataFetchedAt: '2026-06-03T00:00:00.000Z',
+          retainedDataAgeSeconds: 7200,
+        },
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        now: () => Date.parse('2026-06-03T01:00:00.000Z'),
+      })
+    );
+
+    await expect(
+      service.requestStats({ owner: 'futuroptimist', repo: 'flywheel' })
+    ).resolves.toMatchObject({ stars: 12 });
+    expect(service.getDiagnostics().source).toBe('runtime-cache-stale');
+    expect(service.getDiagnostics().runtimeCacheHealth).toEqual({
+      enabled: true,
+      state: 'stale',
+      lastSuccessfulRefreshAt: '2026-06-03T00:30:00.000Z',
+      dataCompleteness: 'partial',
+      refreshDurationMs: 123,
+      failureCategories: ['rate_limited'],
+      configuredRepositoryCount: 50,
+      successfulRepositoryCount: 1,
+      failedRepositoryCount: 2,
+      retainedRepositoryCount: 2,
+      oldestDataFetchedAt: '2026-06-03T00:00:00.000Z',
+      retainedDataAgeSeconds: 7200,
+    });
+    service.getDiagnostics();
+    service.getDiagnostics();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith('/runtime/github-metrics.json', {
+      headers: { Accept: 'application/json' },
+    });
+  });
+
   it('loads valid pod-local runtime cache before live browser fetches', async () => {
     const fetch = vi.fn().mockResolvedValue({
       ok: true,

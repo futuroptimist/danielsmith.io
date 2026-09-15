@@ -92,10 +92,23 @@ immutable `main-<shortsha>` tag or `image.digest`.
 {{- if eq (len .Values.githubMetricsCache.repos) 0 -}}
 {{- fail "githubMetricsCache.repos must include at least one repository" -}}
 {{- end -}}
+{{- if gt (len .Values.githubMetricsCache.repos) 50 -}}
+{{- fail "githubMetricsCache.repos must include no more than 50 repositories" -}}
+{{- end -}}
+{{- $seenRepos := dict -}}
+{{- $repoNamePattern := "^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$" -}}
 {{- range $index, $repo := .Values.githubMetricsCache.repos -}}
 {{- if or (not $repo.owner) (not $repo.repo) -}}
 {{- fail (printf "githubMetricsCache.repos[%d] must include non-empty owner and repo" $index) -}}
 {{- end -}}
+{{- if or (not (regexMatch $repoNamePattern $repo.owner)) (not (regexMatch $repoNamePattern $repo.repo)) -}}
+{{- fail (printf "githubMetricsCache.repos[%d] has an invalid owner or repo" $index) -}}
+{{- end -}}
+{{- $repoKey := printf "%s/%s" (lower $repo.owner) (lower $repo.repo) -}}
+{{- if hasKey $seenRepos $repoKey -}}
+{{- fail (printf "githubMetricsCache.repos[%d] duplicates %s" $index $repoKey) -}}
+{{- end -}}
+{{- $_ := set $seenRepos $repoKey true -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

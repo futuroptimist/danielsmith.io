@@ -29,6 +29,22 @@ export interface GitHubRepoStatsDiagnostics {
   backoffExpiresAt: string | null;
   cachedRepoCount: number;
   warningCount: number;
+  runtimeCacheHealth: GitHubRuntimeCacheHealth | null;
+}
+
+export interface GitHubRuntimeCacheHealth {
+  enabled: boolean;
+  state: 'disabled' | 'warming' | 'fresh' | 'stale' | 'unavailable';
+  lastSuccessfulRefreshAt: string | null;
+  dataCompleteness: 'complete' | 'partial' | 'none';
+  refreshDurationMs: number | null;
+  failureCategories: string[];
+  configuredRepositoryCount: number;
+  successfulRepositoryCount: number;
+  failedRepositoryCount: number;
+  retainedRepositoryCount: number;
+  oldestDataFetchedAt: string | null;
+  retainedDataAgeSeconds: number | null;
 }
 
 export interface GitHubRepoStatsService {
@@ -250,6 +266,73 @@ const normalizeRuntimeRepoStats = (value: unknown): GitHubRepoStats | null => {
   };
 };
 
+const CACHE_STATES = new Set([
+  'disabled',
+  'warming',
+  'fresh',
+  'stale',
+  'unavailable',
+]);
+const COMPLETENESS_STATES = new Set(['complete', 'partial', 'none']);
+const FAILURE_CATEGORIES = new Set([
+  'configuration',
+  'internal',
+  'invalid_response',
+  'network',
+  'not_found',
+  'rate_limited',
+  'timeout',
+  'upstream',
+]);
+
+const boundedTelemetryNumber = (value: unknown): number | null =>
+  typeof value === 'number' && Number.isFinite(value) && value >= 0
+    ? Math.min(Math.floor(value), 31_536_000)
+    : null;
+
+const normalizeRuntimeCacheHealth = (
+  value: unknown
+): GitHubRuntimeCacheHealth | null => {
+  if (!isRecord(value) || typeof value.enabled !== 'boolean') {
+    return null;
+  }
+  const state = typeof value.state === 'string' ? value.state : '';
+  const completeness =
+    typeof value.dataCompleteness === 'string' ? value.dataCompleteness : '';
+  if (!CACHE_STATES.has(state) || !COMPLETENESS_STATES.has(completeness)) {
+    return null;
+  }
+  const count = (name: string): number =>
+    Math.min(boundedTelemetryNumber(value[name]) ?? 0, 50);
+  const timestamp = (name: string): string | null =>
+    parseTimestamp(value[name]) === null ? null : (value[name] as string);
+  const categories = Array.isArray(value.failureCategories)
+    ? value.failureCategories
+        .filter(
+          (item): item is string =>
+            typeof item === 'string' && FAILURE_CATEGORIES.has(item)
+        )
+        .slice(0, FAILURE_CATEGORIES.size)
+    : [];
+  return {
+    enabled: value.enabled,
+    state: state as GitHubRuntimeCacheHealth['state'],
+    lastSuccessfulRefreshAt: timestamp('lastSuccessfulRefreshAt'),
+    dataCompleteness:
+      completeness as GitHubRuntimeCacheHealth['dataCompleteness'],
+    refreshDurationMs: boundedTelemetryNumber(value.refreshDurationMs),
+    failureCategories: [...new Set(categories)],
+    configuredRepositoryCount: count('configuredRepositoryCount'),
+    successfulRepositoryCount: count('successfulRepositoryCount'),
+    failedRepositoryCount: count('failedRepositoryCount'),
+    retainedRepositoryCount: count('retainedRepositoryCount'),
+    oldestDataFetchedAt: timestamp('oldestDataFetchedAt'),
+    retainedDataAgeSeconds: boundedTelemetryNumber(
+      value.retainedDataAgeSeconds
+    ),
+  };
+};
+
 const toIso = (timestamp: number | null): string | null => {
   if (timestamp === null || !Number.isFinite(timestamp)) {
     return null;
@@ -305,6 +388,7 @@ export function createGitHubRepoStatsService(
     diagnostics.lastErrorAt = backoff.lastErrorAt;
   }
   let warnedThisService = false;
+  let runtimeCacheHealth: GitHubRuntimeCacheHealth | null = null;
 
   const notify = (key: string, stats: GitHubRepoStats | null) => {
     const repoListeners = listeners.get(key);
@@ -390,10 +474,14 @@ export function createGitHubRepoStatsService(
           return false;
         }
         const payload = (await response.json()) as unknown;
-        if (!isRecord(payload) || payload.schemaVersion !== 1) {
+        if (
+          !isRecord(payload) ||
+          (payload.schemaVersion !== 1 && payload.schemaVersion !== 2)
+        ) {
           diagnostics.source = 'static-neutral';
           return false;
         }
+        runtimeCacheHealth = normalizeRuntimeCacheHealth(payload.cache);
         if (payload.source === 'static-neutral-placeholder') {
           diagnostics.source = 'static-neutral';
           return false;
@@ -404,7 +492,8 @@ export function createGitHubRepoStatsService(
           diagnostics.source = 'static-neutral';
           return false;
         }
-        if (expiresAt + runtimeCacheGraceMs < now()) {
+        const servesRetainedData = runtimeCacheHealth?.state === 'stale';
+        if (expiresAt + runtimeCacheGraceMs < now() && !servesRetainedData) {
           diagnostics.source = 'runtime-cache-stale';
           return false;
         }
@@ -437,7 +526,9 @@ export function createGitHubRepoStatsService(
             { owner, repo },
             normalized,
             generatedAt,
-            expiresAt + runtimeCacheGraceMs
+            servesRetainedData
+              ? Math.max(expiresAt + runtimeCacheGraceMs, now() + 60_000)
+              : expiresAt + runtimeCacheGraceMs
           );
           loadedCount += 1;
         }
@@ -454,10 +545,16 @@ export function createGitHubRepoStatsService(
         for (const key of loadedRepoKeys) {
           runtimeCacheRepoKeys.add(key);
         }
-        runtimeCacheRefreshAfter = expiresAt + runtimeCacheGraceMs;
+        runtimeCacheRefreshAfter = servesRetainedData
+          ? Math.max(expiresAt + runtimeCacheGraceMs, now() + 60_000)
+          : expiresAt + runtimeCacheGraceMs;
         runtimeCacheAvailable = true;
         diagnostics.source =
-          loadedCount > 0 ? 'runtime-cache' : 'static-neutral';
+          loadedCount > 0
+            ? servesRetainedData
+              ? 'runtime-cache-stale'
+              : 'runtime-cache'
+            : 'static-neutral';
         return true;
       } catch {
         diagnostics.source = 'static-neutral';
@@ -721,6 +818,7 @@ export function createGitHubRepoStatsService(
       : null,
     cachedRepoCount: cache.size,
     warningCount: diagnostics.warningCount,
+    runtimeCacheHealth,
   });
 
   if (options.loadRuntimeCacheOnCreate !== false) {

@@ -83,9 +83,19 @@ curl -fsS https://staging.danielsmith.io/runtime/github-metrics.json
 curl -fsS https://danielsmith.io/runtime/github-metrics.json
 ```
 
-The response should include `schemaVersion`, `generatedAt`, `expiresAt`, `source`, `repos`, and
-`errors`. A populated `repos` object indicates successful unauthenticated GitHub refreshes; an empty
-`repos` object with `errors` is a safe neutral state to investigate without rotating credentials.
+The response uses schema version 2 and includes `generatedAt`, `expiresAt`, `source`, `repos`, the
+legacy empty `errors` object, and bounded refresh telemetry under `cache`. Inspect `cache.state`,
+`cache.dataCompleteness`, `cache.lastSuccessfulRefreshAt`, `cache.oldestDataFetchedAt`,
+`cache.retainedDataAgeSeconds`, `cache.refreshDurationMs`, `cache.failureCategories`, and the four
+repository counts. `disabled`, `warming`, `fresh`, `stale`, and `unavailable` distinguish the cache
+lifecycle without exposing raw upstream errors. During partial or total refresh failure, valid
+last-good records remain published with their original `fetchedAt`; neither their aggregate
+`generatedAt` nor oldest-data timestamp is reset. A later complete refresh returns the state to
+`fresh`.
+
+The endpoint is a static nginx read of the shared runtime volume. Curling it, scraping it, or reading
+the browser diagnostics does not call GitHub. Do not use repository keys as metric labels; collect
+only the fixed cache fields if Sugarkube later maps this document into dashboards.
 
 ## 1. Pick the immutable image tag
 

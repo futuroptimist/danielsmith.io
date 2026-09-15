@@ -67,6 +67,42 @@ future privacy-reviewed design defines aggregation, consent, retention, deletion
 operator access, and the minimum safe dimensions before any data leaves a
 visitor's browser.
 
+## GitHub cache refresh telemetry
+
+The optional cache publishes its bounded health contract in the same static
+`/runtime/github-metrics.json` document as repository data. Reading this URL or
+`window.portfolio.githubMetrics.getDiagnostics()` only reads already-published data; neither path
+starts a GitHub request. The cache sidecar is the sole upstream collector.
+
+Schema version 2 retains the version 1 `repos` object and legacy `errors: {}` field, and adds a
+`cache` object:
+
+- `enabled` and `state`: `disabled`, `warming`, `fresh`, `stale`, or `unavailable`.
+- `lastSuccessfulRefreshAt`, `oldestDataFetchedAt`, and `retainedDataAgeSeconds` describe refresh
+  success and the oldest retained data. A failed request never advances a retained repository's
+  `fetchedAt`, so these values expose true last-good age.
+- `dataCompleteness`: `complete`, `partial`, or `none`; `refreshDurationMs`; and the configured,
+  successful, failed, and retained repository counts summarize the latest refresh.
+- `failureCategories` contains only the fixed categories `configuration`, `internal`,
+  `invalid_response`, `network`, `not_found`, `rate_limited`, `timeout`, and `upstream`.
+
+Repository configuration is capped at 50 validated owner/repository pairs. Counts, durations,
+ages, numeric repository values, URLs, and category values are bounded or normalized before
+publication. The document does not include upstream error messages, request identities, tokens, or
+repository names as metric labels. Operators may derive gauges from these fixed fields, but should
+not turn the `repos` keys into Prometheus labels.
+
+State semantics are intentionally independent from application availability:
+
+- `disabled`: the baked neutral document is in use because the Helm cache is off.
+- `warming`: the enabled sidecar has published its initial state but has not completed a refresh.
+- `fresh`: every configured repository succeeded during the latest refresh.
+- `stale`: at least one request failed and last-good repository data was retained. Partial success
+  updates only successful records; retained records preserve their original timestamps.
+- `unavailable`: the refresh yielded no current or retained repository data.
+
+These signals remain release/diagnostic signals rather than paging-critical service health.
+
 ## Promotion smoke evidence
 
 Run promotion smoke from this repository checkout after the target environment is
