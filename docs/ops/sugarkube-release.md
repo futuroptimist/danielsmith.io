@@ -64,7 +64,7 @@ unless environment values opt in.
 
 When enabled, the sidecar uses the public GitHub REST API without a token, GitHub App credential,
 or Kubernetes Secret. On startup and then every `githubMetricsCache.refreshIntervalSeconds`
-(default `3600`), it fetches the configured public repositories and overwrites the neutral
+(default `3600`), it fetches at most 50 validated, configured public repositories and replaces the neutral
 `github-metrics.json` placeholder that the init container copied from the image into the same runtime
 `emptyDir`. Nginx serves that file at `githubMetricsCache.publicPath` (default
 `/runtime/github-metrics.json`) with `Cache-Control: no-store`. The sidecar mounts the runtime
@@ -72,8 +72,10 @@ volume read-write at its output directory while nginx keeps read-only access. Ru
 must be absolute, normalized, under `/runtime/`, and inside a non-root directory so the shared
 cache volume cannot hide the nginx document root. `githubMetricsCache.requestTimeoutSeconds` caps each GitHub
 request, while `githubMetricsCache.startupTimeoutSeconds` caps only the first whole refresh before a
-neutral cache is written. If GitHub is unavailable during startup, the sidecar writes a valid neutral
-JSON document when no prior cache exists so nginx readiness is not held hostage by GitHub.
+neutral cache is written. If GitHub is unavailable during startup, the sidecar writes a valid
+`unavailable` JSON document when no prior cache exists so nginx readiness is not held hostage by
+GitHub. Later partial or failed refreshes retain last-good repository records and their original
+`fetchedAt` timestamps while publishing only fixed failure-category counters.
 
 After enabling the sidecar in Sugarkube staging or production values, verify the public cache shape
 without adding secrets:
@@ -83,9 +85,13 @@ curl -fsS https://staging.danielsmith.io/runtime/github-metrics.json
 curl -fsS https://danielsmith.io/runtime/github-metrics.json
 ```
 
-The response should include `schemaVersion`, `generatedAt`, `expiresAt`, `source`, `repos`, and
-`errors`. A populated `repos` object indicates successful unauthenticated GitHub refreshes; an empty
-`repos` object with `errors` is a safe neutral state to investigate without rotating credentials.
+The schema-version-2 response includes `generatedAt`, `expiresAt`, `source`, `repos`, `errors`,
+and the bounded `telemetry` contract documented in
+[`observability.md`](observability.md#github-cache-refresh-health). A populated `repos` object is
+last-good data, while `telemetry.state` distinguishes fresh data from a stale fallback. An empty
+`repos` object with `telemetry.state: unavailable` is safe neutral output to investigate without
+rotating credentials. Curling this file and reading browser diagnostics never trigger GitHub API
+requests.
 
 ## 1. Pick the immutable image tag
 

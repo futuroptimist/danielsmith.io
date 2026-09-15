@@ -67,6 +67,34 @@ future privacy-reviewed design defines aggregation, consent, retention, deletion
 operator access, and the minimum safe dimensions before any data leaves a
 visitor's browser.
 
+## GitHub cache refresh health
+
+`/runtime/github-metrics.json` is the read-only cache and telemetry contract. Reading it, or
+calling the frontend `portfolio.githubMetrics.getDiagnostics()` API, only inspects already
+published data and never starts a GitHub API request. The optional sidecar is the sole upstream
+caller, on its configured refresh interval.
+
+Schema version 2 retains the existing `generatedAt`, `expiresAt`, `source`, `repos`, and `errors`
+fields and adds `telemetry`. `errors` remains empty so arbitrary upstream text and repository
+labels cannot become telemetry. The bounded telemetry fields are:
+
+- `cacheEnabled`; `state` (`disabled`, `warmup`, `fresh`, `stale-fallback`, or `unavailable`);
+  and `dataCompleteness` (`none`, `partial`, or `complete`).
+- ISO timestamps `lastAttemptAt`, `lastSuccessfulRefreshAt`, and `dataGeneratedAt`, plus
+  `refreshDurationMs` capped at 300,000.
+- `repositoryCounts` for `configured`, `successful`, `failed`, and `retained`, each bounded by
+  the maximum 50 configured repositories.
+- `failureCategories` with only `rate_limited`, `not_found`, `timeout`, `network`, `upstream`,
+  and `invalid_response` keys. No status text, URL, request identity, or response body is emitted.
+
+`disabled` is the image placeholder when the Helm feature is off; `warmup` is reserved for a
+configured cache before its first attempt completes; `fresh` means every configured repository
+refreshed; `stale-fallback` means at least one failure occurred while usable data was retained;
+and `unavailable` means no repository data exists. A failed repository keeps its prior record and
+original `fetchedAt`. Therefore `generatedAt`/`dataGeneratedAt` remain the oldest retained data
+timestamp rather than advancing on failure. `lastSuccessfulRefreshAt` advances only if at least
+one repository succeeded. These are portfolio-content signals, not paging signals.
+
 ## Promotion smoke evidence
 
 Run promotion smoke from this repository checkout after the target environment is

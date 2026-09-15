@@ -29,6 +29,24 @@ export interface GitHubRepoStatsDiagnostics {
   backoffExpiresAt: string | null;
   cachedRepoCount: number;
   warningCount: number;
+  runtimeCacheTelemetry: GitHubCacheTelemetry | null;
+}
+
+export interface GitHubCacheTelemetry {
+  cacheEnabled: boolean;
+  state: 'disabled' | 'warmup' | 'fresh' | 'stale-fallback' | 'unavailable';
+  lastAttemptAt: string | null;
+  lastSuccessfulRefreshAt: string | null;
+  dataGeneratedAt: string | null;
+  dataCompleteness: 'none' | 'partial' | 'complete';
+  refreshDurationMs: number;
+  repositoryCounts: {
+    configured: number;
+    successful: number;
+    failed: number;
+    retained: number;
+  };
+  failureCategories: Record<string, number>;
 }
 
 export interface GitHubRepoStatsService {
@@ -237,6 +255,80 @@ const parseTimestamp = (value: unknown): number | null => {
   return Number.isFinite(timestamp) ? timestamp : null;
 };
 
+const normalizeRuntimeTelemetry = (
+  value: unknown
+): GitHubCacheTelemetry | null => {
+  if (!isRecord(value) || typeof value.cacheEnabled !== 'boolean') return null;
+  const states = [
+    'disabled',
+    'warmup',
+    'fresh',
+    'stale-fallback',
+    'unavailable',
+  ] as const;
+  const completeness = ['none', 'partial', 'complete'] as const;
+  if (!states.includes(value.state as (typeof states)[number])) return null;
+  if (
+    !completeness.includes(
+      value.dataCompleteness as (typeof completeness)[number]
+    )
+  )
+    return null;
+  if (!isRecord(value.repositoryCounts) || !isRecord(value.failureCategories))
+    return null;
+  const failureCategories = value.failureCategories;
+  const boundedCount = (input: unknown) =>
+    typeof input === 'number' &&
+    Number.isInteger(input) &&
+    input >= 0 &&
+    input <= 50
+      ? input
+      : 0;
+  const allowedCategories = [
+    'rate_limited',
+    'not_found',
+    'timeout',
+    'network',
+    'upstream',
+    'invalid_response',
+  ];
+  return {
+    cacheEnabled: value.cacheEnabled,
+    state: value.state as GitHubCacheTelemetry['state'],
+    lastAttemptAt:
+      parseTimestamp(value.lastAttemptAt) === null
+        ? null
+        : (value.lastAttemptAt as string),
+    lastSuccessfulRefreshAt:
+      parseTimestamp(value.lastSuccessfulRefreshAt) === null
+        ? null
+        : (value.lastSuccessfulRefreshAt as string),
+    dataGeneratedAt:
+      parseTimestamp(value.dataGeneratedAt) === null
+        ? null
+        : (value.dataGeneratedAt as string),
+    dataCompleteness:
+      value.dataCompleteness as GitHubCacheTelemetry['dataCompleteness'],
+    refreshDurationMs:
+      typeof value.refreshDurationMs === 'number' &&
+      value.refreshDurationMs >= 0
+        ? Math.min(value.refreshDurationMs, 300_000)
+        : 0,
+    repositoryCounts: {
+      configured: boundedCount(value.repositoryCounts.configured),
+      successful: boundedCount(value.repositoryCounts.successful),
+      failed: boundedCount(value.repositoryCounts.failed),
+      retained: boundedCount(value.repositoryCounts.retained),
+    },
+    failureCategories: Object.fromEntries(
+      allowedCategories.map((category) => [
+        category,
+        boundedCount(failureCategories[category]),
+      ])
+    ),
+  };
+};
+
 const normalizeRuntimeRepoStats = (value: unknown): GitHubRepoStats | null => {
   if (!isRecord(value) || !Number.isFinite(value.stars)) {
     return null;
@@ -352,6 +444,7 @@ export function createGitHubRepoStatsService(
   let runtimeCacheLoadInFlight = false;
   let runtimeCacheRefreshAfter = 0;
   let runtimeCacheAvailable = false;
+  let runtimeCacheTelemetry: GitHubCacheTelemetry | null = null;
   const runtimeCacheRepoKeys = new Set<string>();
 
   const loadRuntimeCache = async (): Promise<boolean> => {
@@ -390,10 +483,14 @@ export function createGitHubRepoStatsService(
           return false;
         }
         const payload = (await response.json()) as unknown;
-        if (!isRecord(payload) || payload.schemaVersion !== 1) {
+        if (
+          !isRecord(payload) ||
+          (payload.schemaVersion !== 1 && payload.schemaVersion !== 2)
+        ) {
           diagnostics.source = 'static-neutral';
           return false;
         }
+        runtimeCacheTelemetry = normalizeRuntimeTelemetry(payload.telemetry);
         if (payload.source === 'static-neutral-placeholder') {
           diagnostics.source = 'static-neutral';
           return false;
@@ -412,7 +509,6 @@ export function createGitHubRepoStatsService(
           diagnostics.source = 'static-neutral';
           return false;
         }
-
         const loadedRepoKeys = new Set<string>();
         let loadedCount = 0;
         for (const [key, repoStats] of Object.entries(payload.repos)) {
@@ -721,6 +817,7 @@ export function createGitHubRepoStatsService(
       : null,
     cachedRepoCount: cache.size,
     warningCount: diagnostics.warningCount,
+    runtimeCacheTelemetry,
   });
 
   if (options.loadRuntimeCacheOnCreate !== false) {

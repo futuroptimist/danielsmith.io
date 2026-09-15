@@ -120,12 +120,22 @@ assertIncludes(
 );
 assertIncludes(
   enabledRender,
-  'remaining_timeout = min(timeout, remaining)',
+  'request_timeout = min(timeout, remaining)',
   'startup refresh should use the actual remaining deadline budget'
 );
 assertIncludes(
   enabledRender,
-  '"subscribers": data.get("subscribers_count", 0) or 0',
+  '"state": state',
+  'sidecar should publish bounded refresh-health telemetry'
+);
+assertExcludes(
+  enabledRender,
+  '"message":',
+  'sidecar should not publish arbitrary upstream error messages'
+);
+assertIncludes(
+  enabledRender,
+  '"subscribers": bounded_number(data.get("subscribers_count"))',
   'rendered script should expose subscribers_count as subscribers'
 );
 assertIncludes(

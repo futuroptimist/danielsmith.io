@@ -33,6 +33,59 @@ const createOptions = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe('GitHub repo stats service', () => {
+  it('exposes bounded cache telemetry without making an upstream request', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 2,
+        generatedAt: '2026-09-15T12:00:00.000Z',
+        expiresAt: '2026-09-15T13:15:00.000Z',
+        source: 'github-api-unavailable',
+        repos: {},
+        errors: {},
+        telemetry: {
+          cacheEnabled: true,
+          state: 'unavailable',
+          lastAttemptAt: '2026-09-15T12:00:00.000Z',
+          lastSuccessfulRefreshAt: null,
+          dataGeneratedAt: null,
+          dataCompleteness: 'none',
+          refreshDurationMs: 999_999,
+          repositoryCounts: {
+            configured: 2,
+            successful: 0,
+            failed: 2,
+            retained: 0,
+          },
+          failureCategories: { rate_limited: 2, secret_error: 99 },
+        },
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        now: () => Date.parse('2026-09-15T12:01:00.000Z'),
+      })
+    );
+
+    await service.loadRuntimeCache();
+    const telemetry = service.getDiagnostics().runtimeCacheTelemetry;
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(telemetry).toMatchObject({
+      cacheEnabled: true,
+      state: 'unavailable',
+      refreshDurationMs: 300_000,
+      failureCategories: { rate_limited: 2 },
+    });
+    expect(telemetry?.failureCategories).not.toHaveProperty('secret_error');
+    service.getDiagnostics();
+    service.getDiagnostics();
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it('loads valid pod-local runtime cache before live browser fetches', async () => {
     const fetch = vi.fn().mockResolvedValue({
       ok: true,
