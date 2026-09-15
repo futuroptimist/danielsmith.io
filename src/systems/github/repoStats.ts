@@ -457,6 +457,7 @@ export function createGitHubRepoStatsService(
     runtimeCacheLoadPromise = (async () => {
       let timeoutId: ReturnType<typeof setTimeout> | undefined;
       let controller: AbortController | undefined;
+      runtimeCacheHealth = null;
       try {
         if (AbortControllerTarget && fetchTimeoutMs > 0) {
           controller = new AbortControllerTarget();
@@ -492,8 +493,10 @@ export function createGitHubRepoStatsService(
           diagnostics.source = 'static-neutral';
           return false;
         }
-        const servesRetainedData = runtimeCacheHealth?.state === 'stale';
-        if (expiresAt + runtimeCacheGraceMs < now() && !servesRetainedData) {
+        const servesRetainedData =
+          runtimeCacheHealth?.state === 'stale' &&
+          runtimeCacheHealth.retainedRepositoryCount > 0;
+        if (expiresAt + runtimeCacheGraceMs < now()) {
           diagnostics.source = 'runtime-cache-stale';
           return false;
         }
@@ -526,9 +529,7 @@ export function createGitHubRepoStatsService(
             { owner, repo },
             normalized,
             generatedAt,
-            servesRetainedData
-              ? Math.max(expiresAt + runtimeCacheGraceMs, now() + 60_000)
-              : expiresAt + runtimeCacheGraceMs
+            expiresAt + runtimeCacheGraceMs
           );
           loadedCount += 1;
         }
@@ -545,9 +546,7 @@ export function createGitHubRepoStatsService(
         for (const key of loadedRepoKeys) {
           runtimeCacheRepoKeys.add(key);
         }
-        runtimeCacheRefreshAfter = servesRetainedData
-          ? Math.max(expiresAt + runtimeCacheGraceMs, now() + 60_000)
-          : expiresAt + runtimeCacheGraceMs;
+        runtimeCacheRefreshAfter = expiresAt + runtimeCacheGraceMs;
         runtimeCacheAvailable = true;
         diagnostics.source =
           loadedCount > 0

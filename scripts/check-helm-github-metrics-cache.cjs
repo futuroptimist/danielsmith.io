@@ -300,6 +300,18 @@ assertRenderFails(
     '--set',
     'githubMetricsCache.enabled=true',
     '--set',
+    'githubMetricsCache.repos[0].owner=invalid-',
+    '--set',
+    'githubMetricsCache.repos[0].repo=valid',
+  ],
+  'githubMetricsCache.repos[0] has an invalid owner or repo',
+  'repository names ending in punctuation should be rejected'
+);
+assertRenderFails(
+  [
+    '--set',
+    'githubMetricsCache.enabled=true',
+    '--set',
     'githubMetricsCache.image.tag=',
   ],
   'githubMetricsCache.image.tag is required when githubMetricsCache.image.digest is not set',

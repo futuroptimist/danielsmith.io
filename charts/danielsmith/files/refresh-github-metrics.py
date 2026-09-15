@@ -299,7 +299,9 @@ def log(message):
 
 
 def main():
-    repos_path = os.environ.get("GITHUB_METRICS_REPOS_PATH", "/etc/github-metrics/repos.json")
+    repos_path = os.environ.get(
+        "GITHUB_METRICS_REPOS_PATH", "/etc/github-metrics/repos.json"
+    )
     output_path = os.environ.get("GITHUB_METRICS_OUTPUT_PATH", "/cache/github-metrics.json")
     refresh_interval = read_int_env("GITHUB_METRICS_REFRESH_INTERVAL_SECONDS", 3600)
     request_timeout = read_int_env("GITHUB_METRICS_REQUEST_TIMEOUT_SECONDS", 5)

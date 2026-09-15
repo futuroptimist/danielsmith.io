@@ -98,7 +98,9 @@ State semantics are intentionally independent from application availability:
 - `warming`: the enabled sidecar has published its initial state but has not completed a refresh.
 - `fresh`: every configured repository succeeded during the latest refresh.
 - `stale`: at least one request failed and last-good repository data was retained. Partial success
-  updates only successful records; retained records preserve their original timestamps.
+  updates only successful records; retained records preserve their original timestamps. Browsers
+  accept retained data only through the document's configured `expiresAt` grace window, so a
+  stopped sidecar cannot renew an old snapshot indefinitely.
 - `unavailable`: the refresh yielded no current or retained repository data.
 
 These signals remain release/diagnostic signals rather than paging-critical service health.

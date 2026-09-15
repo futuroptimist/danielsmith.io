@@ -39,7 +39,7 @@ describe('GitHub repo stats service', () => {
       json: async () => ({
         schemaVersion: 2,
         generatedAt: '2026-06-03T00:00:00.000Z',
-        expiresAt: '2026-06-03T00:10:00.000Z',
+        expiresAt: '2026-06-03T00:45:00.000Z',
         source: 'github-api',
         repos: {
           'futuroptimist/flywheel': {
@@ -106,6 +106,88 @@ describe('GitHub repo stats service', () => {
     expect(fetch).toHaveBeenCalledWith('/runtime/github-metrics.json', {
       headers: { Accept: 'application/json' },
     });
+  });
+
+  it('clears runtime cache health when a later load fails', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          schemaVersion: 2,
+          generatedAt: '2026-06-03T01:00:00.000Z',
+          expiresAt: '2026-06-03T01:01:00.000Z',
+          source: 'github-api',
+          repos: {},
+          cache: {
+            enabled: true,
+            state: 'fresh',
+            lastSuccessfulRefreshAt: '2026-06-03T01:00:00.000Z',
+            dataCompleteness: 'complete',
+            refreshDurationMs: 10,
+            failureCategories: [],
+            configuredRepositoryCount: 1,
+            successfulRepositoryCount: 1,
+            failedRepositoryCount: 0,
+            retainedRepositoryCount: 0,
+            oldestDataFetchedAt: '2026-06-03T01:00:00.000Z',
+            retainedDataAgeSeconds: null,
+          },
+        }),
+      })
+      .mockRejectedValueOnce(new Error('network unavailable'));
+    let currentTime = Date.parse('2026-06-03T01:00:30.000Z');
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        runtimeCacheGraceMs: 0,
+        now: () => currentTime,
+      })
+    );
+
+    await expect(service.loadRuntimeCache()).resolves.toBe(true);
+    expect(service.getDiagnostics().runtimeCacheHealth?.state).toBe('fresh');
+    currentTime = Date.parse('2026-06-03T01:01:01.000Z');
+    await expect(service.loadRuntimeCache()).resolves.toBe(false);
+    expect(service.getDiagnostics().runtimeCacheHealth).toBeNull();
+  });
+
+  it('does not extend expired retained cache data indefinitely', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 2,
+        generatedAt: '2026-06-03T00:00:00.000Z',
+        expiresAt: '2026-06-03T00:10:00.000Z',
+        source: 'github-api',
+        repos: {},
+        cache: {
+          enabled: true,
+          state: 'stale',
+          lastSuccessfulRefreshAt: '2026-06-03T00:00:00.000Z',
+          dataCompleteness: 'partial',
+          refreshDurationMs: 10,
+          failureCategories: ['network'],
+          configuredRepositoryCount: 1,
+          successfulRepositoryCount: 0,
+          failedRepositoryCount: 1,
+          retainedRepositoryCount: 1,
+          oldestDataFetchedAt: '2026-06-03T00:00:00.000Z',
+          retainedDataAgeSeconds: 3600,
+        },
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        now: () => Date.parse('2026-06-03T01:00:00.000Z'),
+      })
+    );
+
+    await expect(service.loadRuntimeCache()).resolves.toBe(false);
+    expect(service.getDiagnostics().source).toBe('runtime-cache-stale');
   });
 
   it('loads valid pod-local runtime cache before live browser fetches', async () => {

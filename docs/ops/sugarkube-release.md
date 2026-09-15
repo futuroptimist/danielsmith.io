@@ -91,7 +91,8 @@ repository counts. `disabled`, `warming`, `fresh`, `stale`, and `unavailable` di
 lifecycle without exposing raw upstream errors. During partial or total refresh failure, valid
 last-good records remain published with their original `fetchedAt`; neither their aggregate
 `generatedAt` nor oldest-data timestamp is reset. A later complete refresh returns the state to
-`fresh`.
+`fresh`. Browser clients still enforce `expiresAt` plus their configured grace window, including
+for retained records, so a stopped sidecar cannot keep an old snapshot available indefinitely.
 
 The endpoint is a static nginx read of the shared runtime volume. Curling it, scraping it, or reading
 the browser diagnostics does not call GitHub. Do not use repository keys as metric labels; collect
