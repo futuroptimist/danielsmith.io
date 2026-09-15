@@ -100,3 +100,29 @@ npm run smoke:promotion -- --base-url=http://127.0.0.1:8080
 Attach `test-results/promotion-smoke/promotion-smoke-evidence.json` to the
 release record with the immutable `main-<shortsha>` image tag, Helm release, and
 rollout timestamp.
+
+## Application-owned visitor journey
+
+The repository also owns a deterministic browser assertion for essential visitor
+functionality. Run it locally with `npm run test:visitor`. It verifies that the homepage is
+delivered, JavaScript reaches an initialized application mode, essential static assets load, the
+accessible text experience remains usable, and `/resume.pdf` is both served as
+`application/pdf` and begins with the `%PDF-` signature. Checking both properties prevents a
+healthy HTTP endpoint or SPA HTML fallback from being mistaken for a valid résumé.
+
+The sanitized aggregate contract contains exactly `state`, `freshness`, `durationMs`, and
+`failureStage`. Failure stages are limited to `homepage_delivery`, `javascript_initialization`,
+`essential_assets`, `accessible_fallback`, `resume_pdf`, `timeout`, and
+`producer_interrupted`. Assertion details, URLs, page contents, prompts, responses, cookies,
+tokens, headers, and request or visitor identities must remain inside the test process and must
+not enter the aggregate.
+
+Immersive rendering is an optional, separately qualified enhancement. A browser that cannot
+start WebGL still passes the essential journey when the accessible text fallback works. Unit
+fixtures cover broken JavaScript, missing assets, HTML at the résumé URL, renderer unavailability,
+timeouts, and producer interruption—failures that static `/healthz` and `/livez` responses cannot
+detect.
+
+This repository defines and tests only the application-owned assertions. Scheduling, collection,
+metrics, dashboards, alerts, and staging or production activation belong to the separate
+Sugarkube integration and are not implemented here.

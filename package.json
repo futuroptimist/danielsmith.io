@@ -22,6 +22,7 @@
     "floorplan:diagram": "tsx scripts/generate-floorplan-diagram.ts",
     "favicon": "tsx scripts/generate-favicon.ts",
     "test:e2e": "playwright test",
+    "test:visitor": "playwright test playwright/visitor-journey.spec.ts",
     "links:check": "node scripts/check-links.cjs",
     "helm:cache:test": "node scripts/check-helm-github-metrics-cache.cjs",
     "helm:build-info:test": "node scripts/check-helm-build-info.cjs",
