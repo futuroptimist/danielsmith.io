@@ -11,25 +11,34 @@ test.describe('essential visitor journey', () => {
   }) => {
     const result = await runVisitorJourney(
       {
-        homepage_delivery: async () => {
-          const response = await request.get('/');
+        homepage_delivery: async (signal) => {
+          signal.throwIfAborted();
+          const response = await request.get('/', {
+            timeout: JOURNEY_TIMEOUT_MS,
+          });
+          signal.throwIfAborted();
           expect(response.status()).toBe(200);
           expect(response.headers()['content-type']).toContain('text/html');
           expect(await response.text()).toContain(
             '<title>danielsmith.io</title>'
           );
         },
-        javascript_initialization: async () => {
+        javascript_initialization: async (signal) => {
+          signal.throwIfAborted();
           const response = await page.goto('/?mode=text', {
             waitUntil: 'domcontentloaded',
+            timeout: JOURNEY_TIMEOUT_MS,
           });
+          signal.throwIfAborted();
           expect(response?.status()).toBe(200);
           await expect(page.locator('html')).toHaveAttribute(
             'data-app-mode',
-            'fallback'
+            'fallback',
+            { timeout: JOURNEY_TIMEOUT_MS }
           );
         },
-        essential_assets: async () => {
+        essential_assets: async (signal) => {
+          signal.throwIfAborted();
           const assetUrls = await page
             .locator('script[type="module"], link[rel="icon"]')
             .evaluateAll((elements) =>
@@ -39,30 +48,48 @@ test.describe('essential visitor journey', () => {
                   : (element as HTMLLinkElement).href
               )
             );
-          expect(assetUrls.length).toBeGreaterThanOrEqual(2);
+          const assetPaths = assetUrls.map(
+            (assetUrl) => new URL(assetUrl).pathname
+          );
+          expect(assetPaths).toContain('/src/main.ts');
+          expect(assetPaths).toContain('/favicon.ico');
 
-          for (const assetUrl of assetUrls) {
-            const response = await request.get(assetUrl);
-            expect(response.status(), assetUrl).toBe(200);
+          for (const assetPath of ['/src/main.ts', '/favicon.ico']) {
+            signal.throwIfAborted();
+            const response = await request.get(assetPath, {
+              timeout: JOURNEY_TIMEOUT_MS,
+            });
+            signal.throwIfAborted();
+            expect(response.status(), assetPath).toBe(200);
             expect(
               (await response.body()).byteLength,
-              assetUrl
+              assetPath
             ).toBeGreaterThan(0);
           }
         },
-        accessible_fallback: async () => {
+        accessible_fallback: async (signal) => {
+          signal.throwIfAborted();
           const fallback = page.locator(
             '#app[data-mode="text"] .text-fallback'
           );
-          await expect(fallback).toBeVisible();
-          await expect(fallback).toHaveAttribute('role', 'main');
-          await expect(fallback.locator('h1')).toBeVisible();
+          await expect(fallback).toBeVisible({ timeout: JOURNEY_TIMEOUT_MS });
+          await expect(fallback).toHaveAttribute('role', 'main', {
+            timeout: JOURNEY_TIMEOUT_MS,
+          });
+          await expect(fallback.locator('h1')).toBeVisible({
+            timeout: JOURNEY_TIMEOUT_MS,
+          });
           await expect(
             fallback.locator('a[href$="/resume.pdf"]').first()
-          ).toBeVisible();
+          ).toBeVisible({ timeout: JOURNEY_TIMEOUT_MS });
+          signal.throwIfAborted();
         },
-        resume_pdf: async () => {
-          const response = await request.get('/resume.pdf');
+        resume_pdf: async (signal) => {
+          signal.throwIfAborted();
+          const response = await request.get('/resume.pdf', {
+            timeout: JOURNEY_TIMEOUT_MS,
+          });
+          signal.throwIfAborted();
           expect(response.status()).toBe(200);
           expect(
             isPdfResponse(

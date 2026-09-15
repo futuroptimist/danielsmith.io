@@ -92,23 +92,46 @@ describe('visitor journey contract', () => {
     });
   });
 
-  it('classifies a bounded timeout', async () => {
+  it('classifies a bounded timeout before an abort-aware probe rejection', async () => {
     vi.useFakeTimers();
-    const probes = passingProbes();
-    probes.homepage_delivery = () => new Promise(() => undefined);
-    const resultPromise = runVisitorJourney(probes, {
-      timeoutMs: 25,
-      now: () => 5_000,
-    });
+    try {
+      const probes = passingProbes();
+      probes.homepage_delivery = (signal) =>
+        new Promise((_, reject) => {
+          signal.addEventListener('abort', () => reject(new Error('aborted')), {
+            once: true,
+          });
+        });
+      const resultPromise = runVisitorJourney(probes, {
+        timeoutMs: 25,
+        now: () => 5_000,
+      });
 
-    await vi.advanceTimersByTimeAsync(25);
+      await vi.advanceTimersByTimeAsync(25);
 
-    await expect(resultPromise).resolves.toMatchObject({
-      state: 'failure',
-      failureStage: 'timeout',
-    });
-    vi.useRealTimers();
+      await expect(resultPromise).resolves.toMatchObject({
+        state: 'failure',
+        failureStage: 'timeout',
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+    'normalizes a nonfinite clock value of %s',
+    async (clockValue) => {
+      const result = await runVisitorJourney(passingProbes(), {
+        timeoutMs: 1_000,
+        now: () => clockValue,
+      });
+
+      expect(result.freshness).toBe(0);
+      expect(result.aggregateDurationMs).toBe(0);
+      expect(Number.isFinite(result.freshness)).toBe(true);
+      expect(Number.isFinite(result.aggregateDurationMs)).toBe(true);
+    }
+  );
 
   it('classifies producer interruption', async () => {
     const controller = new AbortController();
@@ -121,5 +144,28 @@ describe('visitor journey contract', () => {
     });
 
     expect(result.failureStage).toBe('producer_interrupted');
+  });
+
+  it('classifies interruption before an abort-aware probe rejection', async () => {
+    const controller = new AbortController();
+    const probes = passingProbes();
+    probes.homepage_delivery = (signal) =>
+      new Promise((_, reject) => {
+        signal.addEventListener('abort', () => reject(new Error('aborted')), {
+          once: true,
+        });
+      });
+
+    const resultPromise = runVisitorJourney(probes, {
+      timeoutMs: 1_000,
+      signal: controller.signal,
+      now: () => 7_000,
+    });
+    controller.abort();
+
+    await expect(resultPromise).resolves.toMatchObject({
+      state: 'failure',
+      failureStage: 'producer_interrupted',
+    });
   });
 });

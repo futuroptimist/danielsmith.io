@@ -57,14 +57,18 @@ export async function runVisitorJourney(
   options: VisitorJourneyOptions
 ): Promise<VisitorJourneyResult> {
   const now = options.now ?? Date.now;
-  const startedAt = now();
+  const readFiniteTime = () => {
+    const value = now();
+    return Number.isFinite(value) ? value : 0;
+  };
+  const startedAt = readFiniteTime();
   const controller = new AbortController();
 
   if (options.signal?.aborted) {
     return {
       state: 'failure',
-      freshness: Math.floor(now() / 1_000),
-      aggregateDurationMs: Math.max(0, now() - startedAt),
+      freshness: Math.floor(readFiniteTime() / 1_000),
+      aggregateDurationMs: Math.max(0, readFiniteTime() - startedAt),
       failureStage: 'producer_interrupted',
     };
   }
@@ -74,14 +78,14 @@ export async function runVisitorJourney(
 
   const controlFailure = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
-      controller.abort();
       reject(new JourneyControlError('timeout'));
+      controller.abort();
     }, options.timeoutMs);
 
     if (options.signal) {
       const interrupt = () => {
-        controller.abort();
         reject(new JourneyControlError('producer_interrupted'));
+        controller.abort();
       };
       options.signal.addEventListener('abort', interrupt, { once: true });
       removeAbortListener = () =>
@@ -105,8 +109,8 @@ export async function runVisitorJourney(
 
   return {
     state: failureStage === null ? 'success' : 'failure',
-    freshness: Math.floor(now() / 1_000),
-    aggregateDurationMs: Math.max(0, now() - startedAt),
+    freshness: Math.floor(readFiniteTime() / 1_000),
+    aggregateDurationMs: Math.max(0, readFiniteTime() - startedAt),
     failureStage,
   };
 }

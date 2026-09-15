@@ -5,7 +5,7 @@ static `/healthz` and `/livez` responses:
 
 1. `/` returns the expected HTML application shell.
 2. JavaScript initializes and selects an application mode.
-3. the module entry point, favicon, and other explicitly selected essential assets are retrievable;
+3. The module entry point, favicon, and other explicitly selected essential assets are retrievable;
 4. `/?mode=text` exposes a visible main landmark, heading, and résumé action; and
 5. `/resume.pdf` has an `application/pdf` content type **and** begins with the `%PDF-` signature.
 
