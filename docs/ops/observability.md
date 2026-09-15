@@ -67,6 +67,10 @@ future privacy-reviewed design defines aggregation, consent, retention, deletion
 operator access, and the minimum safe dimensions before any data leaves a
 visitor's browser.
 
+The deterministic application-owned assertions and their sanitized aggregate schema are described
+in [the visitor-journey contract](visitor-journey.md). Scheduling, metrics, dashboards, alerts, and
+runtime activation remain a separate Sugarkube concern.
+
 ## Promotion smoke evidence
 
 Run promotion smoke from this repository checkout after the target environment is
