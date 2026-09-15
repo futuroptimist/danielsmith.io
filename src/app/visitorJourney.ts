@@ -63,28 +63,39 @@ export async function runVisitorJourney(
   };
   const startedAt = readFiniteTime();
   const controller = new AbortController();
+  const result = (
+    failureStage: VisitorJourneyFailureStage | null
+  ): VisitorJourneyResult => {
+    const completedAt = readFiniteTime();
+    const elapsed = completedAt - startedAt;
+    return {
+      state: failureStage === null ? 'success' : 'failure',
+      freshness: Math.floor(completedAt / 1_000),
+      aggregateDurationMs:
+        Number.isFinite(elapsed) && elapsed >= 0 ? elapsed : 0,
+      failureStage,
+    };
+  };
 
   if (options.signal?.aborted) {
-    return {
-      state: 'failure',
-      freshness: Math.floor(readFiniteTime() / 1_000),
-      aggregateDurationMs: Math.max(0, readFiniteTime() - startedAt),
-      failureStage: 'producer_interrupted',
-    };
+    return result('producer_interrupted');
   }
 
   let timer: ReturnType<typeof setTimeout> | undefined;
   let removeAbortListener: (() => void) | undefined;
+  let controlStage: JourneyControlError['stage'] | null = null;
 
   const controlFailure = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
-      reject(new JourneyControlError('timeout'));
+      controlStage = 'timeout';
+      reject(new JourneyControlError(controlStage));
       controller.abort();
     }, options.timeoutMs);
 
     if (options.signal) {
       const interrupt = () => {
-        reject(new JourneyControlError('producer_interrupted'));
+        controlStage = 'producer_interrupted';
+        reject(new JourneyControlError(controlStage));
         controller.abort();
       };
       options.signal.addEventListener('abort', interrupt, { once: true });
@@ -94,25 +105,27 @@ export async function runVisitorJourney(
   });
 
   let failureStage: VisitorJourneyFailureStage | null = null;
+  let currentStage: EssentialStage = ESSENTIAL_STAGES[0];
 
-  for (const stage of ESSENTIAL_STAGES) {
-    try {
+  try {
+    for (const stage of ESSENTIAL_STAGES) {
+      currentStage = stage;
       await Promise.race([probes[stage](controller.signal), controlFailure]);
-    } catch (error) {
-      failureStage = error instanceof JourneyControlError ? error.stage : stage;
-      break;
     }
+  } catch (error) {
+    if (controlStage) {
+      failureStage = controlStage;
+    } else if (error instanceof JourneyControlError) {
+      failureStage = error.stage;
+    } else {
+      failureStage = currentStage;
+    }
+  } finally {
+    if (timer) clearTimeout(timer);
+    removeAbortListener?.();
   }
 
-  if (timer) clearTimeout(timer);
-  removeAbortListener?.();
-
-  return {
-    state: failureStage === null ? 'success' : 'failure',
-    freshness: Math.floor(readFiniteTime() / 1_000),
-    aggregateDurationMs: Math.max(0, readFiniteTime() - startedAt),
-    failureStage,
-  };
+  return result(failureStage);
 }
 
 export function isPdfResponse(

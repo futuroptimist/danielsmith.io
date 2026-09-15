@@ -118,6 +118,30 @@ describe('visitor journey contract', () => {
     }
   });
 
+  it('times out a noncooperative probe without starting later stages', async () => {
+    vi.useFakeTimers();
+    try {
+      const probes = passingProbes();
+      const laterProbe = vi.fn(async () => undefined);
+      probes.homepage_delivery = () => new Promise(() => undefined);
+      probes.javascript_initialization = laterProbe;
+
+      const resultPromise = runVisitorJourney(probes, {
+        timeoutMs: 25,
+        now: () => 5_000,
+      });
+      await vi.advanceTimersByTimeAsync(25);
+
+      await expect(resultPromise).resolves.toMatchObject({
+        state: 'failure',
+        failureStage: 'timeout',
+      });
+      expect(laterProbe).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
     'normalizes a nonfinite clock value of %s',
     async (clockValue) => {
@@ -144,6 +168,48 @@ describe('visitor journey contract', () => {
     });
 
     expect(result.failureStage).toBe('producer_interrupted');
+    expect(Number.isFinite(result.freshness)).toBe(true);
+    expect(Number.isFinite(result.aggregateDurationMs)).toBe(true);
+  });
+
+  it('normalizes invalid clock values for a pre-aborted execution', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    const result = await runVisitorJourney(passingProbes(), {
+      timeoutMs: 1_000,
+      signal: controller.signal,
+      now: () => Number.NaN,
+    });
+
+    expect(result).toEqual({
+      state: 'failure',
+      freshness: 0,
+      aggregateDurationMs: 0,
+      failureStage: 'producer_interrupted',
+    });
+  });
+
+  it('reports finite nonnegative elapsed milliseconds', async () => {
+    const clock = [1_000, 3_250, 3_250];
+    const result = await runVisitorJourney(passingProbes(), {
+      timeoutMs: 1_000,
+      now: () => clock.shift() ?? 3_250,
+    });
+
+    expect(result.freshness).toBe(3);
+    expect(result.aggregateDurationMs).toBe(2_250);
+  });
+
+  it('normalizes an overflowing elapsed duration', async () => {
+    const clock = [-Number.MAX_VALUE, Number.MAX_VALUE];
+    const result = await runVisitorJourney(passingProbes(), {
+      timeoutMs: 1_000,
+      now: () => clock.shift() ?? Number.MAX_VALUE,
+    });
+
+    expect(Number.isFinite(result.freshness)).toBe(true);
+    expect(result.aggregateDurationMs).toBe(0);
   });
 
   it('classifies interruption before an abort-aware probe rejection', async () => {
@@ -167,5 +233,20 @@ describe('visitor journey contract', () => {
       state: 'failure',
       failureStage: 'producer_interrupted',
     });
+  });
+
+  it('exports no probe exception details or sensitive fields', async () => {
+    const result = await runVisitorJourney(
+      failingProbe(passingProbes(), 'homepage_delivery'),
+      { timeoutMs: 1_000, now: () => 8_000 }
+    );
+
+    expect(JSON.stringify(result)).not.toContain('fixture details');
+    expect(Object.keys(result)).toEqual([
+      'state',
+      'freshness',
+      'aggregateDurationMs',
+      'failureStage',
+    ]);
   });
 });
