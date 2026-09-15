@@ -3,8 +3,9 @@ import { expect, test, type Page } from '@playwright/test';
 import { isPdfResponse, runVisitorJourney } from '../src/app/visitorJourney';
 
 const JOURNEY_TIMEOUT_MS = 15_000;
+const INITIALIZATION_TIMEOUT_MS = 5_000;
 const TEXT_URL = '/?mode=text';
-const IMMERSIVE_URL = '/?mode=immersive&disablePerformanceFailover=1';
+const RENDERER_FAILURE_URL = '/?mode=immersive';
 
 type BrowserResponse = {
   body: number[];
@@ -38,13 +39,17 @@ async function browserFetch(
     },
     { path, timeoutMs: JOURNEY_TIMEOUT_MS }
   );
+  let cancellation: Promise<void> | undefined;
   const abort = () => {
-    void page.evaluate(() => {
-      const key = '__visitorJourneyFetchController';
-      (window as unknown as Record<string, AbortController | undefined>)[
-        key
-      ]?.abort();
-    });
+    cancellation = page
+      .evaluate(() => {
+        const key = '__visitorJourneyFetchController';
+        (window as unknown as Record<string, AbortController | undefined>)[
+          key
+        ]?.abort();
+      })
+      .then(() => undefined)
+      .catch(() => undefined);
   };
   signal.addEventListener('abort', abort, { once: true });
   try {
@@ -53,34 +58,66 @@ async function browserFetch(
     return response;
   } finally {
     signal.removeEventListener('abort', abort);
+    await cancellation;
   }
 }
 
-function essentialProbes(page: Page, initializationUrl = TEXT_URL) {
+function createPageLifecycle(page: Page) {
+  let cleanup: Promise<void> | undefined;
   return {
-    homepage_delivery: async (signal: AbortSignal) => {
+    own(signal: AbortSignal) {
+      const close = () => {
+        cleanup ??= page.close().catch(() => undefined);
+      };
+      signal.addEventListener('abort', close, { once: true });
+      return () => signal.removeEventListener('abort', close);
+    },
+    async settle() {
+      await cleanup;
+    },
+  };
+}
+
+function essentialProbes(
+  page: Page,
+  lifecycle: ReturnType<typeof createPageLifecycle>,
+  initializationUrl = TEXT_URL
+) {
+  const owned =
+    (probe: (signal: AbortSignal) => Promise<void>) =>
+    async (signal: AbortSignal) => {
+      const release = lifecycle.own(signal);
+      try {
+        await probe(signal);
+      } finally {
+        release();
+      }
+    };
+
+  return {
+    homepage_delivery: owned(async (signal: AbortSignal) => {
       const response = await browserFetch(page, '/', signal);
       expect(response.status).toBe(200);
       expect(response.contentType).toContain('text/html');
       expect(new TextDecoder().decode(new Uint8Array(response.body))).toContain(
         '<title>danielsmith.io</title>'
       );
-    },
-    javascript_initialization: async (signal: AbortSignal) => {
+    }),
+    javascript_initialization: owned(async (signal: AbortSignal) => {
       signal.throwIfAborted();
       const response = await page.goto(initializationUrl, {
         waitUntil: 'domcontentloaded',
-        timeout: JOURNEY_TIMEOUT_MS,
+        timeout: INITIALIZATION_TIMEOUT_MS,
       });
       signal.throwIfAborted();
       expect(response?.status()).toBe(200);
       await expect(page.locator('html')).toHaveAttribute(
         'data-app-mode',
         'fallback',
-        { timeout: JOURNEY_TIMEOUT_MS }
+        { timeout: INITIALIZATION_TIMEOUT_MS }
       );
-    },
-    essential_assets: async (signal: AbortSignal) => {
+    }),
+    essential_assets: owned(async (signal: AbortSignal) => {
       const entryScripts = await page
         .locator('script[type="module"]')
         .evaluateAll((elements) =>
@@ -99,12 +136,16 @@ function essentialProbes(page: Page, initializationUrl = TEXT_URL) {
       expect(entry.contentType).toMatch(/(?:java|type)script/);
       expect(entry.body.length).toBeGreaterThan(0);
 
-      const favicon = await browserFetch(page, '/favicon.ico', signal);
+      const favicon = await browserFetch(
+        page,
+        '/favicon.ico?visitor-journey=1',
+        signal
+      );
       expect(favicon.status).toBe(200);
       expect(favicon.contentType).toMatch(/^image\//);
       expect(favicon.body.length).toBeGreaterThan(0);
-    },
-    accessible_fallback: async (signal: AbortSignal) => {
+    }),
+    accessible_fallback: owned(async (signal: AbortSignal) => {
       signal.throwIfAborted();
       const fallback = page.locator('#app[data-mode="text"] .text-fallback');
       await expect(fallback).toBeVisible({ timeout: JOURNEY_TIMEOUT_MS });
@@ -120,14 +161,14 @@ function essentialProbes(page: Page, initializationUrl = TEXT_URL) {
         timeout: JOURNEY_TIMEOUT_MS,
       });
       signal.throwIfAborted();
-    },
-    resume_pdf: async (signal: AbortSignal) => {
+    }),
+    resume_pdf: owned(async (signal: AbortSignal) => {
       const response = await browserFetch(page, '/resume.pdf', signal);
       expect(response.status).toBe(200);
       expect(
         isPdfResponse(response.contentType, new Uint8Array(response.body))
       ).toBe(true);
-    },
+    }),
   };
 }
 
@@ -141,10 +182,23 @@ async function expectHealthy(page: Page) {
   }
 }
 
-async function run(page: Page, initializationUrl = TEXT_URL) {
-  return runVisitorJourney(essentialProbes(page, initializationUrl), {
-    timeoutMs: JOURNEY_TIMEOUT_MS,
-  });
+async function run(
+  page: Page,
+  initializationUrl = TEXT_URL,
+  options: { signal?: AbortSignal; timeoutMs?: number } = {}
+) {
+  const lifecycle = createPageLifecycle(page);
+  try {
+    return await runVisitorJourney(
+      essentialProbes(page, lifecycle, initializationUrl),
+      {
+        timeoutMs: options.timeoutMs ?? JOURNEY_TIMEOUT_MS,
+        signal: options.signal,
+      }
+    );
+  } finally {
+    await lifecycle.settle();
+  }
 }
 
 test.describe('essential visitor journey', () => {
@@ -179,7 +233,7 @@ test.describe('essential visitor journey', () => {
   test('detects a missing required favicon while health stays green', async ({
     page,
   }) => {
-    await page.route('**/favicon.ico', (route) =>
+    await page.route('**/favicon.ico*', (route) =>
       route.fulfill({ status: 404, body: '' })
     );
     await page.goto(TEXT_URL, { timeout: JOURNEY_TIMEOUT_MS });
@@ -216,15 +270,49 @@ test.describe('essential visitor journey', () => {
     await page.addInitScript(() => {
       const getContext = HTMLCanvasElement.prototype.getContext;
       HTMLCanvasElement.prototype.getContext = function (type, options) {
-        if (type === 'webgl' || type === 'webgl2') return null;
+        if (['webgl', 'webgl2', 'experimental-webgl'].includes(type)) {
+          return null;
+        }
         return getContext.call(this, type, options) as never;
       } as typeof getContext;
     });
-    await page.goto(IMMERSIVE_URL, { timeout: JOURNEY_TIMEOUT_MS });
+    await page.goto(RENDERER_FAILURE_URL, { timeout: JOURNEY_TIMEOUT_MS });
     await expectHealthy(page);
-    await expect(run(page, IMMERSIVE_URL)).resolves.toMatchObject({
+    await expect(run(page, RENDERER_FAILURE_URL)).resolves.toMatchObject({
       state: 'success',
       failureStage: null,
     });
+  });
+
+  test('cancels a pending browser operation at the aggregate deadline', async ({
+    page,
+  }) => {
+    await page.goto(TEXT_URL, { timeout: JOURNEY_TIMEOUT_MS });
+    await page.route('**/', () => new Promise(() => undefined));
+
+    await expect(run(page, TEXT_URL, { timeoutMs: 50 })).resolves.toMatchObject(
+      {
+        state: 'failure',
+        failureStage: 'timeout',
+      }
+    );
+    expect(page.isClosed()).toBe(true);
+  });
+
+  test('settles cleanup when a producer interrupts a browser operation', async ({
+    page,
+  }) => {
+    await page.goto(TEXT_URL, { timeout: JOURNEY_TIMEOUT_MS });
+    await page.route('**/', () => new Promise(() => undefined));
+    const controller = new AbortController();
+    const result = run(page, TEXT_URL, { signal: controller.signal });
+
+    controller.abort();
+
+    await expect(result).resolves.toMatchObject({
+      state: 'failure',
+      failureStage: 'producer_interrupted',
+    });
+    expect(page.isClosed()).toBe(true);
   });
 });

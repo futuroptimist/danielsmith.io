@@ -87,6 +87,7 @@ export async function runVisitorJourney(
 
   const controlFailure = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
+      if (controlStage) return;
       controlStage = 'timeout';
       reject(new JourneyControlError(controlStage));
       controller.abort();
@@ -94,6 +95,7 @@ export async function runVisitorJourney(
 
     if (options.signal) {
       const interrupt = () => {
+        if (controlStage) return;
         controlStage = 'producer_interrupted';
         reject(new JourneyControlError(controlStage));
         controller.abort();
@@ -107,11 +109,22 @@ export async function runVisitorJourney(
   let failureStage: VisitorJourneyFailureStage | null = null;
   let currentStage: EssentialStage = ESSENTIAL_STAGES[0];
 
+  const throwIfControlled = () => {
+    if (controlStage) throw new JourneyControlError(controlStage);
+  };
+
   try {
     for (const stage of ESSENTIAL_STAGES) {
+      throwIfControlled();
       currentStage = stage;
-      await Promise.race([probes[stage](controller.signal), controlFailure]);
+      const probe = probes[stage](controller.signal);
+      // A probe may synchronously abort the producer and then resolve. Check the
+      // recorded control state after racing so cancellation is terminal
+      // regardless of promise settlement order.
+      await Promise.race([probe, controlFailure]);
+      throwIfControlled();
     }
+    throwIfControlled();
   } catch (error) {
     if (controlStage) {
       failureStage = controlStage;

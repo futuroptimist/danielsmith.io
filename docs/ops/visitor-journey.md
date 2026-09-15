@@ -18,6 +18,8 @@ for the résumé with both `text/html` and misleading `application/pdf` response
 fixture also checks that `/healthz` and `/livez` remain healthy. A separate fixture disables WebGL
 context creation, then verifies that the usable accessible fallback makes the aggregate succeed.
 These are failures and recovery behavior that process-level readiness endpoints cannot detect.
+Focused interruption fixtures also hold a browser request open, then verify that deadline or
+producer cancellation closes the owned page and settles cleanup before the aggregate returns.
 
 ## Essential and optional behavior
 

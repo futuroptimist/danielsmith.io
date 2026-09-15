@@ -235,6 +235,50 @@ describe('visitor journey contract', () => {
     });
   });
 
+  it.each(['resolve', 'reject'] as const)(
+    'makes synchronous abort-then-%s terminal',
+    async (settlement) => {
+      const controller = new AbortController();
+      const probes = passingProbes();
+      const laterProbe = vi.fn(async () => undefined);
+      probes.homepage_delivery = async () => {
+        controller.abort();
+        if (settlement === 'reject') throw new Error('after cancellation');
+      };
+      probes.javascript_initialization = laterProbe;
+
+      const result = await runVisitorJourney(probes, {
+        timeoutMs: 1_000,
+        signal: controller.signal,
+        now: () => 7_000,
+      });
+
+      expect(result.failureStage).toBe('producer_interrupted');
+      expect(laterProbe).not.toHaveBeenCalled();
+    }
+  );
+
+  it('makes interruption terminal while a probe remains pending', async () => {
+    const controller = new AbortController();
+    const probes = passingProbes();
+    const laterProbe = vi.fn(async () => undefined);
+    probes.homepage_delivery = () => new Promise(() => undefined);
+    probes.javascript_initialization = laterProbe;
+
+    const resultPromise = runVisitorJourney(probes, {
+      timeoutMs: 1_000,
+      signal: controller.signal,
+      now: () => 7_000,
+    });
+    controller.abort();
+
+    await expect(resultPromise).resolves.toMatchObject({
+      state: 'failure',
+      failureStage: 'producer_interrupted',
+    });
+    expect(laterProbe).not.toHaveBeenCalled();
+  });
+
   it('exports no probe exception details or sensitive fields', async () => {
     const result = await runVisitorJourney(
       failingProbe(passingProbes(), 'homepage_delivery'),
