@@ -29,6 +29,30 @@ export interface GitHubRepoStatsDiagnostics {
   backoffExpiresAt: string | null;
   cachedRepoCount: number;
   warningCount: number;
+  runtimeCache: GitHubRuntimeCacheTelemetry | null;
+}
+
+export interface GitHubRuntimeCacheTelemetry {
+  cacheEnabled: boolean;
+  state: 'disabled' | 'warmup' | 'fresh' | 'stale' | 'unavailable';
+  completeness: 'complete' | 'partial' | 'none';
+  lastSuccessfulRefreshAt: string | null;
+  lastRefreshAttemptAt: string | null;
+  refreshDurationMs: number;
+  failureCategory:
+    | 'none'
+    | 'rate_limited'
+    | 'client'
+    | 'upstream'
+    | 'network'
+    | 'timeout'
+    | 'internal'
+    | 'configuration';
+  configuredRepoCount: number;
+  successfulRepoCount: number;
+  failedRepoCount: number;
+  retainedRepoCount: number;
+  oldestDataAt: string | null;
 }
 
 export interface GitHubRepoStatsService {
@@ -257,6 +281,81 @@ const toIso = (timestamp: number | null): string | null => {
   return new Date(timestamp).toISOString();
 };
 
+const normalizeRuntimeTelemetry = (
+  value: unknown
+): GitHubRuntimeCacheTelemetry | null => {
+  if (!isRecord(value)) return null;
+  const states = [
+    'disabled',
+    'warmup',
+    'fresh',
+    'stale',
+    'unavailable',
+  ] as const;
+  const completeness = ['complete', 'partial', 'none'] as const;
+  const failures = [
+    'none',
+    'rate_limited',
+    'client',
+    'upstream',
+    'network',
+    'timeout',
+    'internal',
+    'configuration',
+  ] as const;
+  if (
+    typeof value.cacheEnabled !== 'boolean' ||
+    !states.includes(value.state as (typeof states)[number]) ||
+    !completeness.includes(
+      value.completeness as (typeof completeness)[number]
+    ) ||
+    !failures.includes(value.failureCategory as (typeof failures)[number])
+  ) {
+    return null;
+  }
+  const boundedCount = (input: unknown) =>
+    typeof input === 'number' &&
+    Number.isInteger(input) &&
+    input >= 0 &&
+    input <= 100
+      ? input
+      : null;
+  const duration =
+    typeof value.refreshDurationMs === 'number' &&
+    Number.isInteger(value.refreshDurationMs) &&
+    value.refreshDurationMs >= 0 &&
+    value.refreshDurationMs <= 86_400_000
+      ? value.refreshDurationMs
+      : null;
+  const counts = [
+    boundedCount(value.configuredRepoCount),
+    boundedCount(value.successfulRepoCount),
+    boundedCount(value.failedRepoCount),
+    boundedCount(value.retainedRepoCount),
+  ];
+  if (duration === null || counts.some((count) => count === null)) return null;
+  const timestamp = (input: unknown) =>
+    input === null || parseTimestamp(input) !== null
+      ? (input as string | null)
+      : null;
+  return {
+    cacheEnabled: value.cacheEnabled,
+    state: value.state as GitHubRuntimeCacheTelemetry['state'],
+    completeness:
+      value.completeness as GitHubRuntimeCacheTelemetry['completeness'],
+    lastSuccessfulRefreshAt: timestamp(value.lastSuccessfulRefreshAt),
+    lastRefreshAttemptAt: timestamp(value.lastRefreshAttemptAt),
+    refreshDurationMs: duration,
+    failureCategory:
+      value.failureCategory as GitHubRuntimeCacheTelemetry['failureCategory'],
+    configuredRepoCount: counts[0]!,
+    successfulRepoCount: counts[1]!,
+    failedRepoCount: counts[2]!,
+    retainedRepoCount: counts[3]!,
+    oldestDataAt: timestamp(value.oldestDataAt),
+  };
+};
+
 export function createGitHubRepoStatsService(
   fetchImpl: typeof fetch | undefined = globalThis.fetch,
   options: GitHubRepoStatsServiceOptions = {}
@@ -295,6 +394,7 @@ export function createGitHubRepoStatsService(
     lastErrorStatus: null as ErrorStatus | null,
     lastErrorAt: null as number | null,
     warningCount: 0,
+    runtimeCache: null as GitHubRuntimeCacheTelemetry | null,
   };
 
   let backoff = safeReadJson<BackoffRecord>(localStorage, BACKOFF_STORAGE_KEY);
@@ -390,11 +490,17 @@ export function createGitHubRepoStatsService(
           return false;
         }
         const payload = (await response.json()) as unknown;
-        if (!isRecord(payload) || payload.schemaVersion !== 1) {
+        if (
+          !isRecord(payload) ||
+          (payload.schemaVersion !== 1 && payload.schemaVersion !== 2)
+        ) {
           diagnostics.source = 'static-neutral';
           return false;
         }
         if (payload.source === 'static-neutral-placeholder') {
+          diagnostics.runtimeCache = normalizeRuntimeTelemetry(
+            payload.telemetry
+          );
           diagnostics.source = 'static-neutral';
           return false;
         }
@@ -412,6 +518,7 @@ export function createGitHubRepoStatsService(
           diagnostics.source = 'static-neutral';
           return false;
         }
+        diagnostics.runtimeCache = normalizeRuntimeTelemetry(payload.telemetry);
 
         const loadedRepoKeys = new Set<string>();
         let loadedCount = 0;
@@ -433,11 +540,12 @@ export function createGitHubRepoStatsService(
           }
           const normalizedKey = makeCacheKey({ owner, repo });
           loadedRepoKeys.add(normalizedKey);
+          const fetchedAt = parseTimestamp(repoStats.fetchedAt) ?? generatedAt;
           writeMemoryEntry(
             { owner, repo },
             normalized,
-            generatedAt,
-            expiresAt + runtimeCacheGraceMs
+            fetchedAt,
+            fetchedAt + (expiresAt - generatedAt) + runtimeCacheGraceMs
           );
           loadedCount += 1;
         }
@@ -721,6 +829,7 @@ export function createGitHubRepoStatsService(
       : null,
     cachedRepoCount: cache.size,
     warningCount: diagnostics.warningCount,
+    runtimeCache: diagnostics.runtimeCache,
   });
 
   if (options.loadRuntimeCacheOnCreate !== false) {

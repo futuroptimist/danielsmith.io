@@ -54,6 +54,24 @@ Failures in these checks should block or roll back a release when they are cause
 by the promoted image or deployment, but they should not wake production
 receivers by themselves if the paging-critical public paths remain healthy.
 
+### GitHub cache freshness contract
+
+`/runtime/github-metrics.json` is a passive, `Cache-Control: no-store` snapshot. Reading it or the
+browser diagnostics never initiates a GitHub API request. Schema version 2 adds a bounded
+`telemetry` object: `cacheEnabled`; `state` (`disabled`, `warmup`, `fresh`, `stale`, or
+`unavailable`); `completeness` (`complete`, `partial`, or `none`); ISO timestamps
+`lastSuccessfulRefreshAt`, `lastRefreshAttemptAt`, and `oldestDataAt`; `refreshDurationMs`; a
+bounded `failureCategory`; and configured, successful, failed, and retained repository counts.
+Counts are limited to 100 and duration to one day. Failure categories are limited to `none`,
+`rate_limited`, `client`, `upstream`, `network`, `timeout`, `internal`, and `configuration`; raw
+upstream errors are never published.
+
+`stale` means at least one current request failed while last-good records remain. Each record's
+`fetchedAt` is its true freshness timestamp: a failed refresh retains both the record and that
+timestamp, and does not advance `lastSuccessfulRefreshAt`. `unavailable` has no usable records.
+The browser continues to accept schema version 1 during rollout and exposes valid version 2
+telemetry through its existing GitHub diagnostics object.
+
 ## Non-health metadata and browser events
 
 GitHub repository metadata is portfolio content. It can help render project

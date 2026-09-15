@@ -92,9 +92,19 @@ immutable `main-<shortsha>` tag or `image.digest`.
 {{- if eq (len .Values.githubMetricsCache.repos) 0 -}}
 {{- fail "githubMetricsCache.repos must include at least one repository" -}}
 {{- end -}}
+{{- if gt (len .Values.githubMetricsCache.repos) 100 -}}
+{{- fail "githubMetricsCache.repos must include at most 100 repositories" -}}
+{{- end -}}
 {{- range $index, $repo := .Values.githubMetricsCache.repos -}}
 {{- if or (not $repo.owner) (not $repo.repo) -}}
 {{- fail (printf "githubMetricsCache.repos[%d] must include non-empty owner and repo" $index) -}}
+{{- end -}}
+{{- $ownerPattern := "^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$" -}}
+{{- if or (gt (len $repo.owner) 39) (not (regexMatch $ownerPattern $repo.owner)) -}}
+{{- fail (printf "githubMetricsCache.repos[%d].owner is invalid or too long" $index) -}}
+{{- end -}}
+{{- if or (gt (len $repo.repo) 100) (not (regexMatch "^[A-Za-z0-9._-]+$" $repo.repo)) -}}
+{{- fail (printf "githubMetricsCache.repos[%d].repo is invalid or too long" $index) -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

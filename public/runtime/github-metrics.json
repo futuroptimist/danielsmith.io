@@ -1,8 +1,22 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generatedAt": "2026-01-01T00:00:00.000Z",
   "expiresAt": "2026-01-01T00:00:00.000Z",
   "source": "static-neutral-placeholder",
   "repos": {},
-  "errors": {}
+  "errors": {},
+  "telemetry": {
+    "cacheEnabled": false,
+    "state": "disabled",
+    "completeness": "none",
+    "lastSuccessfulRefreshAt": null,
+    "lastRefreshAttemptAt": null,
+    "refreshDurationMs": 0,
+    "failureCategory": "none",
+    "configuredRepoCount": 0,
+    "successfulRepoCount": 0,
+    "failedRepoCount": 0,
+    "retainedRepoCount": 0,
+    "oldestDataAt": null
+  }
 }

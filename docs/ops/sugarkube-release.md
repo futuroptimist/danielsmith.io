@@ -83,9 +83,14 @@ curl -fsS https://staging.danielsmith.io/runtime/github-metrics.json
 curl -fsS https://danielsmith.io/runtime/github-metrics.json
 ```
 
-The response should include `schemaVersion`, `generatedAt`, `expiresAt`, `source`, `repos`, and
-`errors`. A populated `repos` object indicates successful unauthenticated GitHub refreshes; an empty
-`repos` object with `errors` is a safe neutral state to investigate without rotating credentials.
+The response should include `schemaVersion`, `generatedAt`, `expiresAt`, `source`, `repos`,
+`errors`, and the bounded `telemetry` object documented in the observability runbook. During the
+first request it reports `warmup`; complete refreshes report `fresh`; partial or failed refreshes
+with retained last-good records report `stale`; and a refresh with no usable records reports
+`unavailable`. Disabled image placeholders report `disabled`. A retained record keeps its original
+`fetchedAt`, so compare `oldestDataAt` and `lastSuccessfulRefreshAt` with the release observation
+window rather than treating the latest attempt time as data freshness. The endpoint is a file read
+only: curling or scraping it does not contact GitHub.
 
 ## 1. Pick the immutable image tag
 
