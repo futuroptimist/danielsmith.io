@@ -29,7 +29,39 @@ export interface GitHubRepoStatsDiagnostics {
   backoffExpiresAt: string | null;
   cachedRepoCount: number;
   warningCount: number;
+  runtimeCacheTelemetry: GitHubRuntimeCacheTelemetry | null;
 }
+
+export type GitHubRuntimeCacheState =
+  | 'disabled'
+  | 'warmup'
+  | 'fresh'
+  | 'stale'
+  | 'unavailable';
+
+export interface GitHubRuntimeCacheTelemetry {
+  cacheEnabled: boolean;
+  state: GitHubRuntimeCacheState;
+  lastAttemptAt: string | null;
+  lastSuccessfulRefreshAt: string | null;
+  oldestDataAt: string | null;
+  refreshDurationMs: number;
+  completeness: 'complete' | 'partial' | 'none';
+  configuredRepositoryCount: number;
+  successfulRepositoryCount: number;
+  failedRepositoryCount: number;
+  retainedRepositoryCount: number;
+  failureCategories: Partial<Record<GitHubCacheFailureCategory, number>>;
+}
+
+type GitHubCacheFailureCategory =
+  | 'rate_limited'
+  | 'not_found'
+  | 'upstream'
+  | 'timeout'
+  | 'network'
+  | 'invalid_response'
+  | 'internal';
 
 export interface GitHubRepoStatsService {
   getCachedStats(identifier: GitHubRepoIdentifier): GitHubRepoStats | null;
@@ -56,6 +88,7 @@ const DEFAULT_FAILURE_BACKOFF_MS = 15 * 60 * 1000;
 const DEFAULT_FETCH_TIMEOUT_MS = 3500;
 const DEFAULT_RUNTIME_CACHE_URL = '/runtime/github-metrics.json';
 const DEFAULT_RUNTIME_CACHE_GRACE_MS = 20 * 60 * 1000;
+const MAX_RUNTIME_REPOSITORIES = 50;
 const WARNING_SESSION_KEY = 'danielsmith.io:github-repo-stats:warning-shown';
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -257,6 +290,71 @@ const toIso = (timestamp: number | null): string | null => {
   return new Date(timestamp).toISOString();
 };
 
+const normalizeRuntimeCacheTelemetry = (
+  value: unknown
+): GitHubRuntimeCacheTelemetry | null => {
+  if (!isRecord(value)) return null;
+  const states: GitHubRuntimeCacheState[] = [
+    'disabled',
+    'warmup',
+    'fresh',
+    'stale',
+    'unavailable',
+  ];
+  const completenessValues = ['complete', 'partial', 'none'] as const;
+  if (
+    typeof value.cacheEnabled !== 'boolean' ||
+    !states.includes(value.state as GitHubRuntimeCacheState) ||
+    !completenessValues.includes(
+      value.completeness as (typeof completenessValues)[number]
+    )
+  ) {
+    return null;
+  }
+  const bounded = (input: unknown, maximum = MAX_RUNTIME_REPOSITORIES) =>
+    typeof input === 'number' && Number.isInteger(input)
+      ? Math.max(0, Math.min(input, maximum))
+      : 0;
+  const timestamp = (input: unknown) =>
+    input === null || parseTimestamp(input) !== null
+      ? (input as string | null)
+      : null;
+  const allowedCategories: GitHubCacheFailureCategory[] = [
+    'rate_limited',
+    'not_found',
+    'upstream',
+    'timeout',
+    'network',
+    'invalid_response',
+    'internal',
+  ];
+  const failureCategories: Partial<Record<GitHubCacheFailureCategory, number>> =
+    {};
+  const categoryValues = value.failureCategories;
+  if (isRecord(categoryValues)) {
+    allowedCategories.forEach((category) => {
+      if (category in categoryValues) {
+        failureCategories[category] = bounded(categoryValues[category]);
+      }
+    });
+  }
+  return {
+    cacheEnabled: value.cacheEnabled,
+    state: value.state as GitHubRuntimeCacheState,
+    lastAttemptAt: timestamp(value.lastAttemptAt),
+    lastSuccessfulRefreshAt: timestamp(value.lastSuccessfulRefreshAt),
+    oldestDataAt: timestamp(value.oldestDataAt),
+    refreshDurationMs: bounded(value.refreshDurationMs, 86_400_000),
+    completeness:
+      value.completeness as GitHubRuntimeCacheTelemetry['completeness'],
+    configuredRepositoryCount: bounded(value.configuredRepositoryCount),
+    successfulRepositoryCount: bounded(value.successfulRepositoryCount),
+    failedRepositoryCount: bounded(value.failedRepositoryCount),
+    retainedRepositoryCount: bounded(value.retainedRepositoryCount),
+    failureCategories,
+  };
+};
+
 export function createGitHubRepoStatsService(
   fetchImpl: typeof fetch | undefined = globalThis.fetch,
   options: GitHubRepoStatsServiceOptions = {}
@@ -295,6 +393,7 @@ export function createGitHubRepoStatsService(
     lastErrorStatus: null as ErrorStatus | null,
     lastErrorAt: null as number | null,
     warningCount: 0,
+    runtimeCacheTelemetry: null as GitHubRuntimeCacheTelemetry | null,
   };
 
   let backoff = safeReadJson<BackoffRecord>(localStorage, BACKOFF_STORAGE_KEY);
@@ -394,6 +493,9 @@ export function createGitHubRepoStatsService(
           diagnostics.source = 'static-neutral';
           return false;
         }
+        diagnostics.runtimeCacheTelemetry = normalizeRuntimeCacheTelemetry(
+          payload.telemetry
+        );
         if (payload.source === 'static-neutral-placeholder') {
           diagnostics.source = 'static-neutral';
           return false;
@@ -721,6 +823,7 @@ export function createGitHubRepoStatsService(
       : null,
     cachedRepoCount: cache.size,
     warningCount: diagnostics.warningCount,
+    runtimeCacheTelemetry: diagnostics.runtimeCacheTelemetry,
   });
 
   if (options.loadRuntimeCacheOnCreate !== false) {

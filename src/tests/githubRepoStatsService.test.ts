@@ -971,4 +971,51 @@ describe('GitHub repo stats service', () => {
       pushedAt: null,
     });
   });
+
+  it('reports bounded runtime telemetry without making GitHub requests', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        schemaVersion: 1,
+        generatedAt: '2026-09-15T12:00:00.000Z',
+        expiresAt: '2026-09-15T13:00:00.000Z',
+        source: 'github-api-unavailable',
+        repos: {},
+        errors: {},
+        telemetry: {
+          cacheEnabled: true,
+          state: 'unavailable',
+          lastAttemptAt: '2026-09-15T12:00:00.000Z',
+          lastSuccessfulRefreshAt: null,
+          oldestDataAt: null,
+          refreshDurationMs: 999_999_999,
+          completeness: 'none',
+          configuredRepositoryCount: 999,
+          successfulRepositoryCount: 0,
+          failedRepositoryCount: 999,
+          retainedRepositoryCount: 0,
+          failureCategories: { rate_limited: 999, secret_error: 1 },
+        },
+      }),
+    });
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        now: () => Date.parse('2026-09-15T12:01:00.000Z'),
+      })
+    );
+
+    await service.loadRuntimeCache();
+    expect(service.getDiagnostics().runtimeCacheTelemetry).toMatchObject({
+      state: 'unavailable',
+      refreshDurationMs: 86_400_000,
+      configuredRepositoryCount: 50,
+      failedRepositoryCount: 50,
+      failureCategories: { rate_limited: 50 },
+    });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(String(fetch.mock.calls[0][0])).not.toContain('api.github.com');
+  });
 });

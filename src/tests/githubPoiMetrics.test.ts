@@ -57,6 +57,7 @@ class MockRepoStatsService implements GitHubRepoStatsService {
       backoffExpiresAt: this.backoffExpiresAt,
       cachedRepoCount: this.cache.size,
       warningCount: 0,
+      runtimeCacheTelemetry: null,
     };
   }
 

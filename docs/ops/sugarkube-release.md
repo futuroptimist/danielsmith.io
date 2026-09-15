@@ -83,9 +83,27 @@ curl -fsS https://staging.danielsmith.io/runtime/github-metrics.json
 curl -fsS https://danielsmith.io/runtime/github-metrics.json
 ```
 
-The response should include `schemaVersion`, `generatedAt`, `expiresAt`, `source`, `repos`, and
-`errors`. A populated `repos` object indicates successful unauthenticated GitHub refreshes; an empty
-`repos` object with `errors` is a safe neutral state to investigate without rotating credentials.
+The response includes `schemaVersion`, `generatedAt`, `expiresAt`, `source`, `repos`, `errors`, and
+`telemetry`. The additive telemetry contract is bounded and contains only:
+
+- `cacheEnabled`; `state` (`disabled`, `warmup`, `fresh`, `stale`, or `unavailable`); and
+  `completeness` (`complete`, `partial`, or `none`).
+- `lastAttemptAt`, `lastSuccessfulRefreshAt`, `oldestDataAt`, and `refreshDurationMs`.
+- configured, successful, failed, and retained repository counts, each capped at 50.
+- `failureCategories`, whose only keys are `rate_limited`, `not_found`, `upstream`, `timeout`,
+  `network`, `invalid_response`, and `internal`.
+
+The disabled static placeholder reports `cacheEnabled: false` and `state: disabled`. An enabled
+sidecar publishes `warmup` before its first requests. A complete refresh is `fresh`; a partial or
+failed refresh with retained last-good records is `stale`; and a failure with no usable record is
+`unavailable`. Failed repositories retain their prior record, including its original `fetchedAt`.
+They do not advance `lastSuccessfulRefreshAt`; `oldestDataAt` exposes the age of the oldest retained
+record. Errors expose a category and failure timestamp, never an upstream message or request data.
+
+Reading this nginx-served JSON is passive: it reads the atomically published file and never invokes
+the sidecar or GitHub. Refreshes occur only on the sidecar's fixed interval. Operators may scrape
+and transform the bounded telemetry fields, but repository keys are content rather than metric
+labels and must not be promoted into a time-series label.
 
 ## 1. Pick the immutable image tag
 

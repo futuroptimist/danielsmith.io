@@ -61,6 +61,15 @@ cards, but it is not uptime, latency, readiness, saturation, scrape health, or
 release identity evidence. GitHub API outages, rate limiting, stale cache data,
 or missing stars/forks should not page for `danielsmith.io` service health.
 
+When the optional cache is enabled, `/runtime/github-metrics.json` provides a
+bounded `telemetry` object for freshness and refresh-health dashboards. Scrapes
+are file reads served by nginx and cannot trigger a GitHub request. Dashboard
+series may use the bounded state, completeness, and failure-category enums plus
+the aggregate counts and timestamps. They must not use repository names, error
+text, URLs, or response content as labels. `oldestDataAt` and each record's
+`fetchedAt` remain unchanged when last-good data is retained, while
+`lastSuccessfulRefreshAt` advances only after a complete refresh.
+
 Browser events and performance/failover decisions stay local by default. They
 can be useful during manual QA, but they are not service-health metrics unless a
 future privacy-reviewed design defines aggregation, consent, retention, deletion,

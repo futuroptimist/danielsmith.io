@@ -4,5 +4,19 @@
   "expiresAt": "2026-01-01T00:00:00.000Z",
   "source": "static-neutral-placeholder",
   "repos": {},
-  "errors": {}
+  "errors": {},
+  "telemetry": {
+    "cacheEnabled": false,
+    "state": "disabled",
+    "lastAttemptAt": null,
+    "lastSuccessfulRefreshAt": null,
+    "oldestDataAt": null,
+    "refreshDurationMs": 0,
+    "completeness": "none",
+    "configuredRepositoryCount": 0,
+    "successfulRepositoryCount": 0,
+    "failedRepositoryCount": 0,
+    "retainedRepositoryCount": 0,
+    "failureCategories": {}
+  }
 }
