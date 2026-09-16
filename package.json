@@ -23,7 +23,7 @@
     "favicon": "tsx scripts/generate-favicon.ts",
     "test:e2e": "playwright test",
     "links:check": "node scripts/check-links.cjs",
-    "helm:cache:test": "node scripts/check-helm-github-metrics-cache.cjs && python3 scripts/test-github-cache-telemetry.py",
+    "helm:cache:test": "node scripts/check-helm-github-metrics-cache.cjs",
     "helm:build-info:test": "node scripts/check-helm-build-info.cjs",
     "collider:inspect": "tsx scripts/colliderInspect.ts",
     "collider:audit:geometry": "tsx scripts/colliderGeometryAudit.ts",

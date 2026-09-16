@@ -125,7 +125,7 @@ assertIncludes(
 );
 assertIncludes(
   enabledRender,
-  '"subscribers": bounded_number(data.get("subscribers_count", 0))',
+  '"subscribers": "subscribers_count"',
   'rendered script should expose subscribers_count as subscribers'
 );
 assertIncludes(
@@ -319,3 +319,159 @@ assertRenderFails(
 );
 
 console.log('Helm GitHub metrics cache render assertions passed.');
+
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+
+const scriptMarker = '  refresh-github-metrics.py: |\n';
+const scriptStart = enabledRender.indexOf(scriptMarker);
+if (scriptStart < 0) throw new Error('rendered refresher script was not found');
+const scriptLines = enabledRender
+  .slice(scriptStart + scriptMarker.length)
+  .split('\n');
+const embeddedLines = [];
+for (const line of scriptLines) {
+  if (line && !line.startsWith('    ')) break;
+  embeddedLines.push(line);
+}
+const tempDirectory = fs.mkdtempSync(
+  path.join(os.tmpdir(), 'github-cache-test-')
+);
+const refresherPath = path.join(tempDirectory, 'refresh.py');
+fs.writeFileSync(
+  refresherPath,
+  embeddedLines.map((line) => line.slice(4)).join('\n'),
+  'utf8'
+);
+const pythonTest = String.raw`
+import datetime as dt
+import importlib.util
+import json
+import math
+import os
+import tempfile
+import urllib.error
+
+spec = importlib.util.spec_from_file_location("refresh", ${JSON.stringify(refresherPath)})
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+repos = [{"owner": "Owner", "repo": "One"}, {"owner": "Owner", "repo": "Two"}]
+base = dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc)
+clock = [base]
+m.utc_now = lambda: clock[0]
+
+def good(owner, repo):
+    return {
+        "stargazers_count": 10,
+        "subscribers_count": 3,
+        "watchers_count": 4,
+        "forks_count": 2,
+        "open_issues_count": 1,
+        "pushed_at": "2025-12-01T00:00:00Z",
+        "html_url": f"https://github.com/{owner}/{repo}",
+    }
+
+disabled_path = os.path.join(${JSON.stringify(process.cwd())}, "public/runtime/github-metrics.json")
+disabled = json.load(open(disabled_path))
+assert disabled["schemaVersion"] == 1 and disabled["cache"]["state"] == "disabled"
+
+with tempfile.TemporaryDirectory() as directory:
+    output = os.path.join(directory, "github-metrics.json")
+    m.atomic_write_json(output, m.warming_payload(2))
+    assert json.load(open(output))["cache"]["state"] == "warming"
+
+    requests = []
+    def success(owner, repo, timeout):
+        requests.append((owner, repo))
+        return good(owner, repo)
+    first = m.refresh_once(repos, output, 5, 100, fetcher=success)
+    first_success = first["cache"]["lastSuccessfulRefreshAt"]
+    assert first["schemaVersion"] == 1
+    assert first["cache"]["state"] == "fresh" and len(requests) == 2
+
+    clock[0] += dt.timedelta(seconds=60)
+    def partial(owner, repo, timeout):
+        if repo == "Two":
+            return {}
+        return {**good(owner, repo), "stargazers_count": 11}
+    partial_payload = m.refresh_once(repos, output, 5, 100, fetcher=partial)
+    assert partial_payload["cache"]["state"] == "stale"
+    assert partial_payload["cache"]["failureCategories"] == ["invalid_response"]
+    assert partial_payload["cache"]["lastSuccessfulRefreshAt"] == first_success
+    assert (
+        partial_payload["repos"]["owner/two"]["fetchedAt"]
+        == first["repos"]["owner/two"]["fetchedAt"]
+    )
+
+    clock[0] += dt.timedelta(seconds=60)
+    def limited(owner, repo, timeout):
+        raise urllib.error.HTTPError("url", 429, "limited", {}, None)
+    total = m.refresh_once(repos, output, 5, 100, fetcher=limited)
+    assert total["cache"]["retainedRepositoryCount"] == 2
+    assert total["cache"]["failureCategories"] == ["rate_limited"]
+    assert total["cache"]["lastSuccessfulRefreshAt"] == first_success
+
+    clock[0] += dt.timedelta(seconds=60)
+    recovered = m.refresh_once(repos, output, 5, 100, fetcher=success)
+    assert recovered["cache"]["state"] == "fresh"
+    assert recovered["cache"]["lastSuccessfulRefreshAt"] != first_success
+
+    for invalid in ({}, {**good("Owner", "One"), "forks_count": "2"},
+                    {**good("Owner", "One"), "forks_count": math.inf}):
+        try:
+            m.repo_record("Owner", "One", m.isoformat(clock[0]), invalid)
+            raise AssertionError("invalid response was accepted")
+        except ValueError:
+            pass
+
+    poisoned = recovered.copy()
+    poisoned["repos"] = dict(recovered["repos"])
+    poisoned["repos"]["owner/one"] = {
+        **recovered["repos"]["owner/one"], "unexpected": "x" * 200000
+    }
+    m.atomic_write_json(output, poisoned)
+    retained, _ = m.load_previous(
+        output, {"owner/one": ("Owner", "One"), "owner/two": ("Owner", "Two")}
+    )
+    assert "unexpected" not in retained["owner/one"]
+    assert retained["owner/one"]["htmlUrl"] == "https://github.com/Owner/One"
+
+    with open(output, "w") as handle:
+        handle.write("{" + "x" * m.MAX_INPUT_BYTES)
+    assert m.load_previous(output, {"owner/one": ("Owner", "One")}) == ({}, None)
+    with open(output, "w") as handle:
+        handle.write("not json")
+    assert m.load_previous(output, {"owner/one": ("Owner", "One")}) == ({}, None)
+
+    try:
+        m.atomic_write_json(output, {"oversized": "x" * m.MAX_OUTPUT_BYTES})
+        raise AssertionError("oversized publication was accepted")
+    except ValueError:
+        pass
+
+    config = os.path.join(directory, "repos.json")
+    with open(config, "w") as handle:
+        json.dump([{"owner": "Owner", "repo": "One"},
+                   {"owner": "owner", "repo": "one"}], handle)
+    try:
+        m.load_repos(config)
+        raise AssertionError("case-insensitive duplicate was accepted")
+    except ValueError:
+        pass
+
+    m.atomic_write_json(output, recovered)
+    request_count = len(requests)
+    with open(output) as handle:
+        json.load(handle)
+    with open(output) as handle:
+        json.load(handle)
+    assert len(requests) == request_count
+
+print("Rendered GitHub metrics refresher assertions passed.")
+`;
+try {
+  execFileSync('python3', ['-c', pythonTest], { stdio: 'inherit' });
+} finally {
+  fs.rmSync(tempDirectory, { recursive: true, force: true });
+}

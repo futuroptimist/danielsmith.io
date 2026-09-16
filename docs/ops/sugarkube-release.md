@@ -83,20 +83,30 @@ curl -fsS https://staging.danielsmith.io/runtime/github-metrics.json
 curl -fsS https://danielsmith.io/runtime/github-metrics.json
 ```
 
-The response uses schema version 2 and includes `generatedAt`, `expiresAt`, `source`, `repos`, the
+The response uses schema version 1 and includes `generatedAt`, `expiresAt`, `source`, `repos`, the
 legacy empty `errors` object, and bounded refresh telemetry under `cache`. Inspect `cache.state`,
 `cache.dataCompleteness`, `cache.lastSuccessfulRefreshAt`, `cache.oldestDataFetchedAt`,
 `cache.retainedDataAgeSeconds`, `cache.refreshDurationMs`, `cache.failureCategories`, and the four
 repository counts. `disabled`, `warming`, `fresh`, `stale`, and `unavailable` distinguish the cache
 lifecycle without exposing raw upstream errors. During partial or total refresh failure, valid
-last-good records remain published with their original `fetchedAt`; neither their aggregate
-`generatedAt` nor oldest-data timestamp is reset. A later complete refresh returns the state to
+last-good records remain published with their original `fetchedAt`; their oldest-data timestamp is
+not reset. A later complete refresh returns the state to
 `fresh`. Browser clients still enforce `expiresAt` plus their configured grace window, including
 for retained records, so a stopped sidecar cannot keep an old snapshot available indefinitely.
 
 The endpoint is a static nginx read of the shared runtime volume. Curling it, scraping it, or reading
 the browser diagnostics does not call GitHub. Do not use repository keys as metric labels; collect
 only the fixed cache fields if Sugarkube later maps this document into dashboards.
+
+The sidecar accepts at most 50 case-insensitively unique repositories. Owner and repository names
+are 1-100 characters, begin and end with an ASCII alphanumeric, and allow `.`, `_`, and `-` only
+inside. Input and output JSON each cap at 262,144 bytes. Metrics cap at 2,147,483,647, refresh
+duration at 3,600,000 milliseconds, and retained age at 31,536,000 seconds. The only failure
+categories are `configuration`, `internal`, `invalid_response`, `network`, `not_found`,
+`rate_limited`, `timeout`, and `upstream`. `lastSuccessfulRefreshAt` advances only when every
+configured repository succeeds; partial and total failures preserve it and each retained record's
+`fetchedAt`. `oldestDataFetchedAt` and `retainedDataAgeSeconds` independently describe the oldest
+record currently published.
 
 ## 1. Pick the immutable image tag
 
