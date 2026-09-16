@@ -67,6 +67,49 @@ future privacy-reviewed design defines aggregation, consent, retention, deletion
 operator access, and the minimum safe dimensions before any data leaves a
 visitor's browser.
 
+## GitHub cache refresh telemetry
+
+The optional cache publishes its bounded health contract in the same static
+`/runtime/github-metrics.json` document as repository data. Reading this URL or
+`window.portfolio.githubMetrics.getDiagnostics()` only reads already-published data; neither path
+starts a GitHub request. The cache sidecar is the sole upstream collector.
+
+Schema version 1 retains the version 1 `repos` object and legacy `errors: {}` field, and adds a
+`cache` object:
+
+- `enabled` and `state`: `disabled`, `warming`, `fresh`, `stale`, or `unavailable`.
+- `lastSuccessfulRefreshAt`, `oldestDataFetchedAt`, and `retainedDataAgeSeconds` describe refresh
+  success and the oldest retained data. `lastSuccessfulRefreshAt` advances only after every
+  configured repository succeeds. A failed request never advances it or a retained repository's
+  `fetchedAt`. When records exist, the legacy `generatedAt` and `expiresAt` envelope is anchored to
+  the oldest `fetchedAt`, so partial or total failures cannot renew retained-data freshness.
+- `dataCompleteness`: `complete`, `partial`, or `none`; `refreshDurationMs`; and the configured,
+  successful, failed, and retained repository counts summarize the latest refresh.
+- `failureCategories` contains only the fixed categories `configuration`, `internal`,
+  `invalid_response`, `network`, `not_found`, `rate_limited`, `timeout`, and `upstream`.
+
+Repository configuration is capped at 50 unique (case-insensitive) owner/repository pairs. Each
+name is 1-100 characters, starts and ends with an ASCII letter or digit, and otherwise uses only
+letters, digits, `.`, `_`, or `-`. JSON inputs and the published document are each capped at
+262,144 bytes. Repository metrics are integers from 0 through 2,147,483,647; durations cap at
+3,600,000 milliseconds; retained age caps at 31,536,000 seconds; timestamps are canonical UTC;
+and repository URLs are reconstructed from validated identities before publication. The document does not include upstream error messages, request identities, tokens, or
+repository names as metric labels. Operators may derive gauges from these fixed fields, but should
+not turn the `repos` keys into Prometheus labels.
+
+State semantics are intentionally independent from application availability:
+
+- `disabled`: the baked neutral document is in use because the Helm cache is off.
+- `warming`: the enabled sidecar has published its initial state but has not completed a refresh.
+- `fresh`: every configured repository succeeded during the latest refresh.
+- `stale`: at least one request failed while some repository data remains available. Partial success
+  updates successful records; any retained records preserve their original timestamps. Browsers
+  accept retained data only through the oldest record's configured `expiresAt` grace window, so
+  failed refresh attempts cannot renew an old snapshot indefinitely.
+- `unavailable`: the refresh yielded no current or retained repository data.
+
+These signals remain release/diagnostic signals rather than paging-critical service health.
+
 ## Promotion smoke evidence
 
 Run promotion smoke from this repository checkout after the target environment is

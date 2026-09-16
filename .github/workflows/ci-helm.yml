@@ -79,6 +79,9 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
+      - name: Test GitHub cache chart and telemetry
+        run: npm run helm:cache:test
+
       - name: Set expected chart reference
         id: chart_meta
         shell: bash
