@@ -1,5 +1,8 @@
 # Performance budgets
 
+For reproducible synthetic loading and interaction results, including renderer support and privacy
+semantics, see the [controlled browser performance contract](../ops/controlled-performance.md).
+
 These guardrails capture the renderer metrics we sampled while booting the
 immersive scene on Chrome 124 (MacBook Pro M2 Pro). Update both the snapshot
 and the Vitest assertions when measurable changes land.

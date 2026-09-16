@@ -67,6 +67,11 @@ future privacy-reviewed design defines aggregation, consent, retention, deletion
 operator access, and the minimum safe dimensions before any data leaves a
 visitor's browser.
 
+Controlled synthetic measurements are covered by the
+[versioned performance result contract](controlled-performance.md). It exposes only bounded
+summaries and build/environment dimensions for a future visitor-journey scheduler handoff; it does
+not add browser-session collection or a production telemetry path.
+
 ## GitHub cache refresh telemetry
 
 The optional cache publishes its bounded health contract in the same static
