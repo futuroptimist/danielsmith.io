@@ -6,6 +6,7 @@ export const PERFORMANCE_RESULT_SCHEMA_VERSION = 1 as const;
 const MAX_DURATION_MS = 3_600_000;
 const MAX_SAMPLES = 10_000;
 const MAX_BUILD_TAG_LENGTH = 80;
+const CONTROLLED_FRAME_SAMPLES = 120;
 
 export type MeasurementState = 'available' | 'unavailable';
 export type PerformanceResultState = 'completed' | 'regression' | 'unavailable';
@@ -111,11 +112,13 @@ const oneSample = (value: unknown): DurationSummary =>
     : unavailable('not_collected');
 
 const fromInteraction = (
-  summary: InputLatencySummary | null | undefined
+  summary: InputLatencySummary | null | undefined,
+  requestedSamples: number
 ): DurationSummary => {
   if (
     !summary ||
     !isBoundedInteger(summary.count, 1, MAX_SAMPLES) ||
+    summary.count !== requestedSamples ||
     !isDuration(summary.medianLatencyMs) ||
     !isDuration(summary.p95LatencyMs) ||
     !isDuration(summary.maxLatencyMs)
@@ -175,14 +178,20 @@ const normalizeFrameTime = (
   }
   const summary = input.frameTimeSummary;
   const candidate = summary ? { state: 'available', ...summary } : null;
-  return validSummary(candidate) ? candidate : unavailable('not_collected');
+  return validSummary(candidate) &&
+    candidate.sampleCount === CONTROLLED_FRAME_SAMPLES
+    ? candidate
+    : unavailable('not_collected');
 };
 
 export function createPerformanceResult(
   input: CreatePerformanceResultInput
 ): PerformanceResultV1 {
   const applicationReady = oneSample(input.applicationReadyMs);
-  const interactionLatency = fromInteraction(input.interactionSummary);
+  const interactionLatency = fromInteraction(
+    input.interactionSummary,
+    input.conditions.requestedSamples
+  );
   const frameTime = normalizeFrameTime(input);
   const hasRegression =
     (applicationReady.state === 'available' &&
@@ -246,7 +255,7 @@ export function parsePerformanceResult(
     !hasExactKeys(build, ['environment', 'tag']) ||
     !['staging', 'prod', 'dev'].includes(build.environment as string) ||
     typeof build.tag !== 'string' ||
-    !/^[A-Za-z0-9._-]+$/.test(build.tag) ||
+    !/^[A-Za-z0-9._:-]+$/.test(build.tag) ||
     build.tag.length > MAX_BUILD_TAG_LENGTH ||
     !isRecord(environment) ||
     !hasExactKeys(environment, [
@@ -309,6 +318,18 @@ export function parsePerformanceResult(
     value.frameTime.state === 'available' &&
     (environment.renderingMode !== 'immersive' ||
       environment.rendererClass !== 'hardware');
-  if (invalidState || invalidRenderer || invalidFrameSupport) return null;
+  const invalidSampleSet =
+    (value.interactionLatency.state === 'available' &&
+      value.interactionLatency.sampleCount !== conditions.requestedSamples) ||
+    (value.frameTime.state === 'available' &&
+      value.frameTime.sampleCount !== CONTROLLED_FRAME_SAMPLES);
+  if (
+    invalidState ||
+    invalidRenderer ||
+    invalidFrameSupport ||
+    invalidSampleSet
+  ) {
+    return null;
+  }
   return value as unknown as PerformanceResultV1;
 }

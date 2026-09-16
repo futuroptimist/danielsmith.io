@@ -49,15 +49,17 @@ major version are bounded by the parser.
   renderer fell back. Unavailable is never serialized as zero or treated as success.
 
 Consumers must call `parsePerformanceResult` and discard rejected results. The parser requires the
-exact versioned field set, rejects malformed ordering (`median <= p95 <= max`), invalid bounds, and
-unknown dimensions. This keeps later metric names and labels finite.
+exact versioned field set, rejects malformed ordering (`median <= p95 <= max`), invalid bounds,
+incomplete interaction sets, frame summaries that do not contain exactly 120 samples, and unknown
+dimensions. This keeps later metric names and labels finite.
 
 ## Privacy and operational handoff
 
 The result includes no browser-session or visitor identifier, user input, individual interaction
 events, raw console errors, arbitrary URL, headers, IP address, raw renderer string, or open-ended
-environment map. Build tags accept at most 80 safe identifier characters. Exact-key validation
-also rejects extra top-level or nested fields so a producer cannot silently attach private data.
+environment map. Build tags accept at most 80 safe identifier characters, including the colon in a
+pinned image digest such as `sha256:...`. Exact-key validation also rejects extra top-level or
+nested fields so a producer cannot silently attach private data.
 
 The intended integration is for the existing controlled visitor-journey scheduler to run this
 profile, validate version 1, and map its finite states and summaries to bounded metrics. That

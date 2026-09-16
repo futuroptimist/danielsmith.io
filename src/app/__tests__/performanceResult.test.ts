@@ -125,6 +125,26 @@ describe('controlled performance result contract', () => {
     });
   });
 
+  it('marks an incomplete interaction sample set unavailable', () => {
+    const input = baseInput();
+    input.interactionSummary!.count = 19;
+
+    const result = createPerformanceResult(input);
+
+    expect(result.state).toBe('unavailable');
+    expect(result.interactionLatency).toEqual({
+      state: 'unavailable',
+      reason: 'not_collected',
+    });
+  });
+
+  it('accepts digest build tags emitted by the build-info contract', () => {
+    const input = baseInput();
+    input.build.tag = `sha256:${'a'.repeat(64)}`;
+
+    expect(createPerformanceResult(input).build.tag).toBe(input.build.tag);
+  });
+
   it('rejects malformed, over-limit, and internally inconsistent results', () => {
     const result = createPerformanceResult(baseInput());
 
@@ -145,6 +165,21 @@ describe('controlled performance result contract', () => {
           p95Ms: 10,
           maxMs: 30,
         },
+      })
+    ).toBeNull();
+    expect(
+      parsePerformanceResult({
+        ...result,
+        interactionLatency: {
+          ...result.interactionLatency,
+          sampleCount: 19,
+        },
+      })
+    ).toBeNull();
+    expect(
+      parsePerformanceResult({
+        ...result,
+        frameTime: { ...result.frameTime, sampleCount: 119 },
       })
     ).toBeNull();
   });
