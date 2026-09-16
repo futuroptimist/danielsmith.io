@@ -16,23 +16,26 @@ const baseInput = (): CreatePerformanceResultInput => ({
     viewportHeight: 720,
     renderingMode: 'immersive',
     rendererClass: 'hardware',
+    frameMeasurementProfile: 'controlled_hardware_v1',
   },
   conditions: {
     warmupMs: 5_000,
     interactionName: 'keyboard_movement',
-    requestedSamples: 20,
+    requestedActions: 20,
+    eventsPerAction: 2,
+    requestedSamples: 40,
   },
   renderer: { state: 'immersive', fallbackReason: 'none' },
   applicationReadyMs: 820,
   interactionSummary: {
-    count: 20,
+    count: 40,
     averageLatencyMs: 18,
     minLatencyMs: 8,
     maxLatencyMs: 40,
     p95LatencyMs: 32,
     medianLatencyMs: 16,
-    eventCategoryCounts: { pointer: 0, keyboard: 20, manual: 0, other: 0 },
-    eventTypeCounts: { keydown: 20 },
+    eventCategoryCounts: { pointer: 0, keyboard: 40, manual: 0, other: 0 },
+    eventTypeCounts: { keydown: 20, keyup: 20 },
   },
   frameTimeSummary: {
     sampleCount: 120,
@@ -58,7 +61,7 @@ describe('controlled performance result contract', () => {
     });
     expect(result.interactionLatency).toMatchObject({
       state: 'available',
-      sampleCount: 20,
+      sampleCount: 40,
       p95Ms: 32,
     });
     expect(parsePerformanceResult(result)).toEqual(result);
@@ -83,6 +86,7 @@ describe('controlled performance result contract', () => {
     const input = baseInput();
     input.environment.renderingMode = 'fallback';
     input.environment.rendererClass = 'software';
+    input.environment.frameMeasurementProfile = 'unsupported';
     input.renderer = {
       state: 'fallback',
       fallbackReason: 'software_renderer',
@@ -100,6 +104,7 @@ describe('controlled performance result contract', () => {
   it('does not publish frame timing for an unidentified or software environment', () => {
     const input = baseInput();
     input.environment.rendererClass = 'unknown';
+    input.environment.frameMeasurementProfile = 'unsupported';
 
     expect(createPerformanceResult(input).frameTime).toEqual({
       state: 'unavailable',
@@ -127,7 +132,7 @@ describe('controlled performance result contract', () => {
 
   it('marks an incomplete interaction sample set unavailable', () => {
     const input = baseInput();
-    input.interactionSummary!.count = 19;
+    input.interactionSummary!.count = 39;
 
     const result = createPerformanceResult(input);
 
@@ -136,6 +141,85 @@ describe('controlled performance result contract', () => {
       state: 'unavailable',
       reason: 'not_collected',
     });
+  });
+
+  it.each([
+    [
+      'unavailable renderer',
+      { state: 'unavailable', fallbackReason: 'unknown' },
+    ],
+    ['software renderer', { state: 'immersive', fallbackReason: 'none' }],
+  ] as const)('keeps frame timing unavailable for an %s', (_, renderer) => {
+    const input = baseInput();
+    input.renderer = renderer;
+    if (renderer.state === 'immersive') {
+      input.environment.rendererClass = 'software';
+    }
+    input.environment.frameMeasurementProfile = 'unsupported';
+
+    expect(createPerformanceResult(input).frameTime.state).toBe('unavailable');
+  });
+
+  it('rejects a claimed frame profile without qualifying renderer evidence', () => {
+    const result = createPerformanceResult(baseInput());
+
+    expect(
+      parsePerformanceResult({
+        ...result,
+        renderer: { state: 'unavailable', fallbackReason: 'unknown' },
+      })
+    ).toBeNull();
+    expect(
+      parsePerformanceResult({
+        ...result,
+        environment: { ...result.environment, rendererClass: 'unknown' },
+      })
+    ).toBeNull();
+  });
+
+  it('distinguishes complete keyboard actions from event samples', () => {
+    const input = baseInput();
+    input.interactionSummary!.eventTypeCounts = { keydown: 40 };
+
+    expect(() => createPerformanceResult(input)).toThrow(
+      'Contradictory controlled interaction counts'
+    );
+    const result = createPerformanceResult(baseInput());
+    expect(
+      parsePerformanceResult({
+        ...result,
+        conditions: { ...result.conditions, requestedActions: 19 },
+      })
+    ).toBeNull();
+  });
+
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY, 3_600_001])(
+    'rejects a malformed supplied regression limit: %s',
+    (limit) => {
+      expect(() =>
+        createPerformanceResult({
+          ...baseInput(),
+          regressionLimitsMs: { applicationReady: limit },
+        })
+      ).toThrow('Invalid controlled performance regression limits');
+    }
+  );
+
+  it('accepts fractional measured durations but rejects fractional counts', () => {
+    const input = baseInput();
+    input.applicationReadyMs = 820.25;
+    input.interactionSummary!.medianLatencyMs = 16.5;
+
+    expect(createPerformanceResult(input).applicationReady).toMatchObject({
+      medianMs: 820.25,
+    });
+    const result = createPerformanceResult(input);
+    expect(
+      parsePerformanceResult({
+        ...result,
+        interactionLatency: { ...result.interactionLatency, sampleCount: 39.5 },
+      })
+    ).toBeNull();
   });
 
   it('accepts digest build tags emitted by the build-info contract', () => {
@@ -172,7 +256,7 @@ describe('controlled performance result contract', () => {
         ...result,
         interactionLatency: {
           ...result.interactionLatency,
-          sampleCount: 19,
+          sampleCount: 39,
         },
       })
     ).toBeNull();
@@ -180,6 +264,21 @@ describe('controlled performance result contract', () => {
       parsePerformanceResult({
         ...result,
         frameTime: { ...result.frameTime, sampleCount: 119 },
+      })
+    ).toBeNull();
+    expect(
+      parsePerformanceResult({
+        ...result,
+        renderer: { ...result.renderer, debug: { rawRenderer: 'private' } },
+      })
+    ).toBeNull();
+    expect(
+      parsePerformanceResult({
+        ...result,
+        applicationReady: {
+          ...result.applicationReady,
+          context: { url: 'https://example.test/private' },
+        },
       })
     ).toBeNull();
   });

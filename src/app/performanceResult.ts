@@ -2,17 +2,17 @@ import type { BuildInfo } from '../systems/buildInfo/buildInfoService';
 import type { InputLatencySummary } from '../systems/performance/inputLatencyMonitor';
 
 export const PERFORMANCE_RESULT_SCHEMA_VERSION = 1 as const;
+export const CONTROLLED_FRAME_SAMPLES = 120;
 
 const MAX_DURATION_MS = 3_600_000;
 const MAX_SAMPLES = 10_000;
 const MAX_BUILD_TAG_LENGTH = 80;
-const CONTROLLED_FRAME_SAMPLES = 120;
 
-export type MeasurementState = 'available' | 'unavailable';
 export type PerformanceResultState = 'completed' | 'regression' | 'unavailable';
 export type BrowserFamily = 'chromium' | 'firefox' | 'webkit';
 export type RenderingMode = 'immersive' | 'fallback';
 export type RendererClass = 'hardware' | 'software' | 'unknown';
+export type FrameMeasurementProfile = 'controlled_hardware_v1' | 'unsupported';
 
 export interface AvailableDurationSummary {
   state: 'available';
@@ -41,10 +41,13 @@ export interface PerformanceResultV1 {
     viewportHeight: number;
     renderingMode: RenderingMode;
     rendererClass: RendererClass;
+    frameMeasurementProfile: FrameMeasurementProfile;
   };
   conditions: {
     warmupMs: number;
     interactionName: 'keyboard_movement';
+    requestedActions: number;
+    eventsPerAction: 2;
     requestedSamples: number;
   };
   renderer: {
@@ -70,7 +73,6 @@ export interface CreatePerformanceResultInput {
   applicationReadyMs?: number;
   interactionSummary?: InputLatencySummary | null;
   frameTimeSummary?: Omit<AvailableDurationSummary, 'state'> | null;
-  supportsFrameTime: boolean;
   regressionLimitsMs?: {
     applicationReady?: number;
     interactionP95?: number;
@@ -111,14 +113,43 @@ const oneSample = (value: unknown): DurationSummary =>
       }
     : unavailable('not_collected');
 
+const hasConsistentKeyboardCounts = (summary: InputLatencySummary) => {
+  const categoryTotal = Object.values(summary.eventCategoryCounts).reduce(
+    (total, count) => total + count,
+    0
+  );
+  const eventTotal = Object.values(summary.eventTypeCounts).reduce(
+    (total, count) => total + count,
+    0
+  );
+  return (
+    categoryTotal === summary.count &&
+    eventTotal === summary.count &&
+    summary.eventCategoryCounts.keyboard === summary.count &&
+    Object.entries(summary.eventCategoryCounts).every(
+      ([category, count]) => category === 'keyboard' || count === 0
+    ) &&
+    Object.keys(summary.eventTypeCounts).every((type) =>
+      ['keydown', 'keyup'].includes(type)
+    )
+  );
+};
+
 const fromInteraction = (
   summary: InputLatencySummary | null | undefined,
-  requestedSamples: number
+  conditions: PerformanceResultV1['conditions']
 ): DurationSummary => {
+  if (!summary || summary.count !== conditions.requestedSamples) {
+    return unavailable('not_collected');
+  }
   if (
-    !summary ||
-    !isBoundedInteger(summary.count, 1, MAX_SAMPLES) ||
-    summary.count !== requestedSamples ||
+    !hasConsistentKeyboardCounts(summary) ||
+    summary.eventTypeCounts.keydown !== conditions.requestedActions ||
+    summary.eventTypeCounts.keyup !== conditions.requestedActions
+  ) {
+    throw new TypeError('Contradictory controlled interaction counts.');
+  }
+  if (
     !isDuration(summary.medianLatencyMs) ||
     !isDuration(summary.p95LatencyMs) ||
     !isDuration(summary.maxLatencyMs)
@@ -164,16 +195,26 @@ const validSummary = (value: unknown): value is DurationSummary => {
   );
 };
 
+const hasActiveSupportedHardwareRenderer = (
+  environment: PerformanceResultV1['environment'],
+  renderer: PerformanceResultV1['renderer']
+) =>
+  environment.renderingMode === 'immersive' &&
+  environment.rendererClass === 'hardware' &&
+  environment.frameMeasurementProfile === 'controlled_hardware_v1' &&
+  renderer.state === 'immersive' &&
+  renderer.fallbackReason === 'none';
+
 const normalizeFrameTime = (
   input: CreatePerformanceResultInput
 ): DurationSummary => {
-  if (input.environment.renderingMode === 'fallback') {
+  if (
+    input.environment.renderingMode === 'fallback' ||
+    input.renderer.state === 'fallback'
+  ) {
     return unavailable('renderer_fallback');
   }
-  if (
-    !input.supportsFrameTime ||
-    input.environment.rendererClass !== 'hardware'
-  ) {
+  if (!hasActiveSupportedHardwareRenderer(input.environment, input.renderer)) {
     return unavailable('unsupported_environment');
   }
   const summary = input.frameTimeSummary;
@@ -184,22 +225,38 @@ const normalizeFrameTime = (
     : unavailable('not_collected');
 };
 
+const assertValidLimits = (
+  limits: CreatePerformanceResultInput['regressionLimitsMs']
+) => {
+  if (!limits) return;
+  if (
+    !isRecord(limits) ||
+    !Object.keys(limits).every((key) =>
+      ['applicationReady', 'interactionP95'].includes(key)
+    ) ||
+    Object.values(limits).some((limit) => !isDuration(limit))
+  ) {
+    throw new TypeError('Invalid controlled performance regression limits.');
+  }
+};
+
 export function createPerformanceResult(
   input: CreatePerformanceResultInput
 ): PerformanceResultV1 {
+  assertValidLimits(input.regressionLimitsMs);
   const applicationReady = oneSample(input.applicationReadyMs);
   const interactionLatency = fromInteraction(
     input.interactionSummary,
-    input.conditions.requestedSamples
+    input.conditions
   );
   const frameTime = normalizeFrameTime(input);
   const hasRegression =
     (applicationReady.state === 'available' &&
-      isDuration(input.regressionLimitsMs?.applicationReady) &&
-      applicationReady.p95Ms > input.regressionLimitsMs!.applicationReady!) ||
+      input.regressionLimitsMs?.applicationReady !== undefined &&
+      applicationReady.p95Ms > input.regressionLimitsMs.applicationReady) ||
     (interactionLatency.state === 'available' &&
-      isDuration(input.regressionLimitsMs?.interactionP95) &&
-      interactionLatency.p95Ms > input.regressionLimitsMs!.interactionP95!);
+      input.regressionLimitsMs?.interactionP95 !== undefined &&
+      interactionLatency.p95Ms > input.regressionLimitsMs.interactionP95);
   const state =
     applicationReady.state === 'unavailable' ||
     interactionLatency.state === 'unavailable'
@@ -265,6 +322,7 @@ export function parsePerformanceResult(
       'viewportHeight',
       'renderingMode',
       'rendererClass',
+      'frameMeasurementProfile',
     ]) ||
     !['chromium', 'firefox', 'webkit'].includes(
       environment.browser as string
@@ -276,15 +334,24 @@ export function parsePerformanceResult(
     !['hardware', 'software', 'unknown'].includes(
       environment.rendererClass as string
     ) ||
+    !['controlled_hardware_v1', 'unsupported'].includes(
+      environment.frameMeasurementProfile as string
+    ) ||
     !isRecord(conditions) ||
     !hasExactKeys(conditions, [
       'warmupMs',
       'interactionName',
+      'requestedActions',
+      'eventsPerAction',
       'requestedSamples',
     ]) ||
     !isDuration(conditions.warmupMs) ||
     conditions.interactionName !== 'keyboard_movement' ||
+    !isBoundedInteger(conditions.requestedActions, 1, MAX_SAMPLES) ||
+    conditions.eventsPerAction !== 2 ||
     !isBoundedInteger(conditions.requestedSamples, 1, MAX_SAMPLES) ||
+    conditions.requestedSamples !==
+      (conditions.requestedActions as number) * conditions.eventsPerAction ||
     !isRecord(renderer) ||
     !hasExactKeys(renderer, ['state', 'fallbackReason']) ||
     !['immersive', 'fallback', 'unavailable'].includes(
@@ -310,14 +377,21 @@ export function parsePerformanceResult(
     (value.state === 'unavailable') !== requiredUnavailable ||
     (value.state === 'regression' && requiredUnavailable);
   const invalidRenderer =
-    (environment.renderingMode === 'fallback') !==
-      (renderer.state === 'fallback') ||
-    (renderer.state === 'immersive' && renderer.fallbackReason !== 'none') ||
-    (renderer.state !== 'immersive' && renderer.fallbackReason === 'none');
+    (renderer.state === 'immersive' &&
+      (environment.renderingMode !== 'immersive' ||
+        renderer.fallbackReason !== 'none')) ||
+    (renderer.state === 'fallback' &&
+      (environment.renderingMode !== 'fallback' ||
+        renderer.fallbackReason === 'none')) ||
+    (renderer.state === 'unavailable' && renderer.fallbackReason === 'none');
+  const frameSupported = hasActiveSupportedHardwareRenderer(
+    environment as unknown as PerformanceResultV1['environment'],
+    renderer as unknown as PerformanceResultV1['renderer']
+  );
   const invalidFrameSupport =
-    value.frameTime.state === 'available' &&
-    (environment.renderingMode !== 'immersive' ||
-      environment.rendererClass !== 'hardware');
+    (value.frameTime.state === 'available' && !frameSupported) ||
+    (environment.frameMeasurementProfile === 'controlled_hardware_v1' &&
+      (environment.browser !== 'chromium' || !frameSupported));
   const invalidSampleSet =
     (value.interactionLatency.state === 'available' &&
       value.interactionLatency.sampleCount !== conditions.requestedSamples) ||
