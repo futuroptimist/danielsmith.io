@@ -81,7 +81,8 @@ Schema version 1 retains the version 1 `repos` object and legacy `errors: {}` fi
 - `lastSuccessfulRefreshAt`, `oldestDataFetchedAt`, and `retainedDataAgeSeconds` describe refresh
   success and the oldest retained data. `lastSuccessfulRefreshAt` advances only after every
   configured repository succeeds. A failed request never advances it or a retained repository's
-  `fetchedAt`, so these values expose true last-good age.
+  `fetchedAt`. When records exist, the legacy `generatedAt` and `expiresAt` envelope is anchored to
+  the oldest `fetchedAt`, so partial or total failures cannot renew retained-data freshness.
 - `dataCompleteness`: `complete`, `partial`, or `none`; `refreshDurationMs`; and the configured,
   successful, failed, and retained repository counts summarize the latest refresh.
 - `failureCategories` contains only the fixed categories `configuration`, `internal`,
@@ -103,8 +104,8 @@ State semantics are intentionally independent from application availability:
 - `fresh`: every configured repository succeeded during the latest refresh.
 - `stale`: at least one request failed while some repository data remains available. Partial success
   updates successful records; any retained records preserve their original timestamps. Browsers
-  accept retained data only through the document's configured `expiresAt` grace window, so a
-  stopped sidecar cannot renew an old snapshot indefinitely.
+  accept retained data only through the oldest record's configured `expiresAt` grace window, so
+  failed refresh attempts cannot renew an old snapshot indefinitely.
 - `unavailable`: the refresh yielded no current or retained repository data.
 
 These signals remain release/diagnostic signals rather than paging-critical service health.

@@ -389,6 +389,9 @@ with tempfile.TemporaryDirectory() as directory:
     first_success = first["cache"]["lastSuccessfulRefreshAt"]
     assert first["schemaVersion"] == 1
     assert first["cache"]["state"] == "fresh" and len(requests) == 2
+    assert first["generatedAt"] == m.isoformat(base)
+    assert first["expiresAt"] == m.isoformat(base + dt.timedelta(seconds=100))
+    assert first["repos"]["owner/one"]["watchers"] == 3
 
     clock[0] += dt.timedelta(seconds=60)
     def partial(owner, repo, timeout):
@@ -399,23 +402,50 @@ with tempfile.TemporaryDirectory() as directory:
     assert partial_payload["cache"]["state"] == "stale"
     assert partial_payload["cache"]["failureCategories"] == ["invalid_response"]
     assert partial_payload["cache"]["lastSuccessfulRefreshAt"] == first_success
+    assert partial_payload["generatedAt"] == first["generatedAt"]
+    assert partial_payload["expiresAt"] == first["expiresAt"]
     assert (
         partial_payload["repos"]["owner/two"]["fetchedAt"]
         == first["repos"]["owner/two"]["fetchedAt"]
     )
 
-    clock[0] += dt.timedelta(seconds=60)
+    # Advance beyond the TTL and browser grace, then repeat the failed refresh.
+    clock[0] += dt.timedelta(days=1)
     def limited(owner, repo, timeout):
         raise urllib.error.HTTPError("url", 429, "limited", {}, None)
     total = m.refresh_once(repos, output, 5, 100, fetcher=limited)
     assert total["cache"]["retainedRepositoryCount"] == 2
     assert total["cache"]["failureCategories"] == ["rate_limited"]
     assert total["cache"]["lastSuccessfulRefreshAt"] == first_success
+    assert total["generatedAt"] == first["generatedAt"]
+    assert total["expiresAt"] == first["expiresAt"]
+    assert total["repos"]["owner/two"]["fetchedAt"] == first["generatedAt"]
+
+    clock[0] += dt.timedelta(days=1)
+    repeated_total = m.refresh_once(repos, output, 5, 100, fetcher=limited)
+    assert repeated_total["generatedAt"] == first["generatedAt"]
+    assert repeated_total["expiresAt"] == first["expiresAt"]
+    assert repeated_total["cache"]["lastSuccessfulRefreshAt"] == first_success
 
     clock[0] += dt.timedelta(seconds=60)
     recovered = m.refresh_once(repos, output, 5, 100, fetcher=success)
     assert recovered["cache"]["state"] == "fresh"
     assert recovered["cache"]["lastSuccessfulRefreshAt"] != first_success
+    assert recovered["generatedAt"] == m.isoformat(clock[0])
+    assert recovered["repos"]["owner/two"]["fetchedAt"] == recovered["generatedAt"]
+
+    canonical = good("Owner", "One")
+    canonical["html_url"] = "https://github.com/owner/one"
+    canonical_record = m.repo_record(
+        "OWNER", "ONE", m.isoformat(clock[0]), canonical
+    )
+    assert canonical_record["htmlUrl"] == "https://github.com/OWNER/ONE"
+    unrelated = {**canonical, "html_url": "https://github.com/owner/other"}
+    try:
+        m.repo_record("OWNER", "ONE", m.isoformat(clock[0]), unrelated)
+        raise AssertionError("unrelated repository identity was accepted")
+    except ValueError:
+        pass
 
     for invalid in ({}, {**good("Owner", "One"), "forks_count": "2"},
                     {**good("Owner", "One"), "forks_count": math.inf}):
@@ -436,6 +466,20 @@ with tempfile.TemporaryDirectory() as directory:
     )
     assert "unexpected" not in retained["owner/one"]
     assert retained["owner/one"]["htmlUrl"] == "https://github.com/Owner/One"
+
+    cased = recovered.copy()
+    cased["repos"] = {"OWNER/ONE": {
+        **recovered["repos"]["owner/one"], "owner": "owner", "repo": "one"
+    }}
+    m.atomic_write_json(output, cased)
+    retained, _ = m.load_previous(output, {"owner/one": ("Owner", "One")})
+    assert retained["owner/one"]["owner"] == "Owner"
+    assert retained["owner/one"]["repo"] == "One"
+
+    cased["repos"]["OWNER/ONE"]["repo"] = "Other"
+    m.atomic_write_json(output, cased)
+    retained, _ = m.load_previous(output, {"owner/one": ("Owner", "One")})
+    assert retained == {}
 
     with open(output, "w") as handle:
         handle.write("{" + "x" * m.MAX_INPUT_BYTES)

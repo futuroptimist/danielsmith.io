@@ -161,9 +161,17 @@ data:
             raise ValueError("GitHub response is missing required fields")
         pushed_at = parse_timestamp(data["pushed_at"])
         expected_url = f"https://github.com/{owner}/{repo}"
-        if pushed_at is None or data["html_url"] != expected_url:
+        if (
+            pushed_at is None
+            or not isinstance(data["html_url"], str)
+            or data["html_url"].casefold() != expected_url.casefold()
+        ):
             raise ValueError("GitHub response contains invalid identity fields")
         values = {name: metric(data[field]) for name, field in METRIC_FIELDS.items()}
+        # Preserve the legacy UI contract: watchers means subscribers when available.
+        values["watchers"] = metric(
+            data.get("subscribers_count", data["watchers_count"])
+        )
         return {
             "owner": owner,
             "repo": repo,
@@ -178,7 +186,13 @@ data:
         if not isinstance(value, dict):
             return None
         owner, repo = configured[key]
-        if value.get("owner") != owner or value.get("repo") != repo:
+        retained_owner, retained_repo = value.get("owner"), value.get("repo")
+        if (
+            not isinstance(retained_owner, str)
+            or not isinstance(retained_repo, str)
+            or retained_owner.casefold() != owner.casefold()
+            or retained_repo.casefold() != repo.casefold()
+        ):
             return None
         fetched_at = parse_timestamp(value.get("fetchedAt"))
         pushed_at = parse_timestamp(value.get("pushedAt"))
@@ -210,11 +224,14 @@ data:
             return {}, None
         retained = {}
         for key, value in repos.items():
-            if key not in configured:
+            if not isinstance(key, str):
                 continue
-            record = retained_record(key, configured, value)
+            normalized_key = key.casefold()
+            if normalized_key not in configured:
+                continue
+            record = retained_record(normalized_key, configured, value)
             if record is not None:
-                retained[key] = record
+                retained[normalized_key] = record
         cache = payload.get("cache") if isinstance(payload.get("cache"), dict) else {}
         last_success = cache.get("lastSuccessfulRefreshAt")
         parsed_success = parse_timestamp(last_success)
@@ -228,7 +245,8 @@ data:
         state = "fresh" if complete else ("stale" if repos else "unavailable")
         completeness = "complete" if complete else ("partial" if repos else "none")
         age = max(0, int((now - oldest).total_seconds())) if oldest else None
-        generated_at = now
+        # Envelope freshness follows the oldest record; failures must not renew retained data.
+        generated_at = oldest if oldest else now
         return {
             "schemaVersion": 1,
             "generatedAt": isoformat(generated_at),
