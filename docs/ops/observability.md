@@ -67,6 +67,11 @@ future privacy-reviewed design defines aggregation, consent, retention, deletion
 operator access, and the minimum safe dimensions before any data leaves a
 visitor's browser.
 
+Controlled automation has a separate, versioned
+[browser performance result contract](performance-results.md). It records only bounded summaries
+from an explicitly configured test run and is intended for a later handoff to the existing
+visitor-journey scheduler. It does not authorize real-user collection or add production thresholds.
+
 ## GitHub cache refresh telemetry
 
 The optional cache publishes its bounded health contract in the same static
