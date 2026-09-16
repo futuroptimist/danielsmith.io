@@ -68,6 +68,42 @@ quality level.
   warmed diagnostics from failures or `window.portfolio.performance.getSnapshot()`,
   and preserving documented headroom.
 
+## Controlled browser performance result
+
+`createControlledPerformanceResult(...)` defines schema version 1 for measurements made by a
+controlled browser job. It validates and projects runner input rather than exporting browser state.
+The bounded result contains:
+
+- application-ready duration, measured from navigation start until `data-app-mode` becomes either
+  `immersive` or `fallback`;
+- a median, p95, maximum, and sample count for controlled interaction latency;
+- immersive or fallback renderer state and one of the existing finite fallback reasons;
+- optional frame-time summary data; and
+- build environment/tag, browser family/major version, viewport, rendering mode, renderer class,
+  warmup duration, requested sample count, and completion time.
+
+Use a fresh browser context at a fixed 1280×720 CSS-pixel viewport. Record the browser family and
+major version and load the immutable build under test. Wait for application readiness, then allow a
+2,000 ms warmup. Run 20 identical keyboard movement interactions at a fixed cadence and summarize
+the existing input-latency observations. Frame-time sampling uses the existing performance
+diagnostics over the same 20-sample window, but is supported only when the runner explicitly
+identifies a hardware renderer. Software renderers (including SwiftShader) and text fallback runs
+must report frame time as `unavailable` with `unsupported_environment`; a hardware run that cannot
+complete its window reports `insufficient_samples`. An unavailable measurement is never encoded as
+zero or treated as success.
+
+The contract deliberately carries observations, not pass/fail labels or new production thresholds.
+Comparisons can therefore preserve loading and interaction regressions until a measured deployment
+baseline supports policy. Durations cap at 300,000 ms, samples at 600, viewport dimensions at
+16,384 pixels, warmup at 60,000 ms, and build tags at 100 restricted characters. Malformed,
+inconsistent, or out-of-range payloads are rejected instead of coerced.
+
+The projection excludes session and visitor identifiers, user input, console messages, arbitrary
+URLs, full user-agent strings, renderer vendor strings, and open-ended environment attributes. It
+does not transmit anything itself. The existing visitor-journey scheduler may later run the
+documented scenario and hand this bounded result to Sugarkube; collection, storage, dashboards,
+alerts, scheduling changes, and deployment remain a separate integration.
+
 ## Performance scene detail mode
 
 Performance graphics quality now applies a centralized scene detail policy in

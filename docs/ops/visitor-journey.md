@@ -47,3 +47,13 @@ This repository provides assertions and the sanitized aggregate shape only. The 
 remains unchanged: Sugarkube scheduling, metric collection, dashboards, alerts, runtime activation,
 visitor collection, and staging or production qualification are deliberately deferred to separate
 integration work.
+
+## Controlled performance handoff
+
+The same scheduler may later execute the versioned controlled-browser procedure documented in
+[`performance-budgets.md`](../architecture/performance-budgets.md). Its result is a separate,
+bounded diagnostic contract: it does not change the essential journey's success semantics, and a
+renderer fallback or unavailable frame-time measurement must remain visible rather than becoming a
+zero or a successful hardware measurement. This repository performs no collection or scheduling;
+Sugarkube integration, metric naming, dashboards, and baseline-derived thresholds are follow-up
+work.
