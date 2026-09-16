@@ -5,6 +5,12 @@ import {
   createImmersiveLaunchBudgetReport,
 } from '../src/assets/performance';
 
+import {
+  installPerformanceResultProbe,
+  readPerformanceResult,
+  resetInputLatencyWindow,
+} from './helpers/performanceResult';
+
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
 const IMMERSIVE_URL = '/?mode=immersive';
 const IMMERSIVE_DIAGNOSTICS_URL =
@@ -442,6 +448,120 @@ test.describe('immersive performance diagnostics', () => {
       ).toBeGreaterThanOrEqual(0);
       expect(snapshot.quality.level).not.toBe('cinematic');
       expect(snapshot.quality.adaptivePolicy).toBeNull();
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('creates a controlled result from readiness, input, and renderer diagnostics', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installProductionLikeHints(page);
+    await installPerformanceResultProbe(page);
+
+    try {
+      await waitForImmersive(page, IMMERSIVE_DIAGNOSTICS_URL);
+      await page.waitForTimeout(5_000);
+      await resetInputLatencyWindow(page);
+      for (let action = 0; action < 20; action += 1) {
+        await page.keyboard.press('w');
+        await page.waitForTimeout(50);
+      }
+
+      const snapshot = await getSnapshot(page);
+      const rendererSupported =
+        !snapshot.renderer.isSoftwareRenderer &&
+        snapshot.renderer.riskLevel === 'normal';
+      const result = await readPerformanceResult(page, {
+        measuredAt: 1_800_000_000,
+        build: { environment: 'dev', tag: 'controlled-browser-test' },
+        environment: {
+          browser: 'chromium',
+          browserMajorVersion: Number.parseInt(browser.version(), 10),
+          viewportWidth: 1280,
+          viewportHeight: 720,
+          renderingMode: 'immersive',
+          rendererClass: rendererSupported
+            ? 'hardware'
+            : snapshot.renderer.isSoftwareRenderer
+              ? 'software'
+              : 'unknown',
+          frameMeasurementProfile: rendererSupported
+            ? 'controlled_hardware_v1'
+            : 'unsupported',
+        },
+        conditions: {
+          warmupMs: 5_000,
+          interactionName: 'keyboard_movement',
+          requestedActions: 20,
+          eventsPerAction: 2,
+          requestedSamples: 40,
+        },
+        renderer: { state: 'immersive', fallbackReason: 'none' },
+        // Diagnostics expose p95 but not the complete 120-frame summary.
+        frameTimeSummary: null,
+        regressionLimitsMs: { applicationReady: 0 },
+      });
+
+      expect(result.state).toBe('regression');
+      expect(result.applicationReady.state).toBe('available');
+      expect(result.interactionLatency).toMatchObject({
+        state: 'available',
+        sampleCount: 40,
+      });
+      expect(result.frameTime).toEqual({
+        state: 'unavailable',
+        reason: rendererSupported ? 'not_collected' : 'unsupported_environment',
+      });
+    } finally {
+      await context.close();
+    }
+  });
+
+  test('reports a fallback run as unavailable without inventing samples', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await installPerformanceResultProbe(page);
+
+    try {
+      await page.goto('/?mode=text', { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-app-mode',
+        'fallback'
+      );
+      const result = await readPerformanceResult(page, {
+        measuredAt: 1_800_000_000,
+        build: { environment: 'dev', tag: 'controlled-browser-test' },
+        environment: {
+          browser: 'chromium',
+          browserMajorVersion: Number.parseInt(browser.version(), 10),
+          viewportWidth: 1280,
+          viewportHeight: 720,
+          renderingMode: 'fallback',
+          rendererClass: 'unknown',
+          frameMeasurementProfile: 'unsupported',
+        },
+        conditions: {
+          warmupMs: 5_000,
+          interactionName: 'keyboard_movement',
+          requestedActions: 20,
+          eventsPerAction: 2,
+          requestedSamples: 40,
+        },
+        renderer: { state: 'fallback', fallbackReason: 'unknown' },
+        frameTimeSummary: null,
+      });
+
+      expect(result.state).toBe('unavailable');
+      expect(result.interactionLatency.state).toBe('unavailable');
+      expect(result.frameTime).toEqual({
+        state: 'unavailable',
+        reason: 'renderer_fallback',
+      });
     } finally {
       await context.close();
     }
