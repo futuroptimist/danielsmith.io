@@ -118,6 +118,35 @@ State semantics are intentionally independent from application availability:
 
 These signals remain release/diagnostic signals rather than paging-critical service health.
 
+### Collector handoff
+
+`parseGitHubCacheTelemetry()` is the application-owned, fail-closed reader for the `cache` object.
+It accepts schema version 1 documents no larger than 262,144 bytes, requires exactly the fields
+listed above, and rejects unknown fields, duplicate/unknown failure categories, non-canonical
+timestamps, and out-of-range values. `serializeGitHubCacheMetrics()` converts an accepted snapshot
+to deterministic Prometheus text without fetching the runtime document or calling GitHub. The
+serializer emits no labels and stays below 4,096 bytes.
+
+The exact metric vocabulary is:
+
+- `daniel_github_cache_enabled` (0 or 1).
+- `daniel_github_cache_last_successful_refresh_timestamp_seconds` and
+  `daniel_github_cache_oldest_data_timestamp_seconds` (Unix seconds, or 0 when absent).
+- `daniel_github_cache_retained_data_age_seconds` and
+  `daniel_github_cache_refresh_duration_milliseconds` (0 when absent).
+- `daniel_github_cache_configured_repositories`, `daniel_github_cache_successful_repositories`,
+  `daniel_github_cache_failed_repositories`, and `daniel_github_cache_retained_repositories`.
+- One-hot `daniel_github_cache_state_<state>` gauges for `disabled`, `warming`, `fresh`, `stale`,
+  and `unavailable`.
+- One-hot `daniel_github_cache_completeness_<value>` gauges for `complete`, `partial`, and `none`.
+- Boolean `daniel_github_cache_failure_<category>` gauges for `configuration`, `internal`,
+  `invalid_response`, `network`, `not_found`, `rate_limited`, `timeout`, and `upstream`.
+
+Metric suffixes come only from those compile-time lists. Repository identities, URLs, request
+identities, tokens, and upstream error text can neither become metric names nor labels. A later
+Sugarkube collector must read the static runtime JSON itself, pass its text to the parser, and emit
+nothing when parsing fails; this contract does not authorize integration or deployment changes.
+
 ## Promotion smoke evidence
 
 Run promotion smoke from this repository checkout after the target environment is
