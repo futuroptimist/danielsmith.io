@@ -118,6 +118,26 @@ State semantics are intentionally independent from application availability:
 
 These signals remain release/diagnostic signals rather than paging-critical service health.
 
+Later collectors may pass that already-read JSON snapshot to
+`serializeGitHubCacheMetrics`. Invalid snapshots fail closed with no metric body, and serialization
+never owns or invokes an upstream client. Its Prometheus vocabulary is fixed:
+
+- `daniel_github_cache_enabled` (0 or 1);
+- `daniel_github_cache_state_info{state}` and
+  `daniel_github_cache_data_completeness_info{completeness}` (value 1);
+- `daniel_github_cache_last_success_timestamp_seconds`,
+  `daniel_github_cache_oldest_data_timestamp_seconds`,
+  `daniel_github_cache_retained_data_age_seconds`, and
+  `daniel_github_cache_refresh_duration_seconds`;
+- `daniel_github_cache_repositories{result}` where `result` is only `configured`, `successful`,
+  `failed`, or `retained`; and
+- `daniel_github_cache_refresh_failure_info{category}` (value 1), where `category` is one of the
+  eight failure categories above.
+
+Null timestamp, age, and duration fields serialize as zero; consumers must use `state` and
+`dataCompleteness` to distinguish absent measurements. Metric output is capped at 8,192 bytes.
+No repository, owner, URL, request identity, error text, or credential becomes a metric label.
+
 ## Promotion smoke evidence
 
 Run promotion smoke from this repository checkout after the target environment is
