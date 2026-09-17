@@ -126,6 +126,15 @@ timestamp, count, duration, age, category, or state/count relationship is outsid
 Unknown input fields are discarded. Its Prometheus text response is deterministic, ends with one
 newline, and is capped at 8,192 UTF-8 bytes.
 
+Validation also requires enabled snapshots to configure at least one repository, completed refresh
+attempts to report a duration, failed attempts to report at least one bounded failure category, and
+attempts without failures to report no categories. A fresh snapshot requires a last-success
+timestamp. Warming snapshots retain zero attempt counts, while stale and unavailable snapshots may
+have no last-success timestamp when no fully successful refresh has occurred. Diagnostics return a
+detached snapshot and clear the prior snapshot when a real reload begins; a valid newly loaded
+disabled, warming, stale, or unavailable snapshot remains diagnostic evidence even when its
+repository envelope cannot be served.
+
 The complete metric vocabulary is:
 
 - `daniel_github_cache_enabled` (`0` or `1`).

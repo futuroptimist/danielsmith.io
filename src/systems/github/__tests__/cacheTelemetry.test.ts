@@ -1,9 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   parseGitHubCacheTelemetry,
   serializeGitHubCacheMetrics,
-} from '../systems/github/cacheTelemetry';
+} from '../cacheTelemetry';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 const snapshot = (overrides: Record<string, unknown> = {}) => ({
   enabled: true,
@@ -132,6 +136,23 @@ describe('GitHub cache telemetry contract', () => {
       { lastSuccessfulRefreshAt: '2026-09-17T12:00:00Z' },
     ],
     ['inconsistent counts', { successfulRepositoryCount: 1 }],
+    ['enabled without repositories', { configuredRepositoryCount: 0 }],
+    ['completed attempt without duration', { refreshDurationMs: null }],
+    [
+      'failed attempt without a category',
+      {
+        state: 'unavailable',
+        lastSuccessfulRefreshAt: null,
+        oldestDataFetchedAt: null,
+        retainedDataAgeSeconds: null,
+        dataCompleteness: 'none',
+        failureCategories: [],
+        successfulRepositoryCount: 0,
+        failedRepositoryCount: 2,
+      },
+    ],
+    ['successful attempt with a category', { failureCategories: ['network'] }],
+    ['fresh state without a last success', { lastSuccessfulRefreshAt: null }],
     ['failure category on fresh state', { failureCategories: ['network'] }],
     ['arbitrary repository label', { repository: 'private/repo' }],
   ])('fails closed for %s', (_name, override) => {
@@ -145,6 +166,7 @@ describe('GitHub cache telemetry contract', () => {
   });
 
   it('serializes fixed metric series from a published snapshot', () => {
+    const fetch = vi.spyOn(globalThis, 'fetch');
     const output = serializeGitHubCacheMetrics(
       snapshot({
         state: 'stale',
@@ -164,5 +186,6 @@ describe('GitHub cache telemetry contract', () => {
     expect(
       new TextEncoder().encode(output ?? '').byteLength
     ).toBeLessThanOrEqual(8192);
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

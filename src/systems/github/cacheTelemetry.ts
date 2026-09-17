@@ -140,6 +140,10 @@ export const parseGitHubCacheTelemetry = (
   const failedRepositoryCount = value.failedRepositoryCount as number;
   const retainedRepositoryCount = value.retainedRepositoryCount as number;
   const hasData = retainedRepositoryCount > 0 || successfulRepositoryCount > 0;
+  const refreshCompleted =
+    value.state === 'fresh' ||
+    value.state === 'stale' ||
+    value.state === 'unavailable';
   if (
     (value.state !== 'warming' &&
       successfulRepositoryCount + failedRepositoryCount !==
@@ -147,6 +151,10 @@ export const parseGitHubCacheTelemetry = (
     retainedRepositoryCount > failedRepositoryCount ||
     (value.enabled === false && value.state !== 'disabled') ||
     (value.enabled === true && value.state === 'disabled') ||
+    (value.enabled && configuredRepositoryCount === 0) ||
+    (refreshCompleted && nullableDuration === null) ||
+    (failedRepositoryCount > 0 && failureCategories.length === 0) ||
+    (failedRepositoryCount === 0 && failureCategories.length > 0) ||
     ((value.state === 'disabled' || value.state === 'warming') &&
       ((value.state === 'disabled' && configuredRepositoryCount !== 0) ||
         successfulRepositoryCount !== 0 ||
@@ -160,6 +168,7 @@ export const parseGitHubCacheTelemetry = (
         failureCategories.length !== 0)) ||
     (value.state === 'fresh' &&
       (value.dataCompleteness !== 'complete' ||
+        lastSuccessfulRefreshAt === null ||
         failedRepositoryCount !== 0 ||
         failureCategories.length !== 0)) ||
     (value.state === 'stale' &&

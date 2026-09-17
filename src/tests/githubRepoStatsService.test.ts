@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { serializeGitHubCacheMetrics } from '../systems/github/cacheTelemetry';
 import { createGitHubRepoStatsService } from '../systems/github/repoStats';
 
 class MemoryStorage
@@ -108,7 +109,19 @@ describe('GitHub repo stats service', () => {
         expiresAt: '2026-06-03T02:00:00.000Z',
         source: 'github-api',
         cache,
-        repos: {},
+        repos: {
+          'futuroptimist/flywheel': {
+            owner: 'futuroptimist',
+            repo: 'flywheel',
+            stars: 8,
+            watchers: 2,
+            forks: 1,
+            openIssues: 0,
+            pushedAt: null,
+            fetchedAt: '2026-06-03T01:00:00.000Z',
+            htmlUrl: 'https://github.com/futuroptimist/flywheel',
+          },
+        },
         errors: {},
       }),
     });
@@ -129,40 +142,66 @@ describe('GitHub repo stats service', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
 
     diagnostics.cacheTelemetry?.failureCategories.push('network');
-    expect(service.getDiagnostics().cacheTelemetry?.failureCategories).toEqual(
-      []
-    );
+    if (diagnostics.cacheTelemetry) diagnostics.cacheTelemetry.state = 'stale';
+    const nextDiagnostics = service.getDiagnostics();
+    expect(nextDiagnostics.cacheTelemetry).toEqual(cache);
+    expect(
+      serializeGitHubCacheMetrics(nextDiagnostics.cacheTelemetry)
+    ).not.toBeNull();
+    expect(service.getDiagnostics().cacheTelemetry).toEqual(cache);
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('clears published cache telemetry when a reload fails', async () => {
+  it('clears telemetry after failed reloads and publishes recovery', async () => {
+    const freshCache = {
+      enabled: true,
+      state: 'fresh',
+      lastSuccessfulRefreshAt: '2026-06-03T01:00:00.000Z',
+      oldestDataFetchedAt: '2026-06-03T01:00:00.000Z',
+      retainedDataAgeSeconds: 0,
+      dataCompleteness: 'complete',
+      refreshDurationMs: 125,
+      failureCategories: [],
+      configuredRepositoryCount: 1,
+      successfulRepositoryCount: 1,
+      failedRepositoryCount: 0,
+      retainedRepositoryCount: 0,
+    };
+    const payload = (cache: typeof freshCache) => ({
+      schemaVersion: 1,
+      generatedAt: cache.oldestDataFetchedAt,
+      expiresAt: '2026-06-03T02:00:00.000Z',
+      source: 'github-api',
+      cache,
+      repos: {},
+      errors: {},
+    });
+    const recoveredCache = {
+      ...freshCache,
+      lastSuccessfulRefreshAt: '2026-06-03T03:00:00.000Z',
+      oldestDataFetchedAt: '2026-06-03T03:00:00.000Z',
+    };
     const fetch = vi
       .fn()
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({
-          schemaVersion: 1,
-          generatedAt: '2026-06-03T01:00:00.000Z',
-          expiresAt: '2026-06-03T02:00:00.000Z',
-          source: 'github-api',
-          cache: {
-            enabled: true,
-            state: 'fresh',
-            lastSuccessfulRefreshAt: '2026-06-03T01:00:00.000Z',
-            oldestDataFetchedAt: '2026-06-03T01:00:00.000Z',
-            retainedDataAgeSeconds: 0,
-            dataCompleteness: 'complete',
-            refreshDurationMs: 125,
-            failureCategories: [],
-            configuredRepositoryCount: 1,
-            successfulRepositoryCount: 1,
-            failedRepositoryCount: 0,
-            retainedRepositoryCount: 0,
-          },
-          repos: {},
-          errors: {},
-        }),
+        json: async () => payload(freshCache),
       })
-      .mockResolvedValueOnce({ ok: false });
+      .mockResolvedValueOnce({ ok: false })
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => Promise.reject(new SyntaxError('malformed JSON')),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          ...payload(recoveredCache),
+          generatedAt: '2026-06-03T03:00:00.000Z',
+          expiresAt: '2026-06-03T04:00:00.000Z',
+        }),
+      });
     let now = Date.parse('2026-06-03T01:20:00.000Z');
     const service = createGitHubRepoStatsService(
       fetch as unknown as typeof globalThis.fetch,
@@ -179,11 +218,117 @@ describe('GitHub repo stats service', () => {
     expect(service.getDiagnostics().cacheTelemetry?.state).toBe('fresh');
 
     now = Date.parse('2026-06-03T02:00:00.001Z');
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      await service.loadRuntimeCache();
+      expect(service.getDiagnostics().cacheTelemetry).toBeNull();
+    }
+
+    now = Date.parse('2026-06-03T03:20:00.000Z');
     await service.loadRuntimeCache();
 
-    expect(fetch).toHaveBeenCalledTimes(2);
-    expect(service.getDiagnostics().cacheTelemetry).toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(6);
+    expect(service.getDiagnostics().cacheTelemetry).toEqual(recoveredCache);
   });
+
+  it.each([
+    [
+      'disabled',
+      {
+        enabled: false,
+        state: 'disabled',
+        lastSuccessfulRefreshAt: null,
+        oldestDataFetchedAt: null,
+        retainedDataAgeSeconds: null,
+        dataCompleteness: 'none',
+        refreshDurationMs: null,
+        failureCategories: [],
+        configuredRepositoryCount: 0,
+        successfulRepositoryCount: 0,
+        failedRepositoryCount: 0,
+        retainedRepositoryCount: 0,
+      },
+    ],
+    [
+      'warming',
+      {
+        enabled: true,
+        state: 'warming',
+        lastSuccessfulRefreshAt: null,
+        oldestDataFetchedAt: null,
+        retainedDataAgeSeconds: null,
+        dataCompleteness: 'none',
+        refreshDurationMs: null,
+        failureCategories: [],
+        configuredRepositoryCount: 1,
+        successfulRepositoryCount: 0,
+        failedRepositoryCount: 0,
+        retainedRepositoryCount: 0,
+      },
+    ],
+    [
+      'stale',
+      {
+        enabled: true,
+        state: 'stale',
+        lastSuccessfulRefreshAt: '2026-06-02T23:00:00.000Z',
+        oldestDataFetchedAt: '2026-06-03T01:00:00.000Z',
+        retainedDataAgeSeconds: 1200,
+        dataCompleteness: 'partial',
+        refreshDurationMs: 125,
+        failureCategories: ['rate_limited'],
+        configuredRepositoryCount: 1,
+        successfulRepositoryCount: 0,
+        failedRepositoryCount: 1,
+        retainedRepositoryCount: 1,
+      },
+    ],
+    [
+      'unavailable',
+      {
+        enabled: true,
+        state: 'unavailable',
+        lastSuccessfulRefreshAt: null,
+        oldestDataFetchedAt: null,
+        retainedDataAgeSeconds: null,
+        dataCompleteness: 'none',
+        refreshDurationMs: 125,
+        failureCategories: ['network'],
+        configuredRepositoryCount: 1,
+        successfulRepositoryCount: 0,
+        failedRepositoryCount: 1,
+        retainedRepositoryCount: 0,
+      },
+    ],
+  ])(
+    'preserves valid %s diagnostics when repository data cannot load',
+    async (_state, cache) => {
+      const fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          schemaVersion: 1,
+          generatedAt: null,
+          expiresAt: null,
+          source: 'static-neutral-placeholder',
+          cache,
+          repos: {},
+          errors: {},
+        }),
+      });
+      const service = createGitHubRepoStatsService(
+        fetch as unknown as typeof globalThis.fetch,
+        createOptions({
+          allowLiveFetch: false,
+          runtimeCacheUrl: '/runtime/github-metrics.json',
+          loadRuntimeCacheOnCreate: false,
+        })
+      );
+
+      await expect(service.loadRuntimeCache()).resolves.toBe(false);
+
+      expect(service.getDiagnostics().cacheTelemetry).toEqual(cache);
+      expect(fetch).toHaveBeenCalledTimes(1);
+    }
+  );
 
   it('loads runtime cache metrics for DSPACE, Sugarkube, and Axel including zero stars', async () => {
     const fetch = vi.fn().mockResolvedValue({
