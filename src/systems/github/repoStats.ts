@@ -377,6 +377,7 @@ export function createGitHubRepoStatsService(
     }
 
     runtimeCacheLoadInFlight = true;
+    cacheTelemetry = null;
     runtimeCacheLoadPromise = (async () => {
       let timeoutId: ReturnType<typeof setTimeout> | undefined;
       let controller: AbortController | undefined;
@@ -729,7 +730,12 @@ export function createGitHubRepoStatsService(
       : null,
     cachedRepoCount: cache.size,
     warningCount: diagnostics.warningCount,
-    cacheTelemetry,
+    cacheTelemetry: cacheTelemetry
+      ? {
+          ...cacheTelemetry,
+          failureCategories: [...cacheTelemetry.failureCategories],
+        }
+      : null,
   });
 
   if (options.loadRuntimeCacheOnCreate !== false) {

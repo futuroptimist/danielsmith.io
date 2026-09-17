@@ -159,7 +159,9 @@ export const parseGitHubCacheTelemetry = (
         nullableAge !== null ||
         failureCategories.length !== 0)) ||
     (value.state === 'fresh' &&
-      (value.dataCompleteness !== 'complete' || failedRepositoryCount !== 0)) ||
+      (value.dataCompleteness !== 'complete' ||
+        failedRepositoryCount !== 0 ||
+        failureCategories.length !== 0)) ||
     (value.state === 'stale' &&
       (value.dataCompleteness !== 'partial' ||
         failedRepositoryCount === 0 ||

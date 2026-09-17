@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import {
   parseGitHubCacheTelemetry,
@@ -132,12 +132,10 @@ describe('GitHub cache telemetry contract', () => {
       { lastSuccessfulRefreshAt: '2026-09-17T12:00:00Z' },
     ],
     ['inconsistent counts', { successfulRepositoryCount: 1 }],
+    ['failure category on fresh state', { failureCategories: ['network'] }],
     ['arbitrary repository label', { repository: 'private/repo' }],
   ])('fails closed for %s', (_name, override) => {
     const value = snapshot(override);
-    if ('repository' in override) {
-      value.failureCategories = ['network'];
-    }
     const parsed = parseGitHubCacheTelemetry(value);
     if ('repository' in override) {
       expect(parsed).not.toHaveProperty('repository');
@@ -146,8 +144,7 @@ describe('GitHub cache telemetry contract', () => {
     }
   });
 
-  it('serializes fixed metric series without calling an upstream client', () => {
-    const upstream = vi.fn();
+  it('serializes fixed metric series from a published snapshot', () => {
     const output = serializeGitHubCacheMetrics(
       snapshot({
         state: 'stale',
@@ -159,7 +156,6 @@ describe('GitHub cache telemetry contract', () => {
       })
     );
 
-    expect(upstream).not.toHaveBeenCalled();
     expect(output).toContain('daniel_github_cache_state{state="stale"} 1');
     expect(output).toContain(
       'daniel_github_cache_refresh_failure{category="rate_limited"} 1'
