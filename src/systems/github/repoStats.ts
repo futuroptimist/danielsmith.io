@@ -1,3 +1,8 @@
+import {
+  parseGitHubCacheTelemetry,
+  type GitHubCacheTelemetry,
+} from './cacheTelemetry';
+
 export interface GitHubRepoIdentifier {
   owner: string;
   repo: string;
@@ -29,6 +34,7 @@ export interface GitHubRepoStatsDiagnostics {
   backoffExpiresAt: string | null;
   cachedRepoCount: number;
   warningCount: number;
+  cacheTelemetry: GitHubCacheTelemetry | null;
 }
 
 export interface GitHubRepoStatsService {
@@ -352,6 +358,7 @@ export function createGitHubRepoStatsService(
   let runtimeCacheLoadInFlight = false;
   let runtimeCacheRefreshAfter = 0;
   let runtimeCacheAvailable = false;
+  let cacheTelemetry: GitHubCacheTelemetry | null = null;
   const runtimeCacheRepoKeys = new Set<string>();
 
   const loadRuntimeCache = async (): Promise<boolean> => {
@@ -394,6 +401,7 @@ export function createGitHubRepoStatsService(
           diagnostics.source = 'static-neutral';
           return false;
         }
+        cacheTelemetry = parseGitHubCacheTelemetry(payload.cache);
         if (payload.source === 'static-neutral-placeholder') {
           diagnostics.source = 'static-neutral';
           return false;
@@ -721,6 +729,7 @@ export function createGitHubRepoStatsService(
       : null,
     cachedRepoCount: cache.size,
     warningCount: diagnostics.warningCount,
+    cacheTelemetry,
   });
 
   if (options.loadRuntimeCacheOnCreate !== false) {

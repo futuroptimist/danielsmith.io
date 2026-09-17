@@ -85,6 +85,21 @@ describe('GitHub repo stats service', () => {
     });
   });
 
+  it('reports bounded published cache telemetry without an upstream request', async () => {
+    const fetch = vi.fn();
+    const service = createGitHubRepoStatsService(
+      fetch as unknown as typeof globalThis.fetch,
+      createOptions({
+        allowLiveFetch: false,
+        runtimeCacheUrl: '/runtime/github-metrics.json',
+        loadRuntimeCacheOnCreate: false,
+      })
+    );
+
+    expect(service.getDiagnostics().cacheTelemetry).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it('loads runtime cache metrics for DSPACE, Sugarkube, and Axel including zero stars', async () => {
     const fetch = vi.fn().mockResolvedValue({
       ok: true,

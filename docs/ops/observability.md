@@ -118,6 +118,38 @@ State semantics are intentionally independent from application availability:
 
 These signals remain release/diagnostic signals rather than paging-critical service health.
 
+### Bounded metric serialization
+
+`serializeGitHubCacheMetrics()` is the application-owned adapter for a later Sugarkube collector.
+It accepts only the published `cache` object, performs no I/O, and returns `null` when an enum,
+timestamp, count, duration, age, category, or state/count relationship is outside the contract.
+Unknown input fields are discarded. Its Prometheus text response is deterministic, ends with one
+newline, and is capped at 8,192 UTF-8 bytes.
+
+The complete metric vocabulary is:
+
+- `daniel_github_cache_enabled` (`0` or `1`).
+- `daniel_github_cache_state{state}`: one-hot series for each of `disabled`, `warming`, `fresh`,
+  `stale`, and `unavailable`.
+- `daniel_github_cache_data_completeness{completeness}`: one-hot series for `complete`, `partial`,
+  and `none`.
+- `daniel_github_cache_refresh_failure{category}`: one series for every fixed failure category;
+  present categories are `1` and all others are `0`.
+- `daniel_github_cache_last_success_unixtime_seconds` and
+  `daniel_github_cache_oldest_data_unixtime_seconds`; absence is encoded as `0`.
+- `daniel_github_cache_retained_data_age_seconds` and
+  `daniel_github_cache_refresh_duration_milliseconds`; absence is encoded as `0`.
+- `daniel_github_cache_configured_repositories`,
+  `daniel_github_cache_successful_repositories`, `daniel_github_cache_failed_repositories`, and
+  `daniel_github_cache_retained_repositories`.
+
+Only `state`, `completeness`, and `category` are labels, and every value comes from the fixed domains
+above. Repository identities, URLs, request identifiers, credentials, and upstream error text are
+never accepted as labels or emitted. Serialization reads the provided snapshot only; it has no
+upstream client and cannot trigger a GitHub request. The later Sugarkube integration remains
+responsible for transporting or exposing this text and must not derive repository labels from
+`repos`.
+
 ## Promotion smoke evidence
 
 Run promotion smoke from this repository checkout after the target environment is
