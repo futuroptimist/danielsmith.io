@@ -118,6 +118,35 @@ State semantics are intentionally independent from application availability:
 
 These signals remain release/diagnostic signals rather than paging-critical service health.
 
+### Collector metric vocabulary
+
+Later Sugarkube collection may pass the static JSON document to
+`serializeGitHubCacheMetrics`; the serializer validates schema version 1 and emits Prometheus text
+from existing state only. Invalid, oversized, non-canonical, duplicated, or out-of-range values
+return no metric document (fail closed). No network client is accepted by this API.
+
+The complete metric vocabulary is fixed:
+
+- `daniel_github_cache_enabled` is `0` or `1`.
+- `daniel_github_cache_state{state}` emits one-hot gauges for all five allowed `state` values:
+  `disabled`, `warming`, `fresh`, `stale`, and `unavailable`.
+- `daniel_github_cache_data_completeness{completeness}` emits one-hot gauges for `complete`,
+  `partial`, and `none`.
+- `daniel_github_cache_refresh_failure{category}` emits zero-or-one gauges for every allowed
+  category: `configuration`, `internal`, `invalid_response`, `network`, `not_found`,
+  `rate_limited`, `timeout`, and `upstream`.
+- `daniel_github_cache_last_successful_refresh_timestamp_seconds`,
+  `daniel_github_cache_oldest_data_timestamp_seconds`,
+  `daniel_github_cache_retained_data_age_seconds`, and
+  `daniel_github_cache_refresh_duration_milliseconds` are omitted when their JSON values are null.
+- `daniel_github_cache_repositories{result}` has exactly four series: `configured`, `successful`,
+  `failed`, and `retained`.
+
+Only `state`, `completeness`, `category`, and `result` appear as labels, with the finite domains
+listed above. Repository identities, URLs, request IDs, errors, and credentials are neither read
+nor serialized. Output is deterministic and capped at 8,192 bytes. This application contract does
+not itself add a route, scheduler, scraper, dashboard, alert, or deployment configuration.
+
 ## Promotion smoke evidence
 
 Run promotion smoke from this repository checkout after the target environment is
