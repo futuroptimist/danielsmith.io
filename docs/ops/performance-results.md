@@ -75,9 +75,9 @@ single normalized file
 expected state and summaries. CI uploads that exact file for 14 days with `if: always()`, so a valid
 anomalous result remains available when a later assertion fails. The run records its Unix
 measurement time and safely bounded identity from `/runtime/build-info.json`; missing or invalid
-identity fails closed. Serialization copies every parser-approved field into fresh plain data
-before encoding it, preventing producer mutation and inherited or non-enumerable `toJSON` hooks
-from changing the artifact.
+identity fails closed. Result creation and serialization each copy every parser-approved field into
+fresh plain data, preventing producer mutation and inherited or non-enumerable `toJSON` hooks from
+changing the artifact.
 
 ## Privacy and operational handoff
 

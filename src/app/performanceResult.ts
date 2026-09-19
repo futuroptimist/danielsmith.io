@@ -269,10 +269,10 @@ export function createPerformanceResult(
     schemaVersion: PERFORMANCE_RESULT_SCHEMA_VERSION,
     state,
     measuredAt: input.measuredAt,
-    build: input.build,
-    environment: input.environment,
-    conditions: input.conditions,
-    renderer: input.renderer,
+    build: copyBuild(input.build),
+    environment: copyEnvironment(input.environment),
+    conditions: copyConditions(input.conditions),
+    renderer: copyRenderer(input.renderer),
     applicationReady,
     interactionLatency,
     frameTime,
@@ -282,6 +282,42 @@ export function createPerformanceResult(
   }
   return result;
 }
+
+const copyBuild = (
+  build: PerformanceResultV1['build']
+): PerformanceResultV1['build'] => ({
+  environment: build.environment,
+  tag: build.tag,
+});
+
+const copyEnvironment = (
+  environment: PerformanceResultV1['environment']
+): PerformanceResultV1['environment'] => ({
+  browser: environment.browser,
+  browserMajorVersion: environment.browserMajorVersion,
+  viewportWidth: environment.viewportWidth,
+  viewportHeight: environment.viewportHeight,
+  renderingMode: environment.renderingMode,
+  rendererClass: environment.rendererClass,
+  frameMeasurementProfile: environment.frameMeasurementProfile,
+});
+
+const copyConditions = (
+  conditions: PerformanceResultV1['conditions']
+): PerformanceResultV1['conditions'] => ({
+  warmupMs: conditions.warmupMs,
+  interactionName: conditions.interactionName,
+  requestedActions: conditions.requestedActions,
+  eventsPerAction: conditions.eventsPerAction,
+  requestedSamples: conditions.requestedSamples,
+});
+
+const copyRenderer = (
+  renderer: PerformanceResultV1['renderer']
+): PerformanceResultV1['renderer'] => ({
+  state: renderer.state,
+  fallbackReason: renderer.fallbackReason,
+});
 
 /** Rejects malformed or extended payloads before a collector consumes them. */
 export function parsePerformanceResult(
@@ -443,30 +479,10 @@ export function serializePerformanceResult(value: unknown): string {
     schemaVersion: result.schemaVersion,
     state: result.state,
     measuredAt: result.measuredAt,
-    build: {
-      environment: result.build.environment,
-      tag: result.build.tag,
-    },
-    environment: {
-      browser: result.environment.browser,
-      browserMajorVersion: result.environment.browserMajorVersion,
-      viewportWidth: result.environment.viewportWidth,
-      viewportHeight: result.environment.viewportHeight,
-      renderingMode: result.environment.renderingMode,
-      rendererClass: result.environment.rendererClass,
-      frameMeasurementProfile: result.environment.frameMeasurementProfile,
-    },
-    conditions: {
-      warmupMs: result.conditions.warmupMs,
-      interactionName: result.conditions.interactionName,
-      requestedActions: result.conditions.requestedActions,
-      eventsPerAction: result.conditions.eventsPerAction,
-      requestedSamples: result.conditions.requestedSamples,
-    },
-    renderer: {
-      state: result.renderer.state,
-      fallbackReason: result.renderer.fallbackReason,
-    },
+    build: copyBuild(result.build),
+    environment: copyEnvironment(result.environment),
+    conditions: copyConditions(result.conditions),
+    renderer: copyRenderer(result.renderer),
     applicationReady: copySummary(result.applicationReady),
     interactionLatency: copySummary(result.interactionLatency),
     frameTime: copySummary(result.frameTime),

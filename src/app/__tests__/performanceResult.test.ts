@@ -333,15 +333,30 @@ describe('controlled performance result contract', () => {
   });
 
   it('snapshots producer-owned data and excludes non-enumerable private fields', () => {
-    const result = createPerformanceResult(baseInput());
-    Object.defineProperty(result.build, 'privateToken', { value: 'private' });
-    const serialized = serializePerformanceResult(result);
+    const input = baseInput();
+    const result = createPerformanceResult(input);
 
-    result.build.tag = 'mutated-after-export';
-    expect(JSON.parse(serialized).build).toEqual({
+    input.build.environment = 'prod';
+    input.build.tag = 'mutated-before-export';
+    input.environment.browser = 'firefox';
+    input.conditions.warmupMs = 10_000;
+    input.renderer.state = 'fallback';
+    input.renderer.fallbackReason = 'unknown';
+    Object.defineProperty(input.build, 'privateToken', { value: 'private' });
+
+    expect(parsePerformanceResult(result)).toBe(result);
+    const serialized = JSON.parse(serializePerformanceResult(result));
+    expect(serialized.build).toEqual({
       environment: 'staging',
       tag: 'main-abc1234',
     });
+    expect(serialized.environment.browser).toBe('chromium');
+    expect(serialized.conditions.warmupMs).toBe(5_000);
+    expect(serialized.renderer).toEqual({
+      state: 'immersive',
+      fallbackReason: 'none',
+    });
+    expect(serialized.build).not.toHaveProperty('privateToken');
   });
 
   it('rejects contradictory unavailable reasons', () => {
