@@ -43,7 +43,6 @@ const baseInput = (): CreatePerformanceResultInput => ({
     p95Ms: 24,
     maxMs: 35,
   },
-  supportsFrameTime: true,
 });
 
 describe('controlled performance result contract', () => {
@@ -173,6 +172,51 @@ describe('controlled performance result contract', () => {
       parsePerformanceResult({
         ...result,
         environment: { ...result.environment, rendererClass: 'unknown' },
+      })
+    ).toBeNull();
+  });
+
+  it('rejects unavailable reasons that contradict the measurement context', () => {
+    const supported = createPerformanceResult({
+      ...baseInput(),
+      frameTimeSummary: null,
+    });
+    expect(
+      parsePerformanceResult({
+        ...supported,
+        frameTime: {
+          state: 'unavailable',
+          reason: 'unsupported_environment',
+        },
+      })
+    ).toBeNull();
+
+    const fallbackInput = baseInput();
+    fallbackInput.environment = {
+      ...fallbackInput.environment,
+      renderingMode: 'fallback',
+      rendererClass: 'unknown',
+      frameMeasurementProfile: 'unsupported',
+    };
+    fallbackInput.renderer = {
+      state: 'fallback',
+      fallbackReason: 'unsupported_webgl',
+    };
+    fallbackInput.interactionSummary = null;
+    const fallback = createPerformanceResult(fallbackInput);
+    expect(
+      parsePerformanceResult({
+        ...fallback,
+        frameTime: { state: 'unavailable', reason: 'not_collected' },
+      })
+    ).toBeNull();
+    expect(
+      parsePerformanceResult({
+        ...fallback,
+        interactionLatency: {
+          state: 'unavailable',
+          reason: 'renderer_fallback',
+        },
       })
     ).toBeNull();
   });
