@@ -6,9 +6,12 @@ import {
 } from '../src/assets/performance';
 
 import {
+  createPageLifecycle,
   installPerformanceResultProbe,
+  readControlledBuildInfo,
   readPerformanceResult,
   resetInputLatencyWindow,
+  writePerformanceResult,
 } from './helpers/performanceResult';
 
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
@@ -458,6 +461,9 @@ test.describe('immersive performance diagnostics', () => {
   }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
+    const controller = new AbortController();
+    const lifecycle = createPageLifecycle(page);
+    const release = lifecycle.own(controller.signal);
     await installProductionLikeHints(page);
     await installPerformanceResultProbe(page);
 
@@ -475,8 +481,8 @@ test.describe('immersive performance diagnostics', () => {
         !snapshot.renderer.isSoftwareRenderer &&
         snapshot.renderer.riskLevel === 'normal';
       const result = await readPerformanceResult(page, {
-        measuredAt: 1_800_000_000,
-        build: { environment: 'dev', tag: 'controlled-browser-test' },
+        measuredAt: Math.floor(Date.now() / 1_000),
+        build: await readControlledBuildInfo(page),
         environment: {
           browser: 'chromium',
           browserMajorVersion: Number.parseInt(browser.version(), 10),
@@ -502,10 +508,11 @@ test.describe('immersive performance diagnostics', () => {
         renderer: { state: 'immersive', fallbackReason: 'none' },
         // Diagnostics expose p95 but not the complete 120-frame summary.
         frameTimeSummary: null,
-        regressionLimitsMs: { applicationReady: 0 },
       });
 
-      expect(result.state).toBe('regression');
+      await writePerformanceResult(result);
+
+      expect(result.state).toBe('completed');
       expect(result.applicationReady.state).toBe('available');
       expect(result.interactionLatency).toMatchObject({
         state: 'available',
@@ -516,6 +523,9 @@ test.describe('immersive performance diagnostics', () => {
         reason: rendererSupported ? 'not_collected' : 'unsupported_environment',
       });
     } finally {
+      controller.abort();
+      release();
+      await lifecycle.settle();
       await context.close();
     }
   });

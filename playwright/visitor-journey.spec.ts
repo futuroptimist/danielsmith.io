@@ -2,6 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { isPdfResponse, runVisitorJourney } from '../src/app/visitorJourney';
 
+import { createPageLifecycle } from './helpers/performanceResult';
+
 const JOURNEY_TIMEOUT_MS = 15_000;
 const INITIALIZATION_TIMEOUT_MS = 5_000;
 const TEXT_URL = '/?mode=text';
@@ -60,22 +62,6 @@ async function browserFetch(
     signal.removeEventListener('abort', abort);
     await cancellation;
   }
-}
-
-function createPageLifecycle(page: Page) {
-  let cleanup: Promise<void> | undefined;
-  return {
-    own(signal: AbortSignal) {
-      const close = () => {
-        cleanup ??= page.close().catch(() => undefined);
-      };
-      signal.addEventListener('abort', close, { once: true });
-      return () => signal.removeEventListener('abort', close);
-    },
-    async settle() {
-      await cleanup;
-    },
-  };
 }
 
 function essentialProbes(
@@ -313,6 +299,20 @@ test.describe('essential visitor journey', () => {
       state: 'failure',
       failureStage: 'producer_interrupted',
     });
+    expect(page.isClosed()).toBe(true);
+  });
+
+  test('terminal cancellation closes an owned page before cleanup settles', async ({
+    page,
+  }) => {
+    const lifecycle = createPageLifecycle(page);
+    const controller = new AbortController();
+    const release = lifecycle.own(controller.signal);
+
+    controller.abort();
+    await lifecycle.settle();
+    release();
+
     expect(page.isClosed()).toBe(true);
   });
 });

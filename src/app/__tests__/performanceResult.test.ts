@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createPerformanceResult,
   parsePerformanceResult,
+  serializePerformanceResult,
   type CreatePerformanceResultInput,
 } from '../performanceResult';
 
@@ -43,7 +44,6 @@ const baseInput = (): CreatePerformanceResultInput => ({
     p95Ms: 24,
     maxMs: 35,
   },
-  supportsFrameTime: true,
 });
 
 describe('controlled performance result contract', () => {
@@ -307,5 +307,119 @@ describe('controlled performance result contract', () => {
         build: { environment: 'staging', tag: 'x'.repeat(81) },
       })
     ).toThrow(TypeError);
+  });
+
+  it('exports only a validated, bounded result', () => {
+    const result = createPerformanceResult(baseInput());
+
+    expect(JSON.parse(serializePerformanceResult(result))).toEqual(result);
+    expect(() =>
+      serializePerformanceResult({
+        ...result,
+        headers: { authorization: 'private' },
+      })
+    ).toThrow('Invalid controlled performance result export');
+  });
+
+  it('serializes a plain bounded copy instead of invoking toJSON', () => {
+    const result = createPerformanceResult(baseInput());
+    Object.defineProperty(result, 'toJSON', {
+      value: () => ({ ...result, sessionId: 'visitor-123' }),
+    });
+
+    expect(JSON.parse(serializePerformanceResult(result))).toEqual({
+      ...result,
+    });
+  });
+
+  it('snapshots producer-owned data and excludes non-enumerable private fields', () => {
+    const input = baseInput();
+    const result = createPerformanceResult(input);
+
+    input.build.environment = 'prod';
+    input.build.tag = 'mutated-before-export';
+    input.environment.browser = 'firefox';
+    input.conditions.warmupMs = 10_000;
+    input.renderer.state = 'fallback';
+    input.renderer.fallbackReason = 'unknown';
+    Object.defineProperty(input.build, 'privateToken', { value: 'private' });
+
+    expect(parsePerformanceResult(result)).toBe(result);
+    const serialized = JSON.parse(serializePerformanceResult(result));
+    expect(serialized.build).toEqual({
+      environment: 'staging',
+      tag: 'main-abc1234',
+    });
+    expect(serialized.environment.browser).toBe('chromium');
+    expect(serialized.conditions.warmupMs).toBe(5_000);
+    expect(serialized.renderer).toEqual({
+      state: 'immersive',
+      fallbackReason: 'none',
+    });
+    expect(serialized.build).not.toHaveProperty('privateToken');
+  });
+
+  it('does not materialize inherited or non-enumerable contract fields', () => {
+    const inheritedBuild = Object.create({ environment: 'staging' });
+    inheritedBuild.tag = 'main-abc1234';
+    const hiddenBuild = { environment: 'staging' };
+    Object.defineProperty(hiddenBuild, 'tag', { value: 'main-abc1234' });
+
+    expect(() =>
+      createPerformanceResult({ ...baseInput(), build: inheritedBuild })
+    ).toThrow('Invalid controlled performance result fields');
+    expect(() =>
+      createPerformanceResult({
+        ...baseInput(),
+        build: hiddenBuild as CreatePerformanceResultInput['build'],
+      })
+    ).toThrow('Invalid controlled performance result fields');
+  });
+
+  it('rejects contradictory unavailable reasons', () => {
+    const input = baseInput();
+    input.environment.renderingMode = 'fallback';
+    input.environment.rendererClass = 'unknown';
+    input.environment.frameMeasurementProfile = 'unsupported';
+    input.renderer = { state: 'fallback', fallbackReason: 'unknown' };
+    const result = createPerformanceResult(input);
+
+    expect(
+      parsePerformanceResult({
+        ...result,
+        frameTime: { state: 'unavailable', reason: 'not_collected' },
+      })
+    ).toBeNull();
+    expect(
+      parsePerformanceResult({
+        ...result,
+        applicationReady: {
+          state: 'unavailable',
+          reason: 'unsupported_environment',
+        },
+      })
+    ).toBeNull();
+  });
+
+  it('keeps unsupported measurements distinct across renderer classes', () => {
+    const software = baseInput();
+    software.environment.rendererClass = 'software';
+    software.environment.frameMeasurementProfile = 'unsupported';
+    expect(createPerformanceResult(software).frameTime).toEqual({
+      state: 'unavailable',
+      reason: 'unsupported_environment',
+    });
+
+    const hardware = baseInput();
+    hardware.frameTimeSummary = {
+      sampleCount: 119,
+      medianMs: 1,
+      p95Ms: 2,
+      maxMs: 3,
+    };
+    expect(createPerformanceResult(hardware).frameTime).toEqual({
+      state: 'unavailable',
+      reason: 'not_collected',
+    });
   });
 });

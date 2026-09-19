@@ -1,11 +1,21 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+
 import type { Page } from '@playwright/test';
 
 import {
   createPerformanceResult,
+  serializePerformanceResult,
   type CreatePerformanceResultInput,
   type PerformanceResultV1,
 } from '../../src/app/performanceResult';
 import type { InputLatencySummary } from '../../src/systems/performance/inputLatencyMonitor';
+
+const RESULT_PATH = path.join(
+  'test-results',
+  'controlled-performance',
+  'controlled-performance-result-v1.json'
+);
 
 interface BrowserMeasurementProbe {
   applicationReadyMs?: number;
@@ -16,6 +26,45 @@ declare global {
   interface Window {
     __controlledPerformanceProbe?: BrowserMeasurementProbe;
   }
+}
+
+/** Shares terminal cancellation and page cleanup with the visitor journey. */
+export function createPageLifecycle(page: Page) {
+  let cleanup: Promise<void> | undefined;
+  return {
+    own(signal: AbortSignal) {
+      const close = () => {
+        cleanup ??= page.close().catch(() => undefined);
+      };
+      signal.addEventListener('abort', close, { once: true });
+      return () => signal.removeEventListener('abort', close);
+    },
+    async settle() {
+      await cleanup;
+    },
+  };
+}
+
+export async function readControlledBuildInfo(page: Page) {
+  const response = await page.request.get('/runtime/build-info.json');
+  if (!response.ok())
+    throw new TypeError('Controlled build identity is unavailable.');
+  const value = (await response.json()) as Record<string, unknown>;
+  const environment = value.environment;
+  const tag = typeof value.tag === 'string' ? value.tag.trim() : '';
+  if (
+    value.schemaVersion !== 1 ||
+    !['dev', 'staging', 'prod'].includes(environment as string) ||
+    !/^[A-Za-z0-9._:-]{1,80}$/.test(tag)
+  ) {
+    throw new TypeError('Controlled build identity is invalid.');
+  }
+  return { environment: environment as 'dev' | 'staging' | 'prod', tag };
+}
+
+export async function writePerformanceResult(result: PerformanceResultV1) {
+  await mkdir(path.dirname(RESULT_PATH), { recursive: true });
+  await writeFile(RESULT_PATH, `${serializePerformanceResult(result)}\n`);
 }
 
 /** Installs before navigation so readiness is measured from the navigation time origin. */

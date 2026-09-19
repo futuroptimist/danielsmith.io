@@ -69,6 +69,16 @@ exactly 120 samples, and unknown dimensions. A completed interaction window must
 Malformed supplied regression limits are errors rather than an omitted comparison. This keeps later
 metric names and labels finite.
 
+The controlled Playwright run passes its result through `serializePerformanceResult` and writes the
+single normalized file
+`test-results/controlled-performance/controlled-performance-result-v1.json` before checking its
+expected state and summaries. CI uploads that exact file for 14 days with `if: always()`, so a valid
+anomalous result remains available when a later assertion fails. The run records its Unix
+measurement time and safely bounded identity from `/runtime/build-info.json`; missing or invalid
+identity fails closed. Result creation and serialization each copy every parser-approved field into
+fresh plain data, preventing producer mutation and inherited or non-enumerable `toJSON` hooks from
+changing the artifact.
+
 ## Privacy and operational handoff
 
 The result includes no browser-session or visitor identifier, user input, individual interaction
@@ -79,6 +89,6 @@ nested fields so a producer cannot silently attach private data.
 
 The intended future integration is for the existing controlled visitor-journey scheduler to run
 this profile, validate version 1, and map its finite states and summaries to bounded metrics.
-Scheduler wiring, Sugarkube collection, dashboarding, retention, rollout, and measured production
-baselines remain explicitly deferred to a separate operational change. Visitor browsers remain
-local-only and no production/staging behavior changes with this contract.
+Collector transport, scheduler wiring, dashboards, rollout, and production alert thresholds remain
+explicitly deferred to a separate operational change. Visitor browsers remain local-only and no
+production/staging behavior changes with this contract.

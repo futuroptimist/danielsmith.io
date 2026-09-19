@@ -20,6 +20,10 @@ context creation, then verifies that the usable accessible fallback makes the ag
 These are failures and recovery behavior that process-level readiness endpoints cannot detect.
 Focused interruption fixtures also hold a browser request open, then verify that deadline or
 producer cancellation closes the owned page and settles cleanup before the aggregate returns.
+The controlled performance test reuses this terminal cancellation and page-cleanup lifecycle; it
+does not add a scheduler. Its normalized, privacy-safe evidence is written only to
+`test-results/controlled-performance/controlled-performance-result-v1.json` under the documented
+Chromium, 1280 × 720, 5,000 ms warmup, and fixed sample conditions.
 
 ## Essential and optional behavior
 
@@ -47,3 +51,5 @@ This repository provides assertions and the sanitized aggregate shape only. The 
 remains unchanged: Sugarkube scheduling, metric collection, dashboards, alerts, runtime activation,
 visitor collection, and staging or production qualification are deliberately deferred to separate
 integration work.
+Collector transport, performance dashboards, and production alert thresholds are likewise
+deferred; the evidence file itself does not activate any of them.
