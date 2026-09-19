@@ -388,10 +388,26 @@ export function parsePerformanceResult(
     environment as unknown as PerformanceResultV1['environment'],
     renderer as unknown as PerformanceResultV1['renderer']
   );
+  const expectedUnavailableFrameReason =
+    environment.renderingMode === 'fallback' || renderer.state === 'fallback'
+      ? 'renderer_fallback'
+      : frameSupported
+        ? 'not_collected'
+        : 'unsupported_environment';
   const invalidFrameSupport =
     (value.frameTime.state === 'available' && !frameSupported) ||
+    (value.frameTime.state === 'unavailable' &&
+      value.frameTime.reason !== expectedUnavailableFrameReason) ||
     (environment.frameMeasurementProfile === 'controlled_hardware_v1' &&
       (environment.browser !== 'chromium' || !frameSupported));
+  const invalidRequiredUnavailableReason = [
+    value.applicationReady,
+    value.interactionLatency,
+  ].some(
+    (measurement) =>
+      measurement.state === 'unavailable' &&
+      measurement.reason !== 'not_collected'
+  );
   const invalidSampleSet =
     (value.interactionLatency.state === 'available' &&
       value.interactionLatency.sampleCount !== conditions.requestedSamples) ||
@@ -401,6 +417,7 @@ export function parsePerformanceResult(
     invalidState ||
     invalidRenderer ||
     invalidFrameSupport ||
+    invalidRequiredUnavailableReason ||
     invalidSampleSet
   ) {
     return null;
