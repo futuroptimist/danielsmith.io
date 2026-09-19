@@ -82,10 +82,8 @@ export interface CreatePerformanceResultInput {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
-const hasExactKeys = (
-  value: Record<string, unknown>,
-  keys: readonly string[]
-) => Object.keys(value).sort().join() === [...keys].sort().join();
+const hasExactKeys = (value: object, keys: readonly string[]) =>
+  Object.keys(value).sort().join() === [...keys].sort().join();
 
 const isBoundedInteger = (value: unknown, min: number, max: number) =>
   Number.isInteger(value) &&
@@ -285,39 +283,77 @@ export function createPerformanceResult(
 
 const copyBuild = (
   build: PerformanceResultV1['build']
-): PerformanceResultV1['build'] => ({
-  environment: build.environment,
-  tag: build.tag,
-});
+): PerformanceResultV1['build'] => {
+  if (!hasExactKeys(build, ['environment', 'tag'])) {
+    throw new TypeError('Invalid controlled performance result fields.');
+  }
+  return {
+    environment: build.environment,
+    tag: build.tag,
+  };
+};
 
 const copyEnvironment = (
   environment: PerformanceResultV1['environment']
-): PerformanceResultV1['environment'] => ({
-  browser: environment.browser,
-  browserMajorVersion: environment.browserMajorVersion,
-  viewportWidth: environment.viewportWidth,
-  viewportHeight: environment.viewportHeight,
-  renderingMode: environment.renderingMode,
-  rendererClass: environment.rendererClass,
-  frameMeasurementProfile: environment.frameMeasurementProfile,
-});
+): PerformanceResultV1['environment'] => {
+  if (
+    !hasExactKeys(environment, [
+      'browser',
+      'browserMajorVersion',
+      'viewportWidth',
+      'viewportHeight',
+      'renderingMode',
+      'rendererClass',
+      'frameMeasurementProfile',
+    ])
+  ) {
+    throw new TypeError('Invalid controlled performance result fields.');
+  }
+  return {
+    browser: environment.browser,
+    browserMajorVersion: environment.browserMajorVersion,
+    viewportWidth: environment.viewportWidth,
+    viewportHeight: environment.viewportHeight,
+    renderingMode: environment.renderingMode,
+    rendererClass: environment.rendererClass,
+    frameMeasurementProfile: environment.frameMeasurementProfile,
+  };
+};
 
 const copyConditions = (
   conditions: PerformanceResultV1['conditions']
-): PerformanceResultV1['conditions'] => ({
-  warmupMs: conditions.warmupMs,
-  interactionName: conditions.interactionName,
-  requestedActions: conditions.requestedActions,
-  eventsPerAction: conditions.eventsPerAction,
-  requestedSamples: conditions.requestedSamples,
-});
+): PerformanceResultV1['conditions'] => {
+  if (
+    !hasExactKeys(conditions, [
+      'warmupMs',
+      'interactionName',
+      'requestedActions',
+      'eventsPerAction',
+      'requestedSamples',
+    ])
+  ) {
+    throw new TypeError('Invalid controlled performance result fields.');
+  }
+  return {
+    warmupMs: conditions.warmupMs,
+    interactionName: conditions.interactionName,
+    requestedActions: conditions.requestedActions,
+    eventsPerAction: conditions.eventsPerAction,
+    requestedSamples: conditions.requestedSamples,
+  };
+};
 
 const copyRenderer = (
   renderer: PerformanceResultV1['renderer']
-): PerformanceResultV1['renderer'] => ({
-  state: renderer.state,
-  fallbackReason: renderer.fallbackReason,
-});
+): PerformanceResultV1['renderer'] => {
+  if (!hasExactKeys(renderer, ['state', 'fallbackReason'])) {
+    throw new TypeError('Invalid controlled performance result fields.');
+  }
+  return {
+    state: renderer.state,
+    fallbackReason: renderer.fallbackReason,
+  };
+};
 
 /** Rejects malformed or extended payloads before a collector consumes them. */
 export function parsePerformanceResult(

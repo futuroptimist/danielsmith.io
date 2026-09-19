@@ -359,6 +359,23 @@ describe('controlled performance result contract', () => {
     expect(serialized.build).not.toHaveProperty('privateToken');
   });
 
+  it('does not materialize inherited or non-enumerable contract fields', () => {
+    const inheritedBuild = Object.create({ environment: 'staging' });
+    inheritedBuild.tag = 'main-abc1234';
+    const hiddenBuild = { environment: 'staging' };
+    Object.defineProperty(hiddenBuild, 'tag', { value: 'main-abc1234' });
+
+    expect(() =>
+      createPerformanceResult({ ...baseInput(), build: inheritedBuild })
+    ).toThrow('Invalid controlled performance result fields');
+    expect(() =>
+      createPerformanceResult({
+        ...baseInput(),
+        build: hiddenBuild as CreatePerformanceResultInput['build'],
+      })
+    ).toThrow('Invalid controlled performance result fields');
+  });
+
   it('rejects contradictory unavailable reasons', () => {
     const input = baseInput();
     input.environment.renderingMode = 'fallback';
