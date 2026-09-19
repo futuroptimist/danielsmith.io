@@ -269,10 +269,32 @@ export function createPerformanceResult(
     schemaVersion: PERFORMANCE_RESULT_SCHEMA_VERSION,
     state,
     measuredAt: input.measuredAt,
-    build: input.build,
-    environment: input.environment,
-    conditions: input.conditions,
-    renderer: input.renderer,
+    // Copy the finite contract fields so later producer-side mutations cannot
+    // attach private diagnostic data to an already-created result.
+    build: {
+      environment: input.build.environment,
+      tag: input.build.tag,
+    },
+    environment: {
+      browser: input.environment.browser,
+      browserMajorVersion: input.environment.browserMajorVersion,
+      viewportWidth: input.environment.viewportWidth,
+      viewportHeight: input.environment.viewportHeight,
+      renderingMode: input.environment.renderingMode,
+      rendererClass: input.environment.rendererClass,
+      frameMeasurementProfile: input.environment.frameMeasurementProfile,
+    },
+    conditions: {
+      warmupMs: input.conditions.warmupMs,
+      interactionName: input.conditions.interactionName,
+      requestedActions: input.conditions.requestedActions,
+      eventsPerAction: input.conditions.eventsPerAction,
+      requestedSamples: input.conditions.requestedSamples,
+    },
+    renderer: {
+      state: input.renderer.state,
+      fallbackReason: input.renderer.fallbackReason,
+    },
     applicationReady,
     interactionLatency,
     frameTime,
