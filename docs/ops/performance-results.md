@@ -67,7 +67,10 @@ incomplete interaction sets, contradictory action/event counts, frame summaries 
 exactly 120 samples, and unknown dimensions. A completed interaction window must contain exactly
 `requestedActions × eventsPerAction` samples; the current profile fixes `eventsPerAction` at two.
 Malformed supplied regression limits are errors rather than an omitted comparison. This keeps later
-metric names and labels finite.
+metric names and labels finite. Unavailable reasons are also contextual: required readiness and
+interaction measurements may only be `not_collected`; frame timing must be `renderer_fallback` for
+a fallback, `unsupported_environment` for an unqualified renderer, or `not_collected` for a
+qualified hardware renderer without a complete frame window.
 
 ## Privacy and operational handoff
 
