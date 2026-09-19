@@ -160,6 +160,35 @@ describe('controlled performance result contract', () => {
     expect(createPerformanceResult(input).frameTime.state).toBe('unavailable');
   });
 
+  it('rejects unavailable reasons that contradict the measurement context', () => {
+    const completed = createPerformanceResult(baseInput());
+    const missingFrame = createPerformanceResult({
+      ...baseInput(),
+      frameTimeSummary: null,
+    });
+    expect(missingFrame.frameTime).toEqual({
+      state: 'unavailable',
+      reason: 'not_collected',
+    });
+
+    expect(
+      parsePerformanceResult({
+        ...missingFrame,
+        frameTime: { state: 'unavailable', reason: 'renderer_fallback' },
+      })
+    ).toBeNull();
+    expect(
+      parsePerformanceResult({
+        ...completed,
+        state: 'unavailable',
+        applicationReady: {
+          state: 'unavailable',
+          reason: 'unsupported_environment',
+        },
+      })
+    ).toBeNull();
+  });
+
   it('rejects a claimed frame profile without qualifying renderer evidence', () => {
     const result = createPerformanceResult(baseInput());
 
