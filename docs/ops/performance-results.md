@@ -69,6 +69,11 @@ exactly 120 samples, and unknown dimensions. A completed interaction window must
 Malformed supplied regression limits are errors rather than an omitted comparison. This keeps later
 metric names and labels finite.
 
+The controlled Playwright run passes its result through `serializePerformanceResult` and publishes
+the resulting JSON as the `controlled-performance-result-v1.json` test attachment. Serialization
+fails closed unless the complete value passes the exact-key parser, so later collectors can ingest
+the bounded artifact without scraping console output or adding another browser schedule.
+
 ## Privacy and operational handoff
 
 The result includes no browser-session or visitor identifier, user input, individual interaction

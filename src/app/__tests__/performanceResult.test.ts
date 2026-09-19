@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createPerformanceResult,
   parsePerformanceResult,
+  serializePerformanceResult,
   type CreatePerformanceResultInput,
 } from '../performanceResult';
 
@@ -43,7 +44,6 @@ const baseInput = (): CreatePerformanceResultInput => ({
     p95Ms: 24,
     maxMs: 35,
   },
-  supportsFrameTime: true,
 });
 
 describe('controlled performance result contract', () => {
@@ -307,5 +307,17 @@ describe('controlled performance result contract', () => {
         build: { environment: 'staging', tag: 'x'.repeat(81) },
       })
     ).toThrow(TypeError);
+  });
+
+  it('exports only a validated, bounded result', () => {
+    const result = createPerformanceResult(baseInput());
+
+    expect(JSON.parse(serializePerformanceResult(result))).toEqual(result);
+    expect(() =>
+      serializePerformanceResult({
+        ...result,
+        headers: { authorization: 'private' },
+      })
+    ).toThrow('Invalid controlled performance result export');
   });
 });

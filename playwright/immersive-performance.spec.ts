@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { serializePerformanceResult } from '../src/app/performanceResult';
 import {
   IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET,
   createImmersiveLaunchBudgetReport,
@@ -455,7 +456,7 @@ test.describe('immersive performance diagnostics', () => {
 
   test('creates a controlled result from readiness, input, and renderer diagnostics', async ({
     browser,
-  }) => {
+  }, testInfo) => {
     const context = await browser.newContext();
     const page = await context.newPage();
     await installProductionLikeHints(page);
@@ -514,6 +515,10 @@ test.describe('immersive performance diagnostics', () => {
       expect(result.frameTime).toEqual({
         state: 'unavailable',
         reason: rendererSupported ? 'not_collected' : 'unsupported_environment',
+      });
+      await testInfo.attach('controlled-performance-result-v1.json', {
+        body: serializePerformanceResult(result),
+        contentType: 'application/json',
       });
     } finally {
       await context.close();

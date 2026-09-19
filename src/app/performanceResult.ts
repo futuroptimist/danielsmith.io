@@ -407,3 +407,12 @@ export function parsePerformanceResult(
   }
   return value as unknown as PerformanceResultV1;
 }
+
+/** Serializes only a validated result so browser artifacts cannot gain diagnostic fields. */
+export function serializePerformanceResult(value: unknown): string {
+  const result = parsePerformanceResult(value);
+  if (!result) {
+    throw new TypeError('Invalid controlled performance result export.');
+  }
+  return JSON.stringify(result);
+}
