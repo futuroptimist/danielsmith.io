@@ -70,9 +70,13 @@ Malformed supplied regression limits are errors rather than an omitted compariso
 metric names and labels finite.
 
 The controlled Playwright run passes its result through `serializePerformanceResult` and publishes
-the resulting JSON as the `controlled-performance-result-v1.json` test attachment. Serialization
-fails closed unless the complete value passes the exact-key parser, so later collectors can ingest
-the bounded artifact without scraping console output or adding another browser schedule.
+the resulting JSON as the `controlled-performance-result-v1.json` test attachment before checking
+its expected state and summaries. CI uploads that attachment for 14 days even when the performance
+test fails, so anomalous valid results remain available to downstream collectors. The run records
+its Unix measurement time and the tested Git commit (or an explicitly supplied
+`PERFORMANCE_BUILD_TAG`) rather than fixture provenance. Serialization fails closed unless the
+complete value passes the exact-key parser, then copies every approved field into plain data before
+encoding it. This prevents inherited or non-enumerable `toJSON` hooks from changing the artifact.
 
 ## Privacy and operational handoff
 

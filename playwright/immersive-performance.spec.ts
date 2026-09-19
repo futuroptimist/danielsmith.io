@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+
 import { expect, test, type Page } from '@playwright/test';
 
 import { serializePerformanceResult } from '../src/app/performanceResult';
@@ -18,6 +20,15 @@ const IMMERSIVE_DIAGNOSTICS_URL =
   '/?mode=immersive&disablePerformanceFailover=1';
 const SOFTWARE_RENDERER_ZOOM_PAN_MS = 600;
 const HARDWARE_RENDERER_ZOOM_PAN_MS = 4_000;
+
+const controlledBuildTag = () => {
+  const configuredTag =
+    process.env.PERFORMANCE_BUILD_TAG ?? process.env.GITHUB_SHA;
+  if (configuredTag) return configuredTag;
+  return execFileSync('git', ['rev-parse', 'HEAD'], {
+    encoding: 'utf8',
+  }).trim();
+};
 
 interface PerformanceFailoverProbe {
   eventCount: number;
@@ -476,8 +487,8 @@ test.describe('immersive performance diagnostics', () => {
         !snapshot.renderer.isSoftwareRenderer &&
         snapshot.renderer.riskLevel === 'normal';
       const result = await readPerformanceResult(page, {
-        measuredAt: 1_800_000_000,
-        build: { environment: 'dev', tag: 'controlled-browser-test' },
+        measuredAt: Math.floor(Date.now() / 1_000),
+        build: { environment: 'dev', tag: controlledBuildTag() },
         environment: {
           browser: 'chromium',
           browserMajorVersion: Number.parseInt(browser.version(), 10),
@@ -503,10 +514,14 @@ test.describe('immersive performance diagnostics', () => {
         renderer: { state: 'immersive', fallbackReason: 'none' },
         // Diagnostics expose p95 but not the complete 120-frame summary.
         frameTimeSummary: null,
-        regressionLimitsMs: { applicationReady: 0 },
       });
 
-      expect(result.state).toBe('regression');
+      await testInfo.attach('controlled-performance-result-v1.json', {
+        body: serializePerformanceResult(result),
+        contentType: 'application/json',
+      });
+
+      expect(result.state).toBe('completed');
       expect(result.applicationReady.state).toBe('available');
       expect(result.interactionLatency).toMatchObject({
         state: 'available',
@@ -515,10 +530,6 @@ test.describe('immersive performance diagnostics', () => {
       expect(result.frameTime).toEqual({
         state: 'unavailable',
         reason: rendererSupported ? 'not_collected' : 'unsupported_environment',
-      });
-      await testInfo.attach('controlled-performance-result-v1.json', {
-        body: serializePerformanceResult(result),
-        contentType: 'application/json',
       });
     } finally {
       await context.close();

@@ -414,5 +414,48 @@ export function serializePerformanceResult(value: unknown): string {
   if (!result) {
     throw new TypeError('Invalid controlled performance result export.');
   }
-  return JSON.stringify(result);
+
+  const copySummary = (summary: DurationSummary): DurationSummary =>
+    summary.state === 'available'
+      ? {
+          state: summary.state,
+          sampleCount: summary.sampleCount,
+          medianMs: summary.medianMs,
+          p95Ms: summary.p95Ms,
+          maxMs: summary.maxMs,
+        }
+      : { state: summary.state, reason: summary.reason };
+  const normalized: PerformanceResultV1 = {
+    schemaVersion: result.schemaVersion,
+    state: result.state,
+    measuredAt: result.measuredAt,
+    build: {
+      environment: result.build.environment,
+      tag: result.build.tag,
+    },
+    environment: {
+      browser: result.environment.browser,
+      browserMajorVersion: result.environment.browserMajorVersion,
+      viewportWidth: result.environment.viewportWidth,
+      viewportHeight: result.environment.viewportHeight,
+      renderingMode: result.environment.renderingMode,
+      rendererClass: result.environment.rendererClass,
+      frameMeasurementProfile: result.environment.frameMeasurementProfile,
+    },
+    conditions: {
+      warmupMs: result.conditions.warmupMs,
+      interactionName: result.conditions.interactionName,
+      requestedActions: result.conditions.requestedActions,
+      eventsPerAction: result.conditions.eventsPerAction,
+      requestedSamples: result.conditions.requestedSamples,
+    },
+    renderer: {
+      state: result.renderer.state,
+      fallbackReason: result.renderer.fallbackReason,
+    },
+    applicationReady: copySummary(result.applicationReady),
+    interactionLatency: copySummary(result.interactionLatency),
+    frameTime: copySummary(result.frameTime),
+  };
+  return JSON.stringify(normalized);
 }

@@ -320,4 +320,15 @@ describe('controlled performance result contract', () => {
       })
     ).toThrow('Invalid controlled performance result export');
   });
+
+  it('serializes a plain bounded copy instead of invoking toJSON', () => {
+    const result = createPerformanceResult(baseInput());
+    Object.defineProperty(result, 'toJSON', {
+      value: () => ({ ...result, sessionId: 'visitor-123' }),
+    });
+
+    expect(JSON.parse(serializePerformanceResult(result))).toEqual({
+      ...result,
+    });
+  });
 });
