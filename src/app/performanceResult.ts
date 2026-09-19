@@ -392,6 +392,19 @@ export function parsePerformanceResult(
     (value.frameTime.state === 'available' && !frameSupported) ||
     (environment.frameMeasurementProfile === 'controlled_hardware_v1' &&
       (environment.browser !== 'chromium' || !frameSupported));
+  const invalidUnavailableReason =
+    (value.applicationReady.state === 'unavailable' &&
+      value.applicationReady.reason !== 'not_collected') ||
+    (value.interactionLatency.state === 'unavailable' &&
+      value.interactionLatency.reason !== 'not_collected') ||
+    (value.frameTime.state === 'unavailable' &&
+      value.frameTime.reason !==
+        (environment.renderingMode === 'fallback' ||
+        renderer.state === 'fallback'
+          ? 'renderer_fallback'
+          : frameSupported
+            ? 'not_collected'
+            : 'unsupported_environment'));
   const invalidSampleSet =
     (value.interactionLatency.state === 'available' &&
       value.interactionLatency.sampleCount !== conditions.requestedSamples) ||
@@ -401,6 +414,7 @@ export function parsePerformanceResult(
     invalidState ||
     invalidRenderer ||
     invalidFrameSupport ||
+    invalidUnavailableReason ||
     invalidSampleSet
   ) {
     return null;

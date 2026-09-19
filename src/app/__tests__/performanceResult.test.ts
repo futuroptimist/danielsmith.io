@@ -331,4 +331,63 @@ describe('controlled performance result contract', () => {
       ...result,
     });
   });
+
+  it('snapshots producer-owned data and excludes non-enumerable private fields', () => {
+    const result = createPerformanceResult(baseInput());
+    Object.defineProperty(result.build, 'privateToken', { value: 'private' });
+    const serialized = serializePerformanceResult(result);
+
+    result.build.tag = 'mutated-after-export';
+    expect(JSON.parse(serialized).build).toEqual({
+      environment: 'staging',
+      tag: 'main-abc1234',
+    });
+  });
+
+  it('rejects contradictory unavailable reasons', () => {
+    const input = baseInput();
+    input.environment.renderingMode = 'fallback';
+    input.environment.rendererClass = 'unknown';
+    input.environment.frameMeasurementProfile = 'unsupported';
+    input.renderer = { state: 'fallback', fallbackReason: 'unknown' };
+    const result = createPerformanceResult(input);
+
+    expect(
+      parsePerformanceResult({
+        ...result,
+        frameTime: { state: 'unavailable', reason: 'not_collected' },
+      })
+    ).toBeNull();
+    expect(
+      parsePerformanceResult({
+        ...result,
+        applicationReady: {
+          state: 'unavailable',
+          reason: 'unsupported_environment',
+        },
+      })
+    ).toBeNull();
+  });
+
+  it('keeps unsupported measurements distinct across renderer classes', () => {
+    const software = baseInput();
+    software.environment.rendererClass = 'software';
+    software.environment.frameMeasurementProfile = 'unsupported';
+    expect(createPerformanceResult(software).frameTime).toEqual({
+      state: 'unavailable',
+      reason: 'unsupported_environment',
+    });
+
+    const hardware = baseInput();
+    hardware.frameTimeSummary = {
+      sampleCount: 119,
+      medianMs: 1,
+      p95Ms: 2,
+      maxMs: 3,
+    };
+    expect(createPerformanceResult(hardware).frameTime).toEqual({
+      state: 'unavailable',
+      reason: 'not_collected',
+    });
+  });
 });

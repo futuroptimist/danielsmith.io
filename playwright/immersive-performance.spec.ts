@@ -1,17 +1,17 @@
-import { execFileSync } from 'node:child_process';
-
 import { expect, test, type Page } from '@playwright/test';
 
-import { serializePerformanceResult } from '../src/app/performanceResult';
 import {
   IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET,
   createImmersiveLaunchBudgetReport,
 } from '../src/assets/performance';
 
 import {
+  createPageLifecycle,
   installPerformanceResultProbe,
+  readControlledBuildInfo,
   readPerformanceResult,
   resetInputLatencyWindow,
+  writePerformanceResult,
 } from './helpers/performanceResult';
 
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
@@ -20,15 +20,6 @@ const IMMERSIVE_DIAGNOSTICS_URL =
   '/?mode=immersive&disablePerformanceFailover=1';
 const SOFTWARE_RENDERER_ZOOM_PAN_MS = 600;
 const HARDWARE_RENDERER_ZOOM_PAN_MS = 4_000;
-
-const controlledBuildTag = () => {
-  const configuredTag =
-    process.env.PERFORMANCE_BUILD_TAG ?? process.env.GITHUB_SHA;
-  if (configuredTag) return configuredTag;
-  return execFileSync('git', ['rev-parse', 'HEAD'], {
-    encoding: 'utf8',
-  }).trim();
-};
 
 interface PerformanceFailoverProbe {
   eventCount: number;
@@ -467,9 +458,12 @@ test.describe('immersive performance diagnostics', () => {
 
   test('creates a controlled result from readiness, input, and renderer diagnostics', async ({
     browser,
-  }, testInfo) => {
+  }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
+    const controller = new AbortController();
+    const lifecycle = createPageLifecycle(page);
+    const release = lifecycle.own(controller.signal);
     await installProductionLikeHints(page);
     await installPerformanceResultProbe(page);
 
@@ -488,7 +482,7 @@ test.describe('immersive performance diagnostics', () => {
         snapshot.renderer.riskLevel === 'normal';
       const result = await readPerformanceResult(page, {
         measuredAt: Math.floor(Date.now() / 1_000),
-        build: { environment: 'dev', tag: controlledBuildTag() },
+        build: await readControlledBuildInfo(page),
         environment: {
           browser: 'chromium',
           browserMajorVersion: Number.parseInt(browser.version(), 10),
@@ -516,10 +510,7 @@ test.describe('immersive performance diagnostics', () => {
         frameTimeSummary: null,
       });
 
-      await testInfo.attach('controlled-performance-result-v1.json', {
-        body: serializePerformanceResult(result),
-        contentType: 'application/json',
-      });
+      await writePerformanceResult(result);
 
       expect(result.state).toBe('completed');
       expect(result.applicationReady.state).toBe('available');
@@ -532,6 +523,9 @@ test.describe('immersive performance diagnostics', () => {
         reason: rendererSupported ? 'not_collected' : 'unsupported_environment',
       });
     } finally {
+      controller.abort();
+      release();
+      await lifecycle.settle();
       await context.close();
     }
   });
