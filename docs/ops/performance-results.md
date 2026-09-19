@@ -75,7 +75,9 @@ The result includes no browser-session or visitor identifier, user input, indivi
 events, raw console errors, arbitrary URL, headers, IP address, raw renderer string, or open-ended
 environment map. Build tags accept at most 80 safe identifier characters, including the colon in a
 pinned image digest such as `sha256:...`. Exact-key validation also rejects extra top-level or
-nested fields so a producer cannot silently attach private data.
+nested fields so a producer cannot silently attach private data. Result creation copies only those
+finite fields into a detached snapshot, so mutating a producer's build, environment, conditions,
+or renderer diagnostics after creation cannot alter the exported payload or attach session data.
 
 The intended future integration is for the existing controlled visitor-journey scheduler to run
 this profile, validate version 1, and map its finite states and summaries to bounded metrics.

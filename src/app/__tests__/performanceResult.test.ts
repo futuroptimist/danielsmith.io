@@ -43,7 +43,6 @@ const baseInput = (): CreatePerformanceResultInput => ({
     p95Ms: 24,
     maxMs: 35,
   },
-  supportsFrameTime: true,
 });
 
 describe('controlled performance result contract', () => {
@@ -307,5 +306,27 @@ describe('controlled performance result contract', () => {
         build: { environment: 'staging', tag: 'x'.repeat(81) },
       })
     ).toThrow(TypeError);
+  });
+
+  it('detaches the exported result from mutable producer diagnostics', () => {
+    const input = baseInput();
+    const result = createPerformanceResult(input);
+
+    input.build.tag = 'changed-after-export';
+    input.environment.rendererClass = 'software';
+    input.conditions.requestedActions = 1;
+    input.renderer.fallbackReason = 'unknown';
+    Object.assign(input.environment, {
+      sessionId: 'private-session',
+      url: 'https://example.test/private',
+    });
+
+    expect(result.build.tag).toBe('main-abc1234');
+    expect(result.environment.rendererClass).toBe('hardware');
+    expect(result.conditions.requestedActions).toBe(20);
+    expect(result.renderer.fallbackReason).toBe('none');
+    expect(result.environment).not.toHaveProperty('sessionId');
+    expect(result.environment).not.toHaveProperty('url');
+    expect(parsePerformanceResult(result)).toEqual(result);
   });
 });
