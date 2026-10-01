@@ -572,20 +572,49 @@ system dependencies. Do not disable browser/OS security controls to force WebGL.
 
 Follow the current [Sugarkube app runbook](https://github.com/futuroptimist/sugarkube/blob/main/docs/apps/danielsmith.md)
 and [staging runbook](https://github.com/futuroptimist/sugarkube/blob/main/docs/k3s-danielsmith-staging.md).
-On the owner's `sugarkube3`, from the existing Sugarkube checkout with its normal
-staging kubeconfig/context, the documented path is:
+On the owner's `sugarkube3`, use the existing Sugarkube checkout with its normal
+staging kubeconfig/context. First inspect its recipes and verify the chart:
 
 ```bash
-just app-config app=danielsmith env=staging
+just --list
 CHART_VERSION=$(sed -e 's/#.*$//' -e '/^[[:space:]]*$/d' docs/apps/danielsmith.version | head -n 1)
 helm show chart oci://ghcr.io/futuroptimist/charts/danielsmith --version "$CHART_VERSION"
 APP_TAG='<verified-immutable-published-tag-for-reviewed-commit>'
+```
+
+The inspected Sugarkube revision `093b2ccb750e927a88ae4f56c7e199ce036ba86c`
+contains the generic recipes. If `app-config`, `app-deploy`, `app-status`, and
+`app-verify` appear in the local recipe list, use the current generic path:
+
+```bash
+just app-config app=danielsmith env=staging
 just app-deploy app=danielsmith env=staging tag="$APP_TAG"
 just app-status app=danielsmith env=staging
 just app-verify app=danielsmith env=staging
+```
+
+For an older checkout with `danielsmith-oci-deploy` instead, use the compatibility
+recipe documented in [the app release runbook](../ops/sugarkube-release.md):
+
+```bash
+just danielsmith-oci-deploy env=staging tag="$APP_TAG"
+```
+
+Choose one deploy path, not both. If neither recipe exists, stop and use that
+runbook's explicit legacy Helm-helper instructions after checking local paths.
+Do not assume the other generic recipes exist on a legacy checkout. After either
+path, verify the public endpoints and the runbook's promotion smoke evidence:
+
+```bash
+curl -fsS https://staging.danielsmith.io/
+curl -fsS https://staging.danielsmith.io/livez
+curl -fsS https://staging.danielsmith.io/healthz
 curl -fsS https://staging.danielsmith.io/runtime/build-info.json
 curl -fsS https://staging.danielsmith.io/runtime/github-metrics.json
 ```
+
+Run `npm run smoke:promotion` from the reviewed **danielsmith.io** checkout, not
+from Sugarkube, once the selected image is serving on staging.
 
 The placeholder must be replaced with an image tag verified in the successful
 [image workflow](https://github.com/futuroptimist/danielsmith.io/actions/workflows/ci-image.yml)
