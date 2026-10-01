@@ -211,8 +211,9 @@ must not have to enter WebGL to read any career content.
 - **YouTube:** a sculptural video-display table with a red accent and an abstract
   reliability/status visualization. Any chart is clearly illustrative and does
   not reproduce internal dashboards or imply new performance statistics.
-- **Muon Space:** an original small satellite-and-orbit/mission-planning display
-  with a quiet cyan accent. Represent the public role at a high level, using no
+- **Muon Space:** a stylized generic CubeSat on the basement display table,
+  with an orbit/mission-planning motif and a quiet cyan accent. The CubeSat is an
+  illustrative model, not a claim to depict an actual Muon spacecraft. Represent the public role at a high level, using no
   proprietary spacecraft geometry, operational data, or internal interface.
 
 Keep in-world labels short and use accessible detail overlays for longer copy,
