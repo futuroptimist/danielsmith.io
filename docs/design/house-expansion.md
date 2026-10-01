@@ -213,7 +213,8 @@ must not have to enter WebGL to read any career content.
   not reproduce internal dashboards or imply new performance statistics.
 - **Muon Space:** a stylized generic CubeSat on the basement display table,
   with an orbit/mission-planning motif and a quiet cyan accent. The CubeSat is an
-  illustrative model, not a claim to depict an actual Muon spacecraft. Represent the public role at a high level, using no
+  illustrative model, not a replica of a specific Muon spacecraft. Represent the
+  public role at a high level, using no
   proprietary spacecraft geometry, operational data, or internal interface.
 
 Keep in-world labels short and use accessible detail overlays for longer copy,
