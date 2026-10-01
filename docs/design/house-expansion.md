@@ -254,7 +254,8 @@ The owner has confirmed Muon Space: Senior Software Engineer, September
 using modest present-tense new-role language. Proposed copy for review:
 "Contributing to cloud-based mission planning and control software on the Mission
 Planning Platform team." The public posting names Ground Software; the more
-specific team label comes from the owner’s confirmation, not the posting. A job posting describes a role, not
+specific team label comes from the owner’s confirmation, not the posting.
+A job posting describes a role, not
 proof that an employee has delivered every listed responsibility. Do not invent
 completed achievements, ownership, results, technologies used personally,
 compensation, clearance, or unpublished details. Do not substitute a similarly
@@ -367,7 +368,8 @@ hardware p95 gate. Measure museum and exterior views as additional representativ
 poses, then measure one session after spawn → basement → upper → exterior → spawn;
 hidden-floor geometry/textures still consume resident GPU memory. Repeated
 teardown/re-entry must not accumulate resources. Share primitive geometry before
-considering a more complex loading system; do not raise budgets to hide regressions. Software-renderer functional QA
+considering a more complex loading system; do not raise budgets to hide regressions.
+Software-renderer functional QA
 is not proof of hardware frame-time performance. Avoid expensive aquarium glass,
 realtime reflections, many independent lamp materials, or four permanently
 updating exhibit textures. Pause hidden-floor animations and lights, and dispose
@@ -377,7 +379,8 @@ Preserve keyboard navigation, visible focus, text fallback, reduced motion,
 high-contrast/accessibility presets, locale handling, caption preferences, and
 mobile joystick controls. The current HUD and tutorial already advertise the
 text-only experience, including the Text control and T shortcut. Preserve those
-entry points and resume/contact access without adding an entry-UX redesign. Every career exhibit and bus-stop message has a text
+entry points and resume/contact access without adding an entry-UX redesign.
+Every career exhibit and bus-stop message has a text
 alternative. Door controls have a meaningful accessible name and state; use
 polite announcements for state changes without repeating them every frame.
 
