@@ -223,6 +223,20 @@ height plus its floor elevation; do not measure approach distance from the top o
 a tall model. Tables, tanks, benches, vehicles, and shelter supports block walking;
 small table-top details remain explicitly decorative.
 
+### Personal-portfolio disclaimer
+
+Show this accessible text in the Muon career POI details and the corresponding
+text-only career entry:
+
+> This is my personal portfolio. The views and content here are my own and do not
+> represent Muon Space.
+
+Keep it readable DOM text, included in the localized content and screen-reader
+reading order. It must not exist only as a 3D texture, image, hover hint, or hidden
+footer. Verify the exact English wording and equivalent localized meaning on
+both surfaces, including mobile and text fallback. This is a public content
+requirement, not a claim of legal certification.
+
 ### Public career facts and editorial limits
 
 The August 2026 [resume source](../resume/2026-08/resume.tex) already supports:
@@ -416,7 +430,8 @@ Validate unique semantic source IDs, explicit floor membership, valid openings,
 rendered surface elevation, non-overlapping transition corridors, guard geometry,
 and room/POI anchors. Verify all three floor visibility combinations, inactive
 labels/LEDs/raycast exclusion, and career entries' exclusion from GitHub fetches.
-Test door target changes, repeated inputs, mid-animation reversal, blocked closing,
+Assert the Muon disclaimer is present as readable, accessible text in both career
+surfaces. Test door target changes, repeated inputs, mid-animation reversal, blocked closing,
 clearance threshold, disposal, and reduced-motion behavior with deterministic time.
 
 ### Browser automation
