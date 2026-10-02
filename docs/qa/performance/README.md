@@ -121,6 +121,35 @@ remains **53 calls, 45,336 triangles, 36 geometries and 25 textures**. The compa
 entry includes rolling frame and movement-phase summaries plus separate whole-route
 stall ranges; it does not hide intervals omitted by the rolling sampler.
 
+## Basement shell and stairs
+
+[Common manifest](2026-10-02-basement-b07fc96c/manifest.json) ·
+[Common ranges/deltas](2026-10-02-basement-b07fc96c/summary.json) ·
+[Extended manifest](2026-10-02-basement-b07fc96c/extended-6ac34f19-manifest.json) ·
+[Extended checkpoints](2026-10-02-basement-b07fc96c/extended-6ac34f19-summary.json)
+
+Runtime source `b07fc96c` completed three controlled suites and three common routes;
+`6ac34f19` changes only the capture helper and separately completed three suites and
+three extended basement routes. Every suite has four passes and one hardware-only
+skip. All detached source trees stayed clean and all movement routes completed.
+The shared profile records exact baseline/predecessor comparisons and cross-batch
+limits; raw archives and prior failed attempts remain privately retained.
+
+Common spawn counters are **111 calls / 4,832 triangles / 66 geometries / 7 textures**.
+The draw-call increase versus the baseline is explicit, while geometry counts fall;
+launch headroom remains **39 calls, 45,168 triangles, 59 geometries and 25 textures**.
+Upper-pose calls/triangles match the baseline. Timing variation and changed scene
+populations do not establish causal speedups or equivalence.
+
+The extended route covers **3,973 real movement steps**, seven named checkpoints,
+the basement toe/perimeter and both upper poses. The ground landing records
+**144 calls**, and basement poses record **51 calls**. Returned residency is
+**653–656 geometries / 10–13 textures**; it is not compared with the launch-only
+125-geometry ceiling. Each run retains its separate >=1-second stall observation.
+Actual camera position/focus/cutaway IDs are captured at every extended checkpoint;
+older common captures omitted that available API and remain labeled not captured.
+Hardware timing, full old-renderer reclamation and owner walkthrough remain open.
+
 ## Interpretation and gates
 
 - The baseline is Node 24, headless software WebGL, performance quality, software
