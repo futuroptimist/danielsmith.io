@@ -384,6 +384,86 @@ Every career exhibit and bus-stop message has a text
 alternative. Door controls have a meaningful accessible name and state; use
 polite announcements for state changes without repeating them every frame.
 
+### Baseline and per-stage performance history
+
+Before the first implementation edit, capture a lightweight measured baseline on
+the exact approved starting commit using the existing performance suite and
+diagnostics. Record existing ground/upper routes; mark basement and exterior
+checkpoints as not yet present. The older values in the performance-budget docs
+are context, not a substitute for this run. Keep the baseline evidence with the
+floor-foundation PR, then append comparable evidence in each of the seven
+implementation PRs, including the resume stage. This adds no ninth PR and does
+not add measurement code or a baseline run to this design-only change.
+
+Each evidence entry identifies:
+
+- Full source commit SHA, tested PR head/base, clean-tree state, benchmark/profile
+  version, lockfile identity, commands, timestamp, and artifact checksums
+- Device model, OS, CPU/GPU class, RAM, browser/Playwright versions, hardware vs.
+  software/unknown renderer, headed/headless mode, and declared emulation overrides
+- Dev server vs. built preview/staging, verified served build identity, viewport,
+  DPR/drawing-buffer size, actual quality and scene-detail tier, renderer policy,
+  cache/network/throttling conditions, and power/thermal conditions where known
+- Named route/pose, camera position/zoom, door/overlay state, motion/locale settings,
+  route version, warmup and sample window, run/repetition number, completed samples,
+  result, and unavailable/skipped reasons
+
+Use three independent clean-context runs per profile and keep every result;
+report the range rather than selecting a favorable run. Keep cold-load and
+warm-load samples separate. Compare a stage with both the pre-expansion baseline
+and its immediate predecessor only under the same recorded conditions. When a
+browser, device, quality, route, or harness changes, label a new series and rerun
+the predecessor with that profile where feasible. Never rank hardware against
+software rendering, desktop emulation against a real phone, or Vite development
+startup against a production build. Record unknown metadata instead of guessing.
+
+Track application-ready duration, the existing input-dispatch latency summary,
+renderer counters/resource counts, and supported frame/phase diagnostics. The
+[controlled result contract](../ops/performance-results.md) measures event
+dispatch delay, not input-to-paint latency; its current JSON deliberately leaves
+frame time unavailable. Its `completed` state does not prove the 80 ms hardware
+gate. Preserve that contract unchanged and supplement it with bounded benchmark
+metadata and route snapshots, rather than adding arbitrary fields to version 1.
+Record the diagnostic sampler and limitations alongside p95. The current
+diagnostics retain at most 180 frames and omit frame deltas of one second or more;
+checkpoint snapshots alone cannot establish whole-route timing or long-stall
+absence. Retain route/stall evidence separately and report an unavailable metric
+until measured. Do not label these rendered-frame wall-clock intervals as CPU execution time
+or GPU timing. Vite's
+`dev/dev` identity and the suite's synthetic CPU/memory hints cannot identify the
+source commit or actual hardware; use the manifest and verified checkout instead.
+Use identical checkpoint dwell periods and sample provenance. A sample count of
+180 alone does not prove the whole rolling window was collected after arrival.
+
+Retain the common spawn/upper route throughout the stack, plus the route portions
+available at that stage. Once complete, measure spawn → basement → upper →
+exterior → spawn in a single session, including representative museum/garage/
+street poses and teardown/re-entry. Compare shared poses directly; record new
+poses as additions; do not shorten a previously available route. Capture post-route
+resident geometry/texture counts, since hidden content can still consume memory.
+These are resource counts, not GPU bytes; software-renderer zeros cannot establish
+headroom. Pair teardown/re-entry checks with lifecycle/disposal evidence, since
+new-renderer counters alone cannot prove the old renderer's resources were freed.
+Maintain the launch budgets above and report raw values, absolute/percentage
+deltas, and remaining headroom. Investigate meaningful changes against repeat-run
+variance even when a run remains under budget.
+
+Keep a small versioned history index and original measurement JSON, bounded
+renderer/phase snapshots, command output, and manifest under
+`docs/qa/performance/` in the implementation stack. Link larger traces/screenshots
+to retained test artifacts and preserve a review copy before those links expire.
+The current controlled-result CI artifact expires after 14 days and overwrites
+the local filename on another run, so archive each run separately before rerunning.
+Failed and unsupported runs remain part of the evidence. Exclude credentials,
+machine/user identifiers, arbitrary browsing data, and individual input events.
+
+Hardware evidence remains a separate owner-run gate when the automation
+environment only provides software rendering or cannot initialize WebGL. Report
+that gap explicitly; software counters or a text fallback cannot close it. This
+lightweight history supports the expansion now. Historical backfill, dashboards,
+broader device infrastructure, Lighthouse automation, and optimization research
+remain the separately tracked Future Work below.
+
 ## Dependency-aware pull-request stack
 
 Each implementation stage is created only after explicit approval of this design.
@@ -395,8 +475,9 @@ exact tested head in its PR description. When bases change, rerun affected gates
    public copy policy, asset fallback, dependencies, and acceptance gates. Stop for
    explicit approval here.
 2. **Floor connection foundation**: registry and connection-aware movement,
-   elevation, visibility, POI filtering, debug state, and tests. Adapt the current
-   upstairs stairs with no new room geometry or deliberate behavior changes.
+   elevation, visibility, POI filtering, debug state, and tests. Capture the baseline
+   before the first implementation edit and retain it with this PR. Adapt the
+   current upstairs stairs with no new room geometry or deliberate behavior changes.
 3. **Basement shell and stairs**: declarative museum shell, shared staircase
    construction, floor opening, safety rails, navigation, and camera integration.
    Graybox the complete down/up journey before decorating it.
@@ -416,8 +497,9 @@ exact tested head in its PR description. When bases change, rerun affected gates
    integrated traversal/performance evidence.
 
 Do not defer feature tests to the end of the stack. Each stage includes its tests
-and relevant documentation; the final stage reruns the combined regression suite.
-No stage triggers a merge or deployment.
+and relevant documentation, including a comparable performance-history entry; the
+final stage reruns the combined regression suite and complete route. Keep all seven
+implementation stages in this stack. No stage triggers a merge or deployment.
 
 ## Automated verification plan
 
@@ -568,6 +650,37 @@ server first and prefix the test command with `CI=true`; Playwright starts its
 own server. Linux may need `npx playwright install --with-deps chromium` for browser
 system dependencies. Do not disable browser/OS security controls to force WebGL.
 
+### Capturing the initial performance evidence
+
+Before the first implementation edit, stop any existing dev server and use the
+same clean checkout, Node.js 20, and installed dependencies as above. Record the
+following alongside the device/profile manifest, then run one attempt:
+
+```bash
+git rev-parse HEAD
+git status --porcelain
+node --version
+npm --version
+npx playwright --version
+CI=true npm run perf:budget -- --workers=1 --retries=0 --trace=retain-on-failure
+```
+
+The current Playwright configuration starts its own **Vite development server**
+when `CI=true`; label the result accordingly. Save stdout/stderr and copy
+`test-results/controlled-performance/controlled-performance-result-v1.json` plus
+the attempt's other test artifacts into a unique commit/profile/attempt directory
+before the next run, including when the command fails. Repeat for three attempts;
+`--repeat-each` alone would overwrite the controlled JSON. Record missing outputs
+as missing. Keep this archive and its manifest through final stack review.
+
+This command measures the existing launch and controlled-input tests. Record
+timestamped `window.portfolio.performance.getSnapshot()` results at the declared
+route checkpoints separately, with screenshots and route/stall evidence. The
+first implementation PR may add a small reusable capture helper while preserving
+the prior baseline; rerun the unchanged reference if the measurement method changes.
+Actual hardware runs and owner walkthroughs remain distinct from software-renderer
+CI and from this command's controlled-result completion state.
+
 ### Operator-run Sugarkube staging, when an artifact exists
 
 Follow the current [Sugarkube app runbook](https://github.com/futuroptimist/sugarkube/blob/main/docs/apps/danielsmith.md)
@@ -637,14 +750,32 @@ and publish an image, change a cluster, or deploy during this design task.
 
 ## Future work, explicitly outside this expansion
 
-- Clarify the positioning and distinction between immersive exploration and the
-  text-only experience. The current HUD/tutorial already communicate the text
-  alternative; this is a later content/experience refinement, not a missing
-  control to build now
-- Add bus-stop fast travel to a remote destination later, using the stable
-  interaction/destination extension seam without implementing travel in this stack
-- Explore a fuller 2040 house redesign separately, after this expansion proves
-  that navigation, interactions, and a few thoughtful exhibits work well
+These issues track later work; they are not additional stages or approval
+requirements for this expansion. Reuse the existing performance-observability
+issue instead of opening a duplicate. No tracking issues are needed for the eight
+planned PRs above.
+
+- **Immersive/text positioning** ([#1112](https://github.com/futuroptimist/danielsmith.io/issues/1112)): clarify the
+  distinction between exploration and the text-only experience. The current HUD
+  and tutorial already communicate the alternative; preserve those controls now
+- **Bus-stop fast travel** ([#1113](https://github.com/futuroptimist/danielsmith.io/issues/1113)): a remote destination
+  using the reserved interaction/destination seam. Current behavior stays Coming
+  Soon, with no travel or remote-scene implementation
+- **2040 house redesign** ([#1114](https://github.com/futuroptimist/danielsmith.io/issues/1114)): a broader visual
+  restyling after the expansion's navigation and interactions are proven
+- **Historical performance backfill** ([#1115](https://github.com/futuroptimist/danielsmith.io/issues/1115)): replay
+  selected older commits with comparable profiles and retained evidence. The
+  baseline and per-stage measurements required above remain in scope now
+- **Performance observability** ([#1090](https://github.com/futuroptimist/danielsmith.io/issues/1090)):
+  controlled-result export, existing scheduler integration, and Grafana panels
+- **Broader device/Lighthouse coverage** ([#1116](https://github.com/futuroptimist/danielsmith.io/issues/1116)): expand
+  reproducible hardware/mobile coverage and evaluate Lighthouse automation,
+  coordinating with #1090 rather than duplicating its scheduler or dashboards
+- **Measured optimization audit** ([#1117](https://github.com/futuroptimist/danielsmith.io/issues/1117)): identify
+  worthwhile improvements from profiles, including a controlled procedural
+  TypeScript vs. equivalent GLB startup/loading comparison. Include transfer,
+  construction/parse/upload, memory, and steady-state costs; promise no FPS gain
+  or wholesale conversion before measurements support it
 
 ## Decisions still needed during design review
 
