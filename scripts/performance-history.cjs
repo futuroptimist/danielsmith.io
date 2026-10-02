@@ -346,6 +346,7 @@ function summarize(entries) {
     checkpoints: (entry.routes ?? []).map((run) => ({
       attempt: run.attempt,
       state: run.result?.state ?? 'missing',
+      profile: run.result?.profile ?? null,
       values: (run.result?.checkpoints ?? []).map((point) => ({
         name: point.name,
         ...point.snapshot.rendererCounters,
@@ -616,6 +617,7 @@ module.exports = {
   cleanupOwnedWorktree,
   resultState,
   artifactChecksums,
+  summarize,
   run,
 };
 if (require.main === module) {

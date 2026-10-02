@@ -464,6 +464,9 @@ test('keeps high-contrast career details accessible and gallery context visible 
 test('records repeated residency, retains the museum resource pool, and releases it on text transition', async ({
   page,
 }) => {
+  // Six bounded software-rendered routes need setup and teardown time beyond
+  // the single-journey default; all traversal and disposal assertions stay intact.
+  test.setTimeout(120_000);
   await ready(page);
   const counts = [];
   let plateauObserved = false;
