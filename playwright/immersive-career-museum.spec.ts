@@ -4,6 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { source as axeSource } from 'axe-core';
 import type { AxeResults } from 'axe-core';
 
+import { CAREER_HISTORY } from '../src/assets/careers';
 import { AVAILABLE_LOCALES, getCareerCopy } from '../src/assets/i18n';
 import { IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET } from '../src/assets/performance';
 
@@ -402,6 +403,20 @@ test('uses native locale controls and preserves career disclaimer parity when sw
       page.locator('[data-career-id="muon-space"] [data-career-disclaimer]')
     ).toHaveText(expected.disclaimer!);
     await expect(page.locator('.text-fallback__timeline-entry')).toHaveCount(4);
+    for (const career of CAREER_HISTORY) {
+      const entry = page.locator(`[data-career-id="${career.id}"]`);
+      const sources = career.provenance.filter((source) => source.href);
+      await expect(entry.locator('a')).toHaveCount(sources.length);
+      for (const source of sources) {
+        const link = entry.getByRole('link', {
+          name: getCareerCopy(locale)[career.id].sourceLabel,
+        });
+        await expect(link).toBeVisible();
+        await expect(link).toHaveAttribute('href', source.href!);
+        await link.focus();
+        await expect(link).toBeFocused();
+      }
+    }
   }
 });
 

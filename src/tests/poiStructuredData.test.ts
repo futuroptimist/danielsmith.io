@@ -240,7 +240,7 @@ describe('buildPoiStructuredData', () => {
     const data = buildPoiStructuredData(
       [
         createPoi({
-          category: 'project',
+          category: 'environment',
           outcome: { label: '', value: 'حافظ على السياق' },
           status: 'live',
         }),
@@ -252,7 +252,7 @@ describe('buildPoiStructuredData', () => {
     const item = items[0]?.item as Record<string, unknown>;
 
     expect(item.additionalProperty).toEqual([
-      { '@type': 'PropertyValue', name: 'الفئة', value: 'مشروع' },
+      { '@type': 'PropertyValue', name: 'الفئة', value: 'بيئة' },
       { '@type': 'PropertyValue', name: 'النتيجة', value: 'حافظ على السياق' },
       { '@type': 'PropertyValue', name: 'الحالة', value: 'مباشر' },
     ]);

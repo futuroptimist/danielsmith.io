@@ -27,6 +27,8 @@ The nearby living-room wall segment becomes translucent while the avatar is on
 or approaching this landing; its source-backed wall collider stays unchanged.
 This keeps the avatar visible without moving the spawn or changing the fixed
 camera orientation or initial framing. The wall restores on departure.
+Its cloned material follows the shared wall's animated lightmap intensity while
+keeping cutaway opacity, transparency, and depth-writing state independent.
 
 - The complete descending run is cut out of the ground slab; the shared landing
   top is exactly ground elevation

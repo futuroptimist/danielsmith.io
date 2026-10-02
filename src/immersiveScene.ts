@@ -2392,6 +2392,7 @@ export function initializeImmersiveScene(
   lightmapAnimator = createLightmapBounceAnimator({
     floorMaterial,
     wallMaterial,
+    wallMaterialClones: [basementLandingWallMaterial],
     fenceMaterial,
     ceilingPanels: ceilings.panels,
     programs: seasonalPrograms,

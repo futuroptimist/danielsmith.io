@@ -24,6 +24,18 @@
       "hardwareGate": "owner-run required",
       "controlledAttemptsCompletedPerCommit": 3,
       "commonRouteAttemptsCompletedPerCommit": 3
+    },
+    {
+      "id": "2026-10-02-floor-foundation-096be292",
+      "stage": "corrected floor connection foundation",
+      "sourceCommit": "096be292f64dfd0ed17576c198221bda704fc4be",
+      "predecessorCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "manifest": "2026-10-02-floor-foundation-096be292/manifest.json",
+      "summary": "2026-10-02-floor-foundation-096be292/summary.json",
+      "series": "common-route-restarted-vite-v1",
+      "controlledAttemptsCompletedPerCommit": 3,
+      "commonRouteAttemptsCompletedPerCommit": 3,
+      "hardwareGate": "owner-run required"
     }
   ]
 }

@@ -11,12 +11,13 @@ import { renderTextFallback } from '../../../systems/failover';
 import type { GitHubRepoStatsService } from '../../../systems/github/repoStats';
 import { wireGitHubRepoMetrics } from '../githubMetrics';
 import { getPoiDefinitions } from '../registry';
+import * as poiRegistry from '../registry';
 import {
   buildPoiStructuredData,
   buildTextPortfolioStructuredData,
 } from '../structuredData';
 import { PoiTooltipOverlay } from '../tooltipOverlay';
-import type { PoiDefinition } from '../types';
+import { isProjectPoi, type PoiDefinition } from '../types';
 
 import { getTestCareerPois } from './helpers/careerFixtures';
 
@@ -90,6 +91,7 @@ describe('reviewed career content', () => {
           team: poi.career.team,
           illustrationNote: poi.career.illustrationNote,
           disclaimer: poi.career.disclaimer,
+          links: poi.links,
         });
         if (locale !== 'en') {
           expect(poi.summary).not.toBe(
@@ -142,10 +144,48 @@ describe('reviewed career content', () => {
       )!;
       expect(timelineDisclaimer.textContent).toBe(poi.career.disclaimer);
       expect(timelineDisclaimer.closest('[hidden]')).toBeNull();
+      for (const career of getTestCareerPois(locale)) {
+        const links = [
+          ...fallback.querySelectorAll<HTMLAnchorElement>(
+            `[data-career-id="${career.career.id}"] a`
+          ),
+        ];
+        expect(
+          links.map((link) => ({
+            href: link.getAttribute('href'),
+            label: link.textContent,
+          }))
+        ).toEqual(career.links);
+        for (const link of links) {
+          expect(link.closest('[hidden]')).toBeNull();
+          expect(link.rel).toContain('noopener');
+          expect(link.tabIndex).toBe(0);
+          link.focus();
+          expect(document.activeElement).toBe(link);
+        }
+      }
       if (locale === 'en') expect(disclaimer.textContent).toBe(DISCLAIMER);
       overlay.dispose();
     });
   }
+
+  it('retains environment entries in text portfolio while excluding careers', () => {
+    const environment = {
+      ...getPoiDefinitions().find(isProjectPoi)!,
+      category: 'environment' as const,
+    };
+    vi.spyOn(poiRegistry, 'getPoiDefinitions').mockReturnValue([
+      environment,
+      ...getTestCareerPois(),
+    ]);
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    renderTextFallback(container, { reason: 'manual' });
+    expect(
+      container.querySelector(`[data-poi-id="${environment.id}"]`)
+    ).not.toBeNull();
+    expect(container.querySelector('[data-poi-id^="career-"]')).toBeNull();
+  });
 
   it('keeps both project structured-data collections free of employer entries', () => {
     const definitions = [...getPoiDefinitions(), ...getTestCareerPois()];

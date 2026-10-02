@@ -350,9 +350,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:lighting:lightmapBounceAnimator',
     kind: 'excluded',
     sourceFiles: ['src/scene/lighting/lightmapBounceAnimator.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Wall clones share animated lightmap brightness; the static miniature gains no geometry.',
   },
   {
     id: 'audit:src:scene:lighting:seasonalPresets',
@@ -382,7 +382,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:githubMetrics',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/githubMetrics.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
+    syncNote:
+      'Existing environment POI metrics remain supported while careers stay excluded; miniature geometry is unchanged.',
     reason:
       'Career content is discriminated from project metadata; this presentation and validation source does not alter ground-floor miniature geometry.',
   },

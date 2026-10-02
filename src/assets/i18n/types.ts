@@ -420,6 +420,7 @@ export interface SiteTextFallbackStrings {
       team?: string;
       disclaimer?: string;
       illustrationNote?: string;
+      links?: { label: string; href: string }[];
       period: string;
       location?: string;
       role: string;

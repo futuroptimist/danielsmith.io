@@ -10,7 +10,7 @@ import {
   type SiteTextFallbackStrings,
 } from '../../assets/i18n';
 import { getPoiDefinitions } from '../../scene/poi/registry';
-import type { PoiLink } from '../../scene/poi/types';
+import { isProjectPoi, type PoiLink } from '../../scene/poi/types';
 import type { FallbackReason } from '../../types/failover';
 import {
   getModeAnnouncer,
@@ -637,9 +637,7 @@ const installFallbackRecoveryShortcuts = (
 function buildTextPortfolioGroups(
   localeHint?: string
 ): TextPortfolioRoomGroup[] {
-  const poiDefinitions = getPoiDefinitions(localeHint).filter(
-    (poi) => poi.category === 'project'
-  );
+  const poiDefinitions = getPoiDefinitions(localeHint).filter(isProjectPoi);
   const roomLookup = new Map(
     FLOOR_PLAN.rooms.map((room) => [room.id, room.name])
   );
@@ -962,6 +960,22 @@ function createTimelineSection(
       item.appendChild(paragraph);
     }
 
+    if (entry.links?.length) {
+      const links = documentTarget.createElement('ul');
+      links.className =
+        'text-fallback__timeline-links text-fallback__poi-links';
+      for (const link of entry.links) {
+        const linkItem = documentTarget.createElement('li');
+        const anchor = documentTarget.createElement('a');
+        anchor.className = 'text-fallback__link';
+        anchor.href = link.href;
+        anchor.rel = 'noopener';
+        anchor.textContent = link.label;
+        linkItem.appendChild(anchor);
+        links.appendChild(linkItem);
+      }
+      item.appendChild(links);
+    }
     list.appendChild(item);
   });
 

@@ -190,7 +190,7 @@ export interface CareerPoiDefinition extends PoiPresentation {
 export type PoiDefinition = ProjectPoiDefinition | CareerPoiDefinition;
 
 export const isProjectPoi = (poi: PoiDefinition): poi is ProjectPoiDefinition =>
-  poi.category === 'project';
+  poi.category !== 'career';
 
 export interface PoiAnalytics {
   hoverStarted?(poi: PoiDefinition): void;

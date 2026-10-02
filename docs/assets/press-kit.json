@@ -1,5 +1,5 @@
 {
-  "generatedAtIso": "2026-06-06T06:30:53.249Z",
+  "generatedAtIso": "2026-10-02T08:43:52.265Z",
   "performance": {
     "budget": {
       "maxMaterials": 36,
@@ -11,7 +11,7 @@
       "drawCallCount": 132,
       "textureBytes": 18874368,
       "capturedAtIso": "2024-05-17T00:00:00.000Z",
-      "notes": "Captured with Chrome 124 WebGL inspector at launch pose after camera settle."
+      "notes": "Static press-kit budget baseline captured with Chrome 124 WebGL inspector at launch pose after camera settle. Runtime launch budgets are enforced separately by IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET."
     },
     "report": {
       "materials": {
@@ -80,11 +80,12 @@
     }
   },
   "totals": {
-    "poiCount": 14,
-    "roomsRepresented": 4,
+    "poiCount": 18,
+    "roomsRepresented": 8,
     "categories": {
       "project": 14,
-      "environment": 0
+      "environment": 0,
+      "career": 4
     }
   },
   "poiCatalog": [
@@ -145,8 +146,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "studio",
-        "name": "Studio"
+        "id": "livingRoom",
+        "name": "Living Room"
       },
       "metrics": [
         {
@@ -194,8 +195,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "studio",
-        "name": "Studio"
+        "id": "creatorsStudio",
+        "name": "creatorsStudio"
       },
       "metrics": [
         {
@@ -284,8 +285,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "studio",
-        "name": "Studio"
+        "id": "creatorsStudio",
+        "name": "creatorsStudio"
       },
       "metrics": [
         {
@@ -333,8 +334,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "studio",
-        "name": "Studio"
+        "id": "creatorsStudio",
+        "name": "creatorsStudio"
       },
       "metrics": [
         {
@@ -382,8 +383,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "livingRoom",
-        "name": "Living Room"
+        "id": "focusPods",
+        "name": "focusPods"
       },
       "metrics": [
         {
@@ -427,8 +428,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "livingRoom",
-        "name": "Living Room"
+        "id": "kitchen",
+        "name": "Kitchen"
       },
       "metrics": [
         {
@@ -476,8 +477,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "kitchen",
-        "name": "Kitchen"
+        "id": "focusPods",
+        "name": "focusPods"
       },
       "metrics": [
         {
@@ -521,8 +522,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "kitchen",
-        "name": "Kitchen"
+        "id": "focusPods",
+        "name": "focusPods"
       },
       "metrics": [
         {
@@ -566,8 +567,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "kitchen",
-        "name": "Kitchen"
+        "id": "loftLibrary",
+        "name": "loftLibrary"
       },
       "metrics": [
         {
@@ -661,8 +662,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "backyard",
-        "name": "Backyard"
+        "id": "studio",
+        "name": "Studio"
       },
       "metrics": [
         {
@@ -693,10 +694,10 @@
         }
       ],
       "footprint": {
-        "width": 4.8,
-        "depth": 4
+        "width": 2.62,
+        "depth": 4.220000000000001
       },
-      "interactionRadius": 3.3
+      "interactionRadius": 3.1550000000000002
     },
     {
       "id": "sugarkube-backyard-greenhouse",
@@ -706,8 +707,8 @@
       "interaction": "inspect",
       "status": "prototype",
       "room": {
-        "id": "backyard",
-        "name": "Backyard"
+        "id": "livingRoom",
+        "name": "Living Room"
       },
       "metrics": [
         {
@@ -746,6 +747,98 @@
         "depth": 6.4
       },
       "interactionRadius": 4.2
+    },
+    {
+      "id": "career-muon-space",
+      "title": "Muon Space",
+      "summary": "Contributing to cloud-based mission planning and control software on the Mission Planning Platform team.",
+      "category": "career",
+      "interaction": "inspect",
+      "room": {
+        "id": "careerMuseum",
+        "name": "careerMuseum"
+      },
+      "metrics": [],
+      "links": [
+        {
+          "label": "Public role description",
+          "href": "https://job-boards.greenhouse.io/muonspace/jobs/5083758007"
+        }
+      ],
+      "footprint": {
+        "width": 4.8,
+        "depth": 3
+      },
+      "interactionRadius": 3.6
+    },
+    {
+      "id": "career-youtube",
+      "title": "YouTube",
+      "summary": "Worked on product-health metrics, automation, on-call, incident response, and mentoring.",
+      "category": "career",
+      "interaction": "inspect",
+      "room": {
+        "id": "careerMuseum",
+        "name": "careerMuseum"
+      },
+      "metrics": [],
+      "links": [
+        {
+          "label": "Reviewed résumé source",
+          "href": "https://github.com/futuroptimist/danielsmith.io/blob/main/docs/resume/2026-08/resume.tex"
+        }
+      ],
+      "footprint": {
+        "width": 4.8,
+        "depth": 3
+      },
+      "interactionRadius": 3.6
+    },
+    {
+      "id": "career-naval-research",
+      "title": "Naval Research Laboratory",
+      "summary": "Developed C++/Qt research data-processing applications, with releases, demos, and documentation.",
+      "category": "career",
+      "interaction": "inspect",
+      "room": {
+        "id": "careerMuseum",
+        "name": "careerMuseum"
+      },
+      "metrics": [],
+      "links": [
+        {
+          "label": "Reviewed résumé source",
+          "href": "https://github.com/futuroptimist/danielsmith.io/blob/main/docs/resume/2026-08/resume.tex"
+        }
+      ],
+      "footprint": {
+        "width": 4.8,
+        "depth": 3
+      },
+      "interactionRadius": 3.6
+    },
+    {
+      "id": "career-southern-mississippi",
+      "title": "Southern Mississippi",
+      "summary": "Developed Objective-C content delivery and networking for university iOS applications.",
+      "category": "career",
+      "interaction": "inspect",
+      "room": {
+        "id": "careerMuseum",
+        "name": "careerMuseum"
+      },
+      "metrics": [],
+      "links": [
+        {
+          "label": "Reviewed résumé source",
+          "href": "https://github.com/futuroptimist/danielsmith.io/blob/main/docs/resume/2026-08/resume.tex"
+        }
+      ],
+      "footprint": {
+        "width": 4.8,
+        "depth": 3
+      },
+      "interactionRadius": 3.6
     }
   ],
   "media": [
