@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import type { PortfolioApi } from '../src/app/portfolioApi';
 import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
 
 import {
@@ -399,6 +400,32 @@ async function walkStairCenterlineToUpperLanding(page: Page) {
   );
   expect(firstUpperZ).not.toBeNull();
   expect(walkResults.finalState.activeFloor).toBe('upper');
+  const connectionDebug = await page.evaluate(() => {
+    const world = (window.portfolio as PortfolioApi).world!;
+    return {
+      floors: world.getFloorRegistrySnapshot(),
+      connections: world.getFloorConnectionSnapshot(),
+      legacyMetrics: world.getStairMetrics(),
+      namedMetrics: world.getStairMetrics('ground-upper'),
+    };
+  });
+  expect(connectionDebug.floors.map((floor) => floor.id)).toEqual([
+    'ground',
+    'upper',
+  ]);
+  expect(connectionDebug.connections.activeConnectionId).toBe('ground-upper');
+  expect(connectionDebug.connections.floorId).toBe('upper');
+  expect(connectionDebug.connections.connections).toHaveLength(1);
+  expect(connectionDebug.connections.connections[0]).toMatchObject({
+    id: 'ground-upper',
+    lowerFloorId: 'ground',
+    upperFloorId: 'upper',
+    lowerFloorElevation: 0,
+    upperFloorElevation: 5,
+    visible: true,
+    adjacent: true,
+  });
+  expect(connectionDebug.legacyMetrics).toEqual(connectionDebug.namedMetrics);
   expect(walkResults.finalState.position.y).toBeGreaterThanOrEqual(
     upperFloorElevation - 0.01
   );

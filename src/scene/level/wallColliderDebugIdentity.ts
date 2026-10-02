@@ -5,7 +5,9 @@ import {
 } from '../debug/colliderDebugIds';
 import { getDebugHash } from '../debug/debugIds';
 
-export type WallColliderDebugFloor = 'ground' | 'upper';
+import type { FloorId } from './floorElevations';
+
+export type WallColliderDebugFloor = FloorId;
 
 export interface WallColliderDebugIdentity {
   name: string;
@@ -13,6 +15,7 @@ export interface WallColliderDebugIdentity {
 }
 
 const WALL_COLLIDER_NAME_PREFIX = {
+  basement: 'BasementWallCollider',
   ground: 'GroundWallCollider',
   upper: 'UpperWallCollider',
 } as const satisfies Record<WallColliderDebugFloor, string>;

@@ -113,11 +113,11 @@
       "id": "audit:src:scene:level:floorElevations",
       "sourceFiles": ["src/scene/level/floorElevations.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "7478d3e02dd8a43004d15fcac8491508a45728e9dde873565ae4beee85780f3e",
+      "syncRevision": 2,
+      "syncNote": "Basement elevation is reserved without building a basement; existing ground and upper world elevations and miniature geometry are unchanged.",
+      "sourceFingerprint": "415f25dbc5a6ca57a7e9da6f1fc696816eb312a627e793f5e60deda72225dc5e",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "56b5a08db4ea133f2caa1a9babf0e06dc4d60cdd8ed11f889e110305f4fb2183"
+      "metadataFingerprint": "ef0673d82d0b9d54c1367dd771cc18e133e68dad5f3c3e5f7a8c82600ed5d5db"
     },
     {
       "id": "audit:src:scene:level:mediaWallPolicy",
@@ -173,21 +173,21 @@
       "id": "audit:src:scene:level:stairSafetyColliders",
       "sourceFiles": ["src/scene/level/stairSafetyColliders.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "cf4d099605644c9da51378234bb22064bb5dd2c24e3b4defd4f26a880ca6ba7d",
+      "syncRevision": 2,
+      "syncNote": "Connection-local floor identities and mirrored positive-Z safety are supported; the existing negative-Z upstairs bounds and miniature geometry are unchanged.",
+      "sourceFingerprint": "2663ce7676fb70d038491ff13f8b75473169b1cf7bd817d854f60d983229ed04",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "35c3e4de0afe8ed320446d4781af98e073c8f28d95d186116df9d3009fa22eb8"
+      "metadataFingerprint": "945690a314ae6a624f03584a0bf9983e919e0000c65d24ed6607c37217a5e56c"
     },
     {
       "id": "audit:src:scene:level:wallColliderDebugIdentity",
       "sourceFiles": ["src/scene/level/wallColliderDebugIdentity.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "a3b48d1b9c5ffc831ec9bf2f46d8d6fc3520c97d5ddc4ab16a72474e7242f61e",
+      "syncRevision": 2,
+      "syncNote": "Basement debug identities are supported without adding runtime walls; existing wall geometry and miniature proxies are unchanged.",
+      "sourceFingerprint": "2f0552f0a264a6e0ef7f21f13cc251c067a696d48e582232d1bb3b0c89d5d335",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "ceefacb373232027e491eb605b5dbd76d9a2a3306500f5eb5786b7600489f8c2"
+      "metadataFingerprint": "3091ac33224ceb3f3bedddfe2943f7e313f96088c1c93ecda3cf0cc5510dec98"
     },
     {
       "id": "audit:src:scene:lighting:debugControls",
@@ -458,11 +458,11 @@
         "src/scene/level/schema.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Type-only wall schema cleanup keeps portfolio layout data unchanged.",
-      "sourceFingerprint": "b3f2e0c11b30012b5a2d22dcd3b8dbc5d230f57c4b28dddb7ba91106b8a62439",
+      "syncRevision": 3,
+      "syncNote": "FloorId now comes from the elevation registry; the authored ground and upper layout and miniature geometry are unchanged.",
+      "sourceFingerprint": "2a0cd7e14983bdc02e4a8758d91f6971535bbc69f201cca59b49db014d4086f1",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "acb861bc93948e77a4dc0501b3e097b58abd15a34ab7ec3395379e62359c2320"
+      "metadataFingerprint": "a2546150fa6184b73148669724aa3f938b0f2910640c137b432343ae82f79331"
     },
     {
       "id": "level:stairs-landing",
@@ -524,7 +524,7 @@
       "syncRevision": 9,
       "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
       "sourceFingerprint": "cead9fbb202897b974fd80b54764f400b2151b5fa5fd15cbb375383ee4ed1684",
-      "proxyFingerprint": "5296fe1f8b374c5c5e71b79f358b044bc14f7e1af9112d5d50a6d499b58a70ec",
+      "proxyFingerprint": "fc2439ce5869c9c1e61e2c938f1ffe5f754d8cf1187cc4e7f7d8bdedd996f0b3",
       "metadataFingerprint": "957d6ae091597a4ae328777cae928273f76f2052f71f2204dc7713d7bf1932f9"
     },
     {

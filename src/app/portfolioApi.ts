@@ -14,6 +14,7 @@ import type {
   DebugSolidMetadata,
   DebugSolidVisualizerState,
 } from '../scene/debug/solidVisualizer';
+import type { FloorRegistry } from '../scene/floors/floorRegistry';
 import type { LowFpsRecoveryMonitorState } from '../scene/performance/lowFpsRecoveryMonitor';
 import type {
   PerformanceCrashBreadcrumbApi,
@@ -21,6 +22,7 @@ import type {
 } from '../scene/performance/performanceDiagnostics';
 import type { KeyBindingAction } from '../systems/controls/keyBindings';
 import type { GitHubRepoStatsDiagnostics } from '../systems/github/repoStats';
+import type { FloorConnectionController } from '../systems/movement/floorConnections';
 import type { FloorId, StairTransitionZone } from '../systems/movement/stairs';
 
 export type KeyBindingSnapshot = Record<KeyBindingAction, string[]>;
@@ -174,6 +176,8 @@ export interface PortfolioApi {
       z: number;
       activeFloorId: FloorId;
       predictedStairFloorId: FloorId;
+      activeConnectionId: string | null;
+      descentOriginFloorId: FloorId | null;
       cameraZoom: number;
       insideStairWidth: boolean;
       insideLanding: boolean;
@@ -196,6 +200,8 @@ export interface PortfolioApi {
       movedX: boolean;
       movedZ: boolean;
       activeFloor: FloorId;
+      activeConnectionId: string | null;
+      descentOriginFloorId: FloorId | null;
       position: { x: number; y: number; z: number };
       blockedBy?: string[];
     };
@@ -209,8 +215,17 @@ export interface PortfolioApi {
       x: number;
       z: number;
       currentFloor?: FloorId;
+      connectionId?: string;
     }): StairTransitionZone;
-    getStairMetrics(): {
+    getFloorRegistrySnapshot(): ReturnType<FloorRegistry['getSnapshot']>;
+    getFloorConnectionSnapshot(): ReturnType<
+      FloorConnectionController['getSnapshot']
+    >;
+    getStairMetrics(connectionId?: string): {
+      connectionId: string;
+      lowerFloorId: FloorId;
+      upperFloorId: FloorId;
+      lowerFloorElevation: number;
       stairCenterX: number;
       stairHalfWidth: number;
       stairBottomZ: number;
@@ -224,6 +239,10 @@ export interface PortfolioApi {
     getCeilingOpacities(): number[];
     getFloorVisibilitySnapshot(): {
       activeFloorId: FloorId;
+      floors: ReturnType<FloorRegistry['getSnapshot']>;
+      connections: ReturnType<
+        FloorConnectionController['getSnapshot']
+      >['connections'];
       groundFloorVisible: boolean;
       groundPoiVisible: boolean;
       upperPoiVisible: boolean;

@@ -23,9 +23,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Type-only wall schema cleanup keeps portfolio layout data unchanged.',
+      'FloorId now comes from the elevation registry; the authored ground and upper layout and miniature geometry are unchanged.',
   },
   {
     id: 'level:floors-walls',
@@ -225,9 +225,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:level:floorElevations',
     kind: 'excluded',
     sourceFiles: ['src/scene/level/floorElevations.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Basement elevation is reserved without building a basement; existing ground and upper world elevations and miniature geometry are unchanged.',
   },
   {
     id: 'audit:src:scene:level:mediaWallPolicy',
@@ -273,17 +273,17 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:level:stairSafetyColliders',
     kind: 'excluded',
     sourceFiles: ['src/scene/level/stairSafetyColliders.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Connection-local floor identities and mirrored positive-Z safety are supported; the existing negative-Z upstairs bounds and miniature geometry are unchanged.',
   },
   {
     id: 'audit:src:scene:level:wallColliderDebugIdentity',
     kind: 'excluded',
     sourceFiles: ['src/scene/level/wallColliderDebugIdentity.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Basement debug identities are supported without adding runtime walls; existing wall geometry and miniature proxies are unchanged.',
   },
   {
     id: 'audit:src:scene:lighting:debugControls',

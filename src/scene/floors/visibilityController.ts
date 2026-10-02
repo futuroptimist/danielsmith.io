@@ -1,11 +1,26 @@
 import type { Object3D } from 'three';
 
 import type { FloorPlanLevel } from '../../assets/floorPlan';
-import type { FloorId } from '../../systems/movement/stairs';
+import {
+  isConnectionAdjacent,
+  type StairConnection,
+} from '../../systems/movement/floorConnections';
+import { isFloorId, type FloorId } from '../level/floorElevations';
 import type { PoiInstance } from '../poi/markers';
 import type { PoiDefinition } from '../poi/types';
 
+export interface FloorVisualGroups {
+  readonly id: FloorId;
+  readonly groups: readonly Object3D[];
+  readonly lightingGroups?: readonly Object3D[];
+}
+
 export interface FloorVisibilityControllerOptions {
+  readonly floors?: readonly FloorVisualGroups[];
+  readonly connections?: readonly Pick<
+    StairConnection,
+    'id' | 'lowerFloorId' | 'upperFloorId' | 'groups'
+  >[];
   readonly initialFloorId?: FloorId;
   readonly groundGroups?: Object3D[];
   readonly upperGroups?: Object3D[];
@@ -23,23 +38,57 @@ export interface FloorVisibilityController {
 }
 
 export function createPoiFloorResolver(
-  levels: readonly FloorPlanLevel[]
+  levels: readonly Pick<FloorPlanLevel, 'id' | 'plan'>[]
 ): (poi: PoiDefinition) => FloorId {
   const roomFloorIds = new Map<string, FloorId>();
   levels.forEach((level) => {
-    const floorId = level.id === 'upper' ? 'upper' : 'ground';
+    const floorId = level.id;
+    if (!isFloorId(floorId)) throw new Error(`Unknown POI floor '${floorId}'.`);
     level.plan.rooms.forEach((room) => {
+      if (roomFloorIds.has(room.id))
+        throw new Error(`Ambiguous POI room '${room.id}'.`);
       roomFloorIds.set(room.id, floorId);
     });
   });
 
-  return (poi) => roomFloorIds.get(poi.roomId) ?? 'ground';
+  return (poi) => {
+    const floorId = roomFloorIds.get(poi.roomId);
+    if (!floorId) throw new Error(`Unknown POI room '${poi.roomId}'.`);
+    return floorId;
+  };
 }
 
 export function createFloorVisibilityController(
   options: FloorVisibilityControllerOptions
 ): FloorVisibilityController {
+  const floors = options.floors ?? [
+    {
+      id: 'ground' as const,
+      groups: options.groundGroups ?? [],
+      lightingGroups: options.groundLedGroups,
+    },
+    {
+      id: 'upper' as const,
+      groups: options.upperGroups ?? [],
+      lightingGroups: options.upperLedGroups,
+    },
+  ];
+  const floorIds = new Set(floors.map((floor) => floor.id));
+  if (
+    floorIds.size !== floors.length ||
+    floors.some((floor) => !isFloorId(floor.id))
+  ) {
+    throw new Error('Invalid or duplicate floor visibility registration.');
+  }
+  const assertFloor = (id: FloorId) => {
+    if (!floorIds.has(id)) throw new Error(`Unknown floor visibility '${id}'.`);
+  };
+  options.connections?.forEach((connection) => {
+    assertFloor(connection.lowerFloorId);
+    assertFloor(connection.upperFloorId);
+  });
   let activeFloorId = options.initialFloorId ?? 'ground';
+  assertFloor(activeFloorId);
 
   const setVisible = (
     objects: readonly Object3D[] | undefined,
@@ -81,11 +130,16 @@ export function createFloorVisibilityController(
   };
 
   const apply = () => {
-    const showGround = activeFloorId === 'ground';
-    setVisible(options.groundGroups, showGround);
-    setVisible(options.upperGroups, !showGround);
-    setVisible(options.groundLedGroups, showGround);
-    setVisible(options.upperLedGroups, !showGround);
+    floors.forEach((floor) => {
+      setVisible(floor.groups, floor.id === activeFloorId);
+      setVisible(floor.lightingGroups, floor.id === activeFloorId);
+    });
+    options.connections?.forEach((connection) => {
+      setVisible(
+        connection.groups,
+        isConnectionAdjacent(connection, activeFloorId)
+      );
+    });
     options.poiInstances?.forEach(applyPoiVisualState);
   };
 
@@ -96,6 +150,7 @@ export function createFloorVisibilityController(
       return activeFloorId;
     },
     setActiveFloorId(next: FloorId) {
+      assertFloor(next);
       if (activeFloorId === next) {
         return;
       }

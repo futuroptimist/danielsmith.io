@@ -46,13 +46,25 @@ test.describe('keyboard traversal macro', () => {
     expect(secondTitle.length).toBeGreaterThan(0);
     expect(secondTitle).not.toEqual(firstTitle);
 
-    // Tab forward until the help/menu button receives focus.
+    // Public POI links and renderer notices can add legitimate tab stops. Walk
+    // one complete visible focus cycle rather than assuming eight fixed stops.
+    const tabStopCount = await page
+      .locator('a[href], button, input, select, textarea, [tabindex]')
+      .evaluateAll(
+        (elements) =>
+          elements.filter(
+            (element) =>
+              (element as HTMLElement).tabIndex >= 0 &&
+              !element.matches(':disabled') &&
+              (element as HTMLElement).getClientRects().length > 0
+          ).length
+      );
     let attempts = 0;
     while (
       !(await helpButton.evaluate(
         (element) => element === document.activeElement
       )) &&
-      attempts < 8
+      attempts <= tabStopCount
     ) {
       await page.keyboard.press('Tab');
       attempts += 1;

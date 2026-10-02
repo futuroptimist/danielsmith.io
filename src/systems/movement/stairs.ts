@@ -1,8 +1,32 @@
 import { MathUtils } from 'three';
 
+import type { FloorId } from '../../scene/level/floorElevations';
 import type { RectCollider } from '../collision';
 
-export type FloorId = 'ground' | 'upper';
+export type { FloorId } from '../../scene/level/floorElevations';
+
+export interface StairFloorPair {
+  lowerFloorId: FloorId;
+  upperFloorId: FloorId;
+}
+
+// Compatibility defaults for the original upstairs stair helpers. New connections
+// always supply their own local lower/upper roles, including ground above basement.
+const UPSTAIRS_FLOORS: StairFloorPair = {
+  lowerFloorId: 'ground',
+  upperFloorId: 'upper',
+};
+
+const assertAdjacentFloor = (
+  current: FloorId,
+  floors: StairFloorPair
+): void => {
+  if (current !== floors.lowerFloorId && current !== floors.upperFloorId) {
+    throw new Error(
+      `Floor '${current}' is not adjacent to this stair connection.`
+    );
+  }
+};
 
 export interface StairGeometry {
   centerX: number;
@@ -220,15 +244,14 @@ export const createGroundStairBoundaryColliders = (
     options.guardThickness * 2;
   const lowerApproachZ =
     geometry.bottomZ - geometry.direction * behavior.transitionMargin;
-  const rampMinZ = getMinZ(geometry.bottomZ, geometry.topZ);
   const colliders: NamedStairBoundaryCollider[] = [
     {
       name: 'GroundStairLowerCornerGuard',
       bounds: {
         minX: stairEastX,
         maxX: eastBoundaryMaxX,
-        minZ: rampMinZ,
-        maxZ: getMaxZ(geometry.bottomZ, lowerApproachZ),
+        minZ: getMinZ(geometry.bottomZ, geometry.topZ, lowerApproachZ),
+        maxZ: getMaxZ(geometry.bottomZ, geometry.topZ, lowerApproachZ),
       },
     },
   ];
@@ -270,8 +293,10 @@ export const classifyStairTransitionZone = (
   behavior: StairBehavior,
   x: number,
   z: number,
-  current: FloorId
+  current: FloorId,
+  floors: StairFloorPair = UPSTAIRS_FLOORS
 ): StairTransitionZone => {
+  assertAdjacentFloor(current, floors);
   const inActualStairWidth = isWithinStairWidth(geometry, x);
   const inTransitionWidth = isWithinStairWidth(
     geometry,
@@ -288,13 +313,13 @@ export const classifyStairTransitionZone = (
   }
 
   if (
-    current === 'upper' &&
+    current === floors.upperFloorId &&
     isInExplicitDescentCorridor(geometry, behavior, x, z)
   ) {
     return 'explicitDescentCorridor';
   }
 
-  if (current === 'upper') {
+  if (current === floors.upperFloorId) {
     return 'safeUpperFloor';
   }
 
@@ -322,19 +347,29 @@ export const predictStairFloorId = (
   behavior: StairBehavior,
   x: number,
   z: number,
-  current: FloorId
+  current: FloorId,
+  floors: StairFloorPair = UPSTAIRS_FLOORS
 ): FloorId => {
-  const zone = classifyStairTransitionZone(geometry, behavior, x, z, current);
+  const zone = classifyStairTransitionZone(
+    geometry,
+    behavior,
+    x,
+    z,
+    current,
+    floors
+  );
   const withinPhysicalStairs = isWithinPhysicalStairWidth(geometry, x);
   const withinRampRun = isWithinRampRun(geometry, z);
   const direction = geometry.direction;
 
-  if (current === 'upper') {
-    return zone === 'explicitDescentCorridor' ? 'ground' : 'upper';
+  if (current === floors.upperFloorId) {
+    return zone === 'explicitDescentCorridor'
+      ? floors.lowerFloorId
+      : floors.upperFloorId;
   }
 
   if (isInExplicitDescentCorridor(geometry, behavior, x, z)) {
-    return 'ground';
+    return floors.lowerFloorId;
   }
 
   const atOrPastStairTop =
@@ -346,18 +381,19 @@ export const predictStairFloorId = (
     atOrPastStairTop &&
     (withinRampRun || onUpperLanding)
   ) {
-    return 'upper';
+    return floors.upperFloorId;
   }
 
-  return 'ground';
+  return floors.lowerFloorId;
 };
 
-export interface StairSurfaceSampleOptions {
+export interface StairSurfaceSampleOptions extends Partial<StairFloorPair> {
   geometry: StairGeometry;
   behavior: StairBehavior;
   x: number;
   z: number;
   currentFloor: FloorId;
+  lowerFloorElevation?: number;
   upperFloorElevation: number;
 }
 
@@ -367,28 +403,39 @@ export const sampleStairSurfaceHeight = ({
   x,
   z,
   currentFloor,
+  lowerFloorId = 'ground',
+  upperFloorId = 'upper',
+  lowerFloorElevation = 0,
   upperFloorElevation,
 }: StairSurfaceSampleOptions): number => {
-  const rampHeight = computeRampHeight(geometry, behavior, x, z);
-  const clampedRamp = MathUtils.clamp(rampHeight, 0, upperFloorElevation);
+  const floors = { lowerFloorId, upperFloorId };
+  const rampHeight =
+    lowerFloorElevation + computeRampHeight(geometry, behavior, x, z);
+  const clampedRamp = MathUtils.clamp(
+    rampHeight,
+    lowerFloorElevation,
+    upperFloorElevation
+  );
   const predictedFloor = predictStairFloorId(
     geometry,
     behavior,
     x,
     z,
-    currentFloor
+    currentFloor,
+    floors
   );
   const zone = classifyStairTransitionZone(
     geometry,
     behavior,
     x,
     z,
-    currentFloor
+    currentFloor,
+    floors
   );
   if (
-    predictedFloor === 'upper' &&
+    predictedFloor === upperFloorId &&
     zone !== 'explicitDescentCorridor' &&
-    (currentFloor === 'upper' || zone === 'upperLanding')
+    (currentFloor === upperFloorId || zone === 'upperLanding')
   ) {
     return upperFloorElevation;
   }
@@ -397,7 +444,7 @@ export const sampleStairSurfaceHeight = ({
   // callers deliberately pass `ground`, while runtime descent preserves `upper`
   // as the surface context after active floor handoff until this band is clear.
   if (
-    currentFloor === 'upper' &&
+    currentFloor === upperFloorId &&
     isInExplicitDescentCorridor(geometry, behavior, x, z)
   ) {
     const blendRange = Math.max(

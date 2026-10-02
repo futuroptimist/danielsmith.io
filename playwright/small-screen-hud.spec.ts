@@ -110,6 +110,16 @@ async function waitForImmersiveReady(page: Page) {
   await page.waitForFunction(
     () => (window as PortfolioPoiWindow).portfolio?.audio?.getState
   );
+  // Software CI starts with an explicit safe-renderer notice over the mobile
+  // HUD. Dismiss it through its normal control before testing touch targets.
+  const continueSafe = page.getByRole('button', {
+    name: 'Continue in safe immersive',
+    exact: true,
+  });
+  if (await continueSafe.isVisible()) {
+    await continueSafe.click();
+    await expect(page.locator('[data-software-renderer-warning]')).toBeHidden();
+  }
 }
 
 async function getDebugCoordinatesState(

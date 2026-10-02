@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "commit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+  "repetitions": 3,
+  "units": {
+    "readyAndDispatch": "milliseconds",
+    "renderer": "resource counts, not GPU bytes"
+  },
+  "applicationReadyMs": [1268.5, 1313.5],
+  "dispatchP95Ms": [0.6, 90.2],
+  "checkpoints": [
+    {
+      "name": "spawn",
+      "calls": [90, 97],
+      "triangles": [4364, 4664],
+      "memoryGeometries": [89, 89],
+      "memoryTextures": [7, 7]
+    },
+    {
+      "name": "upper-landing",
+      "calls": [112, 112],
+      "triangles": [2358, 2358],
+      "memoryGeometries": [510, 516],
+      "memoryTextures": [8, 9]
+    },
+    {
+      "name": "upper-creators-studio",
+      "calls": [87, 87],
+      "triangles": [12324, 12324],
+      "memoryGeometries": [629, 635],
+      "memoryTextures": [9, 10]
+    },
+    {
+      "name": "returned-spawn",
+      "calls": [84, 84],
+      "triangles": [4124, 4124],
+      "memoryGeometries": [637, 658],
+      "memoryTextures": [9, 13]
+    }
+  ],
+  "launchBudgets": {
+    "drawCalls": 150,
+    "triangles": 50000,
+    "geometries": 125,
+    "textures": 32,
+    "hardwareP95Ms": 80
+  },
+  "deltas": null,
+  "lifecycle": "Exploratory loops reached661geometries/13textures; some explicit deletes observed, complete reclamation unproven. Instrumented/concurrent-run timings excluded."
+}

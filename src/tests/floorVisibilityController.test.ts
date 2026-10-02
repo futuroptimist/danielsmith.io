@@ -6,6 +6,7 @@ import {
   createFloorVisibilityController,
   createPoiFloorResolver,
 } from '../scene/floors/visibilityController';
+import type { FloorId } from '../scene/level/floorElevations';
 import type { PoiInstance } from '../scene/poi/markers';
 import type { PoiDefinition } from '../scene/poi/types';
 
@@ -175,5 +176,102 @@ describe('floor visibility controller', () => {
       true
     );
     expect(upperPoi.group.visible).toBe(true);
+  });
+});
+
+describe('three-floor connection visibility', () => {
+  const ids: FloorId[] = ['basement', 'ground', 'upper'];
+  const levels = ids.map((id) => ({
+    id,
+    plan: {
+      outline: [] as Array<[number, number]>,
+      rooms: [
+        {
+          id: `${id}Room`,
+          name: id,
+          ledColor: 0,
+          bounds: { minX: 0, maxX: 4, minZ: 0, maxZ: 4 },
+        },
+      ],
+    },
+  }));
+
+  it('shows only the active floor and adjacent stairs, including their rails', () => {
+    const floors = ids.map((id) => ({
+      id,
+      groups: [new Group()],
+      lightingGroups: [new Group()],
+    }));
+    const upstairs = {
+      id: 'upstairs',
+      lowerFloorId: 'ground' as const,
+      upperFloorId: 'upper' as const,
+      groups: [new Group(), new Group()],
+    };
+    const downstairs = {
+      id: 'downstairs',
+      lowerFloorId: 'basement' as const,
+      upperFloorId: 'ground' as const,
+      groups: [new Group(), new Group()],
+    };
+    const pois = ids.map((id) => createPoiInstance(`${id}Room`));
+    const controller = createFloorVisibilityController({
+      floors,
+      connections: [upstairs, downstairs],
+      poiInstances: pois,
+      getPoiFloorId: createPoiFloorResolver(levels),
+    });
+    for (const active of ids) {
+      controller.setActiveFloorId(active);
+      floors.forEach((floor) => {
+        expect(floor.groups[0].visible).toBe(floor.id === active);
+        expect(floor.lightingGroups[0].visible).toBe(floor.id === active);
+      });
+      upstairs.groups.forEach((group) =>
+        expect(group.visible).toBe(active !== 'basement')
+      );
+      downstairs.groups.forEach((group) =>
+        expect(group.visible).toBe(active !== 'upper')
+      );
+      pois.forEach((poi, index) => {
+        const visible = ids[index] === active;
+        expect(controller.isPoiVisibleOnActiveFloor(poi.definition)).toBe(
+          visible
+        );
+        expect(poi.group.visible).toBe(visible);
+        if (!visible) {
+          expect(poi.label?.visible).toBe(false);
+          expect(poi.labelMaterial?.opacity).toBe(0);
+          expect(poi.visitedBadge?.mesh.visible).toBe(false);
+          expect(poi.visitedHighlight?.mesh.visible).toBe(false);
+          expect(poi.displayHighlight?.mesh.visible).toBe(false);
+        }
+      });
+    }
+  });
+
+  it('rejects unbuilt visibility IDs instead of falling back to another floor', () => {
+    const controller = createFloorVisibilityController({
+      getPoiFloorId: () => 'ground',
+    });
+    expect(() => controller.setActiveFloorId('basement')).toThrow(
+      /Unknown floor visibility/
+    );
+    expect(() => controller.setActiveFloorId('attic' as FloorId)).toThrow(
+      /Unknown floor visibility/
+    );
+    expect(controller.getActiveFloorId()).toBe('ground');
+  });
+
+  it('resolves basement rooms and rejects unknown or ambiguous POI membership', () => {
+    const resolve = createPoiFloorResolver(levels);
+    expect(resolve(createPoi('basementRoom'))).toBe('basement');
+    expect(() => resolve(createPoi('missing'))).toThrow(/Unknown POI room/);
+    expect(() =>
+      createPoiFloorResolver([{ ...levels[0], id: 'attic' }])
+    ).toThrow(/Unknown POI floor/);
+    expect(() => createPoiFloorResolver([levels[0], levels[0]])).toThrow(
+      /Ambiguous POI room/
+    );
   });
 });

@@ -41,7 +41,6 @@ import {
 } from './app/portfolioApi';
 import {
   FLOOR_PLAN,
-  FLOOR_PLAN_LEVELS,
   FLOOR_PLAN_SCALE,
   UPPER_FLOOR_PLAN,
   getFloorBounds,
@@ -126,6 +125,10 @@ import {
   createBackyardEnvironment,
   type BackyardEnvironmentBuild,
 } from './scene/environments/backyard';
+import {
+  createFloorRegistry,
+  getFloorCollisionCollections,
+} from './scene/floors/floorRegistry';
 import {
   createFloorVisibilityController,
   createPoiFloorResolver,
@@ -436,6 +439,11 @@ import {
   normalizeRadians,
 } from './systems/movement/facing';
 import {
+  createFloorConnectionController,
+  isConnectionAdjacent,
+  type StairConnection,
+} from './systems/movement/floorConnections';
+import {
   computeStairLayout,
   computeStairwellOpeningBounds,
 } from './systems/movement/stairLayout';
@@ -444,13 +452,11 @@ import {
   createStairNavigationZones,
   isWithinLanding,
   isWithinStairWidth,
-  predictStairFloorId,
-  sampleStairSurfaceHeight,
   type FloorId,
   type StairBehavior,
   type StairGeometry,
 } from './systems/movement/stairs';
-import { createNavMesh, type NavMesh } from './systems/navigation/navMesh';
+import { createNavMesh } from './systems/navigation/navMesh';
 import {
   createInputLatencyTelemetry,
   type InputLatencyTelemetryHandle,
@@ -1897,6 +1903,27 @@ export function initializeImmersiveScene(
     stepRise: STAIRCASE_CONFIG.step.rise,
     descentCorridorInset: PLAYER_RADIUS,
   };
+  const stairConnectionSafetySourceIds: string[] = [];
+  const stairConnections: StairConnection[] = [
+    {
+      id: 'ground-upper',
+      lowerFloorId: 'ground',
+      upperFloorId: 'upper',
+      lowerFloorElevation: GROUND_FLOOR_TOP_ELEVATION,
+      upperFloorElevation,
+      geometry: stairGeometry,
+      behavior: stairBehavior,
+      layout: stairLayout,
+      groups: [staircase.group],
+      sources: {
+        visual: 'ground.upperStairs.visual',
+        navigation: 'ground.upperStairs.navigation',
+        safety: stairConnectionSafetySourceIds,
+      },
+    },
+  ];
+  staircase.group.userData.connectionId = stairConnections[0].id;
+  staircase.group.userData.sourceId = stairConnections[0].sources.visual;
   const stairNavigationZones = createStairNavigationZones(
     stairGeometry,
     stairBehavior
@@ -1923,10 +1950,16 @@ export function initializeImmersiveScene(
     maxZ: stairGuardMaxZ,
   });
 
+  const floorBuildColliders = new Map<string, RectCollider[]>([
+    ['ground', groundColliders],
+    ['upper', upperFloorColliders],
+  ]);
   const registerSafetyCollider = (collider: LevelSafetyCollider) => {
-    const targetColliders =
-      collider.floor === 'ground' ? groundColliders : upperFloorColliders;
+    const targetColliders = floorBuildColliders.get(collider.floor);
+    if (!targetColliders)
+      throw new Error(`Unbuilt safety collider floor '${collider.floor}'.`);
     targetColliders.push(collider.bounds);
+    stairConnectionSafetySourceIds.push(collider.sourceId);
     namedColliderDebugNames.set(collider.bounds, collider.name);
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
@@ -2173,23 +2206,16 @@ export function initializeImmersiveScene(
     });
   });
 
-  const floorColliders: Record<FloorId, RectCollider[]> = {
-    ground: groundColliders,
-    upper: upperFloorColliders,
-  };
-
-  const navMeshes: Record<FloorId, NavMesh> = {
-    ground: createNavMesh(FLOOR_PLAN, {
-      padding: doorwayPadding,
-      depth: doorwayDepth,
-      extraZones: groundStairNavZones,
-    }),
-    upper: createNavMesh(UPPER_FLOOR_PLAN, {
-      padding: doorwayPadding,
-      depth: doorwayDepth,
-      extraZones: upperStairNavZones,
-    }),
-  };
+  const groundNavMesh = createNavMesh(FLOOR_PLAN, {
+    padding: doorwayPadding,
+    depth: doorwayDepth,
+    extraZones: groundStairNavZones,
+  });
+  const upperNavMesh = createNavMesh(UPPER_FLOOR_PLAN, {
+    padding: doorwayPadding,
+    depth: doorwayDepth,
+    extraZones: upperStairNavZones,
+  });
 
   const seasonalPrograms = Array.from(
     createSeasonallyAdjustedPrograms(ROOM_LED_PULSE_PROGRAMS, seasonalPreset)
@@ -2264,16 +2290,52 @@ export function initializeImmersiveScene(
   upperPoiGroup.name = 'UpperPoiVisuals';
   scene.add(upperPoiGroup);
 
-  const getPoiFloorId = createPoiFloorResolver(FLOOR_PLAN_LEVELS);
+  const floorRegistry = createFloorRegistry([
+    {
+      id: 'ground',
+      elevation: GROUND_FLOOR_TOP_ELEVATION,
+      plan: FLOOR_PLAN,
+      groups: [
+        groundFloorGroup,
+        groundPoiGroup,
+        groundEnvironmentGroup,
+        groundStructureGroup,
+      ],
+      lightingGroups: [ledStripGroup, ledFillLightGroup].filter(
+        (group): group is Group => group !== null
+      ),
+      poiGroup: groundPoiGroup,
+      structureGroup: groundStructureGroup,
+      colliders: groundColliders,
+      additionalColliderCollections: [staticColliders],
+      navMesh: groundNavMesh,
+    },
+    {
+      id: 'upper',
+      elevation: upperFloorElevation,
+      plan: UPPER_FLOOR_PLAN,
+      groups: [upperFloorGroup, upperPoiGroup, upperStructureGroup],
+      lightingGroups: [],
+      poiGroup: upperPoiGroup,
+      structureGroup: upperStructureGroup,
+      colliders: upperFloorColliders,
+      navMesh: upperNavMesh,
+    },
+  ]);
+  const floorConnections = createFloorConnectionController({
+    floors: floorRegistry,
+    connections: stairConnections,
+    initialFloorId: activeFloorId,
+  });
+  const getPoiFloorId = createPoiFloorResolver(floorRegistry.all());
   const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides, {
     detailPolicy: activeSceneDetailPolicy,
   });
   builtPoiInstances.forEach((poi) => {
     if (!poi.group.parent) {
-      const poiGroup =
-        getPoiFloorId(poi.definition) === 'upper'
-          ? upperPoiGroup
-          : groundPoiGroup;
+      const poiGroup = floorRegistry.get(
+        getPoiFloorId(poi.definition)
+      ).poiGroup;
       poiGroup.add(poi.group);
     }
     // POI interaction markers stay clickable, but walking blockers are registered
@@ -2285,16 +2347,8 @@ export function initializeImmersiveScene(
   const floorVisibilityController: FloorVisibilityController =
     createFloorVisibilityController({
       initialFloorId: activeFloorId,
-      groundGroups: [
-        groundFloorGroup,
-        groundPoiGroup,
-        groundEnvironmentGroup,
-        groundStructureGroup,
-      ],
-      upperGroups: [upperFloorGroup, upperPoiGroup, upperStructureGroup],
-      groundLedGroups: [ledStripGroup, ledFillLightGroup].filter(
-        (group): group is Group => group !== null
-      ),
+      floors: floorRegistry.all(),
+      connections: stairConnections,
       poiInstances,
       getPoiFloorId,
     });
@@ -2563,18 +2617,13 @@ export function initializeImmersiveScene(
   const studioRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'studio');
   const poiStructureColliderIds = new Set<PoiId>();
   const addPoiStructure = (poi: PoiInstance, group: Object3D) => {
-    (getPoiFloorId(poi.definition) === 'upper'
-      ? upperStructureGroup
-      : groundStructureGroup
-    ).add(group);
+    floorRegistry.get(getPoiFloorId(poi.definition)).structureGroup.add(group);
     poiStructureColliderIds.add(poi.definition.id);
     registerPoiModelRoot(poi.definition.id, group);
     registerPoiVisualAnchor(poi.definition.id, group, 'floor');
   };
   const getPoiColliderTarget = (poi: PoiInstance) =>
-    getPoiFloorId(poi.definition) === 'upper'
-      ? upperFloorColliders
-      : groundColliders;
+    floorRegistry.get(getPoiFloorId(poi.definition)).colliders;
   const registerMarkerOnlyPoiColliders = () => {
     poiInstances.forEach((poi) => {
       if (
@@ -2681,15 +2730,13 @@ export function initializeImmersiveScene(
     const jobbotSceneObject = getSceneObjectDefinition(
       'jobbot-studio-terminal'
     );
-    const fallbackJobbotStructureGroup =
-      jobbotSceneObject?.floorId === 'upper'
-        ? upperStructureGroup
-        : groundStructureGroup;
+    const jobbotFloor = floorRegistry.get(
+      jobbotSceneObject?.floorId ?? 'ground'
+    );
+    const fallbackJobbotStructureGroup = jobbotFloor.structureGroup;
     const jobbotColliderTarget = jobbotPoi
       ? getPoiColliderTarget(jobbotPoi)
-      : jobbotSceneObject?.floorId === 'upper'
-        ? upperFloorColliders
-        : groundColliders;
+      : jobbotFloor.colliders;
     if (jobbotSceneObject) {
       applySceneObjectSourceMetadata(terminal.group, jobbotSceneObject);
       registerSceneObjectColliders(
@@ -3368,7 +3415,7 @@ export function initializeImmersiveScene(
         return canOccupyPosition(target.x, target.z, floorId);
       },
       setActiveFloor(next: FloorId) {
-        resetUpperDescentBlend();
+        floorConnections.reset(next);
         setActiveFloorId(next);
         updatePlayerVerticalPosition();
       },
@@ -3380,7 +3427,7 @@ export function initializeImmersiveScene(
             `Cannot occupy (${x.toFixed(2)}, ${z.toFixed(2)}) on floor ${predictedFloor}`
           );
         }
-        resetUpperDescentBlend();
+        floorConnections.reset(predictedFloor);
         player.position.x = x;
         player.position.z = z;
         setActiveFloorId(predictedFloor);
@@ -3410,27 +3457,50 @@ export function initializeImmersiveScene(
         x: number;
         z: number;
         currentFloor?: FloorId;
+        connectionId?: string;
       }) {
-        return classifyStairTransitionZone(
-          stairGeometry,
-          stairBehavior,
-          target.x,
-          target.z,
-          target.currentFloor ?? activeFloorId
+        const connection = floorConnections.getConnection(
+          target.connectionId ?? 'ground-upper'
         );
+        const currentFloor = target.currentFloor ?? activeFloorId;
+        return isConnectionAdjacent(connection, currentFloor)
+          ? classifyStairTransitionZone(
+              connection.geometry,
+              connection.behavior,
+              target.x,
+              target.z,
+              currentFloor,
+              connection
+            )
+          : 'outsideStairs';
       },
-      getStairMetrics() {
+      getStairMetrics(connectionId = 'ground-upper') {
+        const connection = floorConnections.getConnection(connectionId);
+        const geometry = connection.geometry;
         return {
-          stairCenterX,
-          stairHalfWidth,
-          stairBottomZ,
-          stairTopZ,
-          stairLandingMinZ,
-          stairLandingMaxZ,
-          stairLandingDepth: stairLandingDepth,
-          stairDirection: stairLayout.directionMultiplier,
-          upperFloorElevation,
+          connectionId: connection.id,
+          lowerFloorId: connection.lowerFloorId,
+          upperFloorId: connection.upperFloorId,
+          lowerFloorElevation: connection.lowerFloorElevation,
+          stairCenterX: geometry.centerX,
+          stairHalfWidth: geometry.halfWidth,
+          stairBottomZ: geometry.bottomZ,
+          stairTopZ: geometry.topZ,
+          stairLandingMinZ: geometry.landingMinZ,
+          stairLandingMaxZ: geometry.landingMaxZ,
+          stairLandingDepth: geometry.landingMaxZ - geometry.landingMinZ,
+          stairDirection: geometry.direction,
+          upperFloorElevation: connection.upperFloorElevation,
         };
+      },
+      getFloorRegistrySnapshot() {
+        return floorRegistry.getSnapshot();
+      },
+      getFloorConnectionSnapshot() {
+        return floorConnections.getSnapshot(
+          player.position.x,
+          player.position.z
+        );
       },
       // Test helpers – expose current mannequin yaw in radians.
       getPlayerYaw() {
@@ -3461,6 +3531,11 @@ export function initializeImmersiveScene(
 
         return {
           activeFloorId,
+          floors: floorRegistry.getSnapshot(),
+          connections: floorConnections.getSnapshot(
+            player.position.x,
+            player.position.z
+          ).connections,
           groundFloorVisible: groundFloorGroup.visible,
           groundPoiVisible: groundPoiGroup.visible,
           upperPoiVisible: upperPoiGroup.visible,
@@ -4288,25 +4363,23 @@ export function initializeImmersiveScene(
   );
 
   const predictFloorId = (x: number, z: number, current: FloorId): FloorId =>
-    predictStairFloorId(stairGeometry, stairBehavior, x, z, current);
+    floorConnections.preview(x, z, current).floorId;
 
   const canOccupyPosition = (
     x: number,
     z: number,
     floorId: FloorId
   ): boolean => {
-    const navMesh = navMeshes[floorId];
+    const floor = floorRegistry.get(floorId);
+    const navMesh = floor.navMesh;
     if (!navMesh.contains(x, z)) {
       return false;
     }
 
-    if (collidesWithColliders(x, z, PLAYER_RADIUS, floorColliders[floorId])) {
-      return false;
-    }
-
     if (
-      floorId === 'ground' &&
-      collidesWithColliders(x, z, PLAYER_RADIUS, staticColliders)
+      getFloorCollisionCollections(floor).some((colliders) =>
+        collidesWithColliders(x, z, PLAYER_RADIUS, colliders)
+      )
     ) {
       return false;
     }
@@ -4315,6 +4388,7 @@ export function initializeImmersiveScene(
   };
 
   const setActiveFloorId = (next: FloorId) => {
+    floorRegistry.get(next);
     if (activeFloorId === next) {
       return;
     }
@@ -4326,48 +4400,11 @@ export function initializeImmersiveScene(
     colliderVisualizer.setActiveFloor(next);
   };
 
-  // Persists the intentional upper→ground descent context after the floor handoff so
-  // slow movement keeps using the upper lip blend across the whole transition band.
-  let upperDescentBlendActive = false;
-
-  const getVerticalSurfaceFloor = (surfaceFloor: FloorId): FloorId => {
-    if (surfaceFloor === 'upper') {
-      return 'upper';
-    }
-
-    if (
-      upperDescentBlendActive &&
-      classifyStairTransitionZone(
-        stairGeometry,
-        stairBehavior,
-        player.position.x,
-        player.position.z,
-        'upper'
-      ) === 'explicitDescentCorridor'
-    ) {
-      return 'upper';
-    }
-
-    return surfaceFloor;
-  };
-
-  const resetUpperDescentBlend = () => {
-    upperDescentBlendActive = false;
-  };
-
-  const updatePlayerVerticalPosition = (
-    surfaceFloor: FloorId = activeFloorId
-  ) => {
-    const verticalSurfaceFloor = getVerticalSurfaceFloor(surfaceFloor);
-    const baseHeight = sampleStairSurfaceHeight({
-      geometry: stairGeometry,
-      behavior: stairBehavior,
-      x: player.position.x,
-      z: player.position.z,
-      currentFloor: verticalSurfaceFloor,
-      upperFloorElevation,
-    });
-    player.position.y = baseHeight;
+  const updatePlayerVerticalPosition = () => {
+    player.position.y = floorConnections.sampleHeight(
+      player.position.x,
+      player.position.z
+    );
   };
 
   const collidesWithCollider = (
@@ -4389,24 +4426,17 @@ export function initializeImmersiveScene(
     floorId: FloorId
   ): string[] => {
     const blockedBy = new Set<string>();
-    const navMesh = navMeshes[floorId];
+    const floor = floorRegistry.get(floorId);
+    const navMesh = floor.navMesh;
     if (!navMesh.contains(x, z)) {
       blockedBy.add(`${floorId}NavMesh`);
     }
 
-    for (const collider of floorColliders[floorId]) {
-      if (collidesWithCollider(x, z, PLAYER_RADIUS, collider)) {
-        blockedBy.add(
-          namedColliderDebugNames.get(collider) ?? `${floorId}Collider`
-        );
-      }
-    }
-
-    if (floorId === 'ground') {
-      for (const collider of staticColliders) {
+    for (const colliders of getFloorCollisionCollections(floor)) {
+      for (const collider of colliders) {
         if (collidesWithCollider(x, z, PLAYER_RADIUS, collider)) {
           blockedBy.add(
-            namedColliderDebugNames.get(collider) ?? 'StaticCollider'
+            namedColliderDebugNames.get(collider) ?? `${floorId}Collider`
           );
         }
       }
@@ -4420,9 +4450,6 @@ export function initializeImmersiveScene(
     stepZ: number,
     options: { includeDiagnostics?: boolean } = {}
   ) => {
-    // Height sampling uses the floor from the start of the step and the persisted
-    // descent context so upper→ground descent keeps the lip blend after handoff.
-    const surfaceFloorBeforeStep = activeFloorId;
     const blockedBy = options.includeDiagnostics ? new Set<string>() : null;
     let movedX = false;
     let movedZ = false;
@@ -4436,7 +4463,10 @@ export function initializeImmersiveScene(
       );
       if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
         player.position.x = candidateX;
-        setActiveFloorId(predictedFloor);
+        setActiveFloorId(
+          floorConnections.commitPosition(player.position.x, player.position.z)
+            .floorId
+        );
         movedX = true;
       } else if (blockedBy) {
         getBlockingNamesAt(
@@ -4456,7 +4486,10 @@ export function initializeImmersiveScene(
       );
       if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
         player.position.z = candidateZ;
-        setActiveFloorId(predictedFloor);
+        setActiveFloorId(
+          floorConnections.commitPosition(player.position.x, player.position.z)
+            .floorId
+        );
         movedZ = true;
       } else if (blockedBy) {
         getBlockingNamesAt(
@@ -4467,25 +4500,15 @@ export function initializeImmersiveScene(
       }
     }
 
-    const usingUpperDescentBlend =
-      (surfaceFloorBeforeStep === 'upper' || upperDescentBlendActive) &&
-      activeFloorId === 'ground' &&
-      classifyStairTransitionZone(
-        stairGeometry,
-        stairBehavior,
-        player.position.x,
-        player.position.z,
-        'upper'
-      ) === 'explicitDescentCorridor';
-    upperDescentBlendActive = usingUpperDescentBlend;
-
-    updatePlayerVerticalPosition(surfaceFloorBeforeStep);
+    updatePlayerVerticalPosition();
 
     const blockingNames = blockedBy ? Array.from(blockedBy) : [];
     return {
       movedX,
       movedZ,
       activeFloor: activeFloorId,
+      activeConnectionId: floorConnections.getState().activeConnectionId,
+      descentOriginFloorId: floorConnections.getState().descentOriginFloorId,
       position: {
         x: player.position.x,
         y: player.position.y,
@@ -4532,22 +4555,16 @@ export function initializeImmersiveScene(
   });
   colliderVisualizer.setIdsEnabled(debugColliderIdsEnabled);
   colliderVisualizer.register([
-    ...createDebugColliderRegistrations(groundColliders, {
-      floor: 'ground',
-      category: 'ground',
-      namePrefix: 'ground-collider',
-    }),
-    ...createDebugColliderRegistrations(staticColliders, {
-      floor: 'ground',
-      category: 'static',
-      namePrefix: 'static-collider',
-    }),
-    ...createDebugColliderRegistrations(upperFloorColliders, {
-      floor: 'upper',
-      category: 'upper',
-      namePrefix: 'upper-collider',
-      elevation: upperFloorElevation,
-    }),
+    ...floorRegistry.all().flatMap((floor) =>
+      getFloorCollisionCollections(floor).flatMap((colliders, index) =>
+        createDebugColliderRegistrations(colliders, {
+          floor: floor.id,
+          category: index === 0 ? floor.id : 'static',
+          namePrefix: `${floor.id}-collider`,
+          elevation: floor.elevation,
+        })
+      )
+    ),
   ]);
   scene.add(colliderVisualizer.group);
 
@@ -4578,7 +4595,7 @@ export function initializeImmersiveScene(
     x >= rect.minX && x <= rect.maxX && z >= rect.minZ && z <= rect.maxZ;
 
   const getCurrentRoomId = (): string | null => {
-    const plan = activeFloorId === 'upper' ? UPPER_FLOOR_PLAN : FLOOR_PLAN;
+    const plan = floorRegistry.get(activeFloorId).plan;
     const room = plan.rooms.find(({ bounds }) =>
       containsRectPoint(bounds, player.position.x, player.position.z)
     );
@@ -4589,16 +4606,21 @@ export function initializeImmersiveScene(
     const x = Number(player.position.x.toFixed(2));
     const y = Number(player.position.y.toFixed(2));
     const z = Number(player.position.z.toFixed(2));
-    const stairZone = classifyStairTransitionZone(
-      stairGeometry,
-      stairBehavior,
+    const connectionState = floorConnections.getSnapshot(
       player.position.x,
-      player.position.z,
-      activeFloorId
+      player.position.z
     );
-    const insideStairNavArea = Object.values(stairNavigationZones).some(
-      (zone) => containsRectPoint(zone, player.position.x, player.position.z)
-    );
+    const debugConnection =
+      connectionState.connections.find(
+        (connection) => connection.id === connectionState.activeConnectionId
+      ) ??
+      connectionState.connections.find((connection) => connection.adjacent);
+    const stairZone = debugConnection?.zone ?? 'outsideStairs';
+    const insideStairNavArea = debugConnection
+      ? Object.values(debugConnection.zones).some((zone) =>
+          containsRectPoint(zone, player.position.x, player.position.z)
+        )
+      : false;
 
     return {
       enabled: debugCoordinatesEnabled,
@@ -4612,12 +4634,18 @@ export function initializeImmersiveScene(
         activeFloorId
       ),
       cameraZoom: Number(camera.zoom.toFixed(2)),
-      insideStairWidth: isWithinStairWidth(stairGeometry, player.position.x),
-      insideLanding: isWithinLanding(
-        stairGeometry,
-        player.position.x,
-        player.position.z
-      ),
+      activeConnectionId: connectionState.activeConnectionId,
+      descentOriginFloorId: connectionState.descentOriginFloorId,
+      insideStairWidth: debugConnection
+        ? isWithinStairWidth(debugConnection.geometry, player.position.x)
+        : false,
+      insideLanding: debugConnection
+        ? isWithinLanding(
+            debugConnection.geometry,
+            player.position.x,
+            player.position.z
+          )
+        : false,
       insideStairNavArea,
       stairZone,
       currentRoomId: getCurrentRoomId(),
@@ -6765,14 +6793,7 @@ export function initializeImmersiveScene(
         avatarFootIkController.update({
           delta,
           sampleHeight({ x, y }) {
-            return sampleStairSurfaceHeight({
-              geometry: stairGeometry,
-              behavior: stairBehavior,
-              x,
-              z: y,
-              currentFloor: getVerticalSurfaceFloor(activeFloorId),
-              upperFloorElevation,
-            });
+            return floorConnections.sampleHeight(x, y);
           },
         });
       }

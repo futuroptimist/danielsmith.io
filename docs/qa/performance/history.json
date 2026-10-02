@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "2026-10-02-pre-expansion-1ee6fcf0f75f",
+      "stage": "pre-expansion baseline",
+      "sourceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "manifest": "2026-10-02-pre-expansion-1ee6fcf0f75f/manifest.json",
+      "summary": "2026-10-02-pre-expansion-1ee6fcf0f75f/summary.json",
+      "predecessor": null,
+      "hardwareGate": "owner-run required",
+      "controlledAttemptsCompleted": 3,
+      "commonRouteAttemptsCompleted": 3
+    }
+  ]
+}
