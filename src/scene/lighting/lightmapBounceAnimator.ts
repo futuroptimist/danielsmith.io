@@ -11,6 +11,8 @@ import {
 export interface LightmapBounceAnimatorOptions {
   readonly floorMaterial: MeshStandardMaterial;
   readonly wallMaterial: MeshStandardMaterial;
+  /** Brightness follows the primary wall; opacity and other clone state stay independent. */
+  readonly wallMaterialClones?: Iterable<MeshStandardMaterial>;
   readonly fenceMaterial?: MeshStandardMaterial;
   readonly ceilingPanels?: Iterable<RoomCeilingPanel>;
   readonly programs?: Iterable<LedPulseProgram>;
@@ -148,6 +150,7 @@ export function createLightmapBounceAnimator(
     ),
     response: resolveResponse(responseOverrides.wall, DEFAULT_RESPONSE.wall),
   };
+  const wallMaterialClones = Array.from(options.wallMaterialClones ?? []);
   const fenceEntry: LightmapBounceEntry | null = options.fenceMaterial
     ? {
         material: options.fenceMaterial,
@@ -230,6 +233,9 @@ export function createLightmapBounceAnimator(
 
     applyBounce(floorEntry, average);
     applyBounce(wallEntry, average);
+    for (const material of wallMaterialClones) {
+      material.lightMapIntensity = wallEntry.material.lightMapIntensity;
+    }
     if (fenceEntry) {
       applyBounce(fenceEntry, average);
     }

@@ -324,9 +324,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:lighting:lightmapBounceAnimator',
     kind: 'excluded',
     sourceFiles: ['src/scene/lighting/lightmapBounceAnimator.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Wall clones share animated lightmap brightness; the static miniature gains no geometry.',
   },
   {
     id: 'audit:src:scene:lighting:seasonalPresets',

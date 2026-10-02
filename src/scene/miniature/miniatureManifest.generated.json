@@ -223,11 +223,11 @@
       "id": "audit:src:scene:lighting:lightmapBounceAnimator",
       "sourceFiles": ["src/scene/lighting/lightmapBounceAnimator.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "b1310e72f9e76a78784ac1bac130336daab78c7760b6d95700431e14013eb792",
+      "syncRevision": 2,
+      "syncNote": "Wall clones share animated lightmap brightness; the static miniature gains no geometry.",
+      "sourceFingerprint": "72fb78efb1899b4530e7077406c247db08bb48398e5f0fb0c3b67f7723ec9dc0",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "9fc4abf9842b426e384dd081990dd2ac5d9aa9d7e5757274ef4e0c8be3d558af"
+      "metadataFingerprint": "6a3dcdb7f91dc3db9a67970de95928ddd290d3d839fbc72e97e8c745a1f43501"
     },
     {
       "id": "audit:src:scene:lighting:seasonalPresets",
