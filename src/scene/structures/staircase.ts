@@ -82,13 +82,13 @@ export function createStaircase(config: StaircaseConfig): StaircaseBuildResult {
   const direction = config.direction ?? 'positiveZ';
   const directionMultiplier = direction === 'negativeZ' ? -1 : 1;
 
+  const stepGeometry = new BoxGeometry(
+    config.step.width,
+    config.step.rise,
+    config.step.run
+  );
   for (let i = 0; i < config.step.count; i += 1) {
-    const geometry = new BoxGeometry(
-      config.step.width,
-      config.step.rise,
-      config.step.run
-    );
-    const step = new Mesh(geometry, stepMaterial);
+    const step = new Mesh(stepGeometry, stepMaterial);
     step.position.set(
       basePosition.x,
       basePosition.y + config.step.rise * (i + 0.5),

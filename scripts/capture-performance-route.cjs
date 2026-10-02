@@ -10,6 +10,7 @@ if (!output)
     'Usage: node scripts/capture-performance-route.cjs OUTPUT_DIRECTORY'
   );
 const dwellMs = 5000;
+const includeBasement = process.argv.includes('--basement');
 (async () => {
   // Refuse to overwrite an earlier attempt, including failed or unsupported runs.
   await fs.mkdir(path.dirname(path.resolve(output)), { recursive: true });
@@ -24,14 +25,18 @@ const dwellMs = 5000;
   const page = await context.newPage();
   const result = {
     schemaVersion: 1,
-    profile: 'house-common-route-v1',
+    profile: includeBasement
+      ? 'house-basement-route-v1'
+      : 'house-common-route-v1',
     startedAt: new Date().toISOString(),
     browserVersion: browser.version(),
     viewport: { width: 1280, height: 720 },
     dwellMs,
     checkpoints: [],
     legs: [],
-    unavailableCheckpoints: ['basement', 'exterior'],
+    unavailableCheckpoints: includeBasement
+      ? ['exterior']
+      : ['basement', 'exterior'],
     state: 'running',
   };
   await page.addInitScript(() => {
@@ -258,6 +263,42 @@ const dwellMs = 5000;
       window.portfolio.world.getPlayerPosition()
     );
     await checkpoint('spawn');
+    if (includeBasement) {
+      const metrics = await page.evaluate(() =>
+        window.portfolio.world.getStairMetrics('basement-ground')
+      );
+      const landing = { x: metrics.stairCenterX, z: metrics.stairTopZ + 3 };
+      const toe = { x: metrics.stairCenterX, z: metrics.stairBottomZ - 3.2 };
+      await walk(
+        'spawn-to-basement-landing',
+        [{ x: 0, z: landing.z }, landing],
+        'ground'
+      );
+      await checkpoint('basement-ground-landing');
+      await walk('basement-descent', [toe]);
+      await checkpoint('basement-lower-toe');
+      await walk(
+        'basement-museum-loop',
+        [
+          { x: -3, z: toe.z },
+          { x: -18, z: toe.z },
+          { x: -18, z: -15.5 },
+          { x: -18, z: 4.5 },
+          { x: 20, z: 4.5 },
+          { x: 20, z: -17.5 },
+          { x: 20, z: toe.z },
+          toe,
+        ],
+        'basement'
+      );
+      await checkpoint('basement-museum-loop-complete');
+      await walk('basement-ascent', [landing]);
+      await walk(
+        'basement-landing-to-spawn',
+        [{ x: 0, z: landing.z }, result.spawn],
+        'ground'
+      );
+    }
     const m = result.stairMetrics;
     const entrance = {
       x: m.stairCenterX,

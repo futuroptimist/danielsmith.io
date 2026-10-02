@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import type { Page } from '@playwright/test';
 
+import { isFloorId, type FloorId } from '../src/scene/level/floorElevations';
 import { FUTUROPTIMIST_MEDIA_WALL_POLICY } from '../src/scene/level/mediaWallPolicy';
 
 import { auditColliderGeometry } from './colliderGeometryAudit';
@@ -223,6 +224,12 @@ export const collectDominatingColliderEvidence = (
     }));
 };
 
+export const resolveColliderAuditFloor = (floor: string): FloorId => {
+  if (floor === 'all') return 'ground';
+  if (!isFloorId(floor)) throw new Error(`Unknown collider floor '${floor}'.`);
+  return floor;
+};
+
 const runRuntimeApproaches = async (
   page: Page,
   candidate: RuntimeColliderMetadata,
@@ -233,8 +240,13 @@ const runRuntimeApproaches = async (
       (value) => value;
   });
   return page.evaluate(
-    ({ candidate: nextCandidate, gridResolution, maxExploredNodes }) => {
-      type FloorId = 'ground' | 'upper';
+    ({
+      candidate: nextCandidate,
+      gridResolution,
+      maxExploredNodes,
+      floorId,
+    }) => {
+      type FloorId = 'basement' | 'ground' | 'upper';
       type World = {
         canOccupyPosition(target: {
           x: number;
@@ -268,9 +280,6 @@ const runRuntimeApproaches = async (
       const debug = portfolio?.debugColliders;
       if (!world || !debug)
         throw new Error('World/debug collider APIs unavailable.');
-      const floorId = (
-        nextCandidate.floor === 'upper' ? 'upper' : 'ground'
-      ) as FloorId;
       const playerRadius = 0.75;
       const radius = playerRadius;
       const center = {
@@ -543,6 +552,7 @@ const runRuntimeApproaches = async (
     },
     {
       candidate,
+      floorId: resolveColliderAuditFloor(candidate.floor),
       gridResolution: options.gridResolution,
       maxExploredNodes: options.maxExploredNodes,
     }

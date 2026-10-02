@@ -1,10 +1,10 @@
 # Floor connection foundation
 
 The [house expansion contract](../design/house-expansion.md) uses an explicit
-floor registry and adjacent stair connections. The runtime currently builds only
-`ground` and `upper`, joined by `ground-upper`. Reserving the `basement` elevation
-does not register navigation, create a room, or permit teleporting to an unbuilt
-floor.
+floor registry and adjacent stair connections. The foundation built `ground` and `upper`, joined by `ground-upper`. The
+[basement shell](basement-stairs.md) now registers `basement`, joined to ground by
+`basement-ground`. Reserving an elevation alone never registers navigation or
+permits teleporting to an unbuilt floor.
 
 ## Runtime contracts
 
@@ -83,8 +83,8 @@ teleports; destination floor and height must come from runtime movement.
 Synthetic unit fixtures cover three floors, both stair directions, negative and
 nonzero base elevations, exact lips, slow descent, lip reversal, off-stair
 retention, landing-edge nudges, mirrored side/back guards, invalid/overlapping
-connections, and visibility of adjacent versus unrelated stairs. They prepare the
-basement contract without claiming that an unbuilt basement has browser coverage.
+connections, and visibility of adjacent versus unrelated stairs. Those foundation fixtures do not replace the runtime basement coverage recorded
+in the [basement graybox report](basement-stairs.md).
 
 Continue the [upstairs walkthrough](upstairs-stairs.md) for owner review and use
 the [retained performance history](performance/README.md) for measurement

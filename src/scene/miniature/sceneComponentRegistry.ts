@@ -23,9 +23,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'FloorId now comes from the elevation registry; the authored ground and upper layout and miniature geometry are unchanged.',
+      'The basement shell is below the tabletop ground-only view; the ground-floor stair reservation is represented by the shared basement stair descriptor.',
   },
   {
     id: 'level:floors-walls',
@@ -49,8 +49,20 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/upperStairwellLanding.ts',
       'src/scene/level/upperStairwellLandingSegments.ts',
     ],
-    syncRevision: 1,
-    syncNote: 'Stairs and upper landing have shared dimensions.',
+    syncRevision: 2,
+    syncNote:
+      'Both stair builds share tread geometry; the ground miniature retains the upstairs silhouette and renders the source-derived basement opening.',
+  },
+  {
+    id: 'level:basement-stairs',
+    kind: 'shared-source',
+    sourceFiles: [
+      'src/scene/level/basementStair.ts',
+      'src/scene/structures/basementStaircase.ts',
+    ],
+    syncRevision: 3,
+    syncNote:
+      'The shared descriptor also identifies the landing visual occluder; its runtime cutaway preserves collision. The tabletop retains the source-derived opening and its ground-only view.',
   },
   {
     id: 'environment:backyard',
@@ -93,9 +105,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 35,
+    syncRevision: 36,
     syncNote:
-      'Studio rug footprint shifts only floor-decor placement; tabletop furnishing proxy coverage is unchanged.',
+      'The solid entry console moves west to clear the basement landing; furnishings remain excluded from the ground-only tabletop.',
     reason:
       'Lower- and upper-floor furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },

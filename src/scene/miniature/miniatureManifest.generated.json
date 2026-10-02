@@ -409,11 +409,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": [],
-      "syncRevision": 35,
-      "syncNote": "Studio rug footprint shifts only floor-decor placement; tabletop furnishing proxy coverage is unchanged.",
-      "sourceFingerprint": "8520c3c9329de4a8ca125a350e11607caf9b8de3ed48902bb3d0ee4728a2d417",
+      "syncRevision": 36,
+      "syncNote": "The solid entry console moves west to clear the basement landing; furnishings remain excluded from the ground-only tabletop.",
+      "sourceFingerprint": "a4f53b8a0ad048ad2ddc39b5cfe4f3731faf81f5b64967302660239fa5d65ad9",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "aa35b463ca0dd1b75efbc2323266703cd232549e274e571eb0ffb04420b120f4"
+      "metadataFingerprint": "829ea52be72d12fa5111a5c88015ce5eccf9a711bbe1e30c333a0b03b1627636"
     },
     {
       "id": "decor:wall-paintings",
@@ -434,6 +434,19 @@
       "sourceFingerprint": "971ef42420aa1289a362fe86a43abe46b38db00bc721b919beb7be62eace561c",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "metadataFingerprint": "a1f55926d15dbbbf6265d325b88de2dbe745c6b206541a43b0f6e13be4fda910"
+    },
+    {
+      "id": "level:basement-stairs",
+      "sourceFiles": [
+        "src/scene/level/basementStair.ts",
+        "src/scene/structures/basementStaircase.ts"
+      ],
+      "proxyFiles": [],
+      "syncRevision": 3,
+      "syncNote": "The shared descriptor also identifies the landing visual occluder; its runtime cutaway preserves collision. The tabletop retains the source-derived opening and its ground-only view.",
+      "sourceFingerprint": "cb43257fb1fbb78016a3cfa99efeeb0c3365c55e09b59445ac82939e2a9daf6b",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "8bd86b98548b8bcf86ff6983d5602bc5d46b935e7ceb084be0bef5f3fc40832c"
     },
     {
       "id": "level:floors-walls",
@@ -458,11 +471,11 @@
         "src/scene/level/schema.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "FloorId now comes from the elevation registry; the authored ground and upper layout and miniature geometry are unchanged.",
-      "sourceFingerprint": "2a0cd7e14983bdc02e4a8758d91f6971535bbc69f201cca59b49db014d4086f1",
+      "syncRevision": 4,
+      "syncNote": "The basement shell is below the tabletop ground-only view; the ground-floor stair reservation is represented by the shared basement stair descriptor.",
+      "sourceFingerprint": "4a4e86209c5eed6905e995721349283c470be26c51ca8f7da2ca7a495a6b1bff",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "a2546150fa6184b73148669724aa3f938b0f2910640c137b432343ae82f79331"
+      "metadataFingerprint": "1c6e505a2d4ce41bc43dffd4c7dc1b8e878c937a06ca2e6e135f6f401cb38eb7"
     },
     {
       "id": "level:stairs-landing",
@@ -473,11 +486,11 @@
         "src/scene/structures/upperStairwellLanding.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Stairs and upper landing have shared dimensions.",
-      "sourceFingerprint": "b28fc86672fa3c4e0dcf949fd6e642ea210893871d9d910e21ebb5bf70c4fcea",
+      "syncRevision": 2,
+      "syncNote": "Both stair builds share tread geometry; the ground miniature retains the upstairs silhouette and renders the source-derived basement opening.",
+      "sourceFingerprint": "2b97cf44654424ad3e9c81e5a871258baff4a1fba0d9e3926313d3ac8204c06b",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "55600d82e33e660513d832a4e426a9d517e9bdd8ce7347dfc4c8f14ccb5794c4"
+      "metadataFingerprint": "a1a7761c6086ad3a0dc321d104ff672db2a1603092642c5b18abcb1611aafbeb"
     },
     {
       "id": "lighting:visible-fixtures",
@@ -524,7 +537,7 @@
       "syncRevision": 9,
       "syncNote": "Environment metadata was added; tabletop proxy geometry remains unchanged.",
       "sourceFingerprint": "cead9fbb202897b974fd80b54764f400b2151b5fa5fd15cbb375383ee4ed1684",
-      "proxyFingerprint": "fc2439ce5869c9c1e61e2c938f1ffe5f754d8cf1187cc4e7f7d8bdedd996f0b3",
+      "proxyFingerprint": "758861197f673b969a168d3ebb73fc240044f9b7551e9d6b354ae904696e2da6",
       "metadataFingerprint": "957d6ae091597a4ae328777cae928273f76f2052f71f2204dc7713d7bf1932f9"
     },
     {
