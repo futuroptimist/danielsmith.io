@@ -153,6 +153,35 @@ def education_pair_observations(
     return observations, warnings, failures
 
 
+def experience_pair_checks(
+    config: dict,
+    plain: str,
+    heading_positions_by_name: dict[str, int],
+) -> list[CheckResult]:
+    """Keep each reviewed role, date range, and team inside its employer entry."""
+    experience = re.sub(
+        r"\s+", " ", section_slice(plain, heading_positions_by_name, "Experience")
+    )
+    entries = config.get("experiencePairing", [])
+    positions = [experience.find(entry["employer"]) for entry in entries]
+    checks: list[CheckResult] = []
+    for entry, start in zip(entries, positions):
+        end = min((pos for pos in positions if pos > start), default=len(experience))
+        block = experience[start:end] if start != -1 else ""
+        for field in ("role", "dates", "team"):
+            expected = entry.get(field)
+            if expected:
+                present = expected in block
+                checks.append(
+                    CheckResult(
+                        f"Experience pairing: `{entry['employer']}` / `{expected}`",
+                        present,
+                        "within employer entry" if present else "missing from employer entry",
+                    )
+                )
+    return checks
+
+
 def main() -> int:
     args = parse_args()
     config = load_config(Path(args.config))
@@ -216,6 +245,9 @@ def main() -> int:
             before_pos != -1 and after_pos != -1 and before_pos < after_pos,
             f"positions {before_pos}, {after_pos}",
         )
+
+    for result in experience_pair_checks(config, plain, headings):
+        check(result.label, result.passed, result.detail)
 
     education_observations, education_warnings, education_failures = (
         education_pair_observations(config, plain, headings)

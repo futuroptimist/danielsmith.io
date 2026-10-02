@@ -9,6 +9,9 @@
     "Skills",
     "Experience",
     "Education",
+    "Muon Space",
+    "Senior Software Engineer",
+    "Sep 2026 – Present",
     "Independent Software Engineer — AI Products & Infrastructure",
     "Jun 2025 — Present",
     "YouTube (Google)",
@@ -35,5 +38,33 @@
       ["M.S. Computer Science", "2016"],
       ["B.S. Computer Science", "2015"]
     ]
-  }
+  },
+  "experiencePairing": [
+    {
+      "employer": "Muon Space",
+      "role": "Senior Software Engineer",
+      "dates": "Sep 2026 – Present",
+      "team": "Mission Planning Platform"
+    },
+    {
+      "employer": "Independent Software Engineer — AI Products & Infrastructure",
+      "role": "Selected open-source products",
+      "dates": "Jun 2025 — Present"
+    },
+    {
+      "employer": "YouTube (Google)",
+      "role": "Site Reliability Engineer",
+      "dates": "Sep 2018 – May 2025"
+    },
+    {
+      "employer": "Naval Research Laboratory",
+      "role": "Computer Scientist",
+      "dates": "Jan 2017 – Sep 2018"
+    },
+    {
+      "employer": "The University of Southern Mississippi",
+      "role": "Software Developer",
+      "dates": "Mar 2014 – Dec 2016"
+    }
+  ]
 }

@@ -89,6 +89,93 @@ describe('resume ATS smoke', () => {
     ]);
     expectMetadataAndPageSizeChecksToPass(summary);
   });
+  it.each([
+    ['valid employer entries', '', ''],
+    ['swapped date ranges', 'Sep 2026 – Present', 'Sep 2018 – May 2025'],
+    ['missing team', 'Mission\nPlanning Platform', 'Another team'],
+    [
+      'wrong historical role',
+      'Site Reliability Engineer',
+      'Software Developer',
+    ],
+    ['missing employer heading', 'Muon Space', 'Unrelated organization'],
+  ])(
+    'checks career role/date/team pairing: %s',
+    async (_name, before, after) => {
+      const pdfPath = await createPdfFixture();
+      await createPdfinfoFixture();
+      const plainPath = path.join(fixtureDir, 'plain.txt');
+      const layoutPath = path.join(fixtureDir, 'layout.txt');
+      const summaryPath = path.join(fixtureDir, 'summary.md');
+      const configPath = path.join(fixtureDir, 'config.json');
+      const text = [
+        'Summary',
+        'Career overview',
+        'Experience',
+        'Muon Space',
+        'Senior Software Engineer Sep 2026 – Present',
+        'Contributing to cloud-based mission planning and control software on the Mission',
+        'Planning Platform team.',
+        'YouTube (Google)',
+        'Site Reliability Engineer Sep 2018 – May 2025',
+        'Skills',
+        // These facts outside Experience must not rescue an incorrect entry.
+        'Muon Space Senior Software Engineer Sep 2026 – Present Mission Planning Platform',
+        'Education',
+        '',
+      ].join('\n');
+      let candidate = before ? text.replace(before, after) : text;
+      if (before === 'Sep 2026 – Present') {
+        candidate = candidate.replace(
+          'Site Reliability Engineer Sep 2018 – May 2025',
+          'Site Reliability Engineer Sep 2026 – Present'
+        );
+      }
+      await writeFile(plainPath, candidate);
+      await writeFile(layoutPath, candidate);
+      await writeFile(
+        configPath,
+        JSON.stringify({
+          minimumPlainCharacters: 0,
+          sectionOrderPairs: [
+            ['Summary', 'Experience'],
+            ['Experience', 'Skills'],
+            ['Skills', 'Education'],
+          ],
+          experiencePairing: [
+            {
+              employer: 'Muon Space',
+              role: 'Senior Software Engineer',
+              dates: 'Sep 2026 – Present',
+              team: 'Mission Planning Platform',
+            },
+            {
+              employer: 'YouTube (Google)',
+              role: 'Site Reliability Engineer',
+              dates: 'Sep 2018 – May 2025',
+            },
+          ],
+        })
+      );
+      const check = runAtsSmoke(
+        pdfPath,
+        plainPath,
+        layoutPath,
+        summaryPath,
+        configPath
+      );
+      if (before) {
+        await expect(check).rejects.toMatchObject({
+          stdout: expect.stringContaining('Experience pairing:'),
+        });
+      } else {
+        await expect(check).resolves.toBeUndefined();
+      }
+      const summary = await readFile(summaryPath, 'utf8');
+      expectMetadataAndPageSizeChecksToPass(summary);
+      expect(failedChecklistEntries(summary).length > 0).toBe(Boolean(before));
+    }
+  );
 });
 
 function failedChecklistEntries(summary: string): string[] {

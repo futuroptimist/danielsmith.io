@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
+import runpy
 import shutil
 import subprocess
 import tempfile
@@ -17,6 +19,14 @@ from xml.etree import ElementTree as ET
 WORD_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 OFFICE_REL_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
 PACKAGE_REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+CORE_NS = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
+DC_NS = "http://purl.org/dc/elements/1.1/"
+METADATA_FIELDS = {
+    "pdftitle": f"{{{DC_NS}}}title",
+    "pdfauthor": f"{{{DC_NS}}}creator",
+    "pdfsubject": f"{{{DC_NS}}}subject",
+    "pdfkeywords": f"{{{CORE_NS}}}keywords",
+}
 NS = {"w": WORD_NS}
 REQUIRED_LINKS = {
     "mailto:daniel@danielsmith.io",
@@ -42,14 +52,38 @@ def set_value(parent: ET.Element, name: str, value: str) -> ET.Element:
     return child
 
 
-def apply_docx_layout(docx: Path) -> None:
+def source_metadata(source: Path) -> dict[str, str]:
+    """Copy only the resume's public, plain-text hyperref metadata."""
+    text = source.read_text(encoding="utf-8")
+    metadata: dict[str, str] = {}
+    for field, tag in METADATA_FIELDS.items():
+        match = re.search(rf"\b{field}\s*=\s*\{{([^{{}}]*)\}}", text)
+        if not match or not match.group(1).strip():
+            raise RuntimeError(f"resume source is missing plain-text metadata: {field}")
+        metadata[tag] = re.sub(r"\s+", " ", match.group(1)).strip()
+    return metadata
+
+
+def apply_docx_layout(docx: Path, metadata: dict[str, str]) -> None:
     """Apply compact, deterministic Word styles without altering document content."""
     ET.register_namespace("w", WORD_NS)
     ET.register_namespace("r", OFFICE_REL_NS)
+    ET.register_namespace("cp", CORE_NS)
+    ET.register_namespace("dc", DC_NS)
+    ET.register_namespace("dcterms", "http://purl.org/dc/terms/")
     with tempfile.TemporaryDirectory(prefix="resume-docx-layout-") as temp:
         unpacked = Path(temp)
         with zipfile.ZipFile(docx) as archive:
             archive.extractall(unpacked)
+
+        core_path = unpacked / "docProps" / "core.xml"
+        core = ET.parse(core_path)
+        for tag, value in metadata.items():
+            element = core.getroot().find(tag)
+            if element is None:
+                element = ET.SubElement(core.getroot(), tag)
+            element.text = value
+        core.write(core_path, encoding="UTF-8", xml_declaration=True)
 
         styles_path = unpacked / "word" / "styles.xml"
         styles = ET.parse(styles_path)
@@ -123,9 +157,10 @@ def apply_docx_layout(docx: Path) -> None:
 
 
 def run_build(source: Path, output: Path) -> None:
+    metadata = source_metadata(source)
     output.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["pandoc", str(source), "-o", str(output)], check=True)
-    apply_docx_layout(output)
+    apply_docx_layout(output, metadata)
 
 
 def command_output(command: list[str]) -> str:
@@ -161,7 +196,29 @@ def verify_links(docx: Path) -> None:
         raise RuntimeError(f"DOCX is missing required hyperlinks: {', '.join(missing)}")
 
 
-def run_verify(docx: Path, render_dir: Path) -> None:
+def verify_metadata(docx: Path) -> None:
+    with zipfile.ZipFile(docx) as archive:
+        core = ET.fromstring(archive.read("docProps/core.xml"))
+    for field, tag in METADATA_FIELDS.items():
+        value = core.findtext(tag)
+        if not value or not value.strip():
+            raise RuntimeError(f"DOCX is missing metadata: {field}")
+
+
+def verify_experience_pairing(text: str, config_path: Path) -> None:
+    """Use the PDF ATS policy for employer-scoped DOCX extraction checks too."""
+    policy = runpy.run_path(str(Path(__file__).with_name("resume-ats-smoke.py")))
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    headings = policy["heading_positions"](
+        text.splitlines(), {"Summary", "Experience", "Skills", "Education"}
+    )
+    checks = policy["experience_pair_checks"](config, text, headings)
+    failures = [check.label for check in checks if not check.passed]
+    if failures:
+        raise RuntimeError("DOCX career content mismatch: " + "; ".join(failures))
+
+
+def run_verify(docx: Path, render_dir: Path, config_path: Path) -> None:
     render_dir.mkdir(parents=True, exist_ok=True)
     profile = render_dir / "libreoffice-profile"
     profile_uri = f"file://{quote(str(profile.resolve()))}"
@@ -224,6 +281,9 @@ def run_verify(docx: Path, render_dir: Path) -> None:
             "rendered DOCX changed hyphenated terms: " + ", ".join(missing_hyphens)
         )
     verify_links(docx)
+    verify_metadata(docx)
+    verify_experience_pairing(extracted, config_path)
+    verify_experience_pairing(direct, config_path)
 
 
 def parse_args() -> argparse.Namespace:
@@ -235,6 +295,11 @@ def parse_args() -> argparse.Namespace:
     verify = commands.add_parser("verify")
     verify.add_argument("--docx", type=Path, required=True)
     verify.add_argument("--render-dir", type=Path, required=True)
+    verify.add_argument(
+        "--config",
+        type=Path,
+        default=Path(__file__).resolve().parent.parent / "docs/resume/ats-smoke.json",
+    )
     return parser.parse_args()
 
 
@@ -245,7 +310,7 @@ def main() -> None:
     else:
         if args.render_dir.exists():
             shutil.rmtree(args.render_dir)
-        run_verify(args.docx, args.render_dir)
+        run_verify(args.docx, args.render_dir, args.config)
 
 
 if __name__ == "__main__":
