@@ -1557,6 +1557,11 @@ html[data-hud-layout='mobile'] .audio-subtitles {
 }
 
 :root[data-hud-layout='mobile'] .poi-tooltip-overlay__heading-row {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #080c14;
+  box-shadow: 0 -1rem 0 1.1rem #080c14;
   align-items: flex-start;
 }
 
@@ -1980,6 +1985,9 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   gap: 0.75rem;
   padding: 1.1rem 1.35rem;
   max-width: min(26rem, calc(100% - 3rem));
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border-radius: 1rem;
   background: var(--hud-surface-bg);
   color: var(--hud-surface-text);
@@ -2100,6 +2108,25 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   color: rgba(222, 245, 255, 0.92);
   font-size: 0.92rem;
   line-height: 1.45;
+}
+
+.poi-tooltip-overlay__career p,
+.text-fallback__timeline-team,
+.text-fallback__timeline-illustration,
+.text-fallback__timeline-disclaimer {
+  margin: 0.3rem 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.poi-tooltip-overlay__career[hidden] {
+  display: none;
+}
+
+.poi-tooltip-overlay__career-disclaimer,
+.text-fallback__timeline-disclaimer {
+  padding: 0.6rem;
+  border-inline-start: 3px solid currentColor;
 }
 
 .poi-tooltip-overlay__outcome {
@@ -2620,4 +2647,13 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
 .tutorial-panel__progress-prompt,
 .tutorial-panel__hint {
   margin: 0;
+}
+
+.poi-tooltip-overlay [hidden] {
+  display: none;
+}
+
+#app > canvas:focus-visible {
+  outline: 2px solid var(--hud-surface-text);
+  outline-offset: -2px;
 }

@@ -6,7 +6,6 @@ import {
   getModeAnnouncerStrings,
   getModeToggleStrings,
   resolveLocale,
-  getPoiCopy,
   getSiteStrings,
   type SiteTextFallbackStrings,
 } from '../../assets/i18n';
@@ -638,8 +637,9 @@ const installFallbackRecoveryShortcuts = (
 function buildTextPortfolioGroups(
   localeHint?: string
 ): TextPortfolioRoomGroup[] {
-  const poiDefinitions = getPoiDefinitions();
-  const poiCopy = getPoiCopy(localeHint);
+  const poiDefinitions = getPoiDefinitions(localeHint).filter(
+    (poi) => poi.category === 'project'
+  );
   const roomLookup = new Map(
     FLOOR_PLAN.rooms.map((room) => [room.id, room.name])
   );
@@ -659,7 +659,7 @@ function buildTextPortfolioGroups(
       groups.set(definition.roomId, group);
     }
 
-    const copy = poiCopy[definition.id];
+    const copy = definition;
     const metricsSource = copy?.metrics ?? definition.metrics ?? [];
     const linksSource = copy?.links ?? definition.links ?? [];
 
@@ -931,6 +931,7 @@ function createTimelineSection(
   textFallbackStrings.timeline.entries.forEach((entry) => {
     const item = documentTarget.createElement('li');
     item.className = 'text-fallback__timeline-entry';
+    if (entry.id) item.dataset.careerId = entry.id;
 
     const title = documentTarget.createElement('div');
     title.className = 'text-fallback__timeline-title';
@@ -939,13 +940,27 @@ function createTimelineSection(
 
     const meta = documentTarget.createElement('div');
     meta.className = 'text-fallback__timeline-meta';
-    meta.textContent = ` ${entry.period} · ${entry.location}`;
+    meta.textContent = [entry.period, entry.location]
+      .filter(Boolean)
+      .join(' · ');
     item.appendChild(meta);
 
     const summary = documentTarget.createElement('p');
     summary.className = 'text-fallback__timeline-summary';
     summary.textContent = ` ${entry.summary}`;
     item.appendChild(summary);
+    for (const [kind, text] of [
+      ['team', entry.team],
+      ['illustration', entry.illustrationNote],
+      ['disclaimer', entry.disclaimer],
+    ] as const) {
+      if (!text) continue;
+      const paragraph = documentTarget.createElement('p');
+      paragraph.className = `text-fallback__timeline-${kind}`;
+      paragraph.textContent = text;
+      if (kind === 'disclaimer') paragraph.dataset.careerDisclaimer = 'true';
+      item.appendChild(paragraph);
+    }
 
     list.appendChild(item);
   });
@@ -1030,6 +1045,7 @@ export function renderTextFallback(
   } = options;
   const documentTarget = container.ownerDocument ?? document;
   const localeHint =
+    documentTarget.documentElement.dataset.contentLocale ||
     documentTarget.documentElement.lang ||
     (typeof navigator !== 'undefined' ? navigator.language : undefined);
   const textFallbackStrings = getSiteStrings(localeHint).textFallback;

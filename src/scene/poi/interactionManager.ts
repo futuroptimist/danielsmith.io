@@ -239,6 +239,9 @@ export class PoiInteractionManager {
   }
 
   private handleMouseLeave() {
+    // A keyboard-opened detail panel can appear beneath the stationary pointer.
+    // That synthetic boundary crossing must not erase the keyboard target.
+    if (this.usingKeyboard) return;
     this.suppressSyntheticClickUntil = 0;
     this.usingKeyboard = false;
     this.cancelScheduledHoverPick();

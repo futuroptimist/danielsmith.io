@@ -186,7 +186,7 @@ export function buildPressKitSummary(
       acc[poi.category] += 1;
       return acc;
     },
-    { project: 0, environment: 0 }
+    { project: 0, environment: 0, career: 0 }
   );
 
   const roomsRepresented = new Set(poiCatalog.map((poi) => poi.room.id)).size;

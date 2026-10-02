@@ -1,3 +1,4 @@
+import { CAREER_MUSEUM_OBJECTS } from './careerMuseumLayout';
 import { getFloorTopElevation, type FloorId } from './floorElevations';
 import type {
   FloorDefinition,
@@ -180,6 +181,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
   floors: [
     buildFloor({
       id: 'basement',
+      sceneObjects: CAREER_MUSEUM_OBJECTS,
       name: 'Career Museum',
       outline: [
         [-16, -18],

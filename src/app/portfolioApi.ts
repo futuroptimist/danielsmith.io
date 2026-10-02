@@ -20,6 +20,7 @@ import type {
   PerformanceCrashBreadcrumbApi,
   PerformanceDiagnosticsApi,
 } from '../scene/performance/performanceDiagnostics';
+import type { CareerMuseumResourceLifecycle } from '../scene/structures/careerMuseum';
 import type { KeyBindingAction } from '../systems/controls/keyBindings';
 import type { GitHubRepoStatsDiagnostics } from '../systems/github/repoStats';
 import type { FloorConnectionController } from '../systems/movement/floorConnections';
@@ -124,6 +125,21 @@ export interface PortfolioApi {
     setCameraPanForTest?(input: { x: number; y: number }): void;
   };
   poi?: {
+    getCareerMuseumState(): {
+      lifecycle: CareerMuseumResourceLifecycle | null;
+      resources: {
+        geometries: number;
+        materials: number;
+        textures: number;
+      } | null;
+      exhibits: Array<{
+        id: string;
+        visible: boolean;
+        plaqueVisible: boolean;
+        anchor: { x: number; y: number; z: number };
+        screen: { x: number; y: number };
+      }>;
+    };
     getTooltipState(): {
       overlayVisiblePoiId: string | null;
       worldTooltipVisible: boolean;

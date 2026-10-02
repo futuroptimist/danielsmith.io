@@ -40,6 +40,8 @@ interface RenderState {
 
 const getPoiRenderContentKey = (poi: PoiDefinition): string =>
   JSON.stringify({
+    category: poi.category,
+    career: poi.career ?? null,
     title: poi.title,
     summary: poi.summary,
     status: poi.status ?? null,
@@ -53,6 +55,7 @@ export class PoiTooltipOverlay {
   private readonly root: HTMLElement;
   private readonly title: HTMLHeadingElement;
   private readonly summary: HTMLParagraphElement;
+  private readonly careerDetails: HTMLDivElement;
   private readonly outcome: HTMLParagraphElement;
   private readonly outcomeLabel: HTMLSpanElement;
   private readonly outcomeSeparator: HTMLSpanElement;
@@ -155,6 +158,12 @@ export class PoiTooltipOverlay {
     this.summary.className = 'poi-tooltip-overlay__summary';
     this.summary.id = `${this.instanceId}-summary`;
     this.root.appendChild(this.summary);
+
+    this.careerDetails = documentTarget.createElement('div');
+    this.careerDetails.className = 'poi-tooltip-overlay__career';
+    this.careerDetails.id = `${this.instanceId}-career`;
+    this.careerDetails.hidden = true;
+    this.root.appendChild(this.careerDetails);
 
     this.outcome = documentTarget.createElement('p');
     this.outcome.className = 'poi-tooltip-overlay__outcome';
@@ -332,6 +341,7 @@ export class PoiTooltipOverlay {
     this.renderDebugDetails(poi);
 
     const describedByIds = [this.summary.id];
+    if (!this.careerDetails.hidden) describedByIds.push(this.careerDetails.id);
     if (!this.outcome.hidden) {
       describedByIds.push(this.outcome.id);
     }
@@ -395,8 +405,10 @@ export class PoiTooltipOverlay {
   }
 
   private renderPoi(poi: PoiDefinition) {
+    this.root.scrollTop = 0;
     this.title.textContent = poi.title;
     this.summary.textContent = poi.summary;
+    this.renderCareer(poi);
     this.updateStatus(poi);
     this.renderOutcome(poi);
     this.renderMetrics(poi);
@@ -404,8 +416,42 @@ export class PoiTooltipOverlay {
     this.renderEnvironments(poi);
   }
 
+  private renderCareer(poi: PoiDefinition) {
+    this.careerDetails.replaceChildren();
+    this.careerDetails.hidden = poi.category !== 'career';
+    this.linksList.setAttribute(
+      'aria-label',
+      poi.category === 'career'
+        ? poi.career.organization
+        : this.strings.relatedCaseStudies
+    );
+    if (poi.category !== 'career') {
+      delete this.careerDetails.dataset.careerId;
+      return;
+    }
+    this.careerDetails.dataset.careerId = poi.career.id;
+    const rows = [
+      ['role', `${poi.career.role} · ${poi.career.organization}`],
+      [
+        'period',
+        [poi.career.period, poi.career.location].filter(Boolean).join(' · '),
+      ],
+      ['team', poi.career.team],
+      ['illustration', poi.career.illustrationNote],
+      ['disclaimer', poi.career.disclaimer],
+    ] as const;
+    rows.forEach(([kind, text]) => {
+      if (!text) return;
+      const paragraph = this.root.ownerDocument.createElement('p');
+      paragraph.className = `poi-tooltip-overlay__career-${kind}`;
+      paragraph.textContent = text;
+      if (kind === 'disclaimer') paragraph.dataset.careerDisclaimer = 'true';
+      this.careerDetails.appendChild(paragraph);
+    });
+  }
+
   private renderOutcome(poi: PoiDefinition) {
-    const outcome = poi.outcome;
+    const outcome = poi.category === 'career' ? undefined : poi.outcome;
     if (!outcome || !outcome.value.trim()) {
       this.outcome.hidden = true;
       this.outcomeLabel.textContent = '';
@@ -424,7 +470,7 @@ export class PoiTooltipOverlay {
   }
 
   private updateStatus(poi: PoiDefinition) {
-    if (poi.status) {
+    if (poi.category !== 'career' && poi.status) {
       const statusLabel =
         poi.status === 'prototype' ? this.strings.prototype : this.strings.live;
       this.statusBadge.textContent = statusLabel;
@@ -437,7 +483,7 @@ export class PoiTooltipOverlay {
 
   private renderMetrics(poi: PoiDefinition) {
     this.metricsList.innerHTML = '';
-    if (!poi.metrics || poi.metrics.length === 0) {
+    if (poi.category === 'career' || !poi.metrics || poi.metrics.length === 0) {
       this.metricsList.hidden = true;
       return;
     }
@@ -512,7 +558,8 @@ export class PoiTooltipOverlay {
 
   private renderEnvironments(poi: PoiDefinition) {
     this.environmentsList.innerHTML = '';
-    const environments = poi.environments ?? [];
+    const environments =
+      poi.category === 'career' ? [] : (poi.environments ?? []);
     this.environmentsSection.hidden = environments.length === 0;
     if (environments.length === 0) {
       return;

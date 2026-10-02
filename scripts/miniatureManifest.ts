@@ -159,7 +159,9 @@ function validateRegistry(entries: Entry[]) {
     })
   );
   const livePoiIds = new Set<string>(
-    getPoiDefinitions().map((definition) => definition.id)
+    getPoiDefinitions()
+      .filter((definition) => definition.category === 'project')
+      .map((definition) => definition.id)
   );
   const proxyPoiIds = new Set<string>(
     Object.keys(MINIATURE_POI_PROXY_REGISTRY)

@@ -100,6 +100,7 @@ export function wireGitHubRepoMetrics({
   };
 
   definitions.forEach((poi) => {
+    if (poi.category !== 'project') return;
     poi.metrics?.forEach((metric) => {
       if (!isGitHubStarsSource(metric.source)) {
         return;

@@ -1,5 +1,6 @@
 import type {
-  PoiId,
+  ProjectPoiId,
+  CareerId,
   PoiInteraction,
   PoiEnvironment,
   PoiMetricSource,
@@ -415,8 +416,12 @@ export interface SiteTextFallbackStrings {
   timeline: {
     heading: string;
     entries: {
+      id?: CareerId;
+      team?: string;
+      disclaimer?: string;
+      illustrationNote?: string;
       period: string;
-      location: string;
+      location?: string;
       role: string;
       org: string;
       summary: string;
@@ -470,6 +475,19 @@ export interface PoiCopy {
   interactionPrompt?: string;
 }
 
+export interface CareerCopy {
+  title: string;
+  organization: string;
+  role: string;
+  team?: string;
+  period: string;
+  location?: string;
+  summary: string;
+  illustrationNote: string;
+  disclaimer?: string;
+  sourceLabel: string;
+}
+
 export interface LocaleStrings {
   locale: Locale;
   site: SiteStrings;
@@ -496,7 +514,8 @@ export interface LocaleStrings {
     customization: HudCustomizationStrings;
     poiOverlay: PoiOverlayChromeStrings;
   };
-  poi: Record<PoiId, PoiCopy>;
+  poi: Record<ProjectPoiId, PoiCopy>;
+  careers: Record<CareerId, CareerCopy>;
 }
 
 export type LocaleInput = Locale | string | null | undefined;

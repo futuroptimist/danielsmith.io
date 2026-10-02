@@ -22,7 +22,7 @@ describe('buildPressKitSummary', () => {
         acc[poi.category] += 1;
         return acc;
       },
-      { project: 0, environment: 0 }
+      { project: 0, environment: 0, career: 0 }
     );
     const expectedRooms = new Set(definitions.map((poi) => poi.roomId)).size;
     const expectedReport = performance.createPerformanceBudgetReport(
@@ -121,7 +121,11 @@ describe('buildPressKitSummary', () => {
     expect(summary.poiCatalog).toHaveLength(1);
     expect(summary.poiCatalog[0].metrics).toEqual([]);
     expect(summary.poiCatalog[0].links).toEqual([]);
-    expect(summary.totals.categories).toEqual({ project: 1, environment: 0 });
+    expect(summary.totals.categories).toEqual({
+      project: 1,
+      environment: 0,
+      career: 0,
+    });
   });
 
   it('marks headroom entries as invalid when measurements are malformed', () => {

@@ -1,5 +1,7 @@
-import type { PoiId } from '../../scene/poi/types';
+import type { CareerId, ProjectPoiId } from '../../scene/poi/types';
+import { CAREER_HISTORY } from '../careers';
 
+import { CAREER_LOCALE_COPY } from './careers';
 import { getControlHelpRows } from './controlItems';
 import { AR_OVERRIDES } from './locales/ar';
 import { DE_OVERRIDES } from './locales/de';
@@ -11,6 +13,7 @@ import { JA_OVERRIDES } from './locales/ja';
 import { PT_OVERRIDES } from './locales/pt';
 import { ZH_HANS_OVERRIDES } from './locales/zh-Hans';
 import type {
+  CareerCopy,
   AudioHudControlStrings,
   AudioSubtitleStrings,
   ControlOverlayStrings,
@@ -121,6 +124,21 @@ function buildLocale(
     applyOverrides(clone, overrides as DeepPartial<LocaleStrings>);
   }
   clone.locale = locale;
+  clone.careers = cloneValue(CAREER_LOCALE_COPY[locale]);
+  clone.site.textFallback.timeline.entries = CAREER_HISTORY.map(({ id }) => {
+    const copy = clone.careers[id];
+    return {
+      id,
+      role: copy.role,
+      org: copy.organization,
+      period: copy.period,
+      location: copy.location,
+      summary: copy.summary,
+      team: copy.team,
+      illustrationNote: copy.illustrationNote,
+      disclaimer: copy.disclaimer,
+    };
+  });
   syncHelpModalControlSection(clone);
   return Object.freeze(clone);
 }
@@ -346,8 +364,14 @@ export function getLocaleStrings(input?: LocaleInput): LocaleStrings {
 
 export function getPoiCopy(
   input?: LocaleInput
-): Readonly<Record<PoiId, PoiCopy>> {
+): Readonly<Record<ProjectPoiId, PoiCopy>> {
   return getLocaleStrings(input).poi;
+}
+
+export function getCareerCopy(
+  input?: LocaleInput
+): Readonly<Record<CareerId, CareerCopy>> {
+  return getLocaleStrings(input).careers;
 }
 
 export function getPoiOverlayChromeStrings(

@@ -1148,13 +1148,18 @@ describe('renderTextFallback', () => {
 
     const timeline = Array.from(
       container.querySelectorAll('.text-fallback__timeline-entry')
-    ).map((entry) => entry.textContent?.replace(/\s+/g, ' ').trim());
-    expect(timeline).toEqual(
-      strings.timeline.entries.map(
-        (entry) =>
-          `${entry.role} · ${entry.org} ${entry.period} · ${entry.location} ${entry.summary}`
-      )
     );
+    expect(timeline).toHaveLength(strings.timeline.entries.length);
+    strings.timeline.entries.forEach((entry, index) => {
+      expect(
+        timeline[index].querySelector('.text-fallback__timeline-title')
+          ?.textContent
+      ).toBe(`${entry.role} · ${entry.org}`);
+      expect(timeline[index].textContent).toContain(entry.period);
+      expect(timeline[index].textContent).toContain(entry.summary);
+      if (entry.disclaimer)
+        expect(timeline[index].textContent).toContain(entry.disclaimer);
+    });
 
     const contactLinks = Array.from(
       container.querySelectorAll<HTMLAnchorElement>(
@@ -1250,7 +1255,9 @@ describe('renderTextFallback', () => {
     const rooms = portfolio?.querySelectorAll('.text-fallback__room') ?? [];
     expect(rooms.length).toBeGreaterThan(0);
     const articles = portfolio?.querySelectorAll('.text-fallback__poi') ?? [];
-    expect(articles.length).toBe(getPoiDefinitions().length);
+    expect(articles.length).toBe(
+      getPoiDefinitions().filter((poi) => poi.category === 'project').length
+    );
     const metricsHeading = portfolio?.querySelector(
       '.text-fallback__poi-metrics-heading'
     );

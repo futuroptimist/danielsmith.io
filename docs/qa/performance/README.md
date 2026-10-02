@@ -50,7 +50,12 @@ npm run perf:history -- --route-profile basement <baseline-commit> <stage-commit
 
 The runner uses that commit's `--basement` helper when the helper and basement
 connection exist. Older refs retain the common route and explicitly report the
-basement addition as skipped. The helper hash and actual profile are recorded;
+basement addition as skipped. When that commit contains the career museum, its
+helper uses the verified routes around the solid exhibits and records
+`house-career-museum-route-v1`, including four named exhibit checkpoints. The
+shell retains `house-basement-route-v1`; these extended routes are different
+series. Run the default common profile separately for direct baseline and
+predecessor comparisons. The helper hash and actual profile are recorded;
 do not compare different routes as one series. Later stage additions must preserve
 the common route and record their own capability/profile instead of teleporting.
 

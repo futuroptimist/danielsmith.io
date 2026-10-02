@@ -172,6 +172,7 @@ import {
 import type { SceneObjectDefinition } from './scene/level/schema';
 import {
   assertLevelSourceId,
+  getLevelSourceDebugRef,
   type LevelSourceId,
 } from './scene/level/sourceIds';
 import {
@@ -249,7 +250,11 @@ import {
   injectTextPortfolioStructuredData,
 } from './scene/poi/structuredData';
 import { PoiTooltipOverlay } from './scene/poi/tooltipOverlay';
-import type { PoiDefinition, PoiId } from './scene/poi/types';
+import type {
+  CareerPoiDefinition,
+  PoiDefinition,
+  PoiId,
+} from './scene/poi/types';
 import { updateVisitedBadge } from './scene/poi/visitedBadge';
 import { PoiVisitedState } from './scene/poi/visitedState';
 import {
@@ -266,6 +271,12 @@ import {
   type AxelNavigatorBuild,
 } from './scene/structures/axelNavigator';
 import { createBasementStaircase } from './scene/structures/basementStaircase';
+import {
+  createCareerMuseum,
+  type CareerMuseumBuild,
+  type CareerMuseumResourceLifecycle,
+  type MuseumFurnishingPlacement,
+} from './scene/structures/careerMuseum';
 import { createRoomCeilingPanels } from './scene/structures/ceilingPanels';
 import { createDoorwayOpenings } from './scene/structures/doorwayOpenings';
 import {
@@ -769,6 +780,15 @@ const INPUT_LATENCY_P95_BUDGET_MS = 200;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
+let careerMuseum: CareerMuseumBuild | null = null;
+let disposedCareerMuseumLifecycle: CareerMuseumResourceLifecycle | null = null;
+function disposeCareerMuseumBuild() {
+  if (!careerMuseum) return;
+  careerMuseum.dispose();
+  disposedCareerMuseumLifecycle = careerMuseum.getResourceLifecycle();
+  careerMuseum = null;
+}
+
 let locomotionAnimator: AvatarLocomotionAnimatorHandle | null = null;
 let avatarFootIkController: AvatarFootIkControllerHandle | null = null;
 let locomotionLinearSpeed = 0;
@@ -1242,6 +1262,7 @@ export function initializeImmersiveScene(
     },
   });
   document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
+  document.documentElement.dataset.contentLocale = locale;
   const htmlDirection = getLocaleDirection(locale);
   document.documentElement.dir = htmlDirection;
   document.documentElement.dataset.localeDirection = htmlDirection;
@@ -1395,6 +1416,7 @@ export function initializeImmersiveScene(
       partiallyInitializedTutorialPanel.dispose();
       partiallyInitializedTutorialPanel = null;
     }
+    disposeCareerMuseumBuild();
     disposePortfolioMiniatureTableBuild();
     disposePrReaperInstallationBuild();
     clearPoiModelRoots();
@@ -1504,6 +1526,9 @@ export function initializeImmersiveScene(
 
   const scene = new Scene();
   scene.background = createImmersiveGradientTexture();
+
+  renderer.domElement.tabIndex = -1;
+  renderer.domElement.setAttribute('aria-label', siteStrings.name);
 
   const poiOverrides: PoiInstanceOverrides = {};
   let poiDefinitions = getPoiDefinitions(locale);
@@ -2431,6 +2456,57 @@ export function initializeImmersiveScene(
     connections: stairConnections,
     initialFloorId: activeFloorId,
   });
+  const careerDefinitions = poiDefinitions.filter(
+    (poi): poi is CareerPoiDefinition => poi.category === 'career'
+  );
+  const museumFurnishings = (getLevelFloor('basement').sceneObjects ?? [])
+    .filter((object) => object.kind.startsWith('museum.'))
+    .map(
+      (object): MuseumFurnishingPlacement => ({
+        id: object.id,
+        kind: object.kind.slice(
+          'museum.'.length
+        ) as MuseumFurnishingPlacement['kind'],
+        position: {
+          x: object.position.x * FLOOR_PLAN_SCALE,
+          y:
+            object.position.y ??
+            basementStaircase.definition.lowerFloorElevation,
+          z: object.position.z * FLOOR_PLAN_SCALE,
+        },
+        headingRadians: object.orientation,
+      })
+    );
+  careerMuseum = createCareerMuseum(careerDefinitions, museumFurnishings);
+  disposedCareerMuseumLifecycle = null;
+  basementStructureGroup.add(careerMuseum.group);
+  Object.assign(poiOverrides, careerMuseum.poiOverrides);
+  for (const exhibit of [
+    ...careerMuseum.exhibits,
+    ...careerMuseum.furnishings,
+  ]) {
+    const source = getSceneObjectDefinition(exhibit.id);
+    if (!source) throw new Error(`Missing museum scene source: ${exhibit.id}`);
+    applySceneObjectSourceMetadata(exhibit.group, source);
+    if (exhibit.collider) {
+      namedColliderDebugNames.set(exhibit.collider, `Museum:${exhibit.id}`);
+      registerSceneObjectColliders(
+        [exhibit.collider],
+        source,
+        basementColliders,
+        colliderSourceMetadata
+      );
+      colliderSourceMetadata.set(exhibit.collider, {
+        sourceId: source.sourceId,
+        sourceType: 'sceneObject',
+        purpose: getSceneObjectColliderSourcePurpose(source),
+        role: source.kind,
+        intent: 'physical-boundary',
+        debugId: getLevelSourceDebugRef(source.sourceId),
+      });
+    }
+  }
+
   const getPoiFloorId = createPoiFloorResolver(floorRegistry.all());
   const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides, {
     detailPolicy: activeSceneDetailPolicy,
@@ -2550,6 +2626,7 @@ export function initializeImmersiveScene(
   ) => {
     clearPoiDetailState(inputMethod);
     hudPanelCoordinator?.closeAllPanels();
+    renderer.domElement.focus({ preventScroll: true });
   };
 
   const githubRepoStatsService = createGitHubRepoStatsService();
@@ -2608,6 +2685,38 @@ export function initializeImmersiveScene(
 
   const ensurePoiApi = () => {
     setPortfolioSection('poi', {
+      getCareerMuseumState() {
+        const isVisible = (object: Object3D) => {
+          let current: Object3D | null = object;
+          while (current) {
+            if (!current.visible) return false;
+            current = current.parent;
+          }
+          return true;
+        };
+        const bounds = renderer.domElement.getBoundingClientRect();
+        return {
+          resources: careerMuseum ? { ...careerMuseum.resourceCounts } : null,
+          lifecycle:
+            careerMuseum?.getResourceLifecycle() ??
+            disposedCareerMuseumLifecycle,
+          exhibits: (careerMuseum?.exhibits ?? []).map((exhibit) => {
+            const projected = exhibit.plaque
+              .getWorldPosition(new Vector3())
+              .project(camera);
+            return {
+              id: exhibit.id,
+              visible: isVisible(exhibit.group),
+              plaqueVisible: isVisible(exhibit.plaque),
+              anchor: { ...exhibit.interactionAnchor },
+              screen: {
+                x: bounds.left + ((projected.x + 1) * bounds.width) / 2,
+                y: bounds.top + ((1 - projected.y) * bounds.height) / 2,
+              },
+            };
+          }),
+        };
+      },
       getTooltipState() {
         const overlayState = poiTooltipOverlay.getState();
         const worldState = poiWorldTooltip.getState();
@@ -2726,6 +2835,11 @@ export function initializeImmersiveScene(
     registerPoiModelRoot(poi.definition.id, group);
     registerPoiVisualAnchor(poi.definition.id, group, 'floor');
   };
+  for (const exhibit of careerMuseum.exhibits) {
+    poiStructureColliderIds.add(exhibit.id);
+    registerPoiModelRoot(exhibit.id, exhibit.group);
+    registerPoiVisualAnchor(exhibit.id, exhibit.group, 'floor');
+  }
   const getPoiColliderTarget = (poi: PoiInstance) =>
     floorRegistry.get(getPoiFloorId(poi.definition)).colliders;
   const registerMarkerOnlyPoiColliders = () => {
@@ -4337,6 +4451,7 @@ export function initializeImmersiveScene(
     document.documentElement.dataset.localeDirection = direction;
     document.documentElement.dataset.localeScript = getLocaleScript(locale);
     document.documentElement.lang = locale === 'en-x-pseudo' ? 'en' : locale;
+    document.documentElement.dataset.contentLocale = locale;
 
     controlOverlayStrings = getControlOverlayStrings(locale);
     helpModalStrings = getHelpModalStrings(locale);
@@ -4367,6 +4482,11 @@ export function initializeImmersiveScene(
     const selectedId = currentSelectedPoi?.id ?? null;
     const hoveredId = currentHoveredPoi?.id ?? null;
     poiDefinitions = getPoiDefinitions(locale);
+    careerMuseum?.updateDefinitions(
+      poiDefinitions.filter(
+        (poi): poi is CareerPoiDefinition => poi.category === 'career'
+      )
+    );
     poiDefinitionsById = new Map(
       poiDefinitions.map((definition) => [definition.id, definition] as const)
     );
@@ -6880,6 +7000,7 @@ export function initializeImmersiveScene(
       tokenPlaceWorkstation.dispose();
       tokenPlaceWorkstation = null;
     }
+    disposeCareerMuseumBuild();
     disposePortfolioMiniatureTableBuild();
     sugarkubeDeployment = null;
     clearPoiModelRoots();

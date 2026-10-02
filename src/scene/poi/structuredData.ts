@@ -11,7 +11,11 @@ import {
 } from '../../assets/i18n';
 import { createTextModeUrl } from '../../ui/immersiveUrl';
 
-import type { PoiDefinition } from './types';
+import {
+  isProjectPoi,
+  type PoiDefinition,
+  type ProjectPoiDefinition,
+} from './types';
 
 const DEFAULT_CANONICAL_URL = 'https://danielsmith.io/';
 const SCRIPT_ELEMENT_ID = 'danielsmith-portfolio-pois-structured-data';
@@ -193,7 +197,7 @@ const createEntityReference = (
 };
 
 const createAdditionalProperties = (
-  poi: PoiDefinition,
+  poi: ProjectPoiDefinition,
   strings: SiteStructuredDataPropertyStrings
 ): ReadonlyArray<PropertyValue> => {
   const additionalProperty: PropertyValue[] = [
@@ -262,7 +266,7 @@ interface PoiCreativeWorkOptions {
 }
 
 const createPoiCreativeWork = (
-  poi: PoiDefinition,
+  poi: ProjectPoiDefinition,
   options: PoiCreativeWorkOptions
 ): Record<string, unknown> => {
   const poiUrl = createPoiUrl(options.canonical, poi.id);
@@ -359,23 +363,25 @@ export const buildPoiStructuredData = (
     mainEntity: { '@type': 'ItemList', '@id': listId },
   };
 
-  const itemListElement: ListItem[] = pois.map((poi, index) => {
-    const item = createPoiCreativeWork(poi, {
-      canonical,
-      locale,
-      listId,
-      publisherReference,
-      authorReference,
-      propertyStrings: siteStrings.structuredData.properties,
-    });
+  const itemListElement: ListItem[] = pois
+    .filter(isProjectPoi)
+    .map((poi, index) => {
+      const item = createPoiCreativeWork(poi, {
+        canonical,
+        locale,
+        listId,
+        publisherReference,
+        authorReference,
+        propertyStrings: siteStrings.structuredData.properties,
+      });
 
-    return {
-      '@type': 'ListItem',
-      position: index + 1,
-      url: item.url as string,
-      item,
-    } satisfies ListItem;
-  });
+      return {
+        '@type': 'ListItem',
+        position: index + 1,
+        url: item.url as string,
+        item,
+      } satisfies ListItem;
+    });
 
   const structuredData: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -459,7 +465,7 @@ export const buildTextPortfolioStructuredData = (
     : null;
   const publisherReference = createEntityReference(publisherEntity);
   const authorReference = createEntityReference(authorEntity);
-  const hasPart = pois.map((poi) =>
+  const hasPart = pois.filter(isProjectPoi).map((poi) =>
     createPoiCreativeWork(poi, {
       canonical,
       locale,

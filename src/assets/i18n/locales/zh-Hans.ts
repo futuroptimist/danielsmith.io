@@ -58,30 +58,7 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       },
       timeline: {
         heading: '工作经历',
-        entries: [
-          {
-            period: '2018 年 9 月 — 2025 年 5 月',
-            location: '加利福尼亚州圣布鲁诺',
-            role: '网站可靠性工程师 (L4)',
-            org: 'YouTube (Google)',
-            summary:
-              '覆盖多个 on-call 场景，用 Python/Go/SQL/C++ 自动化监控，并主导面向领导层的可靠性评审。',
-          },
-          {
-            period: '2017 年 1 月 — 2018 年 9 月',
-            location: '密西西比州斯坦尼斯航天中心',
-            role: '软件工程师',
-            org: '海军研究实验室',
-            summary: '在 Scrum 迭代中交付 C++/Qt 数据处理应用和远程演示。',
-          },
-          {
-            period: '2014 年 3 月 — 2016 年 12 月',
-            location: '密西西比州哈蒂斯堡',
-            role: '软件开发者',
-            org: '南密西西比大学',
-            summary: '构建 Objective-C 框架，为大学 iOS 应用提供实时内容。',
-          },
-        ],
+        entries: [],
       },
       contact: {
         heading: '联系',
