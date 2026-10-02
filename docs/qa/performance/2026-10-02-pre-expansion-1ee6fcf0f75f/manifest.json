@@ -11,8 +11,8 @@
     "node": "24.19.0",
     "playwright": "1.55.1",
     "chromium": "140.0.7339.186",
-    "server": "Vite5.4.20 development; served dev/dev identity is not a source SHA",
-    "renderer": "headless software; performance tier; capped12fps",
+    "server": "Vite 5.4.20 development; served dev/dev identity is not a source SHA",
+    "renderer": "headless software; performance tier; capped at 12 fps",
     "viewport": [1280, 720],
     "drawingBuffer": [671, 377],
     "browserDpr": 1,
@@ -40,7 +40,7 @@
     "owner browser walkthrough",
     "basement/exterior at baseline"
   ],
-  "diagnosticLimits": "Rolling180-frame history omits >=1second deltas; five-second dwell cannot prove a post-arrival window. Dispatch delay is not input-to-paint.",
+  "diagnosticLimits": "Rolling 180-frame history omits deltas >= 1 second; five-second dwell cannot prove a post-arrival window. Dispatch delay is not input-to-paint.",
   "archive": {
     "filename": "house-expansion-baseline-1ee6fcf0f75f-complete-review.tar.gz",
     "sha256": "58f83b860366da839139845701cb729898762d0cddbac471c34f3fe3d0f5772a",

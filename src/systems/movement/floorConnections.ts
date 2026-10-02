@@ -7,8 +7,8 @@ import { assertLevelSourceId } from '../../scene/level/sourceIds';
 import type { StairLayoutResult } from './stairLayout';
 import {
   classifyStairTransitionZone,
-  createStairNavAreaRect,
   createStairNavigationZones,
+  createStairTransitionRegions,
   isWithinStairWidth,
   predictStairFloorId,
   sampleStairSurfaceHeight,
@@ -48,6 +48,49 @@ export const isConnectionAdjacent = (
 
 const isTransitionZone = (zone: StairTransitionZone): boolean =>
   zone !== 'outsideStairs' && zone !== 'safeUpperFloor';
+
+const connectionsOverlapOnFloor = (
+  first: StairConnection,
+  second: StairConnection,
+  floorId: FloorId
+): boolean => {
+  const regions = (connection: StairConnection) =>
+    createStairTransitionRegions(
+      connection.geometry,
+      connection.behavior,
+      floorId,
+      connection
+    );
+  const secondRegions = regions(second);
+  return regions(first).some((a) =>
+    secondRegions.some((b) => {
+      const minX = Math.max(a.minX, b.minX);
+      const maxX = Math.min(a.maxX, b.maxX);
+      const minZ = Math.max(a.minZ, b.minZ);
+      const maxZ = Math.min(a.maxZ, b.maxZ);
+      if (minX > maxX || minZ > maxZ) return false;
+      // Selectors are axis-aligned rectangles, with a strict descent-lip edge.
+      // Include interior and boundary probes so touching selectors are rejected,
+      // while excluded or floating-point-rounded edges follow the classifier.
+      return [minX, (minX + maxX) / 2, maxX].some((x) =>
+        [minZ, (minZ + maxZ) / 2, maxZ].some((z) =>
+          [first, second].every((connection) =>
+            isTransitionZone(
+              classifyStairTransitionZone(
+                connection.geometry,
+                connection.behavior,
+                x,
+                z,
+                floorId,
+                connection
+              )
+            )
+          )
+        )
+      );
+    })
+  );
+};
 
 /**
  * Keeps collision floor and surface context together. Call preview before a
@@ -109,22 +152,13 @@ export function createFloorConnectionController({
       sourceIds.add(source);
     }
     for (const other of byId.values()) {
-      if (
-        !isConnectionAdjacent(other, lower.id) &&
-        !isConnectionAdjacent(other, upper.id)
-      )
-        continue;
-      const a = createStairNavAreaRect(geometry);
-      const b = createStairNavAreaRect(other.geometry);
-      if (
-        a.minX < b.maxX &&
-        a.maxX > b.minX &&
-        a.minZ < b.maxZ &&
-        a.maxZ > b.minZ
-      ) {
-        throw new Error(
-          `Overlapping stair corridors '${other.id}' and '${connection.id}'.`
-        );
+      for (const floorId of [lower.id, upper.id]) {
+        if (!isConnectionAdjacent(other, floorId)) continue;
+        if (connectionsOverlapOnFloor(connection, other, floorId)) {
+          throw new Error(
+            `Overlapping stair corridors '${other.id}' and '${connection.id}' on floor '${floorId}'.`
+          );
+        }
       }
     }
     byId.set(connection.id, connection);

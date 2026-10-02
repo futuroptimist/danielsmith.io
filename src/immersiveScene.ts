@@ -443,6 +443,7 @@ import {
   isConnectionAdjacent,
   type StairConnection,
 } from './systems/movement/floorConnections';
+import { planMovementSubsteps } from './systems/movement/movementSubsteps';
 import {
   computeStairLayout,
   computeStairwellOpeningBounds,
@@ -4445,62 +4446,84 @@ export function initializeImmersiveScene(
     return Array.from(blockedBy);
   };
 
+  // Stay inside both the avatar collision radius and the narrowest intentional
+  // stair handoff, even when a slow frame requests a much larger displacement.
+  const maxMovementSubstepDistance = Math.min(
+    PLAYER_RADIUS / 2,
+    ...stairConnections.map(({ behavior }) => behavior.transitionMargin / 2)
+  );
+
   const applyPlayerMovementStep = (
-    stepX: number,
-    stepZ: number,
+    deltaX: number,
+    deltaZ: number,
     options: { includeDiagnostics?: boolean } = {}
   ) => {
     const blockedBy = options.includeDiagnostics ? new Set<string>() : null;
     let movedX = false;
     let movedZ = false;
 
-    if (stepX !== 0) {
-      const candidateX = player.position.x + stepX;
-      const predictedFloor = predictFloorId(
-        candidateX,
-        player.position.z,
-        activeFloorId
-      );
-      if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
-        player.position.x = candidateX;
-        setActiveFloorId(
-          floorConnections.commitPosition(player.position.x, player.position.z)
-            .floorId
-        );
-        movedX = true;
-      } else if (blockedBy) {
-        getBlockingNamesAt(
+    const { count, stepX, stepZ } = planMovementSubsteps(
+      deltaX,
+      deltaZ,
+      maxMovementSubstepDistance
+    );
+    for (let index = 0; index < count; index++) {
+      const beforeX = player.position.x;
+      const beforeZ = player.position.z;
+      if (stepX !== 0) {
+        const candidateX = player.position.x + stepX;
+        const predictedFloor = predictFloorId(
           candidateX,
           player.position.z,
-          predictedFloor
-        ).forEach((name) => blockedBy.add(name));
-      }
-    }
-
-    if (stepZ !== 0) {
-      const candidateZ = player.position.z + stepZ;
-      const predictedFloor = predictFloorId(
-        player.position.x,
-        candidateZ,
-        activeFloorId
-      );
-      if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
-        player.position.z = candidateZ;
-        setActiveFloorId(
-          floorConnections.commitPosition(player.position.x, player.position.z)
-            .floorId
+          activeFloorId
         );
-        movedZ = true;
-      } else if (blockedBy) {
-        getBlockingNamesAt(
+        if (canOccupyPosition(candidateX, player.position.z, predictedFloor)) {
+          player.position.x = candidateX;
+          setActiveFloorId(
+            floorConnections.commitPosition(
+              player.position.x,
+              player.position.z
+            ).floorId
+          );
+          movedX = true;
+        } else if (blockedBy) {
+          getBlockingNamesAt(
+            candidateX,
+            player.position.z,
+            predictedFloor
+          ).forEach((name) => blockedBy.add(name));
+        }
+      }
+
+      if (stepZ !== 0) {
+        const candidateZ = player.position.z + stepZ;
+        const predictedFloor = predictFloorId(
           player.position.x,
           candidateZ,
-          predictedFloor
-        ).forEach((name) => blockedBy.add(name));
+          activeFloorId
+        );
+        if (canOccupyPosition(player.position.x, candidateZ, predictedFloor)) {
+          player.position.z = candidateZ;
+          setActiveFloorId(
+            floorConnections.commitPosition(
+              player.position.x,
+              player.position.z
+            ).floorId
+          );
+          movedZ = true;
+        } else if (blockedBy) {
+          getBlockingNamesAt(
+            player.position.x,
+            candidateZ,
+            predictedFloor
+          ).forEach((name) => blockedBy.add(name));
+        }
       }
-    }
 
-    updatePlayerVerticalPosition();
+      updatePlayerVerticalPosition();
+
+      if (player.position.x === beforeX && player.position.z === beforeZ) break;
+    }
 
     const blockingNames = blockedBy ? Array.from(blockedBy) : [];
     return {

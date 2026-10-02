@@ -4,19 +4,23 @@ import { describe, expect, it } from 'vitest';
 import {
   createFloorRegistry,
   type RuntimeFloor,
-} from '../../scene/floors/floorRegistry';
+} from '../../../scene/floors/floorRegistry';
 import {
   getFloorTopElevation,
   type FloorId,
-} from '../../scene/level/floorElevations';
-import { createNavMesh } from '../navigation/navMesh';
-
+} from '../../../scene/level/floorElevations';
+import { createNavMesh } from '../../navigation/navMesh';
 import {
   createFloorConnectionController,
   type StairConnection,
-} from './floorConnections';
-import { computeStairLayout } from './stairLayout';
-import { predictStairFloorId, sampleStairSurfaceHeight } from './stairs';
+} from '../floorConnections';
+import { computeStairLayout } from '../stairLayout';
+import {
+  classifyStairTransitionZone,
+  createStairTransitionRegions,
+  predictStairFloorId,
+  sampleStairSurfaceHeight,
+} from '../stairs';
 
 const floor = (
   id: FloorId,
@@ -373,6 +377,200 @@ describe.each([1, -1] as const)(
     );
   }
 );
+
+describe('role-aware transition corridor overlap', () => {
+  const floors = createFloorRegistry([
+    floor('basement'),
+    floor('ground'),
+    floor('upper'),
+  ]);
+  const create = (connections: StairConnection[]) =>
+    createFloorConnectionController({
+      floors,
+      connections,
+      initialFloorId: 'ground',
+    });
+  const shiftZ = (stair: StairConnection, offset: number): StairConnection => ({
+    ...stair,
+    geometry: {
+      ...stair.geometry,
+      bottomZ: stair.geometry.bottomZ + offset,
+      topZ: stair.geometry.topZ + offset,
+      landingMinZ: stair.geometry.landingMinZ + offset,
+      landingMaxZ: stair.geometry.landingMaxZ + offset,
+    },
+    layout: {
+      ...stair.layout,
+      topZ: stair.layout.topZ + offset,
+      landingMinZ: stair.layout.landingMinZ + offset,
+      landingMaxZ: stair.layout.landingMaxZ + offset,
+      guardRange: {
+        minZ: stair.layout.guardRange.minZ + offset,
+        maxZ: stair.layout.guardRange.maxZ + offset,
+      },
+      stairHoleRange: {
+        minZ: stair.layout.stairHoleRange.minZ + offset,
+        maxZ: stair.layout.stairHoleRange.maxZ + offset,
+      },
+    },
+  });
+
+  it.each([1, -1] as const)(
+    'rejects entrance-margin-only overlap before movement, direction %s',
+    (direction) => {
+      const west = connection('west', 'ground', 'upper', direction, 0);
+      const east = connection('east', 'ground', 'upper', direction, 7);
+      const z = west.geometry.bottomZ + direction * 0.4;
+      for (const stair of [west, east]) {
+        expect(
+          classifyStairTransitionZone(
+            stair.geometry,
+            stair.behavior,
+            3.5,
+            z,
+            'ground',
+            stair
+          )
+        ).toBe('lowerStairEntrance');
+      }
+      expect(() => create([west, east])).toThrow(
+        /Overlapping stair corridors.*floor 'ground'/
+      );
+    }
+  );
+
+  it.each([1, -1] as const)(
+    'rejects landing margins on a shared floor with opposite local roles, direction %s',
+    (direction) => {
+      const lowerRole = connection('up', 'ground', 'upper', direction, 0);
+      const upperRole = connection(
+        'down',
+        'basement',
+        'ground',
+        direction,
+        6.8
+      );
+      // Physical stair footprints are disjoint; both expanded landing selectors overlap.
+      const z = lowerRole.geometry.topZ + direction;
+      for (const stair of [lowerRole, upperRole]) {
+        expect(
+          classifyStairTransitionZone(
+            stair.geometry,
+            stair.behavior,
+            3.4,
+            z,
+            'ground',
+            stair
+          )
+        ).toBe('upperLanding');
+      }
+      for (const pair of [
+        [lowerRole, upperRole],
+        [upperRole, lowerRole],
+      ]) {
+        expect(() => create(pair)).toThrow(
+          /Overlapping stair corridors.*floor 'ground'/
+        );
+      }
+    }
+  );
+
+  it('rejects a shared inclusive landing edge, not just positive-area intersections', () => {
+    const lowerRole = connection('up', 'ground', 'upper', -1, 0);
+    const upperRole = connection('down', 'basement', 'ground', -1, 7);
+    expect(() => create([lowerRole, upperRole])).toThrow(
+      /Overlapping stair corridors/
+    );
+  });
+
+  it('rejects Z-margin overlap between physically separated landing and entrance', () => {
+    const first = connection('first', 'ground', 'upper', -1, 0);
+    const second = shiftZ(
+      connection('second', 'ground', 'upper', -1, 0),
+      -20.8
+    );
+    expect(second.geometry.bottomZ).toBeLessThan(first.geometry.landingMinZ);
+    expect(() => create([first, second])).toThrow(
+      /Overlapping stair corridors.*floor 'ground'/
+    );
+  });
+
+  it.each([1, -1] as const)(
+    'preserves valid parallel stairs instead of inflating upper-role ramps, direction %s',
+    (direction) => {
+      const lowerRole = connection('up', 'ground', 'upper', direction, 0);
+      const upperRole = connection(
+        'down',
+        'basement',
+        'ground',
+        direction,
+        7.2
+      );
+      const controller = create([lowerRole, upperRole]);
+      // Widened lower entrances overlap in projection, but the second stair is
+      // upper-role ground here and has no selectable entrance at its basement nose.
+      expect(
+        controller.preview(3.6, lowerRole.geometry.bottomZ + direction * 0.4)
+      ).toMatchObject({ floorId: 'ground', activeConnectionId: 'up' });
+      expect(
+        controller.preview(7.2, upperRole.geometry.topZ - direction * 0.7)
+      ).toMatchObject({ floorId: 'basement', activeConnectionId: 'down' });
+    }
+  );
+
+  it.each([1, -1] as const)(
+    'contains classifier selections and matches interiors for both roles, direction %s',
+    (direction) => {
+      const stair = connection('down', 'basement', 'ground', direction, 0);
+      for (const currentFloor of ['basement', 'ground'] as const) {
+        const regions = createStairTransitionRegions(
+          stair.geometry,
+          stair.behavior,
+          currentFloor,
+          stair
+        );
+        const xs = regions
+          .flatMap((region) => [region.minX, region.maxX])
+          .flatMap((edge) => [edge - 0.001, edge, edge + 0.001]);
+        const zs = regions
+          .flatMap((region) => [region.minZ, region.maxZ])
+          .flatMap((edge) => [edge - 0.001, edge, edge + 0.001]);
+        for (const x of xs)
+          for (const z of zs) {
+            const zone = classifyStairTransitionZone(
+              stair.geometry,
+              stair.behavior,
+              x,
+              z,
+              currentFloor,
+              stair
+            );
+            const selected =
+              zone !== 'outsideStairs' && zone !== 'safeUpperFloor';
+            const contained = regions.some(
+              (region) =>
+                x >= region.minX &&
+                x <= region.maxX &&
+                z >= region.minZ &&
+                z <= region.maxZ
+            );
+            expect(
+              !selected || contained,
+              `${currentFloor} at ${x},${z}: ${zone}`
+            ).toBe(true);
+            const interior = regions.some(
+              (region) =>
+                x > region.minX &&
+                x < region.maxX &&
+                z > region.minZ &&
+                z < region.maxZ
+            );
+            if (interior) expect(selected).toBe(true);
+          }
+      }
+    }
+  );
+});
 
 describe('existing upstairs compatibility fixture', () => {
   it('matches the original helper floor and height decisions on and off the run', () => {

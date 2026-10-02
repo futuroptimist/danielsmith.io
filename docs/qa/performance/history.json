@@ -14,7 +14,7 @@
     },
     {
       "id": "2026-10-02-floor-foundation-180aa537",
-      "stage": "floor connection foundation;matched reference rerun",
+      "stage": "floor connection foundation; matched reference rerun",
       "sourceCommit": "180aa53779fb4e5cb8d9cadfad740fbb6f923e88",
       "referenceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
       "manifest": "2026-10-02-floor-foundation-180aa537/manifest.json",

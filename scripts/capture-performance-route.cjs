@@ -5,7 +5,10 @@ const { createRequire } = require('node:module');
 const requireFromRepo = createRequire(path.join(process.cwd(), 'package.json'));
 const { chromium } = requireFromRepo('@playwright/test');
 const output = process.argv[2];
-if (!output) throw new Error('Usage: node capture-route.cjs OUTPUT_DIRECTORY');
+if (!output)
+  throw new Error(
+    'Usage: node scripts/capture-performance-route.cjs OUTPUT_DIRECTORY'
+  );
 const dwellMs = 5000;
 (async () => {
   // Refuse to overwrite an earlier attempt, including failed or unsupported runs.

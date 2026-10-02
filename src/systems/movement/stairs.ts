@@ -230,6 +230,50 @@ export const createStairNavigationZones = (
   };
 };
 
+/**
+ * Candidate-selection regions, rather than the broader navigation footprint.
+ * Ground can be either local role: upper floors only select the landing/lip,
+ * while lower floors also select the ramp and the widened entrance.
+ */
+export const createStairTransitionRegions = (
+  geometry: StairGeometry,
+  behavior: StairBehavior,
+  current: FloorId,
+  floors: StairFloorPair = UPSTAIRS_FLOORS
+): RectCollider[] => {
+  assertAdjacentFloor(current, floors);
+  const zones = createStairNavigationZones(geometry, behavior);
+  const margin = behavior.landingTriggerMargin;
+  const landing = {
+    minX: zones.upperLanding.minX - margin,
+    maxX: zones.upperLanding.maxX + margin,
+    minZ: zones.upperLanding.minZ - margin,
+    maxZ: zones.upperLanding.maxZ + margin,
+  };
+  if (current === floors.lowerFloorId) {
+    return [landing, zones.stairRampBody, zones.lowerStairEntrance];
+  }
+
+  const lipNearZ = geometry.topZ - geometry.direction * margin;
+  const lipFarZ =
+    geometry.topZ - geometry.direction * (behavior.transitionMargin + margin);
+  const lip = {
+    minX: zones.explicitDescentCorridor.minX,
+    maxX: zones.explicitDescentCorridor.maxX,
+    minZ: Math.max(
+      Math.min(lipNearZ, lipFarZ),
+      zones.stairRampBody.minZ - behavior.transitionMargin * 0.5
+    ),
+    maxZ: Math.min(
+      Math.max(lipNearZ, lipFarZ),
+      zones.stairRampBody.maxZ + behavior.transitionMargin * 0.5
+    ),
+  };
+  // The classifier owns the lip's strict near edge. Callers checking shared
+  // boundaries must confirm membership with classifyStairTransitionZone.
+  return lip.minZ <= lip.maxZ ? [landing, lip] : [landing];
+};
+
 export const createGroundStairBoundaryColliders = (
   geometry: StairGeometry,
   behavior: StairBehavior,

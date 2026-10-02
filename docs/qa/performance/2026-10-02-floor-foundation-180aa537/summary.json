@@ -159,6 +159,6 @@
       "remainingPercent": 78.12
     }
   },
-  "interpretation": "Ready ranges and resident-resource ranges overlap. Dispatch-delay variance precludes a speedup claim. Returned-spawn calls shifted84 to84-97; camera, pose, quality, and legacy visibility match, but the cause of phase/run variation is unproven. No budget changes.",
-  "hardwareP95": "unsupported;80ms owner-run gate unchanged"
+  "interpretation": "Ready ranges and resident-resource ranges overlap. Dispatch-delay variance precludes a speedup claim. Returned-spawn calls shifted from 84 to 84–97; camera, pose, quality, and legacy visibility match, but the cause of phase/run variation is unproven. No budget changes.",
+  "hardwareP95": "unsupported; 80 ms owner-run gate unchanged"
 }

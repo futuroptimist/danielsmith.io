@@ -11,25 +11,25 @@
   "runnerSha256": "a34784f1667763db5bf64e8fc7706016437279016986c2f84d5b9d06f02e49be",
   "routeHelperSha256": "123366ce4570793e904356f0dc6a5a9e3c41f3b7ec6a53e9997744e1e538df92",
   "lockSha256": "eb7625041fbcc671048610d6e505444584fa793fe8979c22d2c884c593b922ef",
-  "profile": "Node24.19.0; Playwright1.55.1; Chromium140.0.7339.186; headless software; Vite5.4.20 dev; performance tier;12fps safe cap; warning visible",
+  "profile": "Node 24.19.0; Playwright 1.55.1; Chromium 140.0.7339.186; headless software; Vite 5.4.20 dev; performance tier; 12 fps safe cap; warning visible",
   "viewport": [1280, 720],
   "drawingBuffer": [671, 377],
   "browserDpr": 1,
   "rendererDpr": 0.525,
   "cameraZoom": 12,
   "checkpointDwellMs": 5000,
-  "conditions": "Fresh context and Vite process per attempt; coordinated quiet browser window; no configured throttling; shared OS/dependency caches; en/normal motion. Same profile verified at all24checkpoints.",
+  "conditions": "Fresh context and Vite process per attempt; coordinated quiet browser window; no configured throttling; shared OS/dependency caches; en/normal motion. Same profile verified at all 24 checkpoints.",
   "repetitionsPerCommit": {
     "suite": 3,
     "commonRoute": 3
   },
-  "suiteOutcomePerAttempt": "4passed,1hardware-onlyskip; controlled results completed with frame timing unsupported",
-  "routeOutcomePerAttempt": "2147runtime collision steps,4checkpoints,0blockedsteps",
+  "suiteOutcomePerAttempt": "4 passed, 1 hardware-only skip; controlled results completed with frame timing unsupported",
+  "routeOutcomePerAttempt": "2147 runtime collision steps, 4 checkpoints, 0 blocked steps",
   "archive": {
     "filename": "house-foundation-matched-180aa537-review.tar.gz",
     "sha256": "d4584722e9aab71084d7202bbcd560948e1df115d5f6c1aa9f33936e917b6e9c",
     "availability": "Saved in a private owner review archive; not publicly accessible."
   },
-  "limitations": "Rolling180-frame snapshots do not isolate the five-second dwell and omit>=1second intervals. Dispatch delay is not input-to-paint. GPU bytes, hardware timing, full reclamation and owner walkthrough remain unverified.",
+  "limitations": "Rolling 180-frame snapshots do not isolate the five-second dwell and omit intervals >= 1 second. Dispatch delay is not input-to-paint. GPU bytes, hardware timing, full reclamation and owner walkthrough remain unverified.",
   "referencePolicy": "Original pre-expansion series remains retained. This entry remeasures the same baseline with restarted Vite and compares both baseline and immediate predecessor, which are the same commit for foundation."
 }

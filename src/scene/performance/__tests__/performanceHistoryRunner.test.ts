@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   existsSync,
@@ -13,11 +13,12 @@ import {
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import process from 'node:process';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 const runner = createRequire(import.meta.url)(
-  '../../scripts/performance-history.cjs'
+  '../../../../scripts/performance-history.cjs'
 ) as {
   parseArgs(args: string[]): {
     refs: string[];
@@ -133,6 +134,19 @@ afterEach(() => {
 });
 
 describe('performance history command', () => {
+  it('names the actual capture helper in its missing-argument usage error', () => {
+    const result = spawnSync(
+      process.execPath,
+      [path.resolve('scripts/capture-performance-route.cjs')],
+      { encoding: 'utf8' }
+    );
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain(
+      'Usage: node scripts/capture-performance-route.cjs OUTPUT_DIRECTORY'
+    );
+  });
+
   it('accepts a commit list and explicit route profile', () => {
     expect(
       runner.parseArgs([

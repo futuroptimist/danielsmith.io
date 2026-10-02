@@ -46,5 +46,5 @@
     "hardwareP95Ms": 80
   },
   "deltas": null,
-  "lifecycle": "Exploratory loops reached661geometries/13textures; some explicit deletes observed, complete reclamation unproven. Instrumented/concurrent-run timings excluded."
+  "lifecycle": "Exploratory loops reached 661 geometries / 13 textures; some explicit deletes observed, complete reclamation unproven. Instrumented/concurrent-run timings excluded."
 }

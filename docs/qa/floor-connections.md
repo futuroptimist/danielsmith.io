@@ -12,8 +12,17 @@ floor.
   plan, visual/light groups, POI/structure groups, collision collections, and
   navigation mesh. Unknown and unbuilt IDs throw rather than selecting a fallback
 - `src/systems/movement/floorConnections.ts` resolves only adjacent connections
-  inside explicit transition zones. Collision checks preview a candidate; only
-  accepted X/Z movement commits its floor, active connection, and descent origin
+  inside explicit transition zones. Construction rejects overlapping selectors
+  on each shared floor, including entrance/landing margins and inclusive edges,
+  while applying the lower or upper role of each connection. Collision checks
+  preview a candidate; only accepted X/Z movement commits its floor, active
+  connection, and descent origin
+- `src/systems/movement/movementSubsteps.ts` bounds each runtime displacement
+  piece by half the avatar radius and half the narrowest connection transition
+  margin. Each piece uses the same axis-separated collision, floor, visibility,
+  and height path, so slow frames cannot skip a descent trigger or tunnel through
+  a rail. Ordinary displacement is preserved; extreme overflow beyond 64 pieces
+  is discarded rather than enlarging pieces or creating unbounded catch-up work
 - Stair sampling adds the connection's lower world elevation exactly once.
   Off-stair samples retain the current floor, including negative elevations.
   Upper-origin lip blending persists through slow steps and reversals
@@ -53,6 +62,9 @@ zone queries may specify an explicit `connectionId`.
 npm run typecheck
 npm run lint
 npm run test:ci
+npx vitest run src/systems/movement/__tests__/floorConnections.test.ts \
+  src/systems/movement/__tests__/movementSubsteps.test.ts \
+  src/scene/performance/__tests__/performanceHistoryRunner.test.ts
 npm run miniature:check
 npm run i18n:guard
 npm run test:e2e -- playwright/immersive-stairs-roundtrip.spec.ts \
@@ -63,8 +75,10 @@ npm run test:e2e -- playwright/immersive-stairs-roundtrip.spec.ts \
 The Tests workflow runs these focused traversal suites in their own serial
 WebGL job and retains failure traces separately from performance evidence.
 The original nine upstairs cases remain in place. Their walked ascent also
-checks the registry and explicit connection snapshot; teleporting to a destination
-does not establish successful traversal.
+checks the registry and explicit connection snapshot. Additional regressions
+walk upstairs round trips using displacements from 150, 160, and 350 ms frames
+and attempt large side/back rail crossings. Only isolated starting fixtures use
+teleports; destination floor and height must come from runtime movement.
 
 Synthetic unit fixtures cover three floors, both stair directions, negative and
 nonzero base elevations, exact lips, slow descent, lip reversal, off-stair

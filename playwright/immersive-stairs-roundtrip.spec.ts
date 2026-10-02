@@ -1050,6 +1050,129 @@ test('runtime descent from upper landing mouth reaches the ground', async ({
   await expect(html).toHaveAttribute('data-active-floor', 'ground');
 });
 
+test('preserves upstairs handoffs through coarse slow-frame displacements', async ({
+  page,
+}) => {
+  await waitForImmersiveReady(page);
+  const results = await page.evaluate(() => {
+    const world = (window.portfolio as PortfolioApi).world!;
+    const connection = world
+      .getFloorConnectionSnapshot()
+      .connections.find(({ id }) => id === 'ground-upper');
+    if (!connection) throw new Error('Missing upstairs connection');
+    const g = connection.geometry;
+    const upperZ = g.topZ + g.direction * 3;
+    const lowerZ = g.bottomZ - g.direction * 2;
+    const results = [];
+    for (const delta of [0.15, 0.16, 0.35]) {
+      // Isolate the starting landing only. Both full crossings use runtime
+      // movement, with no destination teleport or explicit floor assignment.
+      world.movePlayerTo({ x: g.centerX, z: upperZ, floorId: 'upper' });
+      for (const target of [lowerZ, upperZ]) {
+        const startFloor = world.getActiveFloor();
+        const expectedFloor = target === lowerZ ? 'ground' : 'upper';
+        const expectedY =
+          target === lowerZ
+            ? connection.lowerFloorElevation
+            : connection.upperFloorElevation;
+        const direction = Math.sign(target - world.getPlayerPosition().z);
+        let velocity = 0;
+        const floors = [startFloor];
+        const samples = [];
+        for (let frame = 0; frame < 80; frame++) {
+          const before = world.getPlayerPosition();
+          const remaining = Math.abs(target - before.z);
+          if (remaining < 0.0001) break;
+          // Match the runtime speed and damped acceleration. Endpoint-only
+          // movement can skip the intentional descent lip on these slow frames.
+          velocity += (12 - velocity) * (1 - Math.exp(-8 * delta));
+          const step = world.stepPlayerForTest({
+            dx: 0,
+            dz: direction * Math.min(velocity * delta, remaining),
+          });
+          if (!step.movedZ)
+            throw new Error(`Coarse crossing blocked: ${JSON.stringify(step)}`);
+          if (floors.at(-1) !== step.activeFloor) floors.push(step.activeFloor);
+          const state = world.getFloorConnectionSnapshot();
+          const visibility = world.getFloorVisibilitySnapshot();
+          if (
+            state.floorId !== step.activeFloor ||
+            visibility.activeFloorId !== step.activeFloor
+          )
+            throw new Error('Coarse crossing floor/visibility disagreement');
+          if (
+            step.position.y < connection.lowerFloorElevation - 0.001 ||
+            step.position.y > connection.upperFloorElevation + 0.001
+          )
+            throw new Error('Coarse crossing escaped its floor elevations');
+          samples.push({ ...step.position, floor: step.activeFloor });
+        }
+        results.push({
+          delta,
+          target,
+          startFloor,
+          expectedFloor,
+          expectedY,
+          floors,
+          samples,
+          position: world.getPlayerPosition(),
+          floor: world.getActiveFloor(),
+        });
+      }
+    }
+    return results;
+  });
+  await test.info().attach('upstairs-coarse-frame-crossings.json', {
+    body: JSON.stringify(results, null, 2),
+    contentType: 'application/json',
+  });
+  expect(results).toHaveLength(6);
+  for (const result of results) {
+    expect(result.floor, JSON.stringify(result)).toBe(result.expectedFloor);
+    expect(result.floors).toEqual([result.startFloor, result.expectedFloor]);
+    expect(result.position.z).toBeCloseTo(result.target, 5);
+    expect(result.position.y).toBeCloseTo(result.expectedY, 5);
+  }
+});
+
+test('blocks coarse displacements through upstairs side and back rails', async ({
+  page,
+}) => {
+  await waitForImmersiveReady(page);
+  const { stairCenterX } = await getStairMetrics(page);
+  const upperLanding = UPPER_FLOOR_PLAN.rooms.find(
+    ({ id }) => id === 'upperLanding'
+  );
+  if (!upperLanding) throw new Error('Missing upper landing room');
+  const fixtures = [
+    { floorId: 'upper' as const, x: 8.1, z: -24.68, dx: 12, dz: 0 },
+    {
+      floorId: 'upper' as const,
+      x: stairCenterX,
+      z: upperLanding.bounds.maxZ + PLAYER_RADIUS,
+      dx: 0,
+      dz: -12,
+    },
+    { floorId: 'ground' as const, x: 23, z: -18, dx: -12, dz: 0 },
+  ];
+  for (const fixture of fixtures) {
+    const result = await page.evaluate((fixture) => {
+      const world = (window.portfolio as PortfolioApi).world!;
+      world.movePlayerTo(fixture); // Start fixture only; attempt uses runtime movement.
+      return world.stepPlayerForTest(fixture);
+    }, fixture);
+    expect(result.activeFloor, JSON.stringify(fixture)).toBe(fixture.floorId);
+    expect(
+      result.blockedBy?.length ?? 0,
+      JSON.stringify({ fixture, result })
+    ).toBeGreaterThan(0);
+    expect(
+      Math.hypot(result.position.x - fixture.x, result.position.z - fixture.z),
+      JSON.stringify({ fixture, result })
+    ).toBeLessThan(2);
+  }
+});
+
 test('ground stair side guard blocks squeeze entry and preserves the stair path', async ({
   page,
 }) => {
