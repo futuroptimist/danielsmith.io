@@ -198,10 +198,12 @@ must not have to enter WebGL to read any career content.
 
 ### Exhibit treatments
 
-- **The University of Southern Mississippi:** a black-and-gold display table,
-  an original miniature campus/iOS development vignette, and an official eagle
-  graphic only if its permitted use is established. A restrained text plaque
-  and original gold sculpture are the fallback.
+- **The University of Southern Mississippi:** an original black-and-gold mobile
+  development setup, with a few phones and tablets scattered across the table
+  and a laptop showing a phone simulator on its screen. Keep the organization
+  and career attribution in plain text; use generic devices and screen content,
+  with no official logo, eagle/mascot, wordmark, or other institution-specific
+  branding.
 - **Naval Research Laboratory:** a decorative aquarium on a sturdy museum stand,
   with a stylized inert mine-shaped prop inside and an adjacent data-processing
   display. The tank/stand is solid; fish, bubbles, water, and the internal prop
@@ -298,15 +300,12 @@ URL, creator, rights/permission, attribution, and any allowed transformations fo
 third-party assets before committing them. Repository MIT licensing does not
 relicense an employer's logo or downloaded model.
 
-The official [Southern Miss athletics brand guide](https://southernmiss.com/documents/download/2025/9/25/USM_BrandingGuide_Updated2024.pdf)
-requires correct colors/proportions, protected space, the eagle's white outline,
-and its registration mark, and restricts unauthorized non-athletics usage. The
-[institutional logo page](https://www.usm.edu/university-communications/university-logo.php)
-is a different asset family and does not establish permission for the eagle.
-Use an official supplied asset only after permission for this portfolio use is
-established. Do not trace, recolor, mirror, distort, or invent an "official" eagle.
-Display any approved logo unmodified on a plane; the surrounding exhibit provides
-the depth. The fallback keeps implementation independent of a licensing delay.
+The Southern Mississippi exhibit uses original generic mobile-development props
+and a black-and-gold palette. Its laptop screen shows an original phone-simulator
+interface, not a copied university application or branded development-tool screen.
+Keep accurate textual career attribution to The University of Southern Mississippi
+without using official logos, mascots, wordmarks, or institution-specific graphics.
+No university branding asset or permission decision is required for this design.
 
 Use an original, unbranded 2040-inspired electric sedan: smooth low-poly body,
 closed grille, restrained light bar, recognizable four-door proportions, and
@@ -472,7 +471,7 @@ preceding branch so reviewers see a focused diff. Record dependencies and the
 exact tested head in its PR description. When bases change, rerun affected gates.
 
 1. **Design contract**: this document only. Verify requirements, candidate layout,
-   public copy policy, asset fallback, dependencies, and acceptance gates. Stop for
+   public copy policy, generic exhibit treatments, dependencies, and acceptance gates. Stop for
    explicit approval here.
 2. **Floor connection foundation**: registry and connection-aware movement,
    elevation, visibility, POI filtering, debug state, and tests. Capture the baseline
@@ -602,7 +601,10 @@ Before the basement milestone is accepted, the owner uses normal controls to wal
 spawn down the stairs, around all exhibits, and back up, then perform the
 [upstairs runbook](../qa/upstairs-stairs.md). Inspect the opening from both ends,
 avatar feet/camera motion, rails, all four plaques, inactive-floor labels, and
-mobile details dismissal. Repeat with reduced motion and performance quality.
+mobile details dismissal. Check that the Southern Mississippi table has the
+black-and-gold treatment, multiple phones/tablets, a visible phone simulator on
+the laptop, and accurate plain-text attribution without official branding.
+Repeat with reduced motion and performance quality.
 
 Before exterior completion, manually walk the entire house/yard/garage loop in
 both directions, operate every door from both sides, stand in its threshold while
@@ -781,8 +783,6 @@ planned PRs above.
 
 - Approve or revise the layout, scope, stack, and explicit basement-before-exterior
   gate before implementation begins
-- Establish permission for the official eagle, or accept the original/text-only
-  fallback so the asset does not block the museum
 - Review exact Muon wording from the specified posting and confirm whether the
   independent open-source entry continues unchanged alongside the new role
 
