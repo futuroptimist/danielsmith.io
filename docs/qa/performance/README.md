@@ -79,6 +79,28 @@ metadata, and per-file checksums is preserved in the private archive identified 
 the manifest. Private availability is stated there; no public access is implied.
 All former raw Git evidence was byte-verified before being moved out of the diff.
 
+## Floor connection foundation: matched reference
+
+[Foundation manifest](2026-10-02-floor-foundation-180aa537/manifest.json) ·
+[Ranges and deltas](2026-10-02-floor-foundation-180aa537/summary.json)
+
+Commit `180aa537` (PR #1118) and its baseline/base `1ee6fcf0` each completed three
+suite attempts and three common routes in one coordinated quiet browser window.
+This fresh matched series restarts Vite for every route; the older original
+baseline remains preserved. Both tested source trees stayed clean.
+
+Ready ranges overlap: **1,315–1,413 ms** for baseline and **1,317–1,371 ms** for
+foundation. Dispatch p95 varies widely (**79.9–111.6 ms** versus **0.5–116.6 ms**),
+so its lower mean is not evidence of a speedup. Upper-pose draw counts match;
+post-route resident geometry ranges overlap (**647–660** versus **641–658**).
+
+Returned-spawn calls changed from **84** to **84–97** (mean **+8.67 / +10.32%**).
+Saved pose, camera, quality and legacy visibility agree, while screenshot animation
+phases differ. The cause is unproven; retain the variation rather than claiming
+strict equivalence. Foundation's worst spawn stays below unchanged launch budgets
+with **53 calls, 45,336 triangles, 36 geometries and 25 textures** of observed counter
+headroom. Hardware timing, lifecycle reclamation and owner walkthrough stay open.
+
 ## Interpretation and gates
 
 - The baseline is Node 24, headless software WebGL, performance quality, software

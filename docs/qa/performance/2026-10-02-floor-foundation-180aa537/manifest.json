@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "stage": "floor connection foundation",
+  "pullRequest": 1118,
+  "sourceHead": "180aa53779fb4e5cb8d9cadfad740fbb6f923e88",
+  "sourceTree": "99d40b4ab947e8848a84818bcb6464d5a2deb95d",
+  "baseAndReferenceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+  "sourceAndReferenceClean": true,
+  "capturedUtc": ["2026-10-02T06:51:46.999Z", "2026-10-02T06:58:59.185Z"],
+  "series": "common-route-restarted-vite-v1",
+  "runnerSha256": "a34784f1667763db5bf64e8fc7706016437279016986c2f84d5b9d06f02e49be",
+  "routeHelperSha256": "123366ce4570793e904356f0dc6a5a9e3c41f3b7ec6a53e9997744e1e538df92",
+  "lockSha256": "eb7625041fbcc671048610d6e505444584fa793fe8979c22d2c884c593b922ef",
+  "profile": "Node24.19.0; Playwright1.55.1; Chromium140.0.7339.186; headless software; Vite5.4.20 dev; performance tier;12fps safe cap; warning visible",
+  "viewport": [1280, 720],
+  "drawingBuffer": [671, 377],
+  "browserDpr": 1,
+  "rendererDpr": 0.525,
+  "cameraZoom": 12,
+  "checkpointDwellMs": 5000,
+  "conditions": "Fresh context and Vite process per attempt; coordinated quiet browser window; no configured throttling; shared OS/dependency caches; en/normal motion. Same profile verified at all24checkpoints.",
+  "repetitionsPerCommit": {
+    "suite": 3,
+    "commonRoute": 3
+  },
+  "suiteOutcomePerAttempt": "4passed,1hardware-onlyskip; controlled results completed with frame timing unsupported",
+  "routeOutcomePerAttempt": "2147runtime collision steps,4checkpoints,0blockedsteps",
+  "archive": {
+    "filename": "house-foundation-matched-180aa537-review.tar.gz",
+    "sha256": "d4584722e9aab71084d7202bbcd560948e1df115d5f6c1aa9f33936e917b6e9c",
+    "availability": "Saved in a private owner review archive; not publicly accessible."
+  },
+  "limitations": "Rolling180-frame snapshots do not isolate the five-second dwell and omit>=1second intervals. Dispatch delay is not input-to-paint. GPU bytes, hardware timing, full reclamation and owner walkthrough remain unverified.",
+  "referencePolicy": "Original pre-expansion series remains retained. This entry remeasures the same baseline with restarted Vite and compares both baseline and immediate predecessor, which are the same commit for foundation."
+}
