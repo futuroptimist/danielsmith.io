@@ -101,6 +101,26 @@ strict equivalence. Foundation's worst spawn stays below unchanged launch budget
 with **53 calls, 45,336 triangles, 36 geometries and 25 textures** of observed counter
 headroom. Hardware timing, lifecycle reclamation and owner walkthrough stay open.
 
+## Corrected foundation: slow-frame safety
+
+[Exact-source manifest](2026-10-02-floor-foundation-096be292/manifest.json) ·
+[Ranges and deltas](2026-10-02-floor-foundation-096be292/summary.json)
+
+The corrected runtime at `096be292` and baseline `1ee6fcf0` each completed three
+controlled suites and three full common routes in a coordinated quiet capture.
+All suites passed four software cases and skipped the hardware-only case; all
+routes completed and all source trees stayed clean. The private archive also
+retains the initial basement `eecba90b` series, which is historical if later
+review fixes change that source.
+
+Application-ready ranges were **1,366.1–1,379.8 ms** for baseline and
+**1,303.3–1,490.3 ms** for the corrected foundation; the mean difference was
+**+0.13 ms (+0.01%)**. Resource ranges overlap and dispatch/draw counters vary;
+this is not evidence of a speedup or strict equivalence. Source launch headroom
+remains **53 calls, 45,336 triangles, 36 geometries and 25 textures**. The compact
+entry includes rolling frame and movement-phase summaries plus separate whole-route
+stall ranges; it does not hide intervals omitted by the rolling sampler.
+
 ## Interpretation and gates
 
 - The baseline is Node 24, headless software WebGL, performance quality, software
