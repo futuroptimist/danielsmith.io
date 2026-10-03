@@ -359,11 +359,11 @@ for (const profile of [
   });
 }
 
-test('uses native locale controls and preserves career disclaimer parity when switching to text', async ({
-  page,
-}) => {
-  test.setTimeout(300_000);
-  for (const locale of AVAILABLE_LOCALES) {
+for (const locale of AVAILABLE_LOCALES) {
+  test(`preserves career disclaimer and source parity through native ${locale} controls`, async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
     await ready(page);
     await page.locator('[data-control="help"]').click();
     await page
@@ -420,8 +420,8 @@ test('uses native locale controls and preserves career disclaimer parity when sw
         await expect(link).toBeFocused();
       }
     }
-  }
-});
+  });
+}
 
 test('keeps high-contrast career details accessible and gallery context visible at wide zoom', async ({
   page,
