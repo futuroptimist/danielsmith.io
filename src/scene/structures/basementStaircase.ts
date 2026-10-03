@@ -14,6 +14,7 @@ import type { LevelSafetyCollider } from '../level/stairSafetyColliders';
 import { createStaircase, type StaircaseConfig } from './staircase';
 
 const world = (value: number) => value * FLOOR_PLAN_SCALE;
+const GROUND_RAIL_TRIM_THICKNESS = 0.12;
 
 /** One descriptor owns the treads, opening, rails, navigation and safety bounds. */
 export function getBasementStairLayout(playerRadius = 0.75) {
@@ -155,6 +156,18 @@ export function getBasementStairLayout(playerRadius = 0.75) {
     behavior,
     opening,
     landing,
+    // The trim owns the slab edge beneath each ground guard. Cut the slab out
+    // beneath that complete footprint so their inner faces cannot coincide.
+    // Unite the opening and three guard strips before tiling to avoid extra seams.
+    floorCutouts: [
+      {
+        minX: west - thickness,
+        maxX: east + thickness,
+        minZ: opening.minZ - thickness,
+        maxZ: upperGuardEnd,
+      },
+      landing,
+    ],
     safety,
     zones: createStairNavigationZones(geometry, behavior),
     thickness,
@@ -220,7 +233,7 @@ export function createBasementStaircase(playerRadius = 0.75) {
         group,
         `${collider.name}-trim`,
         collider.bounds,
-        definition.upperFloorElevation - 0.12,
+        definition.upperFloorElevation - GROUND_RAIL_TRIM_THICKNESS,
         definition.upperFloorElevation,
         definition.sources.trim,
         true
@@ -250,7 +263,12 @@ export function createBasementStaircase(playerRadius = 0.75) {
           `${collider.name}-step-${step + 1}`,
           bounds,
           elevation - config.step.rise,
-          elevation + 0.56,
+          // The upper rail/trim continues this guard at the final tread. End
+          // the parapet at its underside instead of layering coplanar side faces.
+          Math.min(
+            elevation + 0.56,
+            definition.upperFloorElevation - GROUND_RAIL_TRIM_THICKNESS
+          ),
           collider.sourceId
         );
       }

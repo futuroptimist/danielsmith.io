@@ -32,8 +32,17 @@ one polite status announcement. Same-target requests coalesce, reversals retain
 progress, and reduced motion applies the same safety check before an instant
 transition. State is session-local and resets closed on a safe fresh spawn.
 
-Approach from either side within the aperture to reveal the localized DOM button,
-or use the remappable Interact action. Sideways through-wall and inactive-floor
+Approaching the aperture from either side opens the front door automatically.
+The lead distance derives from the native maximum speed and time needed for the
+panel to clear. The same-frame intended movement also detects late turns and
+coarse frames; when less lead time remains, the visible panel accelerates to its
+clearance position before collision tests the movement. Collision never opens
+before the panel clears. The full path across a coarse frame is checked against
+the aperture, so crossing its sensor between rendered frames still opens it.
+
+The localized DOM button and remappable Interact action remain available nearby.
+A manual close while stationary persists; moving inward again or leaving and
+re-entering the approach reopens the door. Doors do not close automatically. Sideways through-wall and inactive-floor
 activation are excluded. Native button activation/navigation keys do not reach
 movement or activate a second target. Ordinary gameplay and remapped letters work
 from closed HUD/door focus and from nonmodal Tutorial/Controls buttons. Remapped
@@ -89,7 +98,11 @@ A planter-edge regression reaches a fractional free pose through movement, prove
 that its globally rounded neighbor collides, then walks onward to the sidewalk.
 No destination teleport establishes traversal. Isolated controller unit tests
 cover repeats, interrupted reversal, occupancy during closing, non-finite delta,
-and reduced motion. Browser cases cover leaving/re-entering range, overlay
+and reduced motion. Proximity regressions sweep the full movement path at the
+native maximum speed from both sides with 60 Hz, 100 ms, 400 ms and 1.5 s frames;
+they also cover late sideways entry, re-approach and stationary manual closure.
+`playwright/immersive-door-proximity.spec.ts` verifies automatic opening during
+uninterrupted trusted native movement without using Interact to cross. Browser cases cover leaving/re-entering range, overlay
 focus, reload, and 1280×720, 1920×1080, 390×844, 360×720 and landscape layouts.
 Fault-injection cases retain the real builders and DOM while exercising direct
 fatal-handler calls and actual throws after the exterior build and after control
@@ -117,7 +130,9 @@ and dresser, which retain their positions and solid colliders; the garage's east
 a fourteen-world-unit vehicle aperture. The garage south wall replaces the
 corresponding yard fence run explicitly in source. The remaining fence segment
 continues to the sidewalk. No overlapping obsolete wall or guard is removed at
-runtime. Both garage doors reuse the front-door controller and input binding. Operable
+runtime. Both garage doors reuse the front-door controller and input binding. Each opens
+automatically on approach from either side, using the same maximum-speed lead
+and same-frame aperture clearance as the front entry. Operable
 apertures explicitly belong to their custom frame factory, so generic interior
 doorway trim is never built through the moving panels or their clear openings.
 
@@ -126,8 +141,10 @@ sidewalk starts at X `26`. This keeps the pedestrian lane flat, visible and clea
 without coplanar pavement. A solid workbench and storage cabinet occupy the back
 of the garage, clear of the full-width vehicle threshold and house approach.
 The existing translucent ceiling treatment preserves the interior cutaway. While
-the avatar is inside, the overhead panel becomes translucent so it cannot hide
-the avatar; its progress and solid blocker are unchanged. Outside it is opaque.
+the avatar is inside, the overhead panel stays 80% opaque so the closed door
+remains legible while revealing the avatar. Its progress and solid blocker are
+unchanged. Outside the cutaway it restores full opacity and depth writing; the
+owned cloned panel materials do not alter the frame or other doors.
 The nearby DOM control stays below the measured HUD rectangle, including phone
 portrait and landscape, rather than being covered by the Text or Settings controls.
 
@@ -138,6 +155,10 @@ whole threshold before the collision gate can reactivate. The slat instances,
 shared geometry and materials are explicitly disposed with the exterior.
 
 Run `playwright/immersive-garage-loop.spec.ts` alongside the front-entry suite.
+`playwright/immersive-door-proximity.spec.ts` approaches all three initially closed
+doors from both sides with uninterrupted native movement, at normal and reduced
+motion. The shared controller sweep repeats maximum-speed passage at 60 Hz,
+100 ms, 400 ms and 1.5 s frames, including late entry and closing reversals.
 It covers house → garage → driveway → sidewalk → front entrance → house and the
 reverse, closed blockers, native keyboard vehicle-door crossing, operations from
 both sides, occupancy and reduced-motion touch. The native occupied-closing

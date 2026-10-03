@@ -176,6 +176,7 @@ export function createGarageDoorDefinitions(scale: number): DoorDefinition[] {
       depth: 0.36,
       travel: kind === 'overhead' ? plan.height : width + 0.22,
       duration: kind === 'overhead' ? 1.8 : 0.85,
+      automatic: true,
       clearanceProgress:
         kind === 'overhead'
           ? GARAGE_DOOR.minimumHeadroom / GARAGE_DOOR.height

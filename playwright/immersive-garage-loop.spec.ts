@@ -11,11 +11,17 @@ async function operate(page: Page, id: string, state: 'open' | 'closed') {
     `[data-exterior-door-control][data-door-id="${id}"]`
   );
   await expect(button).toBeVisible();
+  await waitDoor(page, id, state === 'open' ? 'closed' : 'open');
   await button.click();
   await waitDoor(page, id, state);
 }
+async function closeApproachingDoor(page: Page, id: string) {
+  await waitDoor(page, id, 'open');
+  await operate(page, id, 'closed');
+}
 async function enterGarage(page: Page) {
   await walkExteriorTo(page, { x: 29, z: -2 });
+  await closeApproachingDoor(page, 'house-garage-door');
   await expect(
     page.locator('[data-exterior-door-control]')
   ).toHaveAccessibleName('Open House–garage door');
@@ -34,6 +40,7 @@ test('walks the entire house, garage, driveway and front-entry loop in both dire
   test.setTimeout(150000);
   await readyExterior(page);
   await walkExteriorTo(page, { x: 29, z: -2 });
+  await closeApproachingDoor(page, 'house-garage-door');
   expect(
     await page.evaluate(() =>
       window.portfolio!.world!.canOccupyPosition({
@@ -54,6 +61,7 @@ test('walks the entire house, garage, driveway and front-entry loop in both dire
     )
   ).toBe(true);
   await walkExteriorTo(page, { x: 47, z: 4 });
+  await closeApproachingDoor(page, 'garage-door');
   expect(
     await page.evaluate(() =>
       window.portfolio!.world!.canOccupyPosition({
@@ -89,7 +97,7 @@ test('walks the entire house, garage, driveway and front-entry loop in both dire
   await page.waitForTimeout(600);
   await walkExteriorTo(page, { x: 55, z: -15 });
   await walkExteriorTo(page, { x: 35, z: -15 });
-  await operate(page, 'front-door', 'open');
+  await waitDoor(page, 'front-door', 'open');
   await walkExteriorTo(page, { x: 0, z: -20 });
   // Reverse the complete loop; close/reopen each aperture from its opposite side.
   await walkExteriorTo(page, { x: 29, z: -15 });
@@ -117,6 +125,7 @@ test(occupiedThresholdTitle, async ({ page }) => {
   await readyExterior(page);
   await enterGarage(page);
   await walkExteriorTo(page, { x: 47, z: 4 });
+  await closeApproachingDoor(page, 'garage-door');
   await page.locator('[data-exterior-door-control]').click();
   await expect
     .poll(() =>
@@ -218,9 +227,11 @@ test('operates both garage doors by touch and preserves reduced-motion occupancy
   const page = await context.newPage();
   await readyExterior(page);
   await walkExteriorTo(page, { x: 29, z: -2 });
+  await closeApproachingDoor(page, 'house-garage-door');
   await page.locator('[data-exterior-door-control]').tap();
   await waitDoor(page, 'house-garage-door', 'open');
   await walkExteriorTo(page, { x: 47, z: 4 });
+  await closeApproachingDoor(page, 'garage-door');
   await page.locator('[data-exterior-door-control]').tap();
   await waitDoor(page, 'garage-door', 'open');
   await walkExteriorTo(page, { x: 50, z: 4 });
@@ -254,6 +265,7 @@ for (const viewport of [
     await readyExterior(page);
     await enterGarage(page);
     await walkExteriorTo(page, { x: 47, z: 4 });
+    await closeApproachingDoor(page, 'garage-door');
     const button = page.locator('[data-exterior-door-control]');
     await expect(button).toHaveAccessibleName('Open Garage door');
     const box = (await button.boundingBox())!;

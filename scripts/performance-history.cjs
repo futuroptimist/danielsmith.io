@@ -24,11 +24,16 @@ const ROUTE_CAPABILITIES = {
     flag: '--garage',
     source: 'src/scene/level/garageLayout.ts',
     marker: 'house-garage-door',
+    profiles: [
+      'house-attached-garage-route-v1',
+      'house-attached-garage-route-v2',
+    ],
   },
   exterior: {
     flag: '--exterior',
     source: 'src/scene/level/exteriorLayout.ts',
     marker: 'front-door',
+    profiles: ['house-front-entry-route-v1', 'house-front-entry-route-v2'],
   },
 };
 const ownedWorktrees = new WeakSet();
@@ -442,15 +447,24 @@ async function run(args, options = {}) {
           'scripts/capture-performance-route.cjs'
         );
         const definition = blob(repo, ref.commit, capability.source).toString();
+        const declaredProfiles =
+          candidate.toString().match(/\bhouse-[a-z-]+-route-v\d+\b/g) ?? [];
+        const profileVersion = capability.profiles?.find((profile) =>
+          declaredProfiles.includes(profile)
+        );
         if (
           !candidate.toString().includes(capability.flag) ||
-          !definition.includes(capability.marker)
+          !definition.includes(capability.marker) ||
+          (capability.profiles && !profileVersion) ||
+          (/automatic:\s*true/.test(definition) &&
+            profileVersion?.endsWith('-v1'))
         )
           throw new Error(
             `${parsed.routeProfile} route capability unavailable`
           );
         historicalRoute = candidate;
         entry.routeProfile = parsed.routeProfile;
+        entry.routeProfileVersion = profileVersion ?? null;
       } catch {
         entry.skippedRouteCapabilities.push({
           capability: parsed.routeProfile,
