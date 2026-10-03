@@ -14,7 +14,7 @@ const DISCLAIMER =
 const APPROACHES = [
   {
     id: 'career-southern-mississippi',
-    title: 'Southern Mississippi',
+    title: 'The University of Southern Mississippi',
     path: [
       { x: -24, z: -32.5 },
       { x: -24, z: -15.5 },
@@ -260,6 +260,9 @@ for (const profile of [
       } else await selectByKeyboard(page, exhibit.id);
       const overlay = page.locator('.poi-tooltip-overlay');
       await expect(overlay).toHaveAttribute('aria-hidden', 'false');
+      await expect(
+        overlay.locator('.poi-tooltip-overlay__links a')
+      ).toHaveCount(0);
       await expect(overlay.locator('.poi-tooltip-overlay__title')).toHaveText(
         exhibit.title
       );
@@ -360,7 +363,7 @@ for (const profile of [
 }
 
 for (const locale of AVAILABLE_LOCALES) {
-  test(`preserves career disclaimer and source parity through native ${locale} controls`, async ({
+  test(`preserves career content without source links through native ${locale} controls`, async ({
     page,
   }) => {
     test.setTimeout(90_000);
@@ -381,6 +384,7 @@ for (const locale of AVAILABLE_LOCALES) {
     await expect(
       page.locator('.poi-tooltip-overlay [data-career-disclaimer]')
     ).toHaveText(expected.disclaimer!);
+    await expect(page.locator('.poi-tooltip-overlay__links a')).toHaveCount(0);
     await page.locator('.poi-tooltip-overlay__close').click();
     await page.evaluate(() => {
       (
@@ -408,17 +412,7 @@ for (const locale of AVAILABLE_LOCALES) {
     await expect(page.locator('.text-fallback__timeline-entry')).toHaveCount(4);
     for (const career of CAREER_HISTORY) {
       const entry = page.locator(`[data-career-id="${career.id}"]`);
-      const sources = career.provenance.filter((source) => source.href);
-      await expect(entry.locator('a')).toHaveCount(sources.length);
-      for (const source of sources) {
-        const link = entry.getByRole('link', {
-          name: getCareerCopy(locale)[career.id].sourceLabel,
-        });
-        await expect(link).toBeVisible();
-        await expect(link).toHaveAttribute('href', source.href!);
-        await link.focus();
-        await expect(link).toBeFocused();
-      }
+      await expect(entry.locator('a')).toHaveCount(0);
     }
   });
 }

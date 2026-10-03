@@ -1,5 +1,5 @@
 {
-  "generatedAtIso": "2026-10-03T01:11:09.493Z",
+  "generatedAtIso": "2026-10-03T06:19:37.075Z",
   "performance": {
     "budget": {
       "maxMaterials": 36,
@@ -759,12 +759,7 @@
         "name": "Career Museum"
       },
       "metrics": [],
-      "links": [
-        {
-          "label": "Public role description",
-          "href": "https://job-boards.greenhouse.io/muonspace/jobs/5083758007"
-        }
-      ],
+      "links": [],
       "footprint": {
         "width": 4.8,
         "depth": 3
@@ -782,12 +777,7 @@
         "name": "Career Museum"
       },
       "metrics": [],
-      "links": [
-        {
-          "label": "Reviewed résumé source",
-          "href": "https://github.com/futuroptimist/danielsmith.io/blob/main/docs/resume/2026-08/resume.tex"
-        }
-      ],
+      "links": [],
       "footprint": {
         "width": 4.8,
         "depth": 3
@@ -805,12 +795,7 @@
         "name": "Career Museum"
       },
       "metrics": [],
-      "links": [
-        {
-          "label": "Reviewed résumé source",
-          "href": "https://github.com/futuroptimist/danielsmith.io/blob/main/docs/resume/2026-08/resume.tex"
-        }
-      ],
+      "links": [],
       "footprint": {
         "width": 4.8,
         "depth": 3
@@ -819,7 +804,7 @@
     },
     {
       "id": "career-southern-mississippi",
-      "title": "Southern Mississippi",
+      "title": "The University of Southern Mississippi",
       "summary": "Developed Objective-C content delivery and networking for university iOS applications.",
       "category": "career",
       "interaction": "inspect",
@@ -828,12 +813,7 @@
         "name": "Career Museum"
       },
       "metrics": [],
-      "links": [
-        {
-          "label": "Reviewed résumé source",
-          "href": "https://github.com/futuroptimist/danielsmith.io/blob/main/docs/resume/2026-08/resume.tex"
-        }
-      ],
+      "links": [],
       "footprint": {
         "width": 4.8,
         "depth": 3

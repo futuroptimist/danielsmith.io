@@ -9,13 +9,17 @@ locations, repository owners, GitHub metrics, or project structured-data entries
 
 ## Public content and provenance
 
-The Southern Mississippi, Naval Research Laboratory, and YouTube entries follow
+The University of Southern Mississippi, Naval Research Laboratory, and YouTube entries follow
 the August 2026 résumé. Muon Space uses the owner-confirmed role, team, and start
 date, with the approved modest responsibility wording and the specified public
 role posting. A role posting is not evidence of completed achievements.
 
 Every locale, including the pseudo-locale, contains the full career descriptions,
-illustrative-model notes, source-link labels, and personal-portfolio disclaimer.
+illustrative-model notes and the personal-portfolio disclaimer. Source URLs remain
+historical provenance only; career POIs and their text-only entries do not render
+résumé-source or temporary job-posting links. Résumé downloads elsewhere remain
+available. Career headings use the full institution name,
+The University of Southern Mississippi.
 The exact English disclaimer is visible DOM text in both the Muon details and
 its text-only timeline entry:
 
@@ -29,7 +33,7 @@ using the repository's MIT license. No downloaded models, logos, mascots,
 wordmarks, institutional graphics, internal dashboards, operational data, or
 proprietary spacecraft geometry are used.
 
-- Southern Mississippi: generic black-and-gold phones and tablets, plus a laptop
+- The University of Southern Mississippi: generic black-and-gold phones and tablets, plus a laptop
   with an original phone-simulator screen
 - Naval Research Laboratory: an illustrative aquarium with static fish, bubbles,
   and an inert decorative mine-shaped prop, alongside a generic processing display
@@ -101,5 +105,5 @@ that the unchanged launch budgets are met. Retain owner review separately from
 software-renderer functional evidence.
 
 Native locale parity runs as nine named, isolated browser cases. Each retains
-the complete museum-to-text journey and source-link assertions with a bounded
+the complete museum-to-text journey and absent-source-link assertions with a bounded
 90-second case budget; action deadlines and zero retries remain unchanged.

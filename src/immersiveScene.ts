@@ -270,6 +270,7 @@ import {
   createAxelNavigator,
   type AxelNavigatorBuild,
 } from './scene/structures/axelNavigator';
+import { createBasementLandingCutaway } from './scene/structures/basementLandingCutaway';
 import { createBasementStaircase } from './scene/structures/basementStaircase';
 import {
   createCareerMuseum,
@@ -1381,6 +1382,7 @@ export function initializeImmersiveScene(
   let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
   let partiallyInitializedTutorialPanel: TutorialPanelHandle | null = null;
+  let disposeBasementLandingCutaway: (() => void) | null = null;
   let removePartiallyInitializedTutorialVisitedSubscription:
     | (() => void)
     | null = null;
@@ -1392,6 +1394,7 @@ export function initializeImmersiveScene(
       return;
     }
     immersiveLifecycle = 'disposing';
+    disposeBasementLandingCutaway?.();
     if (inputLatencyTelemetry) {
       inputLatencyTelemetry.report('dispose-partial');
       inputLatencyTelemetry.dispose();
@@ -1786,10 +1789,7 @@ export function initializeImmersiveScene(
     elevation: GROUND_FLOOR_TOP_ELEVATION,
     groupName: 'GroundFloorTiles',
     cutoutsBySurfaceId: {
-      'livingRoom-floor-main': [
-        basementStaircase.opening,
-        basementStaircase.landing,
-      ],
+      'livingRoom-floor-main': basementStaircase.floorCutouts,
     },
   });
   groundFloorGroup.add(floorTiles.group);
@@ -1828,7 +1828,9 @@ export function initializeImmersiveScene(
       getRoomCategory,
     }
   );
-  const basementLandingWallMaterial = wallMaterial.clone();
+  const basementLandingCutaway = createBasementLandingCutaway(wallMaterial);
+  const basementLandingWallMaterial = basementLandingCutaway.material;
+  disposeBasementLandingCutaway = basementLandingCutaway.dispose;
   let basementLandingCutawayActive = false;
   const groundWallMeshes = createWallSegmentMeshes({
     instances: groundWallInstances,
@@ -4653,10 +4655,7 @@ export function initializeImmersiveScene(
     // cuts away while the avatar approaches this otherwise-hidden ground landing.
     if (nearBasementLanding !== basementLandingCutawayActive) {
       basementLandingCutawayActive = nearBasementLanding;
-      basementLandingWallMaterial.opacity = nearBasementLanding ? 0.18 : 1;
-      basementLandingWallMaterial.transparent = nearBasementLanding;
-      basementLandingWallMaterial.depthWrite = !nearBasementLanding;
-      basementLandingWallMaterial.needsUpdate = true;
+      basementLandingCutaway.setActive(nearBasementLanding);
     }
     player.position.y = floorConnections.sampleHeight(
       player.position.x,
@@ -6721,6 +6720,7 @@ export function initializeImmersiveScene(
       return;
     }
     immersiveLifecycle = 'disposing';
+    disposeBasementLandingCutaway?.();
     if (inputLatencyTelemetry) {
       inputLatencyTelemetry.report('dispose');
       inputLatencyTelemetry.dispose();

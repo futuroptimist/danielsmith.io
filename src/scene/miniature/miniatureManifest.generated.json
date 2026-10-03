@@ -396,11 +396,11 @@
       "id": "career:reviewed-content",
       "sourceFiles": ["src/scene/poi/careers.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Shared localized career content and level-backed placement are separate from ground-floor project miniature proxies.",
-      "sourceFingerprint": "84d4a991975c34514c383261977461fa6e6d6def5b900f480277ca2c05bf3f54",
+      "syncRevision": 2,
+      "syncNote": "Career source links are omitted from visible details; historical provenance remains available.",
+      "sourceFingerprint": "c00a0bc1a66cb9aa1df9f841144de229500edfd7bd301be0b35bf37785fec057",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "76ba145f5e89cebdea1777dab1573c6860a78385d562a3517a3e1883f358a146"
+      "metadataFingerprint": "9dabfb7f4c3f92aae5bf427646eba6477abfcf08e6642a5abc8371b300c8cd53"
     },
     {
       "id": "debug:visualizers",
@@ -459,14 +459,15 @@
       "id": "level:basement-stairs",
       "sourceFiles": [
         "src/scene/level/basementStair.ts",
+        "src/scene/structures/basementLandingCutaway.ts",
         "src/scene/structures/basementStaircase.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "The shared descriptor also identifies the landing visual occluder; its runtime cutaway preserves collision. The tabletop retains the source-derived opening and its ground-only view.",
-      "sourceFingerprint": "cb43257fb1fbb78016a3cfa99efeeb0c3365c55e09b59445ac82939e2a9daf6b",
+      "syncRevision": 4,
+      "syncNote": "Ground-floor rail trim owns its slab footprint and the final parapets meet its underside. The independent 80% landing-wall cutaway preserves collision. The tabletop retains the shared opening and its ground-only view.",
+      "sourceFingerprint": "96237a9011a26e90d2b55561cd1eebe904f9dc9524790e96b31b507bed3882f2",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "8bd86b98548b8bcf86ff6983d5602bc5d46b935e7ceb084be0bef5f3fc40832c"
+      "metadataFingerprint": "22d03e8a972ef51325244e4ee957dd619132c0a849faf5ef923c3a073c9ce43a"
     },
     {
       "id": "level:career-museum-layout",
@@ -681,15 +682,16 @@
       "id": "poi:markers-labels",
       "sourceFiles": [
         "src/scene/poi/markers.ts",
+        "src/scene/poi/titleFont.ts",
         "src/scene/poi/visitedBadge.ts",
         "src/scene/poi/worldTooltip.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "Guided-tour recommendation rendering was removed from in-world POI labels; marker and tabletop proxy geometry is unchanged.",
-      "sourceFingerprint": "91ee89df6f6cd9046ee6289f05b1322910afe96bb5d400035559ae2ff7fdb379",
+      "syncRevision": 4,
+      "syncNote": "Complete career titles fit the existing two-line labels; project marker geometry is unchanged.",
+      "sourceFingerprint": "753268d799097a0a2444b4ef07c0573bc2ded72735cab478d1aa23843dfddba8",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "4a545859c153b60ca4fa6758284be0d587d98947944b80451e8528c0e128744a"
+      "metadataFingerprint": "0773ae465db7d7fc0fd4692705758f795d0abd0b4e2993fb36a50260387fa1c3"
     },
     {
       "id": "poi:pr-reaper-backyard-console",
