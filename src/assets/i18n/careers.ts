@@ -7,7 +7,7 @@ type CareerCatalog = Record<CareerId, CareerCopy>;
 /** Public, reviewed career copy. No employer branding or internal metrics are used. */
 const english: CareerCatalog = {
   'southern-mississippi': {
-    title: 'Southern Mississippi',
+    title: 'The University of Southern Mississippi',
     organization: 'The University of Southern Mississippi',
     role: 'Software Developer',
     period: 'March 2014–December 2016',
@@ -16,7 +16,6 @@ const english: CareerCatalog = {
       'Developed Objective-C content delivery and networking for university iOS applications.',
     illustrationNote:
       'Original generic mobile-development devices and phone simulator.',
-    sourceLabel: 'Reviewed résumé source',
   },
   'naval-research': {
     title: 'Naval Research Laboratory',
@@ -28,7 +27,6 @@ const english: CareerCatalog = {
       'Developed C++/Qt research data-processing applications, with releases, demos, and documentation.',
     illustrationNote:
       'Illustrative aquarium with an inert decorative prop; it does not depict a specific assignment, weapon design, capability, deployment, or achievement.',
-    sourceLabel: 'Reviewed résumé source',
   },
   youtube: {
     title: 'YouTube',
@@ -40,7 +38,6 @@ const english: CareerCatalog = {
       'Worked on product-health metrics, automation, on-call, incident response, and mentoring.',
     illustrationNote:
       'Original illustrative reliability display; it contains no internal dashboard or performance statistics.',
-    sourceLabel: 'Reviewed résumé source',
   },
   'muon-space': {
     title: 'Muon Space',
@@ -54,13 +51,12 @@ const english: CareerCatalog = {
       'Original generic CubeSat and mission-planning motif; not a replica of a Muon spacecraft or an internal interface.',
     disclaimer:
       'This is my personal portfolio. The views and content here are my own and do not represent Muon Space.',
-    sourceLabel: 'Public role description',
   },
 };
 
 const spanish: CareerCatalog = {
   'southern-mississippi': {
-    title: 'Southern Mississippi',
+    title: 'The University of Southern Mississippi',
     organization: 'The University of Southern Mississippi',
     role: 'Desarrollador de software',
     period: 'Marzo de 2014–diciembre de 2016',
@@ -69,7 +65,6 @@ const spanish: CareerCatalog = {
       'Desarrollé funciones de entrega de contenido y redes en Objective-C para aplicaciones iOS de la universidad.',
     illustrationNote:
       'Dispositivos genéricos originales de desarrollo móvil y simulador de teléfono.',
-    sourceLabel: 'Fuente del currículum revisada',
   },
   'naval-research': {
     title: 'Naval Research Laboratory',
@@ -81,7 +76,6 @@ const spanish: CareerCatalog = {
       'Desarrollé aplicaciones de procesamiento de datos de investigación en C++/Qt, con versiones, demostraciones y documentación.',
     illustrationNote:
       'Acuario ilustrativo con un objeto decorativo inerte; no representa una tarea, diseño de armas, capacidad, despliegue ni logro específicos.',
-    sourceLabel: 'Fuente del currículum revisada',
   },
   youtube: {
     title: 'YouTube',
@@ -93,7 +87,6 @@ const spanish: CareerCatalog = {
       'Trabajé en métricas de salud del producto, automatización, guardias, respuesta a incidentes y mentoría.',
     illustrationNote:
       'Visualización original e ilustrativa de fiabilidad; no contiene paneles internos ni estadísticas de rendimiento.',
-    sourceLabel: 'Fuente del currículum revisada',
   },
   'muon-space': {
     title: 'Muon Space',
@@ -107,13 +100,12 @@ const spanish: CareerCatalog = {
       'CubeSat genérico y motivo de planificación de misiones originales; no son una réplica de una nave de Muon ni una interfaz interna.',
     disclaimer:
       'Este es mi portafolio personal. Las opiniones y el contenido aquí son propios y no representan a Muon Space.',
-    sourceLabel: 'Descripción pública del puesto',
   },
 };
 
 const portuguese: CareerCatalog = {
   'southern-mississippi': {
-    title: 'Southern Mississippi',
+    title: 'The University of Southern Mississippi',
     organization: 'The University of Southern Mississippi',
     role: 'Desenvolvedor de software',
     period: 'Março de 2014–dezembro de 2016',
@@ -122,7 +114,6 @@ const portuguese: CareerCatalog = {
       'Desenvolvi recursos de entrega de conteúdo e rede em Objective-C para aplicativos iOS da universidade.',
     illustrationNote:
       'Dispositivos genéricos originais de desenvolvimento móvel e simulador de telefone.',
-    sourceLabel: 'Fonte revisada do currículo',
   },
   'naval-research': {
     title: 'Naval Research Laboratory',
@@ -134,7 +125,6 @@ const portuguese: CareerCatalog = {
       'Desenvolvi aplicativos de processamento de dados de pesquisa em C++/Qt, com lançamentos, demonstrações e documentação.',
     illustrationNote:
       'Aquário ilustrativo com um objeto decorativo inerte; não representa uma tarefa, projeto de arma, capacidade, implantação ou conquista específica.',
-    sourceLabel: 'Fonte revisada do currículo',
   },
   youtube: {
     title: 'YouTube',
@@ -146,7 +136,6 @@ const portuguese: CareerCatalog = {
       'Trabalhei com métricas de saúde do produto, automação, plantões, resposta a incidentes e mentoria.',
     illustrationNote:
       'Visualização original e ilustrativa de confiabilidade; sem painéis internos ou estatísticas de desempenho.',
-    sourceLabel: 'Fonte revisada do currículo',
   },
   'muon-space': {
     title: 'Muon Space',
@@ -160,13 +149,12 @@ const portuguese: CareerCatalog = {
       'CubeSat genérico e motivo de planejamento de missões originais; não são réplica de uma espaçonave da Muon nem uma interface interna.',
     disclaimer:
       'Este é meu portfólio pessoal. As opiniões e o conteúdo aqui são meus e não representam a Muon Space.',
-    sourceLabel: 'Descrição pública do cargo',
   },
 };
 
 const german: CareerCatalog = {
   'southern-mississippi': {
-    title: 'Southern Mississippi',
+    title: 'The University of Southern Mississippi',
     organization: 'The University of Southern Mississippi',
     role: 'Softwareentwickler',
     period: 'März 2014–Dezember 2016',
@@ -175,7 +163,6 @@ const german: CareerCatalog = {
       'Entwicklung von Inhaltsbereitstellung und Netzwerkfunktionen in Objective-C für iOS-Anwendungen der Universität.',
     illustrationNote:
       'Eigene generische Geräte für mobile Entwicklung mit Telefonsimulator.',
-    sourceLabel: 'Geprüfte Lebenslaufquelle',
   },
   'naval-research': {
     title: 'Naval Research Laboratory',
@@ -187,7 +174,6 @@ const german: CareerCatalog = {
       'Entwicklung von C++/Qt-Anwendungen zur Verarbeitung von Forschungsdaten, einschließlich Releases, Demos und Dokumentation.',
     illustrationNote:
       'Illustratives Aquarium mit einer inerten Dekoration; keine Darstellung eines bestimmten Auftrags, Waffendesigns, einer Fähigkeit, eines Einsatzes oder einer Leistung.',
-    sourceLabel: 'Geprüfte Lebenslaufquelle',
   },
   youtube: {
     title: 'YouTube',
@@ -199,7 +185,6 @@ const german: CareerCatalog = {
       'Arbeit an Kennzahlen zum Produktzustand, Automatisierung, Bereitschaftsdienst, Vorfallbehandlung und Mentoring.',
     illustrationNote:
       'Eigene illustrative Zuverlässigkeitsanzeige ohne interne Dashboards oder Leistungsstatistiken.',
-    sourceLabel: 'Geprüfte Lebenslaufquelle',
   },
   'muon-space': {
     title: 'Muon Space',
@@ -213,13 +198,12 @@ const german: CareerCatalog = {
       'Eigener generischer CubeSat und Missionsplanungsmotiv; keine Nachbildung eines Muon-Raumfahrzeugs oder einer internen Oberfläche.',
     disclaimer:
       'Dies ist mein persönliches Portfolio. Die hier geäußerten Ansichten und Inhalte sind meine eigenen und repräsentieren nicht Muon Space.',
-    sourceLabel: 'Öffentliche Stellenbeschreibung',
   },
 };
 
 const hungarian: CareerCatalog = {
   'southern-mississippi': {
-    title: 'Southern Mississippi',
+    title: 'The University of Southern Mississippi',
     organization: 'The University of Southern Mississippi',
     role: 'Szoftverfejlesztő',
     period: '2014. március–2016. december',
@@ -228,7 +212,6 @@ const hungarian: CareerCatalog = {
       'Objective-C tartalomszolgáltatási és hálózati funkciókat fejlesztettem az egyetem iOS-alkalmazásaihoz.',
     illustrationNote:
       'Saját készítésű, általános mobilfejlesztési eszközök és telefonszimulátor.',
-    sourceLabel: 'Ellenőrzött önéletrajzforrás',
   },
   'naval-research': {
     title: 'Naval Research Laboratory',
@@ -240,7 +223,6 @@ const hungarian: CareerCatalog = {
       'C++/Qt kutatási adatfeldolgozó alkalmazásokat fejlesztettem, kiadásokkal, bemutatókkal és dokumentációval.',
     illustrationNote:
       'Szemléltető akvárium inert dísztárggyal; nem ábrázol konkrét feladatot, fegyvertervet, képességet, bevetést vagy eredményt.',
-    sourceLabel: 'Ellenőrzött önéletrajzforrás',
   },
   youtube: {
     title: 'YouTube',
@@ -252,7 +234,6 @@ const hungarian: CareerCatalog = {
       'Termékállapot-mérőszámokkal, automatizálással, ügyelettel, incidenskezeléssel és mentorálással foglalkoztam.',
     illustrationNote:
       'Saját szemléltető megbízhatósági kijelző; belső irányítópult és teljesítménystatisztikák nélkül.',
-    sourceLabel: 'Ellenőrzött önéletrajzforrás',
   },
   'muon-space': {
     title: 'Muon Space',
@@ -266,13 +247,12 @@ const hungarian: CareerCatalog = {
       'Saját általános CubeSat és küldetéstervezési motívum; nem Muon-űreszköz vagy belső kezelőfelület másolata.',
     disclaimer:
       'Ez a személyes portfólióm. Az itt szereplő nézetek és tartalmak a sajátjaim, és nem képviselik a Muon Space álláspontját.',
-    sourceLabel: 'Nyilvános munkaköri leírás',
   },
 };
 
 const japanese: CareerCatalog = {
   'southern-mississippi': {
-    title: 'Southern Mississippi',
+    title: 'The University of Southern Mississippi',
     organization: 'The University of Southern Mississippi',
     role: 'ソフトウェア開発者',
     period: '2014年3月～2016年12月',
@@ -281,7 +261,6 @@ const japanese: CareerCatalog = {
       '大学のiOSアプリ向けに、Objective-Cによるコンテンツ配信とネットワーク機能を開発しました。',
     illustrationNote:
       '独自制作の汎用モバイル開発機器と電話シミュレーターです。',
-    sourceLabel: '確認済みの履歴書資料',
   },
   'naval-research': {
     title: 'Naval Research Laboratory',
@@ -293,7 +272,6 @@ const japanese: CareerCatalog = {
       'C++/Qtの研究データ処理アプリケーションを開発し、リリース、デモ、文書作成に携わりました。',
     illustrationNote:
       '作動しない装飾品を収めた説明用の水槽です。特定の任務、兵器設計、能力、配備、実績を示すものではありません。',
-    sourceLabel: '確認済みの履歴書資料',
   },
   youtube: {
     title: 'YouTube',
@@ -305,7 +283,6 @@ const japanese: CareerCatalog = {
       '製品の健全性指標、自動化、オンコール、インシデント対応、メンタリングに携わりました。',
     illustrationNote:
       '独自制作の説明用信頼性表示です。社内ダッシュボードや性能統計は含みません。',
-    sourceLabel: '確認済みの履歴書資料',
   },
   'muon-space': {
     title: 'Muon Space',
@@ -319,20 +296,18 @@ const japanese: CareerCatalog = {
       '独自制作の汎用CubeSatとミッション計画のモチーフです。Muonの宇宙機や社内インターフェースの複製ではありません。',
     disclaimer:
       'これは私個人のポートフォリオです。ここに記載された見解および内容は私個人のものであり、Muon Spaceを代表するものではありません。',
-    sourceLabel: '公開された職務内容',
   },
 };
 
 const chinese: CareerCatalog = {
   'southern-mississippi': {
-    title: 'Southern Mississippi',
+    title: 'The University of Southern Mississippi',
     organization: 'The University of Southern Mississippi',
     role: '软件开发工程师',
     period: '2014年3月–2016年12月',
     location: '密西西比州哈蒂斯堡',
     summary: '使用 Objective-C 为大学的 iOS 应用开发内容分发和网络功能。',
     illustrationNote: '原创通用移动开发设备和手机模拟器。',
-    sourceLabel: '已审核的简历来源',
   },
   'naval-research': {
     title: 'Naval Research Laboratory',
@@ -343,7 +318,6 @@ const chinese: CareerCatalog = {
     summary: '开发 C++/Qt 科研数据处理应用，并参与版本发布、演示和文档编写。',
     illustrationNote:
       '展示性水族箱内含无功能的装饰道具，不代表具体任务、武器设计、能力、部署或成果。',
-    sourceLabel: '已审核的简历来源',
   },
   youtube: {
     title: 'YouTube',
@@ -353,7 +327,6 @@ const chinese: CareerCatalog = {
     location: '加利福尼亚州圣布鲁诺',
     summary: '参与产品健康指标、自动化、值班、事件响应和指导工作。',
     illustrationNote: '原创示意性可靠性显示，不含内部仪表盘或性能统计数据。',
-    sourceLabel: '已审核的简历来源',
   },
   'muon-space': {
     title: 'Muon Space',
@@ -367,13 +340,12 @@ const chinese: CareerCatalog = {
       '原创通用 CubeSat 和任务规划主题图案，并非 Muon 航天器或内部界面的复制品。',
     disclaimer:
       '这是我的个人作品集。此处的观点和内容均属于我个人，并不代表 Muon Space。',
-    sourceLabel: '公开职位说明',
   },
 };
 
 const arabic: CareerCatalog = {
   'southern-mississippi': {
-    title: 'Southern Mississippi',
+    title: 'The University of Southern Mississippi',
     organization: 'The University of Southern Mississippi',
     role: 'مطوّر برمجيات',
     period: 'مارس 2014–ديسمبر 2016',
@@ -381,7 +353,6 @@ const arabic: CareerCatalog = {
     summary:
       'طوّرت وظائف توصيل المحتوى والشبكات بلغة Objective-C لتطبيقات الجامعة على iOS.',
     illustrationNote: 'أجهزة عامة أصلية لتطوير تطبيقات الهاتف مع محاكي هاتف.',
-    sourceLabel: 'مصدر السيرة الذاتية المُراجع',
   },
   'naval-research': {
     title: 'Naval Research Laboratory',
@@ -393,7 +364,6 @@ const arabic: CareerCatalog = {
       'طوّرت تطبيقات لمعالجة بيانات البحث باستخدام C++/Qt، مع إصدارات وعروض توضيحية ووثائق.',
     illustrationNote:
       'حوض أسماك توضيحي يحتوي على مجسّم زخرفي خامل؛ لا يصوّر مهمة أو تصميم سلاح أو قدرة أو انتشارًا أو إنجازًا محددًا.',
-    sourceLabel: 'مصدر السيرة الذاتية المُراجع',
   },
   youtube: {
     title: 'YouTube',
@@ -405,7 +375,6 @@ const arabic: CareerCatalog = {
       'عملت على مقاييس سلامة المنتج والأتمتة والمناوبات والاستجابة للحوادث والإرشاد.',
     illustrationNote:
       'عرض أصلي توضيحي للموثوقية؛ لا يتضمن لوحات داخلية أو إحصاءات أداء.',
-    sourceLabel: 'مصدر السيرة الذاتية المُراجع',
   },
   'muon-space': {
     title: 'Muon Space',
@@ -419,7 +388,6 @@ const arabic: CareerCatalog = {
       'نموذج CubeSat عام أصلي وزخرفة لتخطيط المهام؛ ليسا نسخة من مركبة Muon الفضائية أو واجهة داخلية.',
     disclaimer:
       'هذا ملف أعمالي الشخصي. الآراء والمحتوى الواردان هنا خاصان بي ولا يمثلان شركة Muon Space.',
-    sourceLabel: 'الوصف الوظيفي المنشور للعامة',
   },
 };
 

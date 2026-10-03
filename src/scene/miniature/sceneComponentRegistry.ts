@@ -22,9 +22,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/exteriorLayout.ts',
       'src/scene/structures/residentialExterior.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Source-labeled instances split grass around the paved path and dispose instance buffers explicitly.',
+      'Automatic front-entry approach changes session-local door behavior; dynamic panels remain outside the tabletop envelope.',
     reason:
       'The tabletop keeps its existing house/backyard envelope. The source-backed front opening is shared, while external landscaping and dynamic door controls stay outside the miniature.',
   },
@@ -50,7 +50,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'career:reviewed-content',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/careers.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
+    syncNote:
+      'Career source links are omitted from visible details; historical provenance remains available.',
     reason:
       'Shared localized career content and level-backed placement are separate from ground-floor project miniature proxies.',
   },
@@ -98,10 +100,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: [
       'src/scene/level/basementStair.ts',
       'src/scene/structures/basementStaircase.ts',
+      'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'The shared descriptor also identifies the landing visual occluder; its runtime cutaway preserves collision. The tabletop retains the source-derived opening and its ground-only view.',
+      'Ground-floor rail trim owns its slab footprint and the final parapets meet its underside. The independent 80% landing-wall cutaway preserves collision. The tabletop retains the shared opening and its ground-only view.',
   },
   {
     id: 'environment:backyard',
@@ -166,10 +169,13 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'excluded',
     sourceFiles: [
       'src/scene/poi/markers.ts',
+      'src/scene/poi/titleFont.ts',
       'src/scene/poi/worldTooltip.ts',
       'src/scene/poi/visitedBadge.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
+    syncNote:
+      'Complete career titles fit the existing two-line labels; project marker geometry is unchanged.',
     reason:
       'Guided-tour recommendation rendering was removed from in-world POI labels; marker and tabletop proxy geometry is unchanged.',
   },
@@ -182,15 +188,23 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'Collider helper supports opt-in include-only bounds; tabletop proxy silhouettes remain covered by POI entries.',
   },
   {
+    id: 'collision:upper-stair-ground-passage',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/structures/upperStairGroundPassage.ts'],
+    syncRevision: 1,
+    reason:
+      'Elevation-aware runtime collision volumes derive from the shared staircase without changing its visible miniature geometry.',
+  },
+  {
     id: 'debug:visualizers',
     kind: 'excluded',
     sourceFiles: [
       'src/scene/debug/colliderVisualizer.ts',
       'src/scene/debug/solidVisualizer.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Progress-controlled door blockers retain IDs while inactive bounds disappear from queries and debug wireframes.',
+      'Elevated stair collision snapshots retain underside bounds and connection context; debug wireframes sit at the same elevation without changing production miniature geometry.',
     reason:
       'Type-only debug metadata guards do not affect production miniature geometry.',
   },

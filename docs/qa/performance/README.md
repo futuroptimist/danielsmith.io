@@ -228,9 +228,15 @@ Each result and summary records the actual route version; compare common profile
 separately rather than ranking unlike extended routes.
 
 `node scripts/capture-performance-route.cjs <new-output-directory> --exterior`
-selects `house-front-entry-route-v1`. It preserves the complete museum and common
+selects `house-front-entry-route-v2`. It preserves the complete museum and common
 upper/spawn route, then appends closed/open entrance, sidewalk, outside-close and
-returned-spawn checkpoints. Door actions use the visible DOM control. Read-only
+returned-spawn checkpoints. Version 2 handles proximity opening: door actions
+inspect the requested target before toggling the visible DOM control, and closed
+checkpoints explicitly close the door while the avatar stays at the named pose.
+Each open/closed checkpoint asserts its expected door state before and after the
+dwell and records that expectation alongside actual snapshots. Historical v1
+helpers stay labeled v1 and are supported for their original manual-door source;
+a v1 helper paired with automatic-door source is skipped, as are unknown versions. Read-only
 occupancy planning supplies waypoints to the unchanged runtime movement sampler;
 no teleport establishes a passage. Every route checkpoint also records the
 available read-only door state. The common and basement profile names and their

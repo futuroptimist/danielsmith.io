@@ -486,7 +486,6 @@ export interface CareerCopy {
   summary: string;
   illustrationNote: string;
   disclaimer?: string;
-  sourceLabel: string;
 }
 
 export interface LocaleStrings {

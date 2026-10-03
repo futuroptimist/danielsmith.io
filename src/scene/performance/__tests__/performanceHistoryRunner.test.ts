@@ -126,7 +126,7 @@ function fixture(basement = false, exterior = false) {
     put(
       repo,
       'scripts/capture-performance-route.cjs',
-      '// versioned --basement --exterior routes\n'
+      '// versioned --basement --exterior house-front-entry-route-v1 routes\n'
     );
   }
   git(repo, 'add', '.');
@@ -467,6 +467,73 @@ describe('performance history command', () => {
     expect(result.manifest.entries[0]).toMatchObject({
       routeProfile: 'exterior',
       skippedRouteCapabilities: [],
+    });
+  });
+
+  it.each(['v1', 'v2', 'v3', 'v10'])(
+    'keeps the exterior profile %s explicit',
+    async (version) => {
+      const repo = fixture(true, true);
+      put(
+        repo,
+        'scripts/capture-performance-route.cjs',
+        `// --exterior house-front-entry-route-${version}\n`
+      );
+      git(repo, 'add', '.');
+      git(
+        repo,
+        '-c',
+        'user.name=Performance Test',
+        '-c',
+        'user.email=test@example.invalid',
+        'commit',
+        '-m',
+        'Set route version'
+      );
+      const result = await runner.run(
+        ['--check-only', '--route-profile', 'exterior', 'HEAD'],
+        { cwd: repo }
+      );
+      expect(result.manifest.entries[0]).toMatchObject(
+        !['v1', 'v2'].includes(version)
+          ? {
+              routeProfile: 'common',
+              skippedRouteCapabilities: [{ capability: 'exterior' }],
+            }
+          : {
+              routeProfile: 'exterior',
+              routeProfileVersion: `house-front-entry-route-${version}`,
+              skippedRouteCapabilities: [],
+            }
+      );
+    }
+  );
+
+  it('skips a stale exterior helper when the source uses automatic doors', async () => {
+    const repo = fixture(true, true);
+    put(
+      repo,
+      'src/scene/level/exteriorLayout.ts',
+      'front-door automatic: true\n'
+    );
+    git(repo, 'add', '.');
+    git(
+      repo,
+      '-c',
+      'user.name=Performance Test',
+      '-c',
+      'user.email=test@example.invalid',
+      'commit',
+      '-m',
+      'Enable automatic doors'
+    );
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'exterior', 'HEAD'],
+      { cwd: repo }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'common',
+      skippedRouteCapabilities: [{ capability: 'exterior' }],
     });
   });
 

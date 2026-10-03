@@ -52,3 +52,40 @@ http://localhost:5173/?mode=immersive&disablePerformanceFailover=1
 1. Stand on the upper landing and look toward the stair opening.
 2. Verify the opening shows the usable stairs down, not a solid cuboid or blocked floor patch.
 3. Walk through the center of the opening to descend, then walk back up to confirm round-trip travel.
+
+## Ground passage beneath the upper flight
+
+The front-entry bay connects beneath the high part of the upper staircase. Walk
+west from X 23, Z -23 across the stair footprint, then east back into the entry bay.
+The avatar must stay on `ground` at Y 0, with no active stair connection, throughout
+both crossings, including full-speed keyboard movement and coarse frames.
+
+Headroom comes from the actual tread undersides. With the 2.6-unit avatar and
+0.75-unit horizontal collision radius, the ground centerline must remain north
+of Z -21.55 while inside the stair footprint: tread 6 starts at Y 2.567, which
+is too low, while tread 7 starts at Y 3.08. Walking south beneath the stairs
+must stop at this headroom boundary without lifting or teleporting the avatar.
+The landing underside is Y 4.62 and can be crossed on the ground as well.
+
+Side guards follow each tread's elevation, so they block walking off the flight
+while allowing a grounded avatar beneath sufficiently high treads. The former
+wide east-side safety rectangle is replaced by the actual stair volumes; the
+visibly open entry floor east of the low flight is walkable. Low treads and side
+guards, basement void rails, and the upper landing's safety guards remain solid.
+Only the lower approach admits a new upstairs ascent; crossing below a high
+flight or its landing cannot select the upstairs connection.
+
+Run `playwright/immersive-under-stair-passage.spec.ts` alongside the upstairs and
+basement roundtrip suites. Inspect the generated ground-under-upper-stair image
+and native movement samples; repeat ordinary ascent and descent after crossing
+underneath. Collider diagnostics place elevated bounds at their actual underside
+and use the same avatar-height filtering as movement.
+
+The preserved inter-flight exit lane has a **0.92-unit avatar-center bottleneck**:
+upper side safety begins at X 8.86, the basement east rail ends at X 6.44, and the
+two 0.75-radius clearances consume 1.50 units. Its safe center interval is
+X [7.19, 8.11]; X 8 continues south to Z -11 and west into the basement landing.
+This intentionally preserves the chosen floor plan and is an exception to the
+original 2.5-unit circulation target. The unrendered lower-corner barrier 4002
+and its empty approach-side companion are removed entirely; they have no solid
+mesh footprint to protect.

@@ -27,7 +27,7 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
   const result = {
     schemaVersion: 1,
     profile: includeExterior
-      ? 'house-front-entry-route-v1'
+      ? 'house-front-entry-route-v2'
       : includeBasement
         ? 'house-basement-route-v1'
         : 'house-common-route-v1',
@@ -181,22 +181,43 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
       throw new Error(`No exterior capture route to ${JSON.stringify(target)}`);
     }, target);
   }
-  async function operateDoor(id, state) {
-    await page
-      .locator(`[data-exterior-door-control][data-door-id="${id}"]`)
-      .click();
+  async function waitForDoor(id, state) {
     await page.waitForFunction(
-      ({ id, state }) =>
-        window.portfolio.world.getDoorSnapshots().find((door) => door.id === id)
-          ?.state === state,
+      ({ id, state }) => {
+        const door = window.portfolio.world
+          .getDoorSnapshots()
+          .find((door) => door.id === id);
+        return (
+          door?.state === state && door.target === (state === 'open' ? 1 : 0)
+        );
+      },
       { id, state }
     );
   }
-  async function checkpoint(name) {
+  async function operateDoor(id, state) {
+    // Only deliberate stationary manual changes use a click. First approach
+    // waits for proximity, which can change target between a read and a click.
+    await waitForDoor(id, state === 'open' ? 'closed' : 'open');
+    await page
+      .locator(`[data-exterior-door-control][data-door-id="${id}"]`)
+      .click();
+    await waitForDoor(id, state);
+  }
+  async function checkpoint(name, expectedDoor = null) {
+    const assertDoorState = (doors) => {
+      if (!expectedDoor) return;
+      const door = doors.find((candidate) => candidate.id === expectedDoor.id);
+      if (door?.state !== expectedDoor.state)
+        throw new Error(
+          `Unexpected door state at ${name}: ${JSON.stringify({ expectedDoor, door })}`
+        );
+    };
     const arrival = await page.evaluate(() => ({
       timeMs: performance.now(),
       snapshot: window.portfolio.performance.getSnapshot(),
+      doors: window.portfolio.world.getDoorSnapshots?.() ?? [],
     }));
+    assertDoorState(arrival.doors);
     await page.waitForTimeout(dwellMs);
     const record = await page.evaluate(() => {
       const p = window.portfolio;
@@ -240,8 +261,10 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
         reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
       };
     });
+    assertDoorState(record.doors);
     result.checkpoints.push({
       name,
+      expectedDoor,
       measuredAt: new Date().toISOString(),
       arrivalMs: arrival.timeMs,
       capturedMs: record.timeMs,
@@ -508,9 +531,15 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
         await exteriorPath({ x: 29, z: -15 }),
         'ground'
       );
-      await checkpoint('front-entry-closed');
+      // Settle automatic opening before requesting a stationary close.
+      await waitForDoor('front-door', 'open');
+      await operateDoor('front-door', 'closed');
+      await checkpoint('front-entry-closed', {
+        id: 'front-door',
+        state: 'closed',
+      });
       await operateDoor('front-door', 'open');
-      await checkpoint('front-entry-open');
+      await checkpoint('front-entry-open', { id: 'front-door', state: 'open' });
       await walk(
         'front-entry-to-sidewalk',
         await exteriorPath({ x: 55, z: -15 }),
@@ -523,7 +552,10 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
         'ground'
       );
       await operateDoor('front-door', 'closed');
-      await checkpoint('front-entry-outside-closed');
+      await checkpoint('front-entry-outside-closed', {
+        id: 'front-door',
+        state: 'closed',
+      });
       await operateDoor('front-door', 'open');
       await walk(
         'front-entry-to-spawn',

@@ -13,6 +13,7 @@ import {
 
 import type { FloorId } from '../../systems/movement/stairs';
 
+import { fitPoiTitleFont } from './titleFont';
 import type { PoiDefinition } from './types';
 
 type PoiWorldTooltipMode = 'hovered' | 'selected';
@@ -403,16 +404,28 @@ export class PoiWorldTooltip {
     context.fill();
 
     context.fillStyle = 'rgba(223, 246, 255, 0.96)';
-    context.font = 'bold 92px "Inter", "Segoe UI", sans-serif';
+    const fontSize =
+      poi.category === 'career'
+        ? fitPoiTitleFont(
+            context,
+            poi.title,
+            width - padding * 2.5,
+            92,
+            40,
+            height - padding * 2 - 16
+          )
+        : 92;
+    const font = `bold ${fontSize}px "Inter", "Segoe UI", sans-serif`;
+    context.font = font;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     this.fillWrappedText(poi.title, {
       x: width / 2,
-      y: height / 2 + 18,
+      y: height / 2 + (poi.category === 'career' ? 0 : 18),
       maxWidth: width - padding * 2.5,
-      lineHeight: 96,
+      lineHeight: fontSize + 4,
       maxLines: 2,
-      font: 'bold 92px "Inter", "Segoe UI", sans-serif',
+      font,
       textAlign: 'center',
       textBaseline: 'middle',
     });

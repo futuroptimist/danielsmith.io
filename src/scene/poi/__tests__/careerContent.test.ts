@@ -81,6 +81,12 @@ describe('reviewed career content', () => {
         expect(poi.status).toBeUndefined();
         expect(poi.environments).toBeUndefined();
         expect(poi.career.provenance.length).toBeGreaterThan(0);
+        expect(poi.links).toEqual([]);
+        if (poi.career.id === 'southern-mississippi') {
+          const name = 'The University of Southern Mississippi';
+          expect(poi.title).toBe(locale === 'en-x-pseudo' ? `⟦${name}⟧` : name);
+          expect(poi.career.organization).toBe(poi.title);
+        }
         expect(
           timeline.find((entry) => entry.id === poi.career.id)
         ).toMatchObject({
@@ -145,11 +151,19 @@ describe('reviewed career content', () => {
       expect(timelineDisclaimer.textContent).toBe(poi.career.disclaimer);
       expect(timelineDisclaimer.closest('[hidden]')).toBeNull();
       for (const career of getTestCareerPois(locale)) {
+        overlay.setSelected(career, { inputMethod: 'keyboard' });
+        expect(
+          container.querySelectorAll('.poi-tooltip-overlay__links a')
+        ).toHaveLength(0);
+        expect(
+          container.querySelector('.poi-tooltip-overlay__title')?.textContent
+        ).toBe(career.title);
         const links = [
           ...fallback.querySelectorAll<HTMLAnchorElement>(
             `[data-career-id="${career.career.id}"] a`
           ),
         ];
+        expect(links).toHaveLength(0);
         expect(
           links.map((link) => ({
             href: link.getAttribute('href'),
