@@ -240,3 +240,27 @@ Run the predecessor's common/museum profiles under the same browser, server and
 quality conditions. Retain all three attempts and the separate native keyboard /
 touch functional traces; a completed software route does not close hardware p95
 or the owner's final manual review.
+
+## Attached garage route addition
+
+`--garage` selects `house-attached-garage-route-v1` and implies the complete
+front-entry/museum route. The prior returned-spawn checkpoints and all existing
+legs are retained, then the route visits the house/garage door, garage interior,
+closed/open vehicle doorway and driveway before returning through the front
+entrance. The museum portion cannot overwrite this more-specific profile label.
+New garage poses remain separately named additions; compare common poses using
+matched predecessor/baseline series. The future street remains unavailable.
+
+### Attached-garage checkpoint
+
+```bash
+npm run perf:history -- --route-profile garage <entry-commit> <garage-commit>
+```
+
+The runner selects the versioned `--garage` helper only when the historical
+commit contains the authored garage door definition. Earlier refs explicitly
+fall back to their common route and record the unavailable capability. The
+`house-attached-garage-route-v1` route retains the common, basement/museum and front-entry
+checkpoints before exercising both garage doors and the driveway. Compare shared
+named checkpoints separately from new route legs; each result retains its actual
+profile and camera state when the historical API exposes it.

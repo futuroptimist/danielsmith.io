@@ -8,6 +8,7 @@ import {
   FRONT_ENTRY_APPROACH,
 } from './exteriorLayout';
 import { getFloorTopElevation, type FloorId } from './floorElevations';
+import { HOUSE_GARAGE_DOOR } from './garageLayout';
 import type {
   FloorDefinition,
   LevelDefinition,
@@ -123,6 +124,7 @@ const FLOOR_SURFACE_SOURCE_IDS: Readonly<Record<string, string>> = {
   'ground:livingRoom': 'ground.livingRoom.floor.main',
   'ground:studio': 'ground.studio.floor.main',
   'ground:kitchen': 'ground.kitchen.floor.main',
+  'ground:garage': 'ground.garage.floor.main',
   'upper:upperLanding': 'upper.upperLanding.floor.main',
   'upper:upperLandingStairEdge': 'upper.upperLanding.floor.stairEdgePiece',
   'upper:creatorsStudio': 'upper.creatorsStudio.floor.main',
@@ -367,7 +369,14 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           16,
           -4,
           8,
-          ['studio']
+          ['studio', 'garage'],
+          [
+            gap(
+              HOUSE_GARAGE_DOOR.z - HOUSE_GARAGE_DOOR.width / 2 + 4,
+              HOUSE_GARAGE_DOOR.z + HOUSE_GARAGE_DOOR.width / 2 + 4,
+              'studio-to-garage'
+            ),
+          ]
         ),
         horizontalWall(
           'kitchen-studio-backyard-wall',
@@ -458,6 +467,27 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
         ),
       ],
       roomConnections: [
+        {
+          id: 'studio-to-garage',
+          sourceId: sourceId('ground.garage.houseConnection'),
+          floorId: 'ground',
+          rooms: ['studio', 'garage'],
+          label: 'House to garage',
+        },
+        {
+          id: 'garage-to-driveway',
+          sourceId: sourceId('ground.garage.drivewayConnection'),
+          floorId: 'ground',
+          rooms: ['garage', 'driveway'],
+          label: 'Garage to driveway',
+        },
+        {
+          id: 'driveway-to-sidewalk',
+          sourceId: sourceId('ground.driveway.sidewalkConnection'),
+          floorId: 'ground',
+          rooms: ['driveway', 'sidewalk'],
+          label: 'Continuous sidewalk across driveway',
+        },
         {
           id: 'studio-to-front-entry',
           sourceId: sourceId('ground.frontEntry.interiorApproach'),

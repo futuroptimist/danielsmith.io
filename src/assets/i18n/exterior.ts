@@ -2,6 +2,8 @@ import type { Locale } from './types';
 
 export interface ExteriorStrings {
   frontDoor: string;
+  houseDoor: string;
+  garageDoor: string;
   open: string;
   close: string;
   closed: string;
@@ -13,6 +15,8 @@ export interface ExteriorStrings {
 }
 const english: ExteriorStrings = {
   frontDoor: 'Front door',
+  houseDoor: 'House–garage door',
+  garageDoor: 'Garage door',
   open: 'Open {door}',
   close: 'Close {door}',
   closed: 'Closed',
@@ -26,6 +30,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
   en: english,
   es: {
     frontDoor: 'Puerta principal',
+    houseDoor: 'Puerta de la casa al garaje',
+    garageDoor: 'Puerta del garaje',
     open: 'Abrir {door}',
     close: 'Cerrar {door}',
     closed: 'Cerrada',
@@ -37,6 +43,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
   },
   pt: {
     frontDoor: 'Porta da frente',
+    houseDoor: 'Porta entre a casa e a garagem',
+    garageDoor: 'Porta da garagem',
     open: 'Abrir {door}',
     close: 'Fechar {door}',
     closed: 'Fechada',
@@ -48,6 +56,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
   },
   de: {
     frontDoor: 'Haustür',
+    houseDoor: 'Tür zwischen Haus und Garage',
+    garageDoor: 'Garagentor',
     open: '{door} öffnen',
     close: '{door} schließen',
     closed: 'Geschlossen',
@@ -59,6 +69,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
   },
   hu: {
     frontDoor: 'Bejárati ajtó',
+    houseDoor: 'Ház és garázs közötti ajtó',
+    garageDoor: 'Garázskapu',
     open: '{door} kinyitása',
     close: '{door} bezárása',
     closed: 'Zárva',
@@ -70,6 +82,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
   },
   ja: {
     frontDoor: '玄関ドア',
+    houseDoor: '家とガレージのドア',
+    garageDoor: 'ガレージドア',
     open: '{door}を開く',
     close: '{door}を閉じる',
     closed: '閉じています',
@@ -81,6 +95,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
   },
   'zh-Hans': {
     frontDoor: '前门',
+    houseDoor: '房屋与车库之间的门',
+    garageDoor: '车库门',
     open: '打开{door}',
     close: '关闭{door}',
     closed: '已关闭',
@@ -92,6 +108,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
   },
   ar: {
     frontDoor: 'الباب الأمامي',
+    houseDoor: 'باب المنزل والمرآب',
+    garageDoor: 'باب المرآب',
     open: 'فتح {door}',
     close: 'إغلاق {door}',
     closed: 'مغلق',

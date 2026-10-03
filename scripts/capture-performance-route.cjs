@@ -10,7 +10,8 @@ if (!output)
     'Usage: node scripts/capture-performance-route.cjs OUTPUT_DIRECTORY'
   );
 const dwellMs = 5000;
-const includeExterior = process.argv.includes('--exterior');
+const includeGarage = process.argv.includes('--garage');
+const includeExterior = process.argv.includes('--exterior') || includeGarage;
 const includeBasement = process.argv.includes('--basement') || includeExterior;
 (async () => {
   // Refuse to overwrite an earlier attempt, including failed or unsupported runs.
@@ -26,22 +27,26 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
   const page = await context.newPage();
   const result = {
     schemaVersion: 1,
-    profile: includeExterior
-      ? 'house-front-entry-route-v1'
-      : includeBasement
-        ? 'house-basement-route-v1'
-        : 'house-common-route-v1',
+    profile: includeGarage
+      ? 'house-attached-garage-route-v1'
+      : includeExterior
+        ? 'house-front-entry-route-v1'
+        : includeBasement
+          ? 'house-basement-route-v1'
+          : 'house-common-route-v1',
     startedAt: new Date().toISOString(),
     browserVersion: browser.version(),
     viewport: { width: 1280, height: 720 },
     dwellMs,
     checkpoints: [],
     legs: [],
-    unavailableCheckpoints: includeExterior
-      ? ['garage', 'street']
-      : includeBasement
-        ? ['exterior']
-        : ['basement', 'exterior'],
+    unavailableCheckpoints: includeGarage
+      ? ['street']
+      : includeExterior
+        ? ['garage', 'street']
+        : includeBasement
+          ? ['exterior']
+          : ['basement', 'exterior'],
     state: 'running',
   };
   await page.addInitScript(() => {
@@ -524,6 +529,45 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
         'ground'
       );
       await checkpoint('exterior-returned-spawn');
+    }
+    if (includeGarage) {
+      await walk(
+        'spawn-to-house-garage-door',
+        await exteriorPath({ x: 29, z: -2 }),
+        'ground'
+      );
+      await operateDoor('house-garage-door', 'open');
+      await walk(
+        'house-door-to-garage-interior',
+        await exteriorPath({ x: 41, z: 4 }),
+        'ground'
+      );
+      await checkpoint('garage-interior');
+      await walk(
+        'garage-interior-to-vehicle-door',
+        await exteriorPath({ x: 47, z: 4 }),
+        'ground'
+      );
+      await checkpoint('garage-door-closed');
+      await operateDoor('garage-door', 'open');
+      await checkpoint('garage-door-open');
+      await walk(
+        'garage-to-driveway',
+        await exteriorPath({ x: 55, z: 4 }),
+        'ground'
+      );
+      await checkpoint('garage-driveway');
+      await walk(
+        'driveway-to-front-sidewalk',
+        await exteriorPath({ x: 55, z: -15 }),
+        'ground'
+      );
+      await walk(
+        'garage-loop-return-to-spawn',
+        await exteriorPath({ x: 0, z: -20 }),
+        'ground'
+      );
+      await checkpoint('garage-returned-spawn');
     }
     result.state = 'completed';
     result.wholeRouteStallProbe = await page.evaluate(() =>

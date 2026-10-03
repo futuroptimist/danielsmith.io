@@ -26,7 +26,7 @@ describe('front entry declarative topology', () => {
       floor.floorSurfaces.filter(
         (surface) => surface.purpose === 'exterior-surface'
       )
-    ).toHaveLength(4);
+    ).toHaveLength(5);
   });
   it('places the new opening on the positive-X wall beneath the stairs', () => {
     const wall = PORTFOLIO_LEVEL.floors

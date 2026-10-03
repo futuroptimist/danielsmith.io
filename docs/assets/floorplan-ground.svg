@@ -71,6 +71,38 @@
       <g>
         <rect
           x="1056.00"
+          y="416.00"
+          width="288.00"
+          height="384.00"
+          fill="#e7cfa9"
+          fill-opacity="0.22"
+          stroke="#e7cfa9"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="1200.00" y="608.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Attached Garage</text>
+      </g>
+
+
+      <g>
+        <rect
+          x="1344.00"
+          y="416.00"
+          width="128.00"
+          height="384.00"
+          fill="#66737c"
+          fill-opacity="0.22"
+          stroke="#66737c"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="1408.00" y="608.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Driveway</text>
+      </g>
+
+
+      <g>
+        <rect
+          x="1056.00"
           y="800.00"
           width="320.00"
           height="384.00"
@@ -115,28 +147,34 @@
         <text x="1424.00" y="640.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Sidewalk</text>
       </g>
 
-    <line x1="32.00" y1="1184.00" x2="1056.00" y2="1184.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="1056.00" y1="1184.00" x2="1376.00" y2="1184.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="800.00" x2="192.00" y2="800.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+    <line x1="32.00" y1="800.00" x2="192.00" y2="800.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="320.00" y1="800.00" x2="480.00" y2="800.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="480.00" y1="800.00" x2="720.00" y2="800.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="848.00" y1="800.00" x2="920.00" y2="800.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1016.00" y1="800.00" x2="1056.00" y2="800.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="1056.00" y1="800.00" x2="1376.00" y2="800.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="1376.00" y1="1248.00" x2="1472.00" y2="1248.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="1376.00" y1="32.00" x2="1472.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1056.00" y1="800.00" x2="1344.00" y2="800.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1344.00" y1="800.00" x2="1376.00" y2="800.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="32.00" y1="416.00" x2="192.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="320.00" y1="416.00" x2="480.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="480.00" y1="416.00" x2="720.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="848.00" y1="416.00" x2="1056.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1056.00" y1="416.00" x2="1344.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1344.00" y1="416.00" x2="1376.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="1184.00" x2="1056.00" y2="1184.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1056.00" y1="1184.00" x2="1376.00" y2="1184.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1376.00" y1="1248.00" x2="1472.00" y2="1248.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1376.00" y1="32.00" x2="1472.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="32.00" y1="160.00" x2="1056.00" y2="160.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1344.00" y1="800.00" x2="1344.00" y2="720.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1344.00" y1="496.00" x2="1344.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1472.00" y1="1248.00" x2="1472.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="32.00" y1="1184.00" x2="32.00" y2="800.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="32.00" y1="800.00" x2="32.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="32.00" y1="416.00" x2="32.00" y2="160.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="1184.00" x2="1056.00" y2="960.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="864.00" x2="1056.00" y2="800.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="1056.00" y1="800.00" x2="1056.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1056.00" y1="800.00" x2="1056.00" y2="752.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1056.00" y1="656.00" x2="1056.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="416.00" x2="1056.00" y2="160.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="480.00" y1="800.00" x2="480.00" y2="672.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="480.00" y1="544.00" x2="480.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />

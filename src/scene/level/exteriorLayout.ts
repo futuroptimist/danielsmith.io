@@ -1,5 +1,11 @@
 import type { DoorDefinition } from '../../systems/doors/controller';
 
+import {
+  GARAGE_ROOMS,
+  GARAGE_WALLS,
+  GARAGE_OBJECTS,
+  createGarageDoorDefinitions,
+} from './garageLayout';
 import type {
   FloorSurfaceDefinition,
   SceneObjectDefinition,
@@ -20,6 +26,7 @@ export const FRONT_ENTRY = { x: 16, z: -7.5, width: 3, height: 3.5 } as const;
 export const FRONT_ENTRY_APPROACH = { start: 11.75, end: 14.75 } as const;
 const source = assertLevelSourceId;
 export const EXTERIOR_ROOMS: SemanticRoomDefinition[] = [
+  ...GARAGE_ROOMS,
   {
     id: 'frontYard',
     sourceId: source('ground.frontYard.room'),
@@ -46,33 +53,44 @@ export const EXTERIOR_ROOMS: SemanticRoomDefinition[] = [
   },
 ];
 export const EXTERIOR_SURFACES: FloorSurfaceDefinition[] =
-  EXTERIOR_ROOMS.flatMap((room) => {
-    const path = EXTERIOR_ROOMS.find(
-      (candidate) => candidate.id === 'frontPath'
-    )!;
-    const surfaces =
-      room.id === 'frontYard'
-        ? [
-            {
-              suffix: 'south',
-              bounds: { ...room.bounds, maxZ: path.bounds.minZ },
-            },
-            {
-              suffix: 'north',
-              bounds: { ...room.bounds, minZ: path.bounds.maxZ },
-            },
-          ]
-        : [{ suffix: 'main', bounds: { ...room.bounds } }];
-    return surfaces.map(({ suffix, bounds }) => ({
-      id: `${room.id}-${suffix}-exterior-surface`,
-      sourceId: source(`ground.${room.id}.${suffix}.surface`),
-      floorId: 'ground',
-      roomId: room.id,
-      bounds,
-      purpose: 'exterior-surface',
-    }));
-  });
+  EXTERIOR_ROOMS.filter((room) => room.category === 'exterior').flatMap(
+    (room) => {
+      const path = EXTERIOR_ROOMS.find(
+        (candidate) => candidate.id === 'frontPath'
+      )!;
+      const surfaces =
+        room.id === 'frontYard'
+          ? [
+              {
+                suffix: 'south',
+                bounds: { ...room.bounds, maxZ: path.bounds.minZ },
+              },
+              {
+                suffix: 'north',
+                bounds: { ...room.bounds, minZ: path.bounds.maxZ },
+              },
+            ]
+          : [
+              {
+                suffix: 'main',
+                bounds:
+                  room.id === 'driveway'
+                    ? { ...room.bounds, maxX: 26 }
+                    : { ...room.bounds },
+              },
+            ];
+      return surfaces.map(({ suffix, bounds }) => ({
+        id: `${room.id}-${suffix}-exterior-surface`,
+        sourceId: source(`ground.${room.id}.${suffix}.surface`),
+        floorId: 'ground',
+        roomId: room.id,
+        bounds,
+        purpose: 'exterior-surface',
+      }));
+    }
+  );
 export const EXTERIOR_OBJECTS: SceneObjectDefinition[] = [
+  ...GARAGE_OBJECTS,
   {
     id: 'front-door',
     sourceId: source('ground.frontEntry.door'),
@@ -102,6 +120,7 @@ export const EXTERIOR_OBJECTS: SceneObjectDefinition[] = [
   ),
 ];
 export const EXTERIOR_WALLS: WallDefinition[] = [
+  ...GARAGE_WALLS,
   {
     id: 'front-yard-south-boundary',
     sourceId: source('ground.frontYard.southBoundary'),
@@ -120,7 +139,7 @@ export const EXTERIOR_WALLS: WallDefinition[] = [
     height: 1.1,
     rooms: ['frontYard'],
     purpose: 'exterior-boundary',
-    run: { start: { x: 16, z: -4 }, end: { x: 26, z: -4 } },
+    run: { start: { x: 25, z: -4 }, end: { x: 26, z: -4 } },
   },
   {
     id: 'sidewalk-east-boundary',
@@ -174,5 +193,6 @@ export function createExteriorDoorDefinitions(scale: number): DoorDefinition[] {
       threshold: { ...blockingBounds, minX: x - 1.2, maxX: x + 1.2 },
       sweep: { ...blockingBounds, maxZ: z + width * 1.5 + 0.22 },
     },
+    ...createGarageDoorDefinitions(scale),
   ];
 }

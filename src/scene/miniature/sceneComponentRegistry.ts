@@ -20,11 +20,12 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'excluded',
     sourceFiles: [
       'src/scene/level/exteriorLayout.ts',
+      'src/scene/level/garageLayout.ts',
       'src/scene/structures/residentialExterior.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Source-labeled instances split grass around the paved path and dispose instance buffers explicitly.',
+      'Attached garage surfaces, solid workshop storage, and overhead/sliding door geometry share the exterior resource pool; the miniature keeps its original house envelope.',
     reason:
       'The tabletop keeps its existing house/backyard envelope. The source-backed front opening is shared, while external landscaping and dynamic door controls stay outside the miniature.',
   },
@@ -62,9 +63,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'The front opening is source-backed; exterior surfaces and collision zones extend the runtime while the miniature retains the original house envelope.',
+      'The source now includes an attached garage and driveway; its house connection is shared while outside-envelope garage geometry is excluded from the miniature.',
   },
   {
     id: 'level:floors-walls',
@@ -477,7 +478,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:structures:doorwayOpenings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/doorwayOpenings.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
+    syncNote:
+      'Operable apertures declare their frame factory ownership so generic trim cannot overlap moving panels or walking clearance.',
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },

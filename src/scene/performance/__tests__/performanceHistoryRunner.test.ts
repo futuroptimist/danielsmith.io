@@ -82,7 +82,7 @@ function put(repo: string, name: string, text: string) {
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, text);
 }
-function fixture(basement = false, exterior = false) {
+function fixture(basement = false, exterior = false, garage = false) {
   const repo = mkdtempSync(path.join(tmpdir(), 'performance-history-test-'));
   fixtures.push(repo);
   git(repo, 'init');
@@ -127,6 +127,18 @@ function fixture(basement = false, exterior = false) {
       repo,
       'scripts/capture-performance-route.cjs',
       '// versioned --basement --exterior routes\n'
+    );
+  }
+  if (garage) {
+    put(
+      repo,
+      'src/scene/level/garageLayout.ts',
+      "export const id = 'house-garage-door';\n"
+    );
+    put(
+      repo,
+      'scripts/capture-performance-route.cjs',
+      '// versioned --basement --exterior --garage routes\n'
     );
   }
   git(repo, 'add', '.');
@@ -466,6 +478,27 @@ describe('performance history command', () => {
     );
     expect(result.manifest.entries[0]).toMatchObject({
       routeProfile: 'exterior',
+      skippedRouteCapabilities: [],
+    });
+  });
+
+  it('retains common routes when a historical ref has no garage', async () => {
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'garage', 'HEAD'],
+      { cwd: fixture(true, true) }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'common',
+      skippedRouteCapabilities: [{ capability: 'garage' }],
+    });
+  });
+  it('recognizes the versioned garage helper and source definition', async () => {
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'garage', 'HEAD'],
+      { cwd: fixture(true, true, true) }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'garage',
       skippedRouteCapabilities: [],
     });
   });
