@@ -290,9 +290,24 @@ test(streetCaseTitle2, async ({ page }) => {
 
   await walkExteriorTo(page, { x: 55, z: 23 });
   await nativeZ(page, 31.8, true);
-  // Reproducible normal-view sign pose after native traversal.
+  // Start the native return from the verified sidewalk coordinate.
   await walkExteriorTo(page, { x: 55, z: 32 });
   await expect(page.locator(stop)).toHaveText('Bus stop: Coming Soon');
+  await nativeZ(page, 23, false);
+  await walkExteriorTo(page, { x: 55, z: -15 });
+  await walkExteriorTo(page, { x: 0, z: -20 });
+  expect(
+    await page.evaluate(() => window.portfolio!.world!.getActiveFloor())
+  ).toBe('ground');
+});
+
+// Keep camera/screenshot work independent from the bounded native round trip.
+test('checks street lighting and shelter at normal, minimum and maximum zoom', async ({
+  page,
+}) => {
+  test.setTimeout(150000);
+  await readyExterior(page);
+  await reachStop(page);
   const snapshot = await page.evaluate(() =>
     window.portfolio!.world!.getStreetSnapshot()
   );
@@ -347,13 +362,6 @@ test(streetCaseTitle2, async ({ page }) => {
   await page.screenshot({
     path: test.info().outputPath('shelter-interior-cutaway.png'),
   });
-  await walkExteriorTo(page, { x: 55, z: 32 });
-  await nativeZ(page, 23, false);
-  await walkExteriorTo(page, { x: 55, z: -15 });
-  await walkExteriorTo(page, { x: 0, z: -20 });
-  expect(
-    await page.evaluate(() => window.portfolio!.world!.getActiveFloor())
-  ).toBe('ground');
 });
 
 test('keeps downward lamp pools visible on approach, passing and departure', async ({
@@ -511,12 +519,12 @@ test(streetCaseTitle3, async ({ page }) => {
   ).toHaveCount(0);
 });
 
-const streetCaseTitle4 =
-  'uses all nine native locale choices for the world sign, ' +
-  'passive description and text alternative';
-test(streetCaseTitle4, async ({ page }) => {
-  test.setTimeout(300000);
-  for (const [locale, strings] of Object.entries(EXTERIOR_LOCALE_COPY)) {
+// Each locale retains a fresh page/context and its own bounded journey.
+for (const [locale, strings] of Object.entries(EXTERIOR_LOCALE_COPY)) {
+  test(`uses native locale ${locale} for the world sign and passive text alternative`, async ({
+    page,
+  }) => {
+    test.setTimeout(90000);
     await readyExterior(page);
     await page.locator('[data-control="help"]').click();
     await page
@@ -545,8 +553,8 @@ test(streetCaseTitle4, async ({ page }) => {
       `${strings.busStop}: ${strings.comingSoon}`
     );
     await expect(page.locator(`${stop} button, ${stop} a`)).toHaveCount(0);
-  }
-});
+  });
+}
 
 for (const viewport of [
   { width: 1280, height: 720 },

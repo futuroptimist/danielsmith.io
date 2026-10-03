@@ -231,6 +231,12 @@ all common, museum, entry and garage legs before appending the parked EV, bus st
 shelter interior and return to spawn. Browser lifecycle assertions separately
 verify disposal and a fresh bounded resource pool after text-mode re-entry.
 
+The native street round trip, camera/lighting inspection and each locale journey
+use separate bounded browser cases. This preserves the full out-and-back route,
+all collision and zoom assertions, and nine native locale choices without sharing
+a cumulative case deadline. Individual native movement deadlines and zero retries
+remain unchanged.
+
 Record failures and reruns honestly. Automated software-WebGL traversal, local
 structural documentation checks, hosted link checks, hardware frame-time gates
 and the owner's deferred final manual walkthrough are distinct evidence.
