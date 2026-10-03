@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { source as axeSource } from 'axe-core';
 
+import { injectEarlyInitializationFailure } from './helpers/earlyInitializationFailure';
 import {
   injectExteriorInitializationFailure,
   readExteriorFailureSnapshot,
@@ -12,6 +13,42 @@ import {
 } from './helpers/exteriorJourney';
 
 const button = '[data-exterior-door-control]';
+
+for (const point of ['locale', 'debug-storage', 'debug-overlay'] as const) {
+  test(`releases early telemetry and DOM after ${point} initialization failure`, async ({
+    page,
+  }) => {
+    await injectEarlyInitializationFailure(page, point);
+    await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
+      waitUntil: 'domcontentloaded',
+    });
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-app-mode',
+      'fallback'
+    );
+    const snapshot = await page.evaluate(() => ({
+      ...(window as unknown as { earlyFailure: Record<string, unknown> })
+        .earlyFailure,
+      canvases: document.querySelectorAll('#app canvas').length,
+      panels: document.querySelectorAll('.debug-performance-overlay').length,
+      worldAvailable: Boolean(window.portfolio?.world),
+    }));
+    await test.info().attach(`early-${point}.json`, {
+      body: JSON.stringify(snapshot, null, 2),
+      contentType: 'application/json',
+    });
+    expect(snapshot).toMatchObject({
+      failureReached: true,
+      added: 2,
+      removed: 2,
+      rendererDisposals: 1,
+      canvases: 0,
+      panels: 0,
+      worldAvailable: false,
+      overlayAttachedBeforeFailure: point === 'debug-overlay',
+    });
+  });
+}
 
 for (const mode of ['handler', 'throw'] as const) {
   for (const phase of ['build', 'controls'] as const) {

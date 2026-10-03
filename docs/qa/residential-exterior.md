@@ -51,6 +51,10 @@ initialization failures release that ownership through the same idempotent
 cleanup used when leaving immersive mode. Synchronous initializer exceptions
 also use the renderer-aware failure handler; cleanup is not dependent on the
 optional console-error failover monitor.
+The earliest renderer canvas, input telemetry and debug FPS panel are owned
+from allocation onward, including failures during locale/debug storage reads
+before scene construction. Targeted faults verify real listener removal,
+renderer disposal and DOM release through the initial fallback handler.
 
 ## Automated and owner checks
 

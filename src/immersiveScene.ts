@@ -949,7 +949,14 @@ function buildImmersiveScene(
   clearPoiModelRoots();
   const immersiveUrl = createImmersiveModeUrl();
   const renderer = new WebGLRenderer({ antialias: true });
-  registerFailureHandler((error) => onFatalError(error, { renderer }));
+  const initializationCleanup = createDisposalScope();
+  registerFailureHandler((error) => {
+    try {
+      initializationCleanup.dispose();
+    } finally {
+      onFatalError(error, { renderer });
+    }
+  });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
@@ -1080,6 +1087,10 @@ function buildImmersiveScene(
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
+  initializationCleanup.add(() => {
+    if (renderer.domElement.parentElement === container)
+      renderer.domElement.remove();
+  });
 
   ledStripMaterials.length = 0;
   ledFillLightsList.length = 0;
@@ -1269,6 +1280,10 @@ function buildImmersiveScene(
     documentTarget: document,
     budgetMs: INPUT_LATENCY_P95_BUDGET_MS,
   });
+  initializationCleanup.add(() => {
+    inputLatencyTelemetry?.dispose();
+    inputLatencyTelemetry = null;
+  });
 
   const detectedLanguage =
     typeof navigator !== 'undefined' && navigator.language
@@ -1401,6 +1416,7 @@ function buildImmersiveScene(
     ? false
     : debugFpsUrlEnabled || debugFpsStoredEnabled;
   const debugPerformanceOverlay = createDebugPerformanceOverlay();
+  initializationCleanup.add(() => debugPerformanceOverlay.dispose());
   debugPerformanceOverlay.setFpsEnabled(debugFpsEnabled);
 
   let debugCoordinatesControl: HTMLButtonElement | null = null;
@@ -1428,6 +1444,7 @@ function buildImmersiveScene(
       inputLatencyTelemetry.dispose();
       inputLatencyTelemetry = null;
     }
+    initializationCleanup.dispose();
     softwareSafeRenderEvents.forEach((eventName) => {
       window.removeEventListener(eventName, requestSoftwareSafeRender);
     });
@@ -1467,6 +1484,19 @@ function buildImmersiveScene(
     }
     disposePartiallyInitializedImmersiveResources();
   }
+
+  const handleFatalError = (error: unknown) => {
+    crashBreadcrumbs.record({
+      type: 'fatal-error',
+      message: error instanceof Error ? error.message : String(error),
+      renderer: rendererInfo,
+      softwareRendererPolicy,
+      snapshot: performanceDiagnostics?.methods.getSnapshot(),
+    });
+    disposeInitializedOrPartialImmersiveResources();
+    onFatalError(error, { renderer });
+  };
+  registerFailureHandler(handleFatalError);
 
   if (rendererInfo.isDangerousSoftwareRenderer) {
     softwareRendererWarning = createSoftwareRendererWarning({
@@ -1543,19 +1573,6 @@ function buildImmersiveScene(
       },
     },
   });
-
-  const handleFatalError = (error: unknown) => {
-    crashBreadcrumbs.record({
-      type: 'fatal-error',
-      message: error instanceof Error ? error.message : String(error),
-      renderer: rendererInfo,
-      softwareRendererPolicy,
-      snapshot: performanceDiagnostics?.methods.getSnapshot(),
-    });
-    disposeInitializedOrPartialImmersiveResources();
-    onFatalError(error, { renderer });
-  };
-  registerFailureHandler(handleFatalError);
 
   const scene = new Scene();
   scene.background = createImmersiveGradientTexture();
@@ -6934,6 +6951,7 @@ function buildImmersiveScene(
       inputLatencyTelemetry.dispose();
       inputLatencyTelemetry = null;
     }
+    initializationCleanup.dispose();
     softwareSafeRenderEvents.forEach((eventName) => {
       window.removeEventListener(eventName, requestSoftwareSafeRender);
     });
