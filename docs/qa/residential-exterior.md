@@ -57,7 +57,12 @@ before scene construction. Targeted faults verify real listener removal,
 renderer disposal and DOM release through the initial fallback handler.
 The full fatal handler also guarantees renderer-aware fallback when a resource
 disposer throws; synchronous and asynchronous fault cases retain exact resource
-disposal and renderer assertions.
+disposal and renderer assertions. Scope failures are recorded as `cleanup-error`
+breadcrumbs alongside the original fatal error, and teardown continues through
+later owned structures and the final disposed lifecycle. Late-initialization
+and ready-scene faults cover both initialization and exterior scopes, including
+museum resource equality, miniature and PR-Reaper disposal events, and ready-scene
+keyboard release and active joystick reset.
 
 ## Automated and owner checks
 
@@ -102,3 +107,10 @@ Automated software-WebGL evidence and the final owner walkthrough/hardware p95
 check are separate gates. Record actual results, served tree/commit, renderer,
 viewport and limitations in the stage handoff/performance record; do not treat
 text fallback or missing render tools as a successful walkthrough.
+
+The traced Chromium native-movement helper queues trusted CDP key events so
+per-key Playwright snapshots cannot turn a diagonal chord into single-axis
+steering. It preserves focus, requested hold duration, collision goals and
+movement deadlines. Bounded event/pose diagnostics print on failure as well as
+being attached, so analysis does not depend on downloading a large trace ZIP.
+This Chromium-only harness path is distinct from physical-keyboard validation.

@@ -7,7 +7,8 @@ export type CrashBreadcrumbEventType =
   | 'renderer-warning'
   | 'mode-change'
   | 'webgl-context-lost'
-  | 'fatal-error';
+  | 'fatal-error'
+  | 'cleanup-error';
 
 export interface CrashBreadcrumbEntry {
   type: CrashBreadcrumbEventType;

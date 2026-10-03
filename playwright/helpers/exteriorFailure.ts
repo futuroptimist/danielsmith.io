@@ -1,13 +1,15 @@
 import { expect, type Page } from '@playwright/test';
 
-export type ExteriorFailurePhase = 'build' | 'controls';
+export type ExteriorFailurePhase = 'build' | 'controls' | 'ready';
 
 /** Inject faults into the served module, preserving its real builders and fatal handler. */
 export async function injectExteriorInitializationFailure(
   page: Page,
   phase: ExteriorFailurePhase,
-  mode: 'handler' | 'throw' | 'throw-cleanup' | 'async-cleanup'
+  mode: 'handler' | 'throw' | 'throw-cleanup' | 'async-cleanup',
+  options: { cleanupScope?: 'exterior' | 'initialization' } = {}
 ) {
+  const cleanupScope = options.cleanupScope ?? 'exterior';
   await page.addInitScript(() => {
     const counts = {
       keyAdded: 0,
@@ -63,7 +65,13 @@ export async function injectExteriorInitializationFailure(
     const anchor =
       phase === 'build'
         ? /groundEnvironmentGroup\.add\(residentialExterior\.group\);/
-        : /let helpKeyWasPressed = false;/;
+        : phase === 'controls'
+          ? /let helpKeyWasPressed = false;/
+          : /immersiveLifecycle = ["']ready["'];/;
+    const directHandlerFailure =
+      phase !== 'ready' && mode === 'handler'
+        ? 'handleFatalError(failure); handleFatalError(failure);'
+        : '';
     expect(body.match(anchor)).not.toBeNull();
     // Keep real resources and disposal events. A direct throw separately checks
     // initializer exception routing rather than only invoking the error handler.
@@ -86,14 +94,32 @@ export async function injectExteriorInitializationFailure(
           resource.addEventListener('dispose', () => failureCounts[kind]++);
         }
       }
+      const failureMuseum = careerMuseum;
+      const failureMiniature = portfolioMiniatureTable;
+      const failureReaper = prReaperInstallation;
+      const laterGeometryDisposals = { miniature: 0, reaper: 0 };
+      for (const [kind, build] of Object.entries({
+        miniature: failureMiniature, reaper: failureReaper
+      })) {
+        const geometries = new Set();
+        build?.group.traverse((object) => {
+          if (object.geometry) geometries.add(object.geometry);
+        });
+        for (const geometry of geometries) {
+          geometry.addEventListener('dispose', () => laterGeometryDisposals[kind]++);
+        }
+      }
       let rendererDisposals = 0;
       const originalRendererDispose = renderer.dispose;
-      renderer.dispose = () => { rendererDisposals++; originalRendererDispose.call(renderer); };
+      renderer.dispose = () => {
+        rendererDisposals++;
+        originalRendererDispose.call(renderer);
+      };
       const failure = new Error('Injected exterior initialization failure: ${phase}');
       window.exteriorCleanupFailures = 0;
       ${
         mode.endsWith('-cleanup')
-          ? `exteriorCleanup.add(() => {
+          ? `${cleanupScope}Cleanup.add(() => {
         window.exteriorCleanupFailures++;
         throw new Error('Injected disposer failure');
       });`
@@ -101,6 +127,18 @@ export async function injectExteriorInitializationFailure(
       }
       window.repeatExteriorFailure = () => handleFatalError(failure);
       window.readExteriorFailure = () => ({
+        immersiveLifecycle,
+        museum: failureMuseum?.getResourceLifecycle() ?? null,
+        miniatureChildren: failureMiniature?.group.children.length ?? null,
+        laterGeometryDisposals,
+        movementPressed: ${phase === 'ready' ? "controls.isPressed('w')" : 'null'},
+        joystickMovement: ${phase === 'ready' ? 'joystick.getMovement()' : 'null'},
+        cleanupErrors: crashBreadcrumbs.read().entries
+          .filter((entry) => entry.type === 'cleanup-error')
+          .map((entry) => entry.message),
+        fatalErrors: crashBreadcrumbs.read().entries
+          .filter((entry) => entry.type === 'fatal-error')
+          .map((entry) => entry.message),
         lifecycle: residentialExterior.getLifecycle(),
         expected: Object.fromEntries(
           Object.entries(failureResources).map(([kind, values]) => [kind, values.size])
@@ -113,14 +151,16 @@ export async function injectExteriorInitializationFailure(
         rendererDisposals,
         cleanupFailures: window.exteriorCleanupFailures
       });
-      ${mode === 'handler' ? 'handleFatalError(failure); handleFatalError(failure);' : ''}
+      ${directHandlerFailure}
       ${
-        mode === 'async-cleanup'
-          ? `window.setTimeout(() => {
+        phase === 'ready'
+          ? ''
+          : mode === 'async-cleanup'
+            ? `window.setTimeout(() => {
         try { handleFatalError(failure); }
         catch (error) { window.exteriorCleanupError = String(error); }
       }, 0); return;`
-          : 'throw failure;'
+            : 'throw failure;'
       }
     `
     );
@@ -133,6 +173,18 @@ export async function readExteriorFailureSnapshot(page: Page) {
     (
       window as unknown as {
         readExteriorFailure(): {
+          immersiveLifecycle: string;
+          museum: {
+            created: Record<string, number>;
+            disposed: Record<string, number>;
+            isDisposed: boolean;
+          } | null;
+          miniatureChildren: number | null;
+          laterGeometryDisposals: { miniature: number; reaper: number };
+          movementPressed: boolean | null;
+          joystickMovement: { x: number; y: number } | null;
+          cleanupErrors: string[];
+          fatalErrors: string[];
           lifecycle: { isDisposed: boolean };
           expected: Record<string, number>;
           disposed: Record<string, number>;
