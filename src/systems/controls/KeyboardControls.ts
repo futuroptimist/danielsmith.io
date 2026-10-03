@@ -6,7 +6,7 @@ export function isUiOwnedKeyboardEvent(
   if (!(target instanceof HTMLElement)) return false;
   if (
     target.closest(
-      'input, select, textarea, [contenteditable], [role="dialog"], [role="alertdialog"], dialog'
+      'input, select, textarea, [contenteditable], [aria-modal="true"], [role="alertdialog"], dialog'
     )
   )
     return true;

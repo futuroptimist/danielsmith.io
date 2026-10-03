@@ -72,6 +72,25 @@ describe('attached garage topology and safety', () => {
       door.update(definition.duration, { ...outside, x: 50 })
     ).toMatchObject({ blocked: false, target: 1, occupied: true });
   });
+  it('reopens a moving overhead panel before its headroom collision gate', () => {
+    const definition = createGarageDoorDefinitions(FLOOR_PLAN_SCALE).find(
+      (door) => door.kind === 'overhead'
+    )!;
+    const door = createDoorController(definition);
+    const outside = { x: 53, z: 4, radius: 0.75, floorId: 'ground' };
+    door.request(1, outside);
+    door.update(definition.duration, outside);
+    door.request(0, outside);
+    expect(door.update(definition.duration * 0.1, outside)).toMatchObject({
+      progress: 0.9,
+      state: 'closing',
+      blocked: false,
+      occupied: false,
+    });
+    expect(
+      door.update(definition.duration, { ...outside, x: 51.25 })
+    ).toMatchObject({ progress: 1, target: 1, occupied: true, blocked: false });
+  });
   it('protects both sides of all three doors and never crosses floors', () => {
     const doors = createExteriorDoorDefinitions(FLOOR_PLAN_SCALE);
     expect(doors).toHaveLength(3);

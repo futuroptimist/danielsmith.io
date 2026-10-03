@@ -2,12 +2,125 @@ import { expect, test, type Page } from '@playwright/test';
 import { source as axeSource } from 'axe-core';
 
 import {
+  injectExteriorInitializationFailure,
+  readExteriorFailureSnapshot,
+} from './helpers/exteriorFailure';
+import {
   readyExterior,
   waitDoor,
   walkExteriorTo,
 } from './helpers/exteriorJourney';
 
 const button = '[data-exterior-door-control]';
+
+for (const mode of ['handler', 'throw'] as const) {
+  for (const phase of ['build', 'controls'] as const) {
+    test(`releases exterior resources after a ${mode} ${phase} initialization failure`, async ({
+      page,
+    }) => {
+      await injectExteriorInitializationFailure(page, phase, mode);
+      await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
+        waitUntil: 'domcontentloaded',
+      });
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-app-mode',
+        'fallback'
+      );
+      const snapshot = await readExteriorFailureSnapshot(page);
+      await test.info().attach(`partial-exterior-${phase}.json`, {
+        body: JSON.stringify(snapshot, null, 2),
+        contentType: 'application/json',
+      });
+      expect(snapshot.lifecycle.isDisposed).toBe(true);
+      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 9 });
+      expect(snapshot.expected.instances).toBeGreaterThan(0);
+      expect(snapshot.disposed).toEqual(snapshot.expected);
+      expect(snapshot.groupAttached).toBe(false);
+      expect(snapshot.controlsRemaining).toBe(0);
+      expect(snapshot.worldAvailable).toBe(false);
+      expect(snapshot.rendererDisposals).toBe(1);
+      const allocated = phase === 'controls' ? 1 : 0;
+      expect(snapshot.listeners).toEqual({
+        keyAdded: allocated,
+        keyRemoved: allocated,
+        blurAdded: allocated,
+        blurRemoved: allocated,
+        resizeAdded: allocated,
+        resizeRemoved: allocated,
+      });
+      await page.evaluate(() =>
+        (
+          window as unknown as { repeatExteriorFailure(): void }
+        ).repeatExteriorFailure()
+      );
+      expect(await readExteriorFailureSnapshot(page)).toEqual(snapshot);
+    });
+  }
+}
+
+for (const panel of ['tutorial', 'controls'] as const) {
+  test(`keeps native movement with focus inside the nonmodal ${panel}`, async ({
+    page,
+  }) => {
+    await readyExterior(page);
+    await page.locator(`[data-role="${panel}-button"]`).click();
+    const focusTarget = page.locator(
+      panel === 'tutorial'
+        ? '[data-testid="tutorial-sidebar-collapse"]'
+        : '[data-role="controls-close"]'
+    );
+    await focusTarget.focus();
+    await expect(focusTarget).toBeFocused();
+    const before = await page.evaluate(() =>
+      window.portfolio!.world!.getPlayerPosition()
+    );
+    await page.keyboard.press('KeyW', { delay: 400 });
+    const after = await page.evaluate(() =>
+      window.portfolio!.world!.getPlayerPosition()
+    );
+    expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeGreaterThan(
+      0.25
+    );
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-active-hud-panel',
+      panel
+    );
+  });
+}
+
+for (const key of ['w', 'h'] as const) {
+  test(`preserves ${key === 'w' ? 'movement' : 'Help'} when Interact shares ${key} near a door`, async ({
+    page,
+  }) => {
+    await readyExterior(page);
+    await walkExteriorTo(page, { x: 29, z: -15 });
+    await expect(page.locator(button)).toBeVisible();
+    await page.locator(button).focus();
+    await expect(page.locator(button)).toBeFocused();
+    await page.evaluate(
+      (key) =>
+        window.portfolio!.input!.keyBindings!.setBinding('interact', [key]),
+      key
+    );
+    const before = await page.evaluate(() =>
+      window.portfolio!.world!.getPlayerPosition()
+    );
+    await page.keyboard.press(key, { delay: 400 });
+    if (key === 'w') {
+      const after = await page.evaluate(() =>
+        window.portfolio!.world!.getPlayerPosition()
+      );
+      expect(
+        Math.hypot(after.x - before.x, after.z - before.z)
+      ).toBeGreaterThan(0.25);
+    } else {
+      await expect(page.locator('.help-modal-backdrop')).toBeVisible();
+    }
+    expect(
+      await page.evaluate(() => window.portfolio!.world!.getDoorSnapshots()[0])
+    ).toMatchObject({ target: 0, progress: 0 });
+  });
+}
 
 async function crossFrontDoorWithNativeChord(page: Page, label: string) {
   // Keep the current button/HUD focus: that ownership is part of the regression.
@@ -47,6 +160,51 @@ async function crossFrontDoorWithNativeChord(page: Page, label: string) {
   expect(diagnostics.position.x).toBeGreaterThan(35);
   expect(diagnostics.floor).toBe('ground');
 }
+
+test('routes from a valid fractional pose beside a solid planter without snapping into it', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await readyExterior(page);
+  await walkExteriorTo(page, { x: 29, z: -15 });
+  await page.locator(button).click();
+  await waitDoor(page, 'front-door', 'open');
+  const edge = { x: 41.72, z: -9.2 };
+  const rounded = { x: 41.8, z: -9.2 };
+  const occupancy = await page.evaluate(
+    ({ edge, rounded }) => ({
+      edge: window.portfolio!.world!.canOccupyPosition({
+        ...edge,
+        floorId: 'ground',
+      }),
+      rounded: window.portfolio!.world!.canOccupyPosition({
+        ...rounded,
+        floorId: 'ground',
+      }),
+      blockers: window
+        .portfolio!.debugColliders!.getBlockingCollidersAt({
+          ...rounded,
+          floorId: 'ground',
+        })
+        .map((collider) => collider.name),
+    }),
+    { edge, rounded }
+  );
+  expect(occupancy.edge).toBe(true);
+  expect(occupancy.rounded).toBe(false);
+  expect(occupancy.blockers).toContain('Exterior:front-planter-2');
+  await walkExteriorTo(page, edge);
+  const edgePosition = await page.evaluate(() =>
+    window.portfolio!.world!.getPlayerPosition()
+  );
+  expect(edgePosition.x).toBeCloseTo(edge.x, 6);
+  expect(edgePosition.z).toBeCloseTo(edge.z, 6);
+  const onward = await walkExteriorTo(page, { x: 55, z: -15 });
+  expect(onward.position.x).toBeCloseTo(55, 6);
+  expect(onward.position.y).toBe(0);
+  expect(onward.position.z).toBeCloseTo(-15, 6);
+  expect(onward.floor).toBe('ground');
+});
 
 test('walks from fresh spawn through the front door to the sidewalk and back', async ({
   page,
@@ -120,6 +278,9 @@ test('walks from fresh spawn through the front door to the sidewalk and back', a
 test('handles interrupted/repeated activation, occupancy, blur, modal focus and reduced motion', async ({
   page,
 }) => {
+  // The combined door journey and accessibility scan share this total budget.
+  // Individual action/assertion limits and the zero-retry policy remain intact.
+  test.setTimeout(120_000);
   await readyExterior(page);
   await walkExteriorTo(page, { x: 29, z: -15 });
   await page.locator(button).click();
@@ -238,11 +399,29 @@ test('continues native controls from focused door and dismissed settings buttons
   await expect(page.locator(button)).toBeVisible();
   await page.locator(button).focus();
   await expect(page.locator(button)).toBeFocused();
+  await page.evaluate(() => {
+    (
+      window as unknown as {
+        disposedExteriorLifecycle: () => { isDisposed: boolean };
+      }
+    ).disposedExteriorLifecycle = window.portfolio!.world!.getExteriorLifecycle;
+  });
   await page.keyboard.press('KeyT');
   await expect(page.locator('html')).toHaveAttribute(
     'data-app-mode',
     'fallback'
   );
+  expect(
+    await page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            disposedExteriorLifecycle: () => { isDisposed: boolean };
+          }
+        ).disposedExteriorLifecycle().isDisposed
+    )
+  ).toBe(true);
+  expect(await page.evaluate(() => window.portfolio?.world)).toBeUndefined();
 });
 
 test('keeps a long pseudo-locale door label onscreen and ignores native activation repeats', async ({
@@ -263,6 +442,25 @@ test('keeps a long pseudo-locale door label onscreen and ignores native activati
   expect(bounds.x + bounds.width).toBeLessThanOrEqual(320);
   expect(bounds.y).toBeGreaterThanOrEqual(0);
   expect(bounds.y + bounds.height).toBeLessThanOrEqual(568);
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 844, height: 390 },
+    { width: 320, height: 568 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await expect
+      .poll(async () => {
+        const box = (await control.boundingBox())!;
+        const hud = (await page.locator('#control-overlay').boundingBox())!;
+        return (
+          box.x >= 0 &&
+          box.x + box.width <= viewport.width &&
+          box.y >= hud.y + hud.height &&
+          box.y + box.height <= viewport.height
+        );
+      })
+      .toBe(true);
+  }
   await control.focus();
   await page.keyboard.down('Enter');
   for (let repeat = 0; repeat < 3; repeat++) await page.keyboard.down('Enter');
@@ -290,6 +488,8 @@ for (const viewport of [
   test(`door control fits ${viewport.width}×${viewport.height} and restores safe closed state on reload`, async ({
     page,
   }) => {
+    // Two immersive startups plus traversal need their own aggregate budget.
+    test.setTimeout(120_000);
     await page.setViewportSize(viewport);
     await readyExterior(page);
     await walkExteriorTo(page, { x: 29, z: -15 });

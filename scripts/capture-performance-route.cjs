@@ -112,14 +112,17 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
       const w = window.portfolio.world;
       const start = w.getPlayerPosition();
       const grid = 0.2;
+      // Anchor the grid to the valid live pose instead of snapping into a solid.
       const queue = [
         {
-          x: Math.round(start.x / grid) * grid,
-          z: Math.round(start.z / grid) * grid,
+          x: start.x,
+          z: start.z,
+          cellX: 0,
+          cellZ: 0,
           parent: -1,
         },
       ];
-      const seen = new Set([`${queue[0].x},${queue[0].z}`]);
+      const seen = new Set(['0,0']);
       const connections = w.getFloorConnectionSnapshot().connections;
       for (let index = 0; index < queue.length && index < 300000; index++) {
         const node = queue[index];
@@ -130,17 +133,21 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
           return [...path.reverse(), target];
         }
         for (const [dx, dz] of [
-          [grid, 0],
-          [-grid, 0],
-          [0, grid],
-          [0, -grid],
+          [1, 0],
+          [-1, 0],
+          [0, 1],
+          [0, -1],
         ]) {
+          const cellX = node.cellX + dx;
+          const cellZ = node.cellZ + dz;
           const next = {
-            x: Math.round((node.x + dx) / grid) * grid,
-            z: Math.round((node.z + dz) / grid) * grid,
+            x: start.x + cellX * grid,
+            z: start.z + cellZ * grid,
+            cellX,
+            cellZ,
             parent: index,
           };
-          const key = `${next.x},${next.z}`;
+          const key = `${cellX},${cellZ}`;
           if (
             seen.has(key) ||
             next.x < -32 ||

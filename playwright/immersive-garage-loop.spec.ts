@@ -155,8 +155,29 @@ test('matches intermediate headroom and protects an occupied overhead threshold 
         .find((door) => door.id === 'garage-door')
     )
   ).toMatchObject({ state: 'open', target: 1, occupied: true, blocked: false });
-  await walkExteriorTo(page, { x: 53, z: 4 });
+  // Start inside the protected threshold so native movement does not race a
+  // legitimate unoccupied closure while browser input commands are dispatched.
+  await walkExteriorTo(page, { x: 51.25, z: 4 });
+  const occupiedApproach = await page.evaluate(() => ({
+    position: window.portfolio!.world!.getPlayerPosition(),
+    door: window
+      .portfolio!.world!.getDoorSnapshots()
+      .find((door) => door.id === 'garage-door')!,
+  }));
+  expect(occupiedApproach.position.x).toBeCloseTo(51.25, 1);
+  expect(occupiedApproach.position.z).toBeCloseTo(4, 1);
+  expect(occupiedApproach.door).toMatchObject({
+    state: 'open',
+    blocked: false,
+  });
   await page.locator('[data-exterior-door-control]').click();
+  expect(
+    await page.evaluate(() =>
+      window
+        .portfolio!.world!.getDoorSnapshots()
+        .find((door) => door.id === 'garage-door')
+    )
+  ).toMatchObject({ occupied: true, target: 1, blocked: false, state: 'open' });
   await page.locator('#app canvas').focus();
   await page.keyboard.down('KeyW');
   await page.keyboard.down('KeyA');

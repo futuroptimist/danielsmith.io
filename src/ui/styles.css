@@ -1569,6 +1569,29 @@ html[data-hud-layout='mobile'] .audio-subtitles {
   margin-block-start: -0.2rem;
 }
 
+:root[data-hud-layout='desktop'][data-hud-controls-open][data-poi-detail-visible]
+  .poi-tooltip-overlay,
+:root[data-hud-layout='desktop'][data-hud-tutorial-open][data-poi-detail-visible]
+  .poi-tooltip-overlay {
+  left: calc(env(safe-area-inset-left, 0px) + 1rem);
+  right: auto;
+  max-width: min(
+    26rem,
+    calc(
+      50vw - 2rem - env(safe-area-inset-left, 0px) -
+        env(safe-area-inset-right, 0px)
+    )
+  );
+}
+
+:root[data-hud-layout='desktop'][data-hud-tutorial-open][data-poi-detail-visible]
+  .tutorial-panel {
+  max-width: calc(
+    50vw - 2rem - env(safe-area-inset-left, 0px) -
+      env(safe-area-inset-right, 0px)
+  );
+}
+
 :root[data-hud-layout='mobile'][data-hud-controls-open][data-poi-detail-visible],
 :root[data-hud-layout='mobile'][data-hud-tutorial-open][data-poi-detail-visible] {
   --hud-combined-panel-gutter-left: max(
