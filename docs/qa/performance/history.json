@@ -74,6 +74,58 @@
         "summary": "2026-10-02-museum-25679bb1/extended-a22fb9bd-summary.json",
         "attemptsCompleted": 3
       }
+    },
+    {
+      "id": "2026-10-03-baseline-1ee6fcf0",
+      "stage": "baseline",
+      "sourceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "predecessorCommit": null,
+      "manifest": "2026-10-03-corrected-software-history/baseline.json",
+      "summary": "2026-10-03-corrected-software-history/baseline.json",
+      "series": "2026-10-03-corrected-software-history",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 0,
+      "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-foundation-56ce2943",
+      "stage": "foundation",
+      "sourceCommit": "56ce2943843114f5eb9e33465218fca04c9715b1",
+      "predecessorCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "manifest": "2026-10-03-corrected-software-history/foundation.json",
+      "summary": "2026-10-03-corrected-software-history/foundation.json",
+      "series": "2026-10-03-corrected-software-history",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 0,
+      "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-basement-d998360d",
+      "stage": "basement",
+      "sourceCommit": "d998360d60d02092db6e9a915bac04bebbb220fc",
+      "predecessorCommit": "56ce2943843114f5eb9e33465218fca04c9715b1",
+      "manifest": "2026-10-03-corrected-software-history/basement.json",
+      "summary": "2026-10-03-corrected-software-history/basement.json",
+      "series": "2026-10-03-corrected-software-history",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 3,
+      "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-museum-608fd10e",
+      "stage": "museum",
+      "sourceCommit": "608fd10e48aec8f6e63408ef48689723b92509a0",
+      "predecessorCommit": "d998360d60d02092db6e9a915bac04bebbb220fc",
+      "manifest": "2026-10-03-corrected-software-history/museum.json",
+      "summary": "2026-10-03-corrected-software-history/museum.json",
+      "series": "2026-10-03-corrected-software-history",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 3,
+      "hardwareGate": "owner-run required"
     }
   ]
 }

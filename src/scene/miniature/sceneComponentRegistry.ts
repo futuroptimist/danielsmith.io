@@ -29,9 +29,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/structures/careerMuseum.ts'],
     syncRevision: 2,
     syncNote:
-      'Static title plaques and shared gallery furnishings are included; the ground-floor miniature remains unchanged.',
+      'Static title plaques and shared gallery furnishings are included; the ' +
+      'ground-floor miniature remains unchanged.',
     reason:
-      'The basement career museum is outside the ground-floor miniature; its original exhibit geometry has explicit source coverage here.',
+      'The basement career museum is outside the ground-floor miniature; its ' +
+      'original exhibit geometry has explicit source coverage here.',
   },
   {
     id: 'career:reviewed-content',
@@ -39,9 +41,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/poi/careers.ts'],
     syncRevision: 2,
     syncNote:
-      'Career source links are omitted from visible details; historical provenance remains available.',
+      'Career source links are omitted from visible details; historical provenance ' +
+      'remains available.',
     reason:
-      'Shared localized career content and level-backed placement are separate from ground-floor project miniature proxies.',
+      'Shared localized career content and level-backed placement are separate from ' +
+      'ground-floor project miniature proxies.',
   },
   {
     id: 'level:portfolio-layout',
@@ -53,7 +57,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     ],
     syncRevision: 5,
     syncNote:
-      'The basement now has source-backed career exhibits and furnishings; the ground-floor miniature remains unchanged.',
+      'The basement now has source-backed career exhibits and furnishings; the ' +
+      'ground-floor miniature remains unchanged.',
   },
   {
     id: 'level:floors-walls',
@@ -79,7 +84,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     ],
     syncRevision: 2,
     syncNote:
-      'Both stair builds share tread geometry; the ground miniature retains the upstairs silhouette and renders the source-derived basement opening.',
+      'Both stair builds share tread geometry; the ground miniature retains the ' +
+      'upstairs silhouette and renders the source-derived basement opening.',
   },
   {
     id: 'level:basement-stairs',
@@ -91,7 +97,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     ],
     syncRevision: 4,
     syncNote:
-      'Ground-floor rail trim owns its slab footprint and the final parapets meet its underside. The independent 80% landing-wall cutaway preserves collision. The tabletop retains the shared opening and its ground-only view.',
+      'Ground-floor rail trim owns its slab footprint and the final parapets meet ' +
+      'its underside. The independent 80% landing-wall cutaway preserves collision. ' +
+      'The tabletop retains the shared opening and its ground-only view.',
   },
   {
     id: 'environment:backyard',
@@ -136,7 +144,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
     syncRevision: 36,
     syncNote:
-      'The solid entry console moves west to clear the basement landing; furnishings remain excluded from the ground-only tabletop.',
+      'The solid entry console moves west to clear the basement landing; furnishings ' +
+      'remain excluded from the ground-only tabletop.',
     reason:
       'Lower- and upper-floor furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },
@@ -162,7 +171,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     ],
     syncRevision: 4,
     syncNote:
-      'Complete career titles fit the existing two-line labels; project marker geometry is unchanged.',
+      'Complete career titles fit the existing two-line labels; project marker ' +
+      'geometry is unchanged.',
     reason:
       'Guided-tour recommendation rendering was removed from in-world POI labels; marker and tabletop proxy geometry is unchanged.',
   },
@@ -390,9 +400,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/poi/githubMetrics.ts'],
     syncRevision: 3,
     syncNote:
-      'Existing environment POI metrics remain supported while careers stay excluded; miniature geometry is unchanged.',
+      'Existing environment POI metrics remain supported while careers stay ' +
+      'excluded; miniature geometry is unchanged.',
     reason:
-      'Career content is discriminated from project metadata; this presentation and validation source does not alter ground-floor miniature geometry.',
+      'Career content is discriminated from project metadata; this presentation and ' +
+      'validation source does not alter ground-floor miniature geometry.',
   },
   {
     id: 'audit:src:scene:poi:interactionManager',
@@ -400,7 +412,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/poi/interactionManager.ts'],
     syncRevision: 7,
     syncNote:
-      'Keyboard-selected exhibits retain focus across overlay-induced mouseleave; miniature geometry is unchanged.',
+      'Keyboard-selected exhibits retain focus across overlay-induced mouseleave; ' +
+      'miniature geometry is unchanged.',
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },
@@ -434,7 +447,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/poi/structuredData.ts'],
     syncRevision: 2,
     reason:
-      'Career content is discriminated from project metadata; this presentation and validation source does not alter ground-floor miniature geometry.',
+      'Career content is discriminated from project metadata; this presentation and ' +
+      'validation source does not alter ground-floor miniature geometry.',
   },
   {
     id: 'audit:src:scene:poi:tooltipOverlay',
@@ -442,9 +456,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/poi/tooltipOverlay.ts'],
     syncRevision: 5,
     syncNote:
-      'Career details and the personal-portfolio disclaimer are now accessible DOM content; miniature geometry is unchanged.',
+      'Career details and the personal-portfolio disclaimer are now accessible DOM ' +
+      'content; miniature geometry is unchanged.',
     reason:
-      'Career content is discriminated from project metadata; this presentation and validation source does not alter ground-floor miniature geometry.',
+      'Career content is discriminated from project metadata; this presentation and ' +
+      'validation source does not alter ground-floor miniature geometry.',
   },
   {
     id: 'audit:src:scene:poi:validation',
@@ -452,9 +468,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/poi/validation.ts'],
     syncRevision: 3,
     syncNote:
-      'Career validation excludes project-only metadata without changing project miniature geometry.',
+      'Career validation excludes project-only metadata without changing project ' +
+      'miniature geometry.',
     reason:
-      'Career content is discriminated from project metadata; this presentation and validation source does not alter ground-floor miniature geometry.',
+      'Career content is discriminated from project metadata; this presentation and ' +
+      'validation source does not alter ground-floor miniature geometry.',
   },
   {
     id: 'audit:src:scene:poi:visitedState',
