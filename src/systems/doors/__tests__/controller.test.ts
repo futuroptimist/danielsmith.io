@@ -50,6 +50,25 @@ describe('source-backed door controller', () => {
     door.toggle(outside);
     expect(door.update(0.1, outside).progress).toBeCloseTo(progress);
   });
+  it('eases into and out of opening and closing with the same physical curve', () => {
+    const door = createDoorController(definition);
+    const opening: number[] = [];
+    const closing: number[] = [];
+    door.request(1, outside);
+    for (let frame = 0; frame < 4; frame++)
+      opening.push(door.update(definition.duration / 4, outside).progress);
+    door.request(0, outside);
+    for (let frame = 0; frame < 4; frame++)
+      closing.push(door.update(definition.duration / 4, outside).progress);
+    expect(opening).toEqual([0.15625, 0.5, 0.84375, 1]);
+    expect(closing).toEqual([0.84375, 0.5, 0.15625, 0]);
+    // Small endpoint steps and a faster middle distinguish easing from a
+    // constant-speed slide or a delayed snap to the final position.
+    expect(opening[0]).toBeLessThan(opening[1] - opening[0]);
+    expect(1 - opening[2]).toBeLessThan(opening[2] - opening[1]);
+    expect(1 - closing[0]).toBeLessThan(closing[0] - closing[1]);
+    expect(closing[2]).toBeLessThan(closing[1] - closing[2]);
+  });
   it.each([occupied, { ...occupied, x: 32.8 }, { ...occupied, z: -8 }])(
     'reopens occupied thresholds and panel sweeps before enabling a collider',
     (person) => {

@@ -2,6 +2,8 @@ import { writeFileSync } from 'node:fs';
 
 import { expect, test, type Page } from '@playwright/test';
 
+import type { DoorSnapshot } from '../src/systems/doors/controller';
+
 import {
   readyExterior,
   waitDoor,
@@ -10,6 +12,35 @@ import {
 import { pressNativeMovementChord } from './helpers/nativeMovementChord';
 
 const approaches = [{ id: 'front-door', x: 32, z: -15 }];
+
+interface DoorMotionSample {
+  time: number;
+  x: number;
+  door: DoorSnapshot;
+}
+declare global {
+  interface Window {
+    exteriorDoorMotion?: { samples: DoorMotionSample[]; running: boolean };
+  }
+}
+
+async function recordDoorMotion(page: Page, id: string) {
+  await page.evaluate((id) => {
+    const record = { samples: [] as DoorMotionSample[], running: true };
+    window.exteriorDoorMotion = record;
+    const sample = () => {
+      if (!record.running) return;
+      const world = window.portfolio!.world!;
+      record.samples.push({
+        time: performance.now(),
+        x: world.getPlayerPosition().x,
+        door: world.getDoorSnapshots().find((door) => door.id === id)!,
+      });
+      requestAnimationFrame(sample);
+    };
+    sample();
+  }, id);
+}
 
 async function waitForApproachOpen(page: Page, id: string) {
   // Proximity can open between a snapshot read and a click. The initial
@@ -30,7 +61,7 @@ for (const door of approaches) {
   for (const side of [-1, 1]) {
     for (const reducedMotion of [false, true]) {
       const title =
-        `opens ${door.id} during uninterrupted native maximum-speed approach ` +
+        `opens and closes ${door.id} during native maximum-speed passage ` +
         `from ${side} (reduced ${reducedMotion})`;
       test(title, async ({ page }) => {
         test.setTimeout(120_000);
@@ -54,6 +85,7 @@ for (const door of approaches) {
         await walkExteriorTo(page, { x: door.x + side * 6, z: door.z });
         await waitDoor(page, door.id, 'closed');
         await page.locator('#app canvas').focus();
+        await recordDoorMotion(page, door.id);
         await pressNativeMovementChord(
           page,
           side < 0 ? ['KeyS', 'KeyD'] : ['KeyW', 'KeyA'],
@@ -69,13 +101,41 @@ for (const door of approaches) {
           }),
           door.id
         );
+        // Wait at the natural native endpoint. Walking back to a fixed target
+        // after coasting farther away would be a genuine inward re-approach.
+        expect((state.position.x - door.x) * -side).toBeGreaterThan(3.8);
+        await waitDoor(page, door.id, 'closed');
+        const motion = await page.evaluate(() => {
+          const record = window.exteriorDoorMotion!;
+          record.running = false;
+          return record.samples;
+        });
+        const crossing = motion.filter(
+          (sample) => Math.abs(sample.x - door.x) <= 1.2
+        );
+        expect(crossing.length).toBeGreaterThan(0);
+        for (const sample of crossing) expect(sample.door.blocked).toBe(false);
+        if (!reducedMotion) {
+          const closing = motion.filter(
+            (sample) => sample.door.state === 'closing'
+          );
+          expect(
+            new Set(closing.map((sample) => sample.door.progress)).size
+          ).toBeGreaterThan(2);
+          for (let i = 1; i < closing.length; i++) {
+            const previous = closing[i - 1].door.progress;
+            const current = closing[i].door.progress;
+            expect(current).toBeLessThanOrEqual(previous);
+            expect(previous - current).toBeLessThan(0.7);
+          }
+        }
         const evidencePath = test
           .info()
           .outputPath('native-door-approach.json');
         writeFileSync(
           evidencePath,
           JSON.stringify(
-            { approach: door, side, reducedMotion, ...state },
+            { approach: door, side, reducedMotion, ...state, motion },
             null,
             2
           )
@@ -85,7 +145,7 @@ for (const door of approaches) {
           contentType: 'application/json',
         });
         expect((state.position.x - door.x) * -side).toBeGreaterThan(3);
-        expect(state.door.blocked).toBe(false);
+        expect(crossing.at(-1)!.door.blocked).toBe(false);
         expect(state.floor).toBe('ground');
       });
     }
