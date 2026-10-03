@@ -25,7 +25,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     ],
     syncRevision: 4,
     syncNote:
-      'The basement shell is below the tabletop ground-only view; the ground-floor stair reservation is represented by the shared basement stair descriptor.',
+      'The basement shell is below the tabletop ground-only view; the ground-floor ' +
+      'stair reservation is represented by the shared basement stair descriptor.',
   },
   {
     id: 'level:floors-walls',
@@ -51,7 +52,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     ],
     syncRevision: 2,
     syncNote:
-      'Both stair builds share tread geometry; the ground miniature retains the upstairs silhouette and renders the source-derived basement opening.',
+      'Both stair builds share tread geometry; the ground miniature retains the ' +
+      'upstairs silhouette and renders the source-derived basement opening.',
   },
   {
     id: 'level:basement-stairs',
@@ -63,7 +65,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     ],
     syncRevision: 4,
     syncNote:
-      'Ground-floor rail trim owns its slab footprint and the final parapets meet its underside. The independent 80% landing-wall cutaway preserves collision. The tabletop retains the shared opening and its ground-only view.',
+      'Ground-floor rail trim owns its slab footprint and the final parapets meet ' +
+      'its underside. The independent 80% landing-wall cutaway preserves collision. ' +
+      'The tabletop retains the shared opening and its ground-only view.',
   },
   {
     id: 'environment:backyard',
@@ -108,7 +112,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
     syncRevision: 36,
     syncNote:
-      'The solid entry console moves west to clear the basement landing; furnishings remain excluded from the ground-only tabletop.',
+      'The solid entry console moves west to clear the basement landing; furnishings ' +
+      'remain excluded from the ground-only tabletop.',
     reason:
       'Lower- and upper-floor furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },

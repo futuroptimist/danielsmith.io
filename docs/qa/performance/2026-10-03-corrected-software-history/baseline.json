@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "series": "2026-10-03-corrected-software-history",
+  "stage": "baseline",
+  "sourceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+  "sourceTree": "33da908cb247b3c964f5328fdec36129d4f27435",
+  "profile": "profile.json",
+  "common": {
+    "profile": "house-common-route-v1",
+    "routeHelperSha256": "5e6ac63b832f1a0452323089e4a281d06b160c2ebfb9bf2b406fedf33f2c5fd7",
+    "capturedUtc": ["2026-10-03T08:35:21.496Z", "2026-10-03T08:40:10.808Z"],
+    "rawManifestSha256": "1ffd5e56c662fec8dda3c9a09f6a7144ff12cba9ed135db03118f85e5308d9a7",
+    "rawChecksumsSha256": "00db6611ff67e42bc2e39bbe8118315b30be8adc8fc9a3cf70d0955232ec23dd",
+    "routeCheckpoints": 4,
+    "realMovementSteps": [2147, 2147, 2147],
+    "blockedSteps": 0,
+    "actualDwellMsRange": [5003.7, 5088.5],
+    "rangeMedian": {
+      "applicationReadyMs": [1473.3, 1650.7, 1616],
+      "dispatchP95Ms": [127.9, 135.2, 130.3],
+      "spawn.calls": [97, 97, 97],
+      "spawn.triangles": [4664, 4664, 4664],
+      "spawn.memoryGeometries": [89, 89, 89],
+      "spawn.memoryTextures": [7, 7, 7],
+      "spawn.rollingFrameP95Ms": [112.3, 121.5, 114.3],
+      "spawn.rollingSamples": [52, 60, 58],
+      "upper-landing.calls": [112, 112, 112],
+      "upper-landing.triangles": [2358, 2358, 2358],
+      "upper-landing.memoryGeometries": [525, 530, 530],
+      "upper-landing.memoryTextures": [9, 10, 10],
+      "upper-landing.rollingFrameP95Ms": [104, 134.9, 115.6],
+      "upper-landing.rollingSamples": [180, 180, 180],
+      "upper-creators-studio.calls": [87, 87, 87],
+      "upper-creators-studio.triangles": [12324, 12324, 12324],
+      "upper-creators-studio.memoryGeometries": [641, 649, 646],
+      "upper-creators-studio.memoryTextures": [10, 11, 11],
+      "upper-creators-studio.rollingFrameP95Ms": [102.1, 131, 108.6],
+      "upper-creators-studio.rollingSamples": [180, 180, 180],
+      "returned-spawn.calls": [84, 84, 84],
+      "returned-spawn.triangles": [4124, 4124, 4124],
+      "returned-spawn.memoryGeometries": [649, 661, 659],
+      "returned-spawn.memoryTextures": [11, 13, 13],
+      "returned-spawn.rollingFrameP95Ms": [107, 121.2, 110],
+      "returned-spawn.rollingSamples": [180, 180, 180],
+      "probe.elapsedMs": [54527.8, 55469, 54878.4],
+      "probe.rafP95Ms": [100.1, 116.7, 100.1],
+      "probe.rafMaxMs": [1916.5, 2066.5, 2033.2],
+      "probe.rafIntervalsAtLeast1000Ms": [1, 1, 1],
+      "probe.longTaskCount": [410, 421, 420],
+      "probe.longTaskMaxMs": [1144, 1248, 1244]
+    },
+    "launchHeadroom": {
+      "calls": 53,
+      "triangles": 45336,
+      "memoryGeometries": 36,
+      "memoryTextures": 25
+    },
+    "frameTime": {
+      "state": "unavailable",
+      "reason": "unsupported_environment"
+    }
+  },
+  "interpretation": [
+    "Common application-ready range 1473.3\u20131650.7ms; median 1616ms. Fresh reference for this current-driver series.",
+    "All launch checks passed; post-route resident geometry/texture counts are recorded separately. New scene populations and sequential capture windows limit interpretation."
+  ]
+}
