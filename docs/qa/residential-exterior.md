@@ -36,8 +36,21 @@ Approach from either side within the aperture to reveal the localized DOM button
 or use the remappable Interact action. Sideways through-wall and inactive-floor
 activation are excluded. Native button activation/navigation keys do not reach
 movement or activate a second target. Ordinary gameplay and remapped letters work
-from closed HUD/door focus; open Settings pauses movement. Held keyboard input and
-residual motion clear on tab/window blur.
+from closed HUD/door focus and from nonmodal Tutorial/Controls buttons. Remapped
+exhibit interaction remains available while those nonmodal panels are open;
+desktop panels leave the exhibit details and close control reachable alongside
+them. Settings pauses gameplay. Overlapping Interact bindings leave movement and Help
+available and do not operate a door. Held keyboard input and residual motion clear
+on tab/window blur. Door button dimensions are remeasured on label, HUD-size,
+layout and viewport changes; unchanged frames do not rewrite its DOM state or
+force layout reads.
+
+Exterior model resources, door UI observers, keyboard/blur listeners, and the
+scene's world API are owned from allocation through teardown. Early and late
+initialization failures release that ownership through the same idempotent
+cleanup used when leaving immersive mode. Synchronous initializer exceptions
+also use the renderer-aware failure handler; cleanup is not dependent on the
+optional console-error failover monitor.
 
 ## Automated and owner checks
 
@@ -57,10 +70,19 @@ npm run perf:budget
 The browser journey starts at fresh spawn, plans using read-only occupancy
 queries, and walks through the real runtime collision path. Its actual front-door
 crossing also uses native keyboard interaction and camera-relative movement.
+The exterior route planner and performance capture driver anchor their grid to
+the actual player pose; they never round a valid position into a nearby solid.
+A planter-edge regression reaches a fractional free pose through movement, proves
+that its globally rounded neighbor collides, then walks onward to the sidewalk.
 No destination teleport establishes traversal. Isolated controller unit tests
 cover repeats, interrupted reversal, occupancy during closing, non-finite delta,
 and reduced motion. Browser cases cover leaving/re-entering range, overlay
 focus, reload, and 1280×720, 1920×1080, 390×844, 360×720 and landscape layouts.
+Fault-injection cases retain the real builders and DOM while exercising direct
+fatal-handler calls and actual throws after the exterior build and after control
+registration. They verify resource disposal events, listener removal, world API
+release, renderer disposal and repeated-cleanup safety; these are simulated
+failure-path checks, not claims about every possible allocation failure.
 
 Review the screenshots and the floor-plan diagram, then use the normal controls
 in a WebGL browser to walk house → front door → path → sidewalk and reverse.

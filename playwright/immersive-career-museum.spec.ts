@@ -91,6 +91,63 @@ async function enterMuseum(page: Page) {
   ).toBe('basement');
 }
 
+for (const width of [1280, 901]) {
+  for (const panel of ['tutorial', 'controls'] as const) {
+    test(`opens a nearby career with remapped Interact while ${panel} stays open at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 720 });
+      await ready(page);
+      await enterMuseum(page);
+      await walk(page, APPROACHES[0].path);
+      await page.evaluate(() =>
+        window.portfolio!.input!.keyBindings!.setBinding('interact', ['k'])
+      );
+      await page.locator(`[data-role="${panel}-button"]`).click();
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-active-hud-panel',
+        panel
+      );
+      await page.locator('#app canvas').focus();
+      await page.keyboard.press('KeyK', { delay: 400 });
+      const overlay = page.locator('.poi-tooltip-overlay');
+      await expect(overlay).toHaveAttribute('aria-hidden', 'false');
+      await expect(overlay.locator('.poi-tooltip-overlay__title')).toHaveText(
+        APPROACHES[0].title
+      );
+      await expect(
+        overlay.locator('.poi-tooltip-overlay__visited')
+      ).toBeVisible();
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-active-hud-panel',
+        panel
+      );
+      const detailBounds = (await overlay.boundingBox())!;
+      const panelBounds = (await page
+        .locator(
+          panel === 'tutorial' ? '#tutorial-panel' : '#control-overlay-popover'
+        )
+        .boundingBox())!;
+      expect(detailBounds.x).toBeGreaterThanOrEqual(0);
+      expect(detailBounds.x + detailBounds.width).toBeLessThanOrEqual(
+        panelBounds.x
+      );
+      await page.screenshot({
+        path: test.info().outputPath(`${panel}-career-${width}.png`),
+      });
+      if (panel === 'tutorial') {
+        await page.locator('[data-testid="tutorial-sidebar-collapse"]').click();
+        await expect(
+          page.locator('[data-testid="tutorial-sidebar-collapse"]')
+        ).toHaveAttribute('aria-expanded', 'false');
+      }
+      await overlay.locator('.poi-tooltip-overlay__close').click();
+      await expect(overlay).toBeHidden();
+      await expect(page.locator('#app canvas')).toBeFocused();
+    });
+  }
+}
+
 async function assertAxe(page: Page) {
   await page.addScriptTag({ content: axeSource });
   const result = await page.evaluate(async () => {
