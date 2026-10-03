@@ -55,6 +55,9 @@ The earliest renderer canvas, input telemetry and debug FPS panel are owned
 from allocation onward, including failures during locale/debug storage reads
 before scene construction. Targeted faults verify real listener removal,
 renderer disposal and DOM release through the initial fallback handler.
+The full fatal handler also guarantees renderer-aware fallback when a resource
+disposer throws; synchronous and asynchronous fault cases retain exact resource
+disposal and renderer assertions.
 
 ## Automated and owner checks
 
@@ -64,7 +67,8 @@ Run the normal repository gates, plus:
 npm run typecheck
 npm run i18n:guard
 npm run miniature:check
-npm run test:e2e -- playwright/immersive-exterior-doors.spec.ts --workers=1 --retries=0 --trace=retain-on-failure
+npm run test:e2e -- playwright/immersive-exterior-doors.spec.ts \
+  --workers=1 --retries=0 --trace=retain-on-failure
 npm run collider:audit:geometry -- --source-id ground.frontEntry.door --json
 npm run collider:audit:reachability -- --source-id ground.frontEntry.door --json
 npm run collider:audit:redundancy

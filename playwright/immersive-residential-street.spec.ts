@@ -68,6 +68,48 @@ for (const mode of ['handler', 'throw'] as const) {
   }
 }
 
+for (const mode of ['throw-cleanup', 'async-cleanup'] as const) {
+  test(`preserves street cleanup and renderer fallback after ${mode}`, async ({
+    page,
+  }) => {
+    await injectExteriorInitializationFailure(page, 'controls', mode, 'street');
+    await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
+      waitUntil: 'domcontentloaded',
+    });
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-app-mode',
+      'fallback'
+    );
+    const snapshot = await readExteriorFailureSnapshot(page);
+    await test.info().attach(`street-disposer-${mode}.json`, {
+      body: JSON.stringify(snapshot, null, 2),
+      contentType: 'application/json',
+    });
+    expect(snapshot.cleanupFailures).toBe(1);
+    expect(snapshot.rendererDisposals).toBe(1);
+    expect(snapshot.lifecycle.isDisposed).toBe(true);
+    expect(snapshot.expected).toMatchObject({
+      geometries: 7,
+      materials: 11,
+      textures: 1,
+      lights: 4,
+    });
+    expect(snapshot.disposed).toEqual(snapshot.expected);
+    expect(snapshot.controlsAllocated).toBe(2);
+    expect(snapshot.controlsRemaining).toBe(0);
+    expect(snapshot.groupAttached).toBe(false);
+    expect(snapshot.worldAvailable).toBe(false);
+    expect(snapshot.listeners).toEqual({
+      keyAdded: 2,
+      keyRemoved: 2,
+      blurAdded: 1,
+      blurRemoved: 1,
+      resizeAdded: 2,
+      resizeRemoved: 2,
+    });
+  });
+}
+
 async function exitHouse(page: Page) {
   await walkExteriorTo(page, { x: 29, z: -15 });
   await page

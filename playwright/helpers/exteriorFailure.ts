@@ -6,7 +6,7 @@ export type ExteriorFailurePhase = 'build' | 'controls';
 export async function injectExteriorInitializationFailure(
   page: Page,
   phase: ExteriorFailurePhase,
-  mode: 'handler' | 'throw',
+  mode: 'handler' | 'throw' | 'throw-cleanup' | 'async-cleanup',
   target: 'exterior' | 'street' = 'exterior'
 ) {
   await page.addInitScript(() => {
@@ -104,6 +104,15 @@ export async function injectExteriorInitializationFailure(
       const controlsAllocated = document.querySelectorAll(
         '[data-exterior-door-control], .exterior-bus-stop-control'
       ).length;
+      window.exteriorCleanupFailures = 0;
+      ${
+        mode.endsWith('-cleanup')
+          ? `exteriorCleanup.add(() => {
+        window.exteriorCleanupFailures++;
+        throw new Error('Injected disposer failure');
+      });`
+          : ''
+      }
       window.repeatExteriorFailure = () => handleFatalError(failure);
       window.readExteriorFailure = () => ({
         lifecycle: ${builder}.${target === 'street' ? 'getSnapshot().lifecycle' : 'getLifecycle()'},
@@ -118,10 +127,18 @@ export async function injectExteriorInitializationFailure(
           '[data-exterior-door-control], .exterior-bus-stop-control'
         ).length,
         worldAvailable: Boolean(window.portfolio?.world),
-        rendererDisposals
+        rendererDisposals,
+        cleanupFailures: window.exteriorCleanupFailures
       });
       ${mode === 'handler' ? 'handleFatalError(failure); handleFatalError(failure);' : ''}
-      throw failure;
+      ${
+        mode === 'async-cleanup'
+          ? `window.setTimeout(() => {
+        try { handleFatalError(failure); }
+        catch (error) { window.exteriorCleanupError = String(error); }
+      }, 0); return;`
+          : 'throw failure;'
+      }
     `
     );
     await route.fulfill({ response, body });
@@ -141,6 +158,7 @@ export async function readExteriorFailureSnapshot(page: Page) {
           controlsRemaining: number;
           worldAvailable: boolean;
           rendererDisposals: number;
+          cleanupFailures: number;
           listeners: {
             keyAdded: number;
             keyRemoved: number;

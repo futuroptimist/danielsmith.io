@@ -99,3 +99,7 @@ mobile dismissal, reduced motion, and accessibility checks. Measure the entire
 scene and post-route resident resources; builder-only counters cannot establish
 that the unchanged launch budgets are met. Retain owner review separately from
 software-renderer functional evidence.
+
+Native locale parity runs as nine named, isolated browser cases. Each retains
+the complete museum-to-text journey and source-link assertions with a bounded
+90-second case budget; action deadlines and zero retries remain unchanged.

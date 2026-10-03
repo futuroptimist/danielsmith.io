@@ -87,7 +87,15 @@ function renderFloorSvg(level: FloorPlanLevel): string {
           stroke-opacity="0.5"
           stroke-width="1.5"
         />
-        <text x="${cx.toFixed(2)}" y="${cy.toFixed(2)}" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">${room.name}</text>
+        <text
+          x="${cx.toFixed(2)}"
+          y="${cy.toFixed(2)}"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          font-family="'Inter', 'Segoe UI', sans-serif"
+          font-size="12"
+          fill="#d8deff"
+        >${room.name}</text>
       </g>
     `;
   });
@@ -116,7 +124,15 @@ function renderFloorSvg(level: FloorPlanLevel): string {
     const y2 = projectY(segment.end.z);
     const stroke = segment.rooms.length > 1 ? '#91a3d6' : '#c5d1ff';
 
-    return `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="${stroke}" stroke-width="${wallStroke.toFixed(2)}" stroke-linecap="round" />`;
+    return `<line
+          x1="${x1.toFixed(2)}"
+          y1="${y1.toFixed(2)}"
+          x2="${x2.toFixed(2)}"
+          y2="${y2.toFixed(2)}"
+          stroke="${stroke}"
+          stroke-width="${wallStroke.toFixed(2)}"
+          stroke-linecap="round"
+        />`;
   });
 
   const basementStair = getBasementStairLayout();
@@ -124,10 +140,12 @@ function renderFloorSvg(level: FloorPlanLevel): string {
   const stairLayer =
     level.id === 'ground' || level.id === 'basement'
       ? `<g aria-label="Basement stair connection" fill="none" stroke="#d7b98d" stroke-width="2">
-      <rect x="${projectX(stairGeometry.centerX - stairGeometry.halfWidth).toFixed(2)}"
-        y="${projectY(stairGeometry.landingMaxZ).toFixed(2)}"
-        width="${(stairGeometry.halfWidth * 2 * SCALE).toFixed(2)}"
-        height="${((stairGeometry.landingMaxZ - stairGeometry.bottomZ) * SCALE).toFixed(2)}" />
+      <rect
+          x="${projectX(stairGeometry.centerX - stairGeometry.halfWidth).toFixed(2)}"
+          y="${projectY(stairGeometry.landingMaxZ).toFixed(2)}"
+          width="${(stairGeometry.halfWidth * 2 * SCALE).toFixed(2)}"
+          height="${((stairGeometry.landingMaxZ - stairGeometry.bottomZ) * SCALE).toFixed(2)}"
+        />
       ${Array.from({ length: basementStair.config.step.count }, (_, index) => {
         const z =
           stairGeometry.bottomZ + (index + 1) * basementStair.config.step.run;
@@ -157,7 +175,7 @@ function renderFloorSvg(level: FloorPlanLevel): string {
     })
     .join('\n');
 
-  // Spawn marker (uses initial player position derived similarly to runtime: center of first room of ground level)
+  // Spawn uses the runtime position: the center of the first ground-floor room.
   let spawnLayer = '';
   if (level.id === 'ground') {
     const firstRoom = plan.rooms[0];
@@ -166,31 +184,78 @@ function renderFloorSvg(level: FloorPlanLevel): string {
     const sx = projectX(spawnX);
     const sy = projectY(spawnZ);
     spawnLayer = `<g>
-      <rect x="${(sx - 7).toFixed(2)}" y="${(sy - 7).toFixed(2)}" width="14" height="14" fill="#ffd166" stroke="#ffeb99" stroke-width="1" />
+      <rect
+          x="${(sx - 7).toFixed(2)}"
+          y="${(sy - 7).toFixed(2)}"
+          width="14"
+          height="14"
+          fill="#ffd166"
+          stroke="#ffeb99"
+          stroke-width="1"
+        />
     </g>`;
   }
 
   const legend = `
     <g>
-      <rect x="${(svgWidth - 210).toFixed(2)}" y="${(svgHeight - 86).toFixed(
-        2
-      )}" width="200" height="76" rx="8" fill="#0e1730" stroke="#223559" stroke-width="1" />
+      <rect
+          x="${(svgWidth - 210).toFixed(2)}"
+          y="${(svgHeight - 86).toFixed(2)}"
+          width="200"
+          height="76"
+          rx="8"
+          fill="#0e1730"
+          stroke="#223559"
+          stroke-width="1"
+        />
       <g transform="translate(${(svgWidth - 196).toFixed(2)}, ${(
         svgHeight - 70
       ).toFixed(2)})">
         <circle cx="8" cy="10" r="6" fill="#85e5ff" />
         <circle cx="8" cy="10" r="3" fill="#0b1428" />
-        <text x="22" y="14" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">POI</text>
-        <rect x="0" y="26" width="14" height="14" fill="#ffd166" stroke="#ffeb99" stroke-width="1" />
-        <text x="22" y="38" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Spawn</text>
+        <text
+          x="22"
+          y="14"
+          font-family="'Inter', 'Segoe UI', sans-serif"
+          font-size="12"
+          fill="#d8deff"
+        >POI</text>
+        <rect
+          x="0"
+          y="26"
+          width="14"
+          height="14"
+          fill="#ffd166"
+          stroke="#ffeb99"
+          stroke-width="1"
+        />
+        <text
+          x="22"
+          y="38"
+          font-family="'Inter', 'Segoe UI', sans-serif"
+          font-size="12"
+          fill="#d8deff"
+        >Spawn</text>
       </g>
     </g>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg
+          width="${svgWidth}"
+          height="${svgHeight}"
+          viewBox="0 0 ${svgWidth} ${svgHeight}"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
   <rect x="0" y="0" width="${svgWidth}" height="${svgHeight}" fill="#0b1428" />
   <g>
-    <path d="${outlinePath.join(' ')}" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
+    <path
+          d="${outlinePath.join(' ')}"
+          fill="#151d2f"
+          stroke="#1e2a3f"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
     ${roomLayers.join('\n')}
     ${wallLayers.join('\n')}
     ${stairLayer}
