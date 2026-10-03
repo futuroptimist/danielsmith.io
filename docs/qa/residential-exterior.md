@@ -1,5 +1,13 @@
 # Front entrance and residential exterior QA
 
+The shared house/garage wall and sliding pocket use separated mesh faces rather
+than depth bias. The rendered-surface audit includes static instance matrices and
+checks overlapping faces in all three world-axis orientations. Its production
+fixture assembles the actual generated shared wall and pocket; adjacent edges and
+opposite-facing solid joins remain valid. Browser captures inspect the wall from
+both rooms with the door open and closed. This geometric check is a focused
+candidate detector, not a universal renderer precision guarantee.
+
 The front entrance is the positive-X living-room facade at plan `(16, -7.5)`.
 This is below the stair core on the bottom-right side of the normal isometric
 view. The original house outline still controls launch framing; the larger
@@ -29,8 +37,10 @@ slides into a visible wall pocket. Collision stays closed until full travel;
 closing checks the avatar radius against both the threshold and sweep before
 any progress or collider activation. Occupancy reopens/holds the door and triggers
 one polite status announcement. Same-target requests coalesce, reversals retain
-progress, and reduced motion applies the same safety check before an instant
-transition. State is session-local and resets closed on a safe fresh spawn.
+progress. Opening and closing use the same smooth ease-in/ease-out curve; the
+collision gate follows the eased physical panel position. Reduced motion applies
+the same safety check before an instant transition. State is session-local and
+resets closed on a safe fresh spawn.
 
 Approaching the aperture from either side opens the front door automatically.
 The lead distance derives from the native maximum speed and time needed for the
@@ -42,7 +52,17 @@ the aperture, so crossing its sensor between rendered frames still opens it.
 
 The localized DOM button and remappable Interact action remain available nearby.
 A manual close while stationary persists; moving inward again or leaving and
-re-entering the approach reopens the door. Doors do not close automatically.
+re-entering the approach reopens the door. A 0.001-world-unit cumulative tolerance
+after manual closing ignores residual damping drift without losing slow renewed
+movement. Moving away automatically closes the
+door after clearing the 3.8-world-unit nearby interaction zone and increasing
+distance by at least 0.75 units from the closest approach. A player who turns away
+before reaching the door also closes it. Stopping near the door or within the
+opening lead radius holds its current target. Automatic closing stays latched
+through that larger lead radius until a renewed inward approach covers 0.75
+units; small threshold oscillations do not repeatedly reverse the panel. The
+continuous distance to the aperture edge avoids lateral sensor chatter, while
+threshold and panel-sweep occupancy always prevent unsafe closing.
 Sideways through-wall and inactive-floor
 activation are excluded. Native button activation/navigation keys do not reach
 movement or activate a second target. Ordinary gameplay and remapped letters work
@@ -101,9 +121,13 @@ No destination teleport establishes traversal. Isolated controller unit tests
 cover repeats, interrupted reversal, occupancy during closing, non-finite delta,
 and reduced motion. Proximity regressions sweep the full movement path at the
 native maximum speed from both sides with 60 Hz, 100 ms, 400 ms and 1.5 s frames;
-they also cover late sideways entry, re-approach and stationary manual closure.
-`playwright/immersive-door-proximity.spec.ts` verifies automatic opening during
-uninterrupted trusted native movement without using Interact to cross. Browser
+they also cover late sideways entry, repeated re-approach, stationary manual
+closure, departure on either side, turns away before entry, stopped players in
+both proximity zones, hysteresis, occupied auto-close reversal, and the symmetric
+eased opening/closing curve. `playwright/immersive-door-proximity.spec.ts` verifies
+automatic opening during uninterrupted trusted native movement without using
+Interact to cross, records safe clearance during passage, then requires automatic
+closure and multiple continuous closing samples with ordinary motion. Browser
 cases cover leaving/re-entering range, overlay
 focus, reload, and 1280×720, 1920×1080, 390×844, 360×720 and landscape layouts.
 Fault-injection cases retain the real builders and DOM while exercising direct

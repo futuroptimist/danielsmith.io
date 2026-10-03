@@ -23,9 +23,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/garageLayout.ts',
       'src/scene/structures/residentialExterior.ts',
     ],
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Garage doors open on approach and the overhead cutaway remains 80% opaque; ' +
+      'Sliding-door pocket faces are separated from the shared house/garage wall; ' +
       'these dynamic exterior panels remain outside the tabletop envelope.',
     reason:
       'The tabletop keeps its existing house/backyard envelope. The source-backed ' +

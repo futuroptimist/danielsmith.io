@@ -298,7 +298,7 @@ or the owner's final manual review.
 
 ## Attached garage route addition
 
-`--garage` selects `house-attached-garage-route-v2` and implies the complete
+`--garage` selects `house-attached-garage-route-v3` and implies the complete
 front-entry/museum route. The prior returned-spawn checkpoints and all existing
 legs are retained, then the route visits the house/garage door, garage interior,
 closed/open vehicle doorway and driveway before returning through the front
@@ -315,13 +315,20 @@ npm run perf:history -- --route-profile garage <entry-commit> <garage-commit>
 The runner selects the versioned `--garage` helper only when the historical
 commit contains the authored garage door definition. Earlier refs explicitly
 fall back to their common route and record the unavailable capability. The
-`house-attached-garage-route-v2` route retains the common, basement/museum and front-entry
+`house-attached-garage-route-v3` route retains the common, basement/museum and front-entry
 checkpoints before exercising both garage doors and the driveway. Compare shared
 named checkpoints separately from new route legs; each result retains its actual
 profile and camera state when the historical API exposes it.
 
-The garage v2 profile inherits the front-entry v2 door-state contract. It manually
+The garage v3 profile inherits the front-entry v2 door-state contract. It manually
 closes the overhead door at the stationary interior pose before the closed-door
 checkpoint and records/asserts closed and open states at both ends of each dwell.
-Historical garage v1 captures keep their original label; automatic-door sources
-require the v2 helper. Unknown versions are explicitly skipped.
+On the return from the driveway, it adds a real outside approach to the front
+entrance at `(35, -15)` and waits for automatic opening before planning the existing
+return leg through the aperture. Doors can close after departure, so an earlier
+opening cannot establish a later passage. The extra approach/wait changes the route
+profile; checkpoint positions/order, dwell, common/interior legs, live occupancy
+planning and runtime movement assertions remain unchanged. Historical garage v1
+and v2 captures keep their original labels and remain supported for their original
+sources; v1 is skipped with automatic-door source. Unknown versions are explicitly
+skipped.

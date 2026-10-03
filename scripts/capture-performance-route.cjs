@@ -28,7 +28,7 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
   const result = {
     schemaVersion: 1,
     profile: includeGarage
-      ? 'house-attached-garage-route-v2'
+      ? 'house-attached-garage-route-v3'
       : includeExterior
         ? 'house-front-entry-route-v2'
         : includeBasement
@@ -609,6 +609,13 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
         await exteriorPath({ x: 55, z: -15 }),
         'ground'
       );
+      await walk(
+        'garage-loop-to-front-entry',
+        await exteriorPath({ x: 35, z: -15 }),
+        'ground'
+      );
+      // Departure closes the entrance; approach and settle it before planning across.
+      await waitForDoor('front-door', 'open');
       await walk(
         'garage-loop-return-to-spawn',
         await exteriorPath({ x: 0, z: -20 }),

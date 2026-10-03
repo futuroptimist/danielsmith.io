@@ -27,6 +27,7 @@ const ROUTE_CAPABILITIES = {
     profiles: [
       'house-attached-garage-route-v1',
       'house-attached-garage-route-v2',
+      'house-attached-garage-route-v3',
     ],
   },
   exterior: {

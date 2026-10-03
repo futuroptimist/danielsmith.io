@@ -34,6 +34,28 @@ async function enterGarage(page: Page) {
   ).toBe('garage');
 }
 
+for (const side of ['house', 'garage'] as const) {
+  test(`records the shared wall and sliding pocket from the ${side}`, async ({
+    page,
+  }) => {
+    test.setTimeout(90000);
+    await readyExterior(page);
+    await walkExteriorTo(page, { x: 29, z: -2 });
+    await waitDoor(page, 'house-garage-door', 'open');
+    if (side === 'garage') await walkExteriorTo(page, { x: 35, z: -2 });
+    for (const state of ['closed', 'open'] as const) {
+      await operate(page, 'house-garage-door', state);
+      await expect(page.locator('#app canvas').first()).toBeVisible();
+      await page.screenshot({
+        path: test.info().outputPath(`shared-wall-${side}-${state}.png`),
+      });
+    }
+    expect(
+      await page.evaluate(() => window.portfolio!.world!.getActiveFloor())
+    ).toBe('ground');
+  });
+}
+
 test('walks the entire house, garage, driveway and front-entry loop in both directions', async ({
   page,
 }) => {

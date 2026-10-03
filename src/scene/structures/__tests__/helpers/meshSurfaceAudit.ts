@@ -1,4 +1,12 @@
-import { BackSide, DoubleSide, Mesh, Vector2, Vector3 } from 'three';
+import {
+  BackSide,
+  DoubleSide,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  Vector2,
+  Vector3,
+} from 'three';
 import type { Material, Object3D } from 'three';
 
 interface RenderedTriangle {
@@ -6,6 +14,7 @@ interface RenderedTriangle {
   sourceId: string;
   material: Material;
   triangleIndex: number;
+  instanceIndex: number | null;
   vertices: [Vector3, Vector3, Vector3];
   normal: Vector3;
 }
@@ -96,8 +105,8 @@ const collectTriangles = (root: Object3D): RenderedTriangle[] => {
   }
   root.traverseVisible((object) => {
     if (!(object instanceof Mesh)) return;
-    // This audit is for static authored meshes, not GPU-instanced/deformed geometry.
-    if ('isInstancedMesh' in object || 'isSkinnedMesh' in object) return;
+    // Static instance matrices are authored geometry; skeletal deformation is not.
+    if ('isSkinnedMesh' in object) return;
     const geometry = object.geometry;
     const positions = geometry.getAttribute('position');
     if (!positions) return;
@@ -105,47 +114,63 @@ const collectTriangles = (root: Object3D): RenderedTriangle[] => {
     const count = index?.count ?? positions.count;
     const start = geometry.drawRange.start;
     const end = Math.min(count, start + geometry.drawRange.count);
-    for (let offset = start; offset + 2 < end; offset += 3) {
-      const group = geometry.groups.find(
-        (entry) =>
-          offset >= entry.start && offset + 2 < entry.start + entry.count
-      );
-      const material = Array.isArray(object.material)
-        ? group && object.material[group.materialIndex ?? 0]
-        : object.material;
-      if (
-        !material ||
-        !material.visible ||
-        material.opacity <= 0 ||
-        !material.depthTest ||
-        !material.depthWrite
-      )
-        continue;
-      const vertices = [0, 1, 2].map((corner) =>
-        new Vector3()
-          .fromBufferAttribute(
-            positions,
-            index?.getX(offset + corner) ?? offset + corner
-          )
-          .applyMatrix4(object.matrixWorld)
-      ) as [Vector3, Vector3, Vector3];
-      const normal = vertices[1]
-        .clone()
-        .sub(vertices[0])
-        .cross(vertices[2].clone().sub(vertices[0]));
-      if (normal.lengthSq() === 0) continue;
-      normal.normalize();
-      // Three.js reverses front-face winding for mirrored object transforms.
-      if (object.matrixWorld.determinant() < 0) normal.negate();
-      if (material.side === BackSide) normal.negate();
-      triangles.push({
-        mesh: object,
-        sourceId: object.userData.levelSourceId ?? 'unattributed',
-        material,
-        triangleIndex: offset / 3,
-        vertices,
-        normal,
-      });
+    const materials = object.material;
+    // Each material group is a separate renderer draw call. Its first vertex
+    // may differ from the global draw-range start, including partial groups.
+    const draws = Array.isArray(materials)
+      ? geometry.groups.map((group) => ({
+          start: Math.max(start, group.start),
+          end: Math.min(end, group.start + group.count),
+          material: materials[group.materialIndex ?? 0],
+        }))
+      : [{ start, end, material: materials }];
+    const instanceCount = object instanceof InstancedMesh ? object.count : 1;
+    for (let instance = 0; instance < instanceCount; instance += 1) {
+      const worldMatrix = object.matrixWorld.clone();
+      if (object instanceof InstancedMesh) {
+        const instanceMatrix = new Matrix4();
+        object.getMatrixAt(instance, instanceMatrix);
+        worldMatrix.multiply(instanceMatrix);
+      }
+      for (const draw of draws) {
+        const { material } = draw;
+        if (
+          !material ||
+          !material.visible ||
+          material.opacity <= 0 ||
+          !material.depthTest ||
+          !material.depthWrite
+        )
+          continue;
+        for (let offset = draw.start; offset + 2 < draw.end; offset += 3) {
+          const vertices = [0, 1, 2].map((corner) =>
+            new Vector3()
+              .fromBufferAttribute(
+                positions,
+                index?.getX(offset + corner) ?? offset + corner
+              )
+              .applyMatrix4(worldMatrix)
+          ) as [Vector3, Vector3, Vector3];
+          const normal = vertices[1]
+            .clone()
+            .sub(vertices[0])
+            .cross(vertices[2].clone().sub(vertices[0]));
+          if (normal.lengthSq() === 0) continue;
+          normal.normalize();
+          // Three.js reverses front-face winding for mirrored object transforms.
+          if (object.matrixWorld.determinant() < 0) normal.negate();
+          if (material.side === BackSide) normal.negate();
+          triangles.push({
+            mesh: object,
+            sourceId: object.userData.levelSourceId ?? 'unattributed',
+            material,
+            triangleIndex: offset / 3,
+            instanceIndex: object instanceof InstancedMesh ? instance : null,
+            vertices,
+            normal,
+          });
+        }
+      }
     }
   });
   return triangles;
@@ -153,7 +178,8 @@ const collectTriangles = (root: Object3D): RenderedTriangle[] => {
 
 /**
  * Candidate detector for overlapping, equally facing, nearly coplanar static
- * mesh triangles. It respects transforms, material sides and visible ancestors.
+ * mesh triangles, including static instances. It respects transforms, material
+ * sides and visible ancestors.
  * It is not a renderer/depth-buffer simulation: occlusion, shader displacement,
  * polygon offset, camera distance and hardware precision still need visual QA.
  * Pass a focused scene assembly, not an unfiltered full production scene.
@@ -173,7 +199,11 @@ export function findMeshSurfaceOverlaps(
     const a = triangles[i];
     for (let j = i + 1; j < triangles.length; j += 1) {
       const b = triangles[j];
-      if (a.mesh === b.mesh || !a.mesh.layers.test(b.mesh.layers)) continue;
+      if (
+        (a.mesh === b.mesh && a.instanceIndex === b.instanceIndex) ||
+        !a.mesh.layers.test(b.mesh.layers)
+      )
+        continue;
       const dot = a.normal.dot(b.normal);
       const canFaceTogether =
         dot >= 1 - normalTolerance ||
@@ -204,8 +234,10 @@ export const formatMeshSurfaceOverlaps = (
   findings
     .map(
       ({ a, b, planeDistance, overlapArea }) =>
-        `${a.mesh.name} [${a.sourceId}] triangle ${a.triangleIndex} / ` +
-        `${b.mesh.name} [${b.sourceId}] triangle ${b.triangleIndex}; ` +
+        `${a.mesh.name} [${a.sourceId}] instance ${a.instanceIndex ?? 'none'} ` +
+        `triangle ${a.triangleIndex} / ` +
+        `${b.mesh.name} [${b.sourceId}] instance ${b.instanceIndex ?? 'none'} ` +
+        `triangle ${b.triangleIndex}; ` +
         `plane gap=${planeDistance.toFixed(6)}; overlap area=${overlapArea.toFixed(6)}`
     )
     .join('\n');

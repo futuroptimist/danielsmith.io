@@ -82,7 +82,7 @@ describe('attached garage topology and safety', () => {
     door.update(definition.duration, outside);
     door.request(0, outside);
     expect(door.update(definition.duration * 0.1, outside)).toMatchObject({
-      progress: 0.9,
+      progress: 0.972,
       state: 'closing',
       blocked: false,
       occupied: false,

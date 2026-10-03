@@ -473,11 +473,11 @@
         "src/scene/structures/residentialExterior.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 6,
-      "syncNote": "Garage doors open on approach and the overhead cutaway remains 80% opaque; these dynamic exterior panels remain outside the tabletop envelope.",
-      "sourceFingerprint": "15a7561f38d426e2fa3a730286aeafa58d34bc804513804fd241f4b63d2b9912",
+      "syncRevision": 7,
+      "syncNote": "Sliding-door pocket faces are separated from the shared house/garage wall; these dynamic exterior panels remain outside the tabletop envelope.",
+      "sourceFingerprint": "5a14b37ab56cce2dc43f17a729ed027a2e6f4c32a941e146177a8cc8f367a6fe",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "f89cb8134f090d363462ca856866e0d84c48d5a275bdf255df72d1904c5b6e05"
+      "metadataFingerprint": "87e3bb3c28864c2cb52c2efb3194002ca73b32aec13fa77d3b8a322b442719c6"
     },
     {
       "id": "level:basement-stairs",

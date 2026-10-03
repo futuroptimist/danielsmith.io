@@ -570,7 +570,7 @@ describe('performance history command', () => {
     });
   });
 
-  it.each(['v1', 'v2', 'v3', 'v10'])(
+  it.each(['v1', 'v2', 'v3', 'v4', 'v10'])(
     'keeps the garage profile %s explicit',
     async (version) => {
       const repo = fixture(true, true, true);
@@ -595,7 +595,7 @@ describe('performance history command', () => {
         { cwd: repo }
       );
       expect(result.manifest.entries[0]).toMatchObject(
-        !['v1', 'v2'].includes(version)
+        !['v1', 'v2', 'v3'].includes(version)
           ? {
               routeProfile: 'common',
               skippedRouteCapabilities: [{ capability: 'garage' }],
