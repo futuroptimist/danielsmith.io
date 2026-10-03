@@ -24,7 +24,11 @@ describe('front entry declarative topology', () => {
     ).toHaveLength(3);
     expect(
       floor.floorSurfaces.filter(
-        (surface) => surface.purpose === 'exterior-surface'
+        (surface) =>
+          surface.purpose === 'exterior-surface' &&
+          ['frontYard', 'frontPath', 'sidewalk', 'driveway'].includes(
+            surface.roomId ?? ''
+          )
       )
     ).toHaveLength(5);
   });

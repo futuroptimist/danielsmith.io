@@ -10,7 +10,8 @@ if (!output)
     'Usage: node scripts/capture-performance-route.cjs OUTPUT_DIRECTORY'
   );
 const dwellMs = 5000;
-const includeGarage = process.argv.includes('--garage');
+const includeStreet = process.argv.includes('--street');
+const includeGarage = process.argv.includes('--garage') || includeStreet;
 const includeExterior = process.argv.includes('--exterior') || includeGarage;
 const includeBasement = process.argv.includes('--basement') || includeExterior;
 (async () => {
@@ -27,26 +28,30 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
   const page = await context.newPage();
   const result = {
     schemaVersion: 1,
-    profile: includeGarage
-      ? 'house-attached-garage-route-v1'
-      : includeExterior
-        ? 'house-front-entry-route-v1'
-        : includeBasement
-          ? 'house-basement-route-v1'
-          : 'house-common-route-v1',
+    profile: includeStreet
+      ? 'house-residential-street-route-v1'
+      : includeGarage
+        ? 'house-attached-garage-route-v1'
+        : includeExterior
+          ? 'house-front-entry-route-v1'
+          : includeBasement
+            ? 'house-basement-route-v1'
+            : 'house-common-route-v1',
     startedAt: new Date().toISOString(),
     browserVersion: browser.version(),
     viewport: { width: 1280, height: 720 },
     dwellMs,
     checkpoints: [],
     legs: [],
-    unavailableCheckpoints: includeGarage
-      ? ['street']
-      : includeExterior
-        ? ['garage', 'street']
-        : includeBasement
-          ? ['exterior']
-          : ['basement', 'exterior'],
+    unavailableCheckpoints: includeStreet
+      ? []
+      : includeGarage
+        ? ['street']
+        : includeExterior
+          ? ['garage', 'street']
+          : includeBasement
+            ? ['exterior']
+            : ['basement', 'exterior'],
     state: 'running',
   };
   await page.addInitScript(() => {
@@ -568,6 +573,39 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
         'ground'
       );
       await checkpoint('garage-returned-spawn');
+    }
+    if (includeStreet) {
+      await walk(
+        'spawn-to-residential-street',
+        await exteriorPath({ x: 61, z: -20 }),
+        'ground'
+      );
+      await checkpoint('street-parked-ev');
+      await walk(
+        'street-to-bus-stop',
+        await exteriorPath({ x: 55, z: 32 }),
+        'ground'
+      );
+      await page
+        .locator('[data-bus-stop-id="residential-bus-stop"] button')
+        .click();
+      await checkpoint('street-bus-stop-coming-soon');
+      result.street = await page.evaluate(() =>
+        window.portfolio.world.getStreetSnapshot()
+      );
+      await page.keyboard.press('Escape');
+      await walk(
+        'bus-stop-to-shelter-interior',
+        await exteriorPath({ x: 50, z: 32 }),
+        'ground'
+      );
+      await checkpoint('street-shelter-interior');
+      await walk(
+        'street-return-to-spawn',
+        await exteriorPath({ x: 0, z: -20 }),
+        'ground'
+      );
+      await checkpoint('street-returned-spawn');
     }
     result.state = 'completed';
     result.wholeRouteStallProbe = await page.evaluate(() =>

@@ -1,6 +1,9 @@
 import type { Locale } from './types';
 
 export interface ExteriorStrings {
+  busStop: string;
+  comingSoon: string;
+  busStopMessage: string;
   frontDoor: string;
   houseDoor: string;
   garageDoor: string;
@@ -14,6 +17,10 @@ export interface ExteriorStrings {
   status: string;
 }
 const english: ExteriorStrings = {
+  busStop: 'Bus stop',
+  comingSoon: 'Coming Soon',
+  busStopMessage:
+    'Travel from this stop is coming soon. No bus service or fast travel is available yet.',
   frontDoor: 'Front door',
   houseDoor: 'House–garage door',
   garageDoor: 'Garage door',
@@ -29,6 +36,10 @@ const english: ExteriorStrings = {
 export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
   en: english,
   es: {
+    busStop: 'Parada de autobús',
+    comingSoon: 'Próximamente',
+    busStopMessage:
+      'Los viajes desde esta parada estarán disponibles más adelante. Aún no hay servicio de autobús ni viaje rápido.',
     frontDoor: 'Puerta principal',
     houseDoor: 'Puerta de la casa al garaje',
     garageDoor: 'Puerta del garaje',
@@ -42,6 +53,10 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}: {state}',
   },
   pt: {
+    busStop: 'Ponto de ônibus',
+    comingSoon: 'Em breve',
+    busStopMessage:
+      'As viagens a partir deste ponto estarão disponíveis no futuro. Ainda não há serviço de ônibus nem viagem rápida.',
     frontDoor: 'Porta da frente',
     houseDoor: 'Porta entre a casa e a garagem',
     garageDoor: 'Porta da garagem',
@@ -55,6 +70,10 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}: {state}',
   },
   de: {
+    busStop: 'Bushaltestelle',
+    comingSoon: 'Demnächst',
+    busStopMessage:
+      'Reisen ab dieser Haltestelle sind für später geplant. Es gibt noch keinen Busverkehr und keine Schnellreise.',
     frontDoor: 'Haustür',
     houseDoor: 'Tür zwischen Haus und Garage',
     garageDoor: 'Garagentor',
@@ -68,6 +87,10 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}: {state}',
   },
   hu: {
+    busStop: 'Buszmegálló',
+    comingSoon: 'Hamarosan',
+    busStopMessage:
+      'Az utazás erről a megállóról később lesz elérhető. Egyelőre nincs buszjárat vagy gyorsutazás.',
     frontDoor: 'Bejárati ajtó',
     houseDoor: 'Ház és garázs közötti ajtó',
     garageDoor: 'Garázskapu',
@@ -81,6 +104,10 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}: {state}',
   },
   ja: {
+    busStop: 'バス停',
+    comingSoon: '近日公開',
+    busStopMessage:
+      'このバス停からの移動は今後公開予定です。現在、バスの運行やファストトラベルは利用できません。',
     frontDoor: '玄関ドア',
     houseDoor: '家とガレージのドア',
     garageDoor: 'ガレージドア',
@@ -94,6 +121,10 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}：{state}',
   },
   'zh-Hans': {
+    busStop: '公交站',
+    comingSoon: '即将推出',
+    busStopMessage:
+      '此站点的出行功能将在未来开放。目前没有公交服务或快速旅行功能。',
     frontDoor: '前门',
     houseDoor: '房屋与车库之间的门',
     garageDoor: '车库门',
@@ -107,6 +138,10 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}：{state}',
   },
   ar: {
+    busStop: 'موقف الحافلات',
+    comingSoon: 'قريبًا',
+    busStopMessage:
+      'سيُتاح السفر من هذا الموقف لاحقًا. لا تتوفر خدمة حافلات أو انتقال سريع حاليًا.',
     frontDoor: 'الباب الأمامي',
     houseDoor: 'باب المنزل والمرآب',
     garageDoor: 'باب المرآب',

@@ -160,7 +160,7 @@ describe('PORTFOLIO_LEVEL', () => {
   it('extends ground bounds for the exterior while preserving the upper floor', () => {
     expect(getFloorBounds(FLOOR_PLAN)).toEqual({
       minX: toWorld(-16),
-      maxX: toWorld(29),
+      maxX: toWorld(40),
       minZ: toWorld(-18),
       maxZ: toWorld(20),
     });

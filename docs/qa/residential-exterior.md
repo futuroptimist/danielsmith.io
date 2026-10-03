@@ -109,3 +109,54 @@ both sides, occupancy and reduced-motion touch. Keep the fixture's input method
 and actual result in the evidence; opening an animated panel alone does not prove
 passage. The original tabletop model still uses its house/backyard envelope,
 while the shared house wall shows the new pedestrian opening.
+
+## Residential street and future bus stop
+
+The final ground-floor expansion adds a flat residential road at plan X `[29, 40]`,
+a flush pale curb, and a planted verge with a separate paved shelter pad. The
+existing continuous sidewalk is unchanged. Source-authored outer fences end the
+road and verge; the old sidewalk-edge fence is replaced in source, and the
+backyard's existing fences remain intact. Road, curb, lawn and shelter surfaces
+partition their areas without coplanar overlaps.
+
+The original unbranded 2040 sedan has a closed nose, restrained light bars,
+four-door proportions and simple shared low-poly wheels. Its conservative solid
+footprint is 4.6 by 9.2 world units, centered at `(66, -20)`. It is more than five
+units from the sidewalk and seven from the driveway's turning corridor. It is
+parked scenery; driving and traffic are outside this stage.
+
+Four evenly spaced fixtures have opaque hoods and single-sided emissive
+undersides. Their spotlights target the point directly below each fixture, use a
+36-degree half-angle entirely below horizontal, and cast no shadows. Realtime
+lights are active only near the ground-floor street at compatible quality tiers;
+lower tiers use shared, static ground pools. No omnidirectional lamps or upward
+bulbs are introduced. The street asset pool owns seven geometries, eleven
+materials and one static sign texture. Sign pixels update only when locale copy
+changes. Repeated boxes, wheels, lamp undersides and pools are instanced; all
+instances, textures, lights, materials and geometries are disposed on teardown.
+
+The shelter has four solid posts and a solid bench. Its roof and sign are above
+avatar headroom. The roof becomes translucent when the avatar enters the pad;
+its cutaway source is included in camera diagnostics. Shelter dimensions are
+explicit world units for the current two-to-one plan, not an arbitrary-scale
+factory contract.
+
+`residential-bus-stop` is a stable informational interaction with availability
+`coming-soon` and a future destination reference, without a destination URL,
+loader or travel action. The world sign, accessible native disclosure and text
+fallback share the same nine-locale catalog. Enter, Space, the remappable interact
+key and touch expose the message; repeats coalesce, Escape restores canvas focus,
+and walking away or opening a modal collapses it. Long localized content is
+measured and positioned below the HUD within portrait and landscape viewports.
+
+Run `playwright/immersive-residential-street.spec.ts` with the existing entry,
+garage, basement, upstairs, accessibility and launch-budget suites. Inspect the
+named normal/minimum/maximum-zoom screenshots, parked sedan, shelter cutaway and
+localized touch controls. The versioned `--street` performance profile preserves
+all common, museum, entry and garage legs before appending the parked EV, bus stop,
+shelter interior and return to spawn. Browser lifecycle assertions separately
+verify disposal and a fresh bounded resource pool after text-mode re-entry.
+
+Record failures and reruns honestly. Automated software-WebGL traversal, local
+structural documentation checks, hosted link checks, hardware frame-time gates
+and the owner's deferred final manual walkthrough are distinct evidence.

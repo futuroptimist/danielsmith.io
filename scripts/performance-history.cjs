@@ -20,6 +20,11 @@ const ROUTE_CAPABILITIES = {
     source: 'src/scene/level/basementStair.ts',
     marker: 'basement-ground',
   },
+  street: {
+    flag: '--street',
+    source: 'src/scene/level/streetLayout.ts',
+    marker: 'residential-bus-stop',
+  },
   garage: {
     flag: '--garage',
     source: 'src/scene/level/garageLayout.ts',
@@ -67,7 +72,7 @@ function parseArgs(args) {
       } else {
         if (value !== 'common' && !Object.hasOwn(ROUTE_CAPABILITIES, value))
           throw new Error(
-            'Route profile must be common, basement, exterior or garage'
+            'Route profile must be common, basement, exterior, garage or street'
           );
         options.routeProfile = value;
       }

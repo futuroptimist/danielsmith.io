@@ -460,14 +460,16 @@
       "sourceFiles": [
         "src/scene/level/exteriorLayout.ts",
         "src/scene/level/garageLayout.ts",
-        "src/scene/structures/residentialExterior.ts"
+        "src/scene/level/streetLayout.ts",
+        "src/scene/structures/residentialExterior.ts",
+        "src/scene/structures/residentialStreet.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "Attached garage surfaces, solid workshop storage, and overhead/sliding door geometry share the exterior resource pool; the miniature keeps its original house envelope.",
-      "sourceFingerprint": "0b8423a9a928748966937efeac6e982dcce9cf7a40ed580ccca65962225ba16e",
+      "syncRevision": 4,
+      "syncNote": "Street, shielded lamps, parked EV and shelter remain outside the original miniature envelope. Attached garage surfaces, solid workshop storage, and overhead/sliding door geometry share the exterior resource pool; the miniature keeps its original house envelope.",
+      "sourceFingerprint": "cb45cffd00cec2c334b13f87b65a72e6e23dc0755aa66cf44327b0ccd4bf885f",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "fe226409b45a54a1f48b3dfad4a0a6094abf7c3499a21fef208f098736d1ea7c"
+      "metadataFingerprint": "9728bf8caea73631c39115ac4cd13d964248e755c3667d638ce590145f34a9f2"
     },
     {
       "id": "level:basement-stairs",
@@ -515,11 +517,11 @@
         "src/scene/level/schema.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 7,
-      "syncNote": "The source now includes an attached garage and driveway; its house connection is shared while outside-envelope garage geometry is excluded from the miniature.",
-      "sourceFingerprint": "150681e94220d686bd3526bc6558060acb5a21ae417427eb5211b33f9a69a5ca",
+      "syncRevision": 8,
+      "syncNote": "The source adds flat street, verge and bus-stop zones plus explicit outer boundaries; the miniature retains its original house/backyard envelope and shared house connections.",
+      "sourceFingerprint": "35793fd6990cf3b88da1fb18a5d160ebea4a0d814ebbe685cc6a6b56abd6a10d",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "732095e24172e92cd7a9341db04c8ccd14e7f4fbcd8ed96fe4cbf36099d886b2"
+      "metadataFingerprint": "926e8a7db23e3b914146ae3e2c0c981ff290f24781d2bbb9747ac931957f4ec6"
     },
     {
       "id": "level:stairs-landing",

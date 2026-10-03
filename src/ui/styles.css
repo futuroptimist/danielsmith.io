@@ -2681,3 +2681,44 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   outline: 3px solid #fff4df;
   outline-offset: 4px;
 }
+
+.exterior-bus-stop-control {
+  position: fixed;
+  z-index: 12;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(340px, calc(100vw - 24px));
+  padding: 0.6rem;
+  border: 1px solid #93aaa9;
+  border-radius: 0.75rem;
+  color: #f2f6ee;
+  background: #182b36;
+  box-shadow: 0 5px 20px #0006;
+}
+.exterior-bus-stop-control[hidden] {
+  display: none;
+}
+.exterior-bus-stop-control button {
+  min-height: 44px;
+  width: 100%;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #b9caca;
+  border-radius: 0.4rem;
+  background: #263f48;
+  color: #ffdeb0;
+  font: inherit;
+  cursor: pointer;
+}
+.exterior-bus-stop-control button:focus-visible {
+  outline: 3px solid #ffdeb0;
+  outline-offset: 3px;
+}
+.exterior-bus-stop-control p {
+  margin: 0.65rem 0 0;
+  line-height: 1.5;
+}
+.text-fallback__bus-stop {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

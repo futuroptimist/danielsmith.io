@@ -21,11 +21,13 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: [
       'src/scene/level/exteriorLayout.ts',
       'src/scene/level/garageLayout.ts',
+      'src/scene/level/streetLayout.ts',
+      'src/scene/structures/residentialStreet.ts',
       'src/scene/structures/residentialExterior.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Attached garage surfaces, solid workshop storage, and overhead/sliding door geometry share the exterior resource pool; the miniature keeps its original house envelope.',
+      'Street, shielded lamps, parked EV and shelter remain outside the original miniature envelope. Attached garage surfaces, solid workshop storage, and overhead/sliding door geometry share the exterior resource pool; the miniature keeps its original house envelope.',
     reason:
       'The tabletop keeps its existing house/backyard envelope. The source-backed front opening is shared, while external landscaping and dynamic door controls stay outside the miniature.',
   },
@@ -63,9 +65,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'The source now includes an attached garage and driveway; its house connection is shared while outside-envelope garage geometry is excluded from the miniature.',
+      'The source adds flat street, verge and bus-stop zones plus explicit outer boundaries; the miniature retains its original house/backyard envelope and shared house connections.',
   },
   {
     id: 'level:floors-walls',

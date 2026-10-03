@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="1504" height="1280" viewBox="0 0 1504 1280" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="1504" height="1280" fill="#0b1428" />
+<svg width="1856" height="1280" viewBox="0 0 1856 1280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="1856" height="1280" fill="#0b1428" />
   <g>
-    <path d="M32.00,1248.00 L1472.00,1248.00 L1472.00,32.00 L32.00,32.00 Z" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
+    <path d="M32.00,1248.00 L1824.00,1248.00 L1824.00,32.00 L32.00,32.00 Z" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
 
       <g>
         <rect
@@ -102,6 +102,54 @@
 
       <g>
         <rect
+          x="1472.00"
+          y="32.00"
+          width="352.00"
+          height="1216.00"
+          fill="#34404b"
+          fill-opacity="0.22"
+          stroke="#34404b"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="1648.00" y="640.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Residential Street</text>
+      </g>
+
+
+      <g>
+        <rect
+          x="1056.00"
+          y="32.00"
+          width="320.00"
+          height="384.00"
+          fill="#45644a"
+          fill-opacity="0.22"
+          stroke="#45644a"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="1216.00" y="224.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Planted Verge</text>
+      </g>
+
+
+      <g>
+        <rect
+          x="1280.00"
+          y="64.00"
+          width="96.00"
+          height="192.00"
+          fill="#c2c0b7"
+          fill-opacity="0.22"
+          stroke="#c2c0b7"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="1328.00" y="160.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Bus Stop</text>
+      </g>
+
+
+      <g>
+        <rect
           x="1056.00"
           y="800.00"
           width="320.00"
@@ -160,22 +208,26 @@
 <line x1="848.00" y1="416.00" x2="1056.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="416.00" x2="1344.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1344.00" y1="416.00" x2="1376.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1376.00" y1="1248.00" x2="1472.00" y2="1248.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1472.00" y1="1248.00" x2="1824.00" y2="1248.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1056.00" y1="32.00" x2="1376.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1376.00" y1="32.00" x2="1472.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1472.00" y1="32.00" x2="1824.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="32.00" y1="1184.00" x2="1056.00" y2="1184.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="1184.00" x2="1376.00" y2="1184.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="1376.00" y1="1248.00" x2="1472.00" y2="1248.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="1376.00" y1="32.00" x2="1472.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="32.00" y1="160.00" x2="1056.00" y2="160.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1344.00" y1="800.00" x2="1344.00" y2="720.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1344.00" y1="496.00" x2="1344.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="1472.00" y1="1248.00" x2="1472.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="1184.00" x2="32.00" y2="800.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="800.00" x2="32.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="32.00" y1="416.00" x2="32.00" y2="160.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1824.00" y1="1248.00" x2="1824.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="1184.00" x2="1056.00" y2="960.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="864.00" x2="1056.00" y2="800.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="800.00" x2="1056.00" y2="752.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="656.00" x2="1056.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="1056.00" y1="416.00" x2="1056.00" y2="160.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1056.00" y1="160.00" x2="1056.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="1184.00" x2="32.00" y2="800.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="800.00" x2="32.00" y2="416.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="416.00" x2="32.00" y2="160.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="480.00" y1="800.00" x2="480.00" y2="672.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="480.00" y1="544.00" x2="480.00" y2="416.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
     <g aria-label="Basement stair connection" fill="none" stroke="#d7b98d" stroke-width="2">
@@ -240,8 +292,8 @@
     </g>
 
     <g>
-      <rect x="1294.00" y="1194.00" width="200" height="76" rx="8" fill="#0e1730" stroke="#223559" stroke-width="1" />
-      <g transform="translate(1308.00, 1210.00)">
+      <rect x="1646.00" y="1194.00" width="200" height="76" rx="8" fill="#0e1730" stroke="#223559" stroke-width="1" />
+      <g transform="translate(1660.00, 1210.00)">
         <circle cx="8" cy="10" r="6" fill="#85e5ff" />
         <circle cx="8" cy="10" r="3" fill="#0b1428" />
         <text x="22" y="14" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">POI</text>

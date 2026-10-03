@@ -264,3 +264,16 @@ fall back to their common route and record the unavailable capability. The
 checkpoints before exercising both garage doors and the driveway. Compare shared
 named checkpoints separately from new route legs; each result retains its actual
 profile and camera state when the historical API exposes it.
+
+### Residential-street checkpoint
+
+```bash
+npm run perf:history -- --route-profile street <garage-commit> <street-commit>
+```
+
+The most specific `--street` helper retains earlier route legs and adds the parked
+EV, bus stop, shelter and final spawn. Historical refs without the authored bus-stop
+seam explicitly skip that addition and retain their common route. The recorded
+profile is `house-residential-street-route-v1`; common and extended histories are
+not pooled. Detailed results remain ignored, with only reviewed high-level metrics
+and source/profile/archive identities copied into tracked history.
