@@ -11,14 +11,21 @@ import {
   waitDoor,
   walkExteriorTo,
 } from './helpers/exteriorJourney';
+import { pressNativeMovementChord } from './helpers/nativeMovementChord';
 
 const button = '[data-exterior-door-control]';
 
-for (const point of ['locale', 'debug-storage', 'debug-overlay'] as const) {
-  test(`releases early telemetry and DOM after ${point} initialization failure`, async ({
-    page,
-  }) => {
-    await injectEarlyInitializationFailure(page, point);
+for (const [point, cleanupThrows] of [
+  ['locale', false],
+  ['debug-storage', false],
+  ['debug-overlay', false],
+  ['debug-overlay', true],
+] as const) {
+  const title =
+    `releases early telemetry and DOM after ${point} initialization failure` +
+    (cleanupThrows ? ' with throwing cleanup' : '');
+  test(title, async ({ page }) => {
+    await injectEarlyInitializationFailure(page, point, cleanupThrows);
     await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
       waitUntil: 'domcontentloaded',
     });
@@ -47,6 +54,18 @@ for (const point of ['locale', 'debug-storage', 'debug-overlay'] as const) {
       worldAvailable: false,
       overlayAttachedBeforeFailure: point === 'debug-overlay',
     });
+    if (cleanupThrows) {
+      expect(snapshot.cleanupFailureReached).toBe(true);
+      expect(
+        await page.evaluate(() =>
+          (
+            window as unknown as { readEarlyCleanupErrors(): string[] }
+          ).readEarlyCleanupErrors()
+        )
+      ).toEqual([
+        'initialization cleanup failed: Injected early disposer failure',
+      ]);
+    }
   });
 }
 
@@ -91,7 +110,10 @@ for (const mode of ['handler', 'throw'] as const) {
           window as unknown as { repeatExteriorFailure(): void }
         ).repeatExteriorFailure()
       );
-      expect(await readExteriorFailureSnapshot(page)).toEqual(snapshot);
+      expect(await readExteriorFailureSnapshot(page)).toEqual({
+        ...snapshot,
+        fatalErrors: [...snapshot.fatalErrors, snapshot.fatalErrors[0]],
+      });
     });
   }
 }
@@ -122,6 +144,108 @@ for (const mode of ['throw-cleanup', 'async-cleanup'] as const) {
     expect(snapshot.controlsRemaining).toBe(0);
     expect(snapshot.worldAvailable).toBe(false);
   });
+}
+
+for (const cleanupScope of ['exterior', 'initialization'] as const) {
+  for (const phase of ['controls', 'ready'] as const) {
+    test(`completes ${phase} teardown after a ${cleanupScope} scope failure`, async ({
+      page,
+    }) => {
+      await injectExteriorInitializationFailure(page, phase, 'throw-cleanup', {
+        cleanupScope,
+      });
+      if (phase === 'ready') {
+        await readyExterior(page);
+        await page.keyboard.down('KeyW');
+        await page.dispatchEvent('#app canvas', 'pointerdown', {
+          pointerType: 'touch',
+          pointerId: 71,
+          button: 0,
+          clientX: 120,
+          clientY: 350,
+        });
+        await page.dispatchEvent('#app canvas', 'pointermove', {
+          pointerType: 'touch',
+          pointerId: 71,
+          clientX: 150,
+          clientY: 350,
+        });
+        const before = await readExteriorFailureSnapshot(page);
+        expect(before.immersiveLifecycle).toBe('ready');
+        expect(before.movementPressed).toBe(true);
+        expect(before.joystickMovement!.x).toBeGreaterThan(0);
+        await expect(page.locator('.joystick')).toHaveCount(1);
+        await page.evaluate(() =>
+          (
+            window as unknown as { repeatExteriorFailure(): void }
+          ).repeatExteriorFailure()
+        );
+        await page.keyboard.up('KeyW');
+        await page.keyboard.down('KeyW');
+      } else {
+        await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
+          waitUntil: 'domcontentloaded',
+        });
+      }
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-app-mode',
+        'fallback'
+      );
+      const snapshot = await readExteriorFailureSnapshot(page);
+      await test.info().attach(`teardown-${cleanupScope}-${phase}.json`, {
+        body: JSON.stringify(snapshot, null, 2),
+        contentType: 'application/json',
+      });
+      expect(snapshot.immersiveLifecycle).toBe('disposed');
+      expect(snapshot.cleanupFailures).toBe(1);
+      expect(snapshot.rendererDisposals).toBe(1);
+      expect(snapshot.lifecycle.isDisposed).toBe(true);
+      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 9 });
+      expect(snapshot.expected.instances).toBeGreaterThan(0);
+      expect(snapshot.disposed).toEqual(snapshot.expected);
+      expect(snapshot.groupAttached).toBe(false);
+      expect(snapshot.controlsRemaining).toBe(0);
+      expect(snapshot.worldAvailable).toBe(false);
+      expect(snapshot.listeners).toEqual({
+        keyAdded: 2,
+        keyRemoved: 2,
+        blurAdded: 1,
+        blurRemoved: 1,
+        resizeAdded: 2,
+        resizeRemoved: 2,
+      });
+      expect(snapshot.museum).not.toBeNull();
+      expect(snapshot.museum!.isDisposed).toBe(true);
+      expect(snapshot.museum!.created.geometries).toBeGreaterThan(0);
+      expect(snapshot.museum!.created.textures).toBeGreaterThan(0);
+      expect(snapshot.museum!.disposed).toEqual(snapshot.museum!.created);
+      expect(snapshot.miniatureChildren).toBe(0);
+      expect(snapshot.laterGeometryDisposals.miniature).toBeGreaterThan(0);
+      expect(snapshot.laterGeometryDisposals.reaper).toBeGreaterThan(0);
+      expect(snapshot.cleanupErrors).toEqual([
+        `${cleanupScope} cleanup failed: Injected disposer failure`,
+      ]);
+      expect(snapshot.fatalErrors).toEqual([
+        `Injected exterior initialization failure: ${phase}`,
+      ]);
+      if (phase === 'ready') {
+        expect(snapshot.movementPressed).toBe(false);
+        expect(snapshot.joystickMovement).toEqual({ x: 0, y: 0 });
+        await expect(page.locator('.joystick')).toHaveCount(0);
+        await page.keyboard.up('KeyW');
+      }
+      await page.evaluate(() =>
+        (
+          window as unknown as { repeatExteriorFailure(): void }
+        ).repeatExteriorFailure()
+      );
+      const repeated = await readExteriorFailureSnapshot(page);
+      expect(repeated).toEqual({
+        ...snapshot,
+        fatalErrors: [...snapshot.fatalErrors, ...snapshot.fatalErrors],
+      });
+    });
+  }
 }
 
 for (const panel of ['tutorial', 'controls'] as const) {
@@ -191,37 +315,121 @@ for (const key of ['w', 'h'] as const) {
 
 async function crossFrontDoorWithNativeChord(page: Page, label: string) {
   // Keep the current button/HUD focus: that ownership is part of the regression.
-  // A single native chord avoids traced gaps between two intended simultaneous keys.
-  let position = await page.evaluate(() =>
-    window.portfolio!.world!.getPlayerPosition()
-  );
-  const deadline = Date.now() + 5000;
-  while (position.x <= 35 && Date.now() < deadline) {
-    await page.keyboard.press('KeyS+KeyD', { delay: 160 });
-    position = await page.evaluate(() =>
-      window.portfolio!.world!.getPlayerPosition()
-    );
-  }
-  const diagnostics = await page.evaluate(() => {
-    const p = window.portfolio!;
-    const position = p.world!.getPlayerPosition();
-    return {
-      position,
-      floor: p.world!.getActiveFloor(),
-      camera: p.world!.getCameraState(),
-      doors: p.world!.getDoorSnapshots(),
+  // Playwright dispatches each chord event sequentially. Record native event
+  // delivery and actual poses so slow-renderer failures are readable in CI logs.
+  const inputObserver = await page.evaluateHandle(() => {
+    const startedAt = performance.now();
+    const held = new Set<string>();
+    const events: Array<Record<string, unknown>> = [];
+    const frames: Array<Record<string, unknown>> = [];
+    let frameCount = 0;
+    let longestFrameMs = 0;
+    let previousFrameAt = startedAt;
+    let previousSampleAt = -Infinity;
+    const snapshot = () => ({
+      elapsedMs: performance.now() - startedAt,
+      position: window.portfolio!.world!.getPlayerPosition(),
+      held: [...held],
       focus:
         document.activeElement?.getAttribute('aria-label') ??
         document.activeElement?.tagName,
-      nextXBlockers: p.debugColliders!.getBlockingCollidersAt({
-        x: position.x + 0.3,
-        z: position.z,
-        floorId: 'ground',
-      }),
+      panel: document.documentElement.dataset.activeHudPanel ?? null,
+    });
+    const recordKey = (event: KeyboardEvent) => {
+      if (event.code !== 'KeyS' && event.code !== 'KeyD') return;
+      if (event.type === 'keydown') held.add(event.code);
+      else held.delete(event.code);
+      if (events.length < 80)
+        events.push({
+          ...snapshot(),
+          type: event.type,
+          code: event.code,
+          key: event.key,
+          keyCode: event.keyCode,
+          location: event.location,
+          modifiers: {
+            alt: event.altKey,
+            control: event.ctrlKey,
+            meta: event.metaKey,
+            shift: event.shiftKey,
+          },
+          trusted: event.isTrusted,
+          repeat: event.repeat,
+        });
+    };
+    const recordFrame = (now: number) => {
+      frameCount++;
+      longestFrameMs = Math.max(longestFrameMs, now - previousFrameAt);
+      previousFrameAt = now;
+      if (now - previousSampleAt >= 100 && frames.length < 60) {
+        frames.push(snapshot());
+        previousSampleAt = now;
+      }
+      frameId = requestAnimationFrame(recordFrame);
+    };
+    let frameId = requestAnimationFrame(recordFrame);
+    window.addEventListener('keydown', recordKey, true);
+    window.addEventListener('keyup', recordKey, true);
+    return {
+      stop() {
+        cancelAnimationFrame(frameId);
+        window.removeEventListener('keydown', recordKey, true);
+        window.removeEventListener('keyup', recordKey, true);
+        return { events, frames, frameCount, longestFrameMs, end: snapshot() };
+      },
     };
   });
+  let position = await page.evaluate(() =>
+    window.portfolio!.world!.getPlayerPosition()
+  );
+  const startedAt = Date.now();
+  const deadline = startedAt + 5000;
+  let chords = 0;
+  let diagnostics;
+  try {
+    while (position.x <= 35 && Date.now() < deadline) {
+      await pressNativeMovementChord(page, ['KeyS', 'KeyD'], 160);
+      chords++;
+      position = await page.evaluate(() =>
+        window.portfolio!.world!.getPlayerPosition()
+      );
+    }
+  } finally {
+    diagnostics = await inputObserver.evaluate((observer) => {
+      const input = observer.stop();
+      const p = window.portfolio!;
+      const position = p.world!.getPlayerPosition();
+      return {
+        input,
+        position,
+        floor: p.world!.getActiveFloor(),
+        camera: p.world!.getCameraState(),
+        doors: p.world!.getDoorSnapshots(),
+        focus:
+          document.activeElement?.getAttribute('aria-label') ??
+          document.activeElement?.tagName,
+        nextXBlockers: p.debugColliders!.getBlockingCollidersAt({
+          x: position.x + 0.3,
+          z: position.z,
+          floorId: 'ground',
+        }),
+      };
+    });
+    await inputObserver.dispose();
+  }
+  const crossingDiagnostics = {
+    label,
+    ...diagnostics,
+    chords,
+    elapsedMs: Date.now() - startedAt,
+  };
+  if (diagnostics.position.x <= 35 || diagnostics.floor !== 'ground')
+    console.error(
+      'Native front crossing failed:',
+      JSON.stringify(crossingDiagnostics)
+    );
   await test.info().attach(`native-front-crossing-${label}`, {
-    body: JSON.stringify(diagnostics, null, 2),
+    body: JSON.stringify(crossingDiagnostics, null, 2),
     contentType: 'application/json',
   });
   expect(diagnostics.position.x).toBeGreaterThan(35);

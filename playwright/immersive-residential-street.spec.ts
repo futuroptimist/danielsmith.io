@@ -15,6 +15,7 @@ import {
   waitDoor,
   walkExteriorTo,
 } from './helpers/exteriorJourney';
+import { pressNativeMovementChord } from './helpers/nativeMovementChord';
 
 const stop = '[data-bus-stop-id="residential-bus-stop"]';
 for (const mode of ['handler', 'throw'] as const) {
@@ -22,7 +23,9 @@ for (const mode of ['handler', 'throw'] as const) {
     test(`releases street resources after a ${mode} ${phase} initialization failure`, async ({
       page,
     }) => {
-      await injectExteriorInitializationFailure(page, phase, mode, 'street');
+      await injectExteriorInitializationFailure(page, phase, mode, {
+        target: 'street',
+      });
       await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
         waitUntil: 'domcontentloaded',
       });
@@ -63,7 +66,10 @@ for (const mode of ['handler', 'throw'] as const) {
           window as unknown as { repeatExteriorFailure(): void }
         ).repeatExteriorFailure()
       );
-      expect(await readExteriorFailureSnapshot(page)).toEqual(snapshot);
+      expect(await readExteriorFailureSnapshot(page)).toEqual({
+        ...snapshot,
+        fatalErrors: [...snapshot.fatalErrors, snapshot.fatalErrors[0]],
+      });
     });
   }
 }
@@ -72,7 +78,9 @@ for (const mode of ['throw-cleanup', 'async-cleanup'] as const) {
   test(`preserves street cleanup and renderer fallback after ${mode}`, async ({
     page,
   }) => {
-    await injectExteriorInitializationFailure(page, 'controls', mode, 'street');
+    await injectExteriorInitializationFailure(page, 'controls', mode, {
+      target: 'street',
+    });
     await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
       waitUntil: 'domcontentloaded',
     });
@@ -125,16 +133,17 @@ async function reachStop(page: Page) {
 }
 async function nativeZ(page: Page, target: number, positive: boolean) {
   await page.locator('#app canvas').focus();
-  // One native chord keeps the two keydowns together despite software-renderer
-  // trace/snapshot latency between separate Playwright API calls.
-  const chord = positive ? 'KeyS+KeyA' : 'KeyW+KeyD';
+  // Queue native Chromium events without per-key trace snapshots steering the path.
+  const chord = positive
+    ? (['KeyS', 'KeyA'] as const)
+    : (['KeyW', 'KeyD'] as const);
   const deadline = Date.now() + 20000;
   while (Date.now() < deadline) {
     const position = await page.evaluate(() =>
       window.portfolio!.world!.getPlayerPosition()
     );
     if (positive ? position.z >= target : position.z <= target) return;
-    await page.keyboard.press(chord, { delay: 160 });
+    await pressNativeMovementChord(page, chord, 160);
     await page.waitForTimeout(100);
   }
   const diagnostics = await page.evaluate(() => {
@@ -219,11 +228,7 @@ test(streetCaseTitle2, async ({ page }) => {
     window.portfolio!.world!.getPlayerPosition()
   );
   await page.locator('#app canvas').focus();
-  await page.keyboard.down('KeyS');
-  await page.keyboard.down('KeyD');
-  await page.waitForTimeout(2200);
-  await page.keyboard.up('KeyS');
-  await page.keyboard.up('KeyD');
+  await pressNativeMovementChord(page, ['KeyS', 'KeyD'], 2200);
   await page.waitForTimeout(400);
   const stopped = await page.evaluate(() =>
     window.portfolio!.world!.getPlayerPosition()

@@ -4,7 +4,8 @@ export type EarlyFailurePoint = 'locale' | 'debug-storage' | 'debug-overlay';
 
 export async function injectEarlyInitializationFailure(
   page: Page,
-  point: EarlyFailurePoint
+  point: EarlyFailurePoint,
+  cleanupThrows = false
 ) {
   await page.addInitScript(
     ({ point }) => {
@@ -92,6 +93,16 @@ export async function injectEarlyInitializationFailure(
         window.earlyFailure.overlayAttachedBeforeFailure =
           debugPerformanceOverlay.getState().panelVisible;
         window.earlyFailure.failureReached = true;
+        ${
+          cleanupThrows
+            ? `initializationCleanup.add(() => {
+          window.earlyFailure.cleanupFailureReached = true;
+          throw new Error('Injected early disposer failure');
+        });`
+            : ''
+        }
+        window.readEarlyCleanupErrors = () => crashBreadcrumbs.read().entries
+          .filter((entry) => entry.type === 'cleanup-error').map((entry) => entry.message);
         throw new Error('Injected failure after debug overlay allocation');
       `
       );
