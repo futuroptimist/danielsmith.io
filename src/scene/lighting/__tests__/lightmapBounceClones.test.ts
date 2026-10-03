@@ -1,14 +1,14 @@
 import { MeshStandardMaterial } from 'three';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { createBasementLandingCutaway } from '../../structures/basementLandingCutaway';
 import { createLightmapBounceAnimator } from '../lightmapBounceAnimator';
 
 function createWallMaterials(cutaway = true) {
   const wall = new MeshStandardMaterial({ lightMapIntensity: 0.68 });
-  const clone = wall.clone();
-  clone.opacity = cutaway ? 0.18 : 1;
-  clone.transparent = cutaway;
-  clone.depthWrite = !cutaway;
+  const controller = createBasementLandingCutaway(wall);
+  const clone = controller.material;
+  controller.setActive(cutaway);
   const animator = createLightmapBounceAnimator({
     floorMaterial: new MeshStandardMaterial(),
     wallMaterial: wall,
@@ -47,7 +47,7 @@ describe('wall lightmap clones', () => {
         animator.update(elapsed);
         expect(wall.lightMapIntensity).toBeCloseTo(0.68 * multiplier, 6);
         expect(clone.lightMapIntensity).toBe(wall.lightMapIntensity);
-        expect(clone.opacity).toBe(cutaway ? 0.18 : 1);
+        expect(clone.opacity).toBe(cutaway ? 0.8 : 1);
         expect(clone.transparent).toBe(cutaway);
         expect(clone.depthWrite).toBe(!cutaway);
         expect(wall.opacity).toBe(1);
@@ -64,7 +64,7 @@ describe('wall lightmap clones', () => {
     animator.update(5);
     expect(wall.lightMapIntensity).toBeCloseTo(0.6, 6);
     expect(clone.lightMapIntensity).toBe(wall.lightMapIntensity);
-    expect(clone.opacity).toBe(0.18);
+    expect(clone.opacity).toBe(0.8);
     expect(clone.transparent).toBe(true);
     expect(clone.depthWrite).toBe(false);
   });
@@ -76,7 +76,7 @@ describe('wall lightmap clones', () => {
     animator.update(6);
     expect(wall.lightMapIntensity).toBeCloseTo(0.68, 6);
     expect(clone.lightMapIntensity).toBe(wall.lightMapIntensity);
-    expect(clone.opacity).toBe(0.18);
+    expect(clone.opacity).toBe(0.8);
     expect(clone.transparent).toBe(true);
     expect(clone.depthWrite).toBe(false);
   });

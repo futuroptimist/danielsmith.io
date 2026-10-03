@@ -125,25 +125,21 @@ function buildLocale(
   }
   clone.locale = locale;
   clone.careers = cloneValue(CAREER_LOCALE_COPY[locale]);
-  clone.site.textFallback.timeline.entries = CAREER_HISTORY.map(
-    ({ id, provenance }) => {
-      const copy = clone.careers[id];
-      return {
-        id,
-        role: copy.role,
-        org: copy.organization,
-        period: copy.period,
-        location: copy.location,
-        summary: copy.summary,
-        team: copy.team,
-        illustrationNote: copy.illustrationNote,
-        disclaimer: copy.disclaimer,
-        links: provenance.flatMap((source) =>
-          source.href ? [{ href: source.href, label: copy.sourceLabel }] : []
-        ),
-      };
-    }
-  );
+  clone.site.textFallback.timeline.entries = CAREER_HISTORY.map(({ id }) => {
+    const copy = clone.careers[id];
+    return {
+      id,
+      role: copy.role,
+      org: copy.organization,
+      period: copy.period,
+      location: copy.location,
+      summary: copy.summary,
+      team: copy.team,
+      illustrationNote: copy.illustrationNote,
+      disclaimer: copy.disclaimer,
+      links: [],
+    };
+  });
   syncHelpModalControlSection(clone);
   return Object.freeze(clone);
 }

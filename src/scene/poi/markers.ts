@@ -26,6 +26,7 @@ import {
   POI_ORB_HEIGHT_MULTIPLIER,
   POI_ORB_DIAMETER_MULTIPLIER,
 } from './constants';
+import { fitPoiTitleFont } from './titleFont';
 import type { PoiDefinition, PoiId } from './types';
 import { createVisitedBadge, type PoiVisitedBadge } from './visitedBadge';
 
@@ -545,6 +546,15 @@ export function createPoiLabelTexture(
 
   context.fillStyle = gradient;
   context.font = 'bold 64px "Inter", "Segoe UI", sans-serif';
+  if (definition.category === 'career') {
+    fitPoiTitleFont(
+      context,
+      definition.title,
+      canvas.width - padding * 3,
+      64,
+      40
+    );
+  }
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   wrapText(

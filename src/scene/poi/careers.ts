@@ -63,16 +63,7 @@ export function createCareerPoiDefinitions(
     title: copy[entry.id].title,
     summary: copy[entry.id].summary,
     career: content[index],
-    links: entry.provenance.flatMap((source) =>
-      source.href
-        ? [
-            {
-              label: copy[entry.id].sourceLabel,
-              href: source.href,
-            },
-          ]
-        : []
-    ),
+    links: [],
     interactionPrompt: formatMessage(template, { title: copy[entry.id].title }),
   }));
 }

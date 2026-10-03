@@ -42,7 +42,7 @@ describe('basement shell and stairs', () => {
     const tiles = generateFloorSurfaces(floor, {
       elevation: 0,
       cutoutsBySurfaceId: {
-        'livingRoom-floor-main': [stair.opening, stair.landing],
+        'livingRoom-floor-main': stair.floorCutouts,
       },
     });
     for (let index = 0; index < stair.config.step.count; index += 1) {

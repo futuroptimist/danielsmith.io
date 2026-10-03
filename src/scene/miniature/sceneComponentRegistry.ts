@@ -37,7 +37,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'career:reviewed-content',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/careers.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
+    syncNote:
+      'Career source links are omitted from visible details; historical provenance remains available.',
     reason:
       'Shared localized career content and level-backed placement are separate from ground-floor project miniature proxies.',
   },
@@ -85,10 +87,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: [
       'src/scene/level/basementStair.ts',
       'src/scene/structures/basementStaircase.ts',
+      'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'The shared descriptor also identifies the landing visual occluder; its runtime cutaway preserves collision. The tabletop retains the source-derived opening and its ground-only view.',
+      'Ground-floor rail trim owns its slab footprint and the final parapets meet its underside. The independent 80% landing-wall cutaway preserves collision. The tabletop retains the shared opening and its ground-only view.',
   },
   {
     id: 'environment:backyard',
@@ -153,10 +156,13 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'excluded',
     sourceFiles: [
       'src/scene/poi/markers.ts',
+      'src/scene/poi/titleFont.ts',
       'src/scene/poi/worldTooltip.ts',
       'src/scene/poi/visitedBadge.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
+    syncNote:
+      'Complete career titles fit the existing two-line labels; project marker geometry is unchanged.',
     reason:
       'Guided-tour recommendation rendering was removed from in-world POI labels; marker and tabletop proxy geometry is unchanged.',
   },
