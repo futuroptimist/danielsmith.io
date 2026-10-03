@@ -600,6 +600,9 @@ test(interruptedActivationTitle, async ({ page }) => {
   );
   expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(0.5);
   // The held-key/blur test may have legitimately moved beyond interaction range.
+  // Re-approach the automatically closed entrance before planning through it.
+  await walkExteriorTo(page, { x: 35, z: -15 });
+  await waitDoor(page, 'front-door', 'open');
   await walkExteriorTo(page, { x: 32, z: -15 });
   await page
     .getByRole('button', { name: 'Open settings and help (H)' })

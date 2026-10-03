@@ -34,6 +34,25 @@ const triangle = (points = [0, 0, 0, 2, 0, 0, 0, 2, 0]) => {
 };
 
 describe('rendered triangle surface audit', () => {
+  it.each([false, true])(
+    'matches renderer facing for a reflected instance, opposite %s',
+    (opposite) => {
+      const root = new Group();
+      const base = triangle();
+      const instances = new InstancedMesh(
+        base.geometry,
+        new MeshBasicMaterial(),
+        1
+      );
+      instances.setMatrixAt(0, new Matrix4().makeScale(-1, 1, 1));
+      const reference = triangle(
+        opposite ? [0, 0, 0, 0, 2, 0, -2, 0, 0] : [0, 0, 0, -2, 0, 0, 0, 2, 0]
+      );
+      root.add(instances, reference);
+      expect(findMeshSurfaceOverlaps(root)).toHaveLength(opposite ? 0 : 1);
+    }
+  );
+
   it('starts each material-group draw at its effective range for static instances', () => {
     const root = new Group();
     const geometry = new BufferGeometry();

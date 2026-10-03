@@ -157,7 +157,9 @@ const collectTriangles = (root: Object3D): RenderedTriangle[] => {
             .cross(vertices[2].clone().sub(vertices[0]));
           if (normal.lengthSq() === 0) continue;
           normal.normalize();
-          // Three.js reverses front-face winding for mirrored object transforms.
+          // Three.js sets frontFaceCW from mesh.matrixWorld, not instanceMatrix.
+          // An instance reflection already changes the geometric winding above;
+          // applying its determinant again would undo the rendered-facing result.
           if (object.matrixWorld.determinant() < 0) normal.negate();
           if (material.side === BackSide) normal.negate();
           triangles.push({
