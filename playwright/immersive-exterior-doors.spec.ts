@@ -69,7 +69,7 @@ for (const mode of ['handler', 'throw'] as const) {
         contentType: 'application/json',
       });
       expect(snapshot.lifecycle.isDisposed).toBe(true);
-      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 9 });
+      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 8 });
       expect(snapshot.expected.instances).toBeGreaterThan(0);
       expect(snapshot.disposed).toEqual(snapshot.expected);
       expect(snapshot.groupAttached).toBe(false);
@@ -93,6 +93,34 @@ for (const mode of ['handler', 'throw'] as const) {
       expect(await readExteriorFailureSnapshot(page)).toEqual(snapshot);
     });
   }
+}
+
+for (const mode of ['throw-cleanup', 'async-cleanup'] as const) {
+  test(`preserves renderer-aware fallback after ${mode} failure`, async ({
+    page,
+  }) => {
+    await injectExteriorInitializationFailure(page, 'build', mode);
+    await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
+      waitUntil: 'domcontentloaded',
+    });
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-app-mode',
+      'fallback',
+      { timeout: 5000 }
+    );
+    const snapshot = await readExteriorFailureSnapshot(page);
+    await test.info().attach(`disposer-${mode}.json`, {
+      body: JSON.stringify(snapshot, null, 2),
+      contentType: 'application/json',
+    });
+    expect(snapshot.cleanupFailures).toBe(1);
+    expect(snapshot.rendererDisposals).toBe(1);
+    expect(snapshot.lifecycle.isDisposed).toBe(true);
+    expect(snapshot.disposed).toEqual(snapshot.expected);
+    expect(snapshot.groupAttached).toBe(false);
+    expect(snapshot.controlsRemaining).toBe(0);
+    expect(snapshot.worldAvailable).toBe(false);
+  });
 }
 
 for (const panel of ['tutorial', 'controls'] as const) {

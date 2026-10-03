@@ -6,7 +6,7 @@ export type ExteriorFailurePhase = 'build' | 'controls';
 export async function injectExteriorInitializationFailure(
   page: Page,
   phase: ExteriorFailurePhase,
-  mode: 'handler' | 'throw'
+  mode: 'handler' | 'throw' | 'throw-cleanup' | 'async-cleanup'
 ) {
   await page.addInitScript(() => {
     const counts = {
@@ -90,6 +90,15 @@ export async function injectExteriorInitializationFailure(
       const originalRendererDispose = renderer.dispose;
       renderer.dispose = () => { rendererDisposals++; originalRendererDispose.call(renderer); };
       const failure = new Error('Injected exterior initialization failure: ${phase}');
+      window.exteriorCleanupFailures = 0;
+      ${
+        mode.endsWith('-cleanup')
+          ? `exteriorCleanup.add(() => {
+        window.exteriorCleanupFailures++;
+        throw new Error('Injected disposer failure');
+      });`
+          : ''
+      }
       window.repeatExteriorFailure = () => handleFatalError(failure);
       window.readExteriorFailure = () => ({
         lifecycle: residentialExterior.getLifecycle(),
@@ -101,10 +110,18 @@ export async function injectExteriorInitializationFailure(
         listeners: window.exteriorListenerCounts,
         controlsRemaining: document.querySelectorAll('[data-exterior-door-control]').length,
         worldAvailable: Boolean(window.portfolio?.world),
-        rendererDisposals
+        rendererDisposals,
+        cleanupFailures: window.exteriorCleanupFailures
       });
       ${mode === 'handler' ? 'handleFatalError(failure); handleFatalError(failure);' : ''}
-      throw failure;
+      ${
+        mode === 'async-cleanup'
+          ? `window.setTimeout(() => {
+        try { handleFatalError(failure); }
+        catch (error) { window.exteriorCleanupError = String(error); }
+      }, 0); return;`
+          : 'throw failure;'
+      }
     `
     );
     await route.fulfill({ response, body });
@@ -123,6 +140,7 @@ export async function readExteriorFailureSnapshot(page: Page) {
           controlsRemaining: number;
           worldAvailable: boolean;
           rendererDisposals: number;
+          cleanupFailures: number;
           listeners: {
             keyAdded: number;
             keyRemoved: number;

@@ -1493,8 +1493,11 @@ function buildImmersiveScene(
       softwareRendererPolicy,
       snapshot: performanceDiagnostics?.methods.getSnapshot(),
     });
-    disposeInitializedOrPartialImmersiveResources();
-    onFatalError(error, { renderer });
+    try {
+      disposeInitializedOrPartialImmersiveResources();
+    } finally {
+      onFatalError(error, { renderer });
+    }
   };
   registerFailureHandler(handleFatalError);
 
