@@ -105,6 +105,7 @@ const includeBasement = process.argv.includes('--basement');
     await page.waitForTimeout(dwellMs);
     const record = await page.evaluate(() => {
       const p = window.portfolio;
+      const cameraState = p.world.getCameraState?.() ?? null;
       const snapshot = p.performance.getSnapshot();
       // Keep bounded class/policy metadata. Do not retain raw GPU identifiers.
       snapshot.renderer = {
@@ -124,9 +125,12 @@ const includeBasement = process.argv.includes('--basement');
           zoom: p.graphics.getCameraZoom(),
           zoomTarget: p.graphics.getCameraZoomTarget(),
           initialFraming: p.graphics.getInitialCameraFraming(),
-          position: null,
-          positionUnavailableReason:
-            'Existing debug API does not expose camera world position',
+          position: cameraState?.position ?? null,
+          focus: cameraState?.focus ?? null,
+          cutawaySourceIds: cameraState?.cutawaySourceIds ?? null,
+          positionUnavailableReason: cameraState
+            ? null
+            : 'Camera state API unavailable in this source commit',
           panInput: { x: 0, y: 0 },
         },
         overlay: {
