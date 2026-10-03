@@ -72,7 +72,7 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     frontDoor: '玄関ドア',
     open: '{door}を開く',
     close: '{door}を閉じる',
-    closed: '閉じています',
+    closed: '閉まっています',
     opening: '開いています',
     opened: '開放中',
     closing: '閉じています',
