@@ -3,12 +3,13 @@ import type {
   GitHubRepoStatsService,
 } from '../../systems/github/repoStats';
 
-import type {
-  PoiDefinition,
-  PoiId,
-  PoiMetric,
-  PoiMetricGitHubStarsSource,
-  PoiMetricSource,
+import {
+  isProjectPoi,
+  type PoiDefinition,
+  type PoiId,
+  type PoiMetric,
+  type PoiMetricGitHubStarsSource,
+  type PoiMetricSource,
 } from './types';
 
 interface MetricEntry {
@@ -100,6 +101,7 @@ export function wireGitHubRepoMetrics({
   };
 
   definitions.forEach((poi) => {
+    if (!isProjectPoi(poi)) return;
     poi.metrics?.forEach((metric) => {
       if (!isGitHubStarsSource(metric.source)) {
         return;

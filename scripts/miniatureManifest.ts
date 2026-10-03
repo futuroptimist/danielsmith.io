@@ -20,6 +20,7 @@ import {
   type MiniatureSceneComponentCoverage,
 } from '../src/scene/miniature/sceneComponentRegistry';
 import { getPoiDefinitions } from '../src/scene/poi/registry';
+import { isProjectPoi } from '../src/scene/poi/types';
 
 const MANIFEST_PATH = 'src/scene/miniature/miniatureManifest.generated.json';
 const AUDITED_DIRS = [
@@ -159,7 +160,9 @@ function validateRegistry(entries: Entry[]) {
     })
   );
   const livePoiIds = new Set<string>(
-    getPoiDefinitions().map((definition) => definition.id)
+    getPoiDefinitions()
+      .filter(isProjectPoi)
+      .map((definition) => definition.id)
   );
   const proxyPoiIds = new Set<string>(
     Object.keys(MINIATURE_POI_PROXY_REGISTRY)

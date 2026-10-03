@@ -10,6 +10,7 @@ import {
   PR_REAPER_FOOTPRINT_WIDTH,
 } from '../structures/prReaperInstallationContract';
 
+import { createCareerPoiDefinitions, getCareerPoiPlacements } from './careers';
 import { POI_SCALE, scalePoiValue } from './constants';
 import { applyManualPoiPlacements } from './placements';
 import type {
@@ -18,13 +19,14 @@ import type {
   PoiId,
   PoiPedestalConfig,
   PoiRegistry,
+  ProjectPoiDefinition,
 } from './types';
 import { assertValidPoiDefinitions } from './validation';
 
 type PoiPedestalStaticConfig = PoiPedestalConfig;
 
 type PoiStaticDefinition = Omit<
-  PoiDefinition,
+  ProjectPoiDefinition,
   | 'title'
   | 'summary'
   | 'outcome'
@@ -296,7 +298,10 @@ export function localizePoiDefinitions(input?: LocaleInput): PoiDefinition[] {
   const localized = localizeBaseDefinitions(input);
   // Deterministically lay out indoor POIs across downstairs rooms.
   // Apply only manual placements for downstairs. Simple, explicit, and easy to tweak.
-  const definitions = applyManualPoiPlacements(localized);
+  const definitions = [
+    ...applyManualPoiPlacements(localized),
+    ...createCareerPoiDefinitions(getCareerPoiPlacements(), input),
+  ];
   assertValidPoiDefinitions(definitions, {
     floorPlanLevels: FLOOR_PLAN_LEVELS,
   });
@@ -306,6 +311,21 @@ export function localizePoiDefinitions(input?: LocaleInput): PoiDefinition[] {
 const definitions: PoiDefinition[] = localizePoiDefinitions();
 
 function clonePoi(definition: PoiDefinition): PoiDefinition {
+  if (definition.category === 'career') {
+    return {
+      ...definition,
+      position: { ...definition.position },
+      interactionAnchorPosition: { ...definition.interactionAnchorPosition },
+      footprint: { ...definition.footprint },
+      links: definition.links?.map((link) => ({ ...link })),
+      career: {
+        ...definition.career,
+        provenance: definition.career.provenance.map((source) => ({
+          ...source,
+        })),
+      },
+    };
+  }
   return {
     ...definition,
     position: { ...definition.position },

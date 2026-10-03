@@ -12,6 +12,7 @@ import type { PoiDefinition, PoiId } from './types';
 
 export type PoiValidationIssue =
   | { type: 'duplicate-id'; poiId: PoiId }
+  | { type: 'invalid-career'; poiId: PoiId; field: string }
   | { type: 'invalid-room'; poiId: PoiId; roomId: string }
   | {
       type: 'out-of-bounds';
@@ -132,8 +133,31 @@ export function validatePoiDefinitions(
       ['metrics', definition.metrics],
       ['links', definition.links],
     ] as const) {
-      if (value === undefined) {
+      if (definition.category !== 'career' && value === undefined) {
         issues.push({ type: 'missing-metadata', poiId: definition.id, field });
+      }
+    }
+
+    if (definition.category === 'career') {
+      for (const field of [
+        'metrics',
+        'outcome',
+        'environments',
+        'status',
+      ] as const) {
+        if (definition[field] !== undefined) {
+          issues.push({ type: 'invalid-career', poiId: definition.id, field });
+        }
+      }
+      for (const field of [
+        'organization',
+        'role',
+        'period',
+        'responsibility',
+      ] as const) {
+        if (!definition.career[field].trim()) {
+          issues.push({ type: 'invalid-career', poiId: definition.id, field });
+        }
       }
     }
 

@@ -38,7 +38,7 @@ const createResolvedPlacements = (
   definitions = poiDefinitions
 ): MiniaturePoiPlacement[] =>
   definitions
-    .filter((definition) => (definition.position.y ?? 0) < 3)
+    .filter((definition) => getPoiFloorId(definition) === 'ground')
     .map((definition) => ({
       id: definition.id,
       position: {
@@ -86,7 +86,7 @@ describe('PortfolioMiniatureTable', () => {
   it('resolves only ground-floor miniature placements from visual anchors', () => {
     const definitions = poiDefinitions.slice(0, 4);
     const groundDefinitions = definitions.filter(
-      (definition) => (definition.position.y ?? 0) < 3
+      (definition) => getPoiFloorId(definition) === 'ground'
     );
     const missingGroundId = groundDefinitions[0]?.id;
     const result = resolveGroundFloorMiniaturePoiPlacements(
@@ -193,7 +193,7 @@ describe('PortfolioMiniatureTable', () => {
       table.group.getObjectByName('MiniatureUpperLanding')
     ).toBeUndefined();
     for (const poi of poiDefinitions.filter(
-      (definition) => (definition.position.y ?? 0) < 3
+      (definition) => getPoiFloorId(definition) === 'ground'
     )) {
       const name =
         poi.id === 'danielsmith-portfolio-table'
@@ -453,7 +453,7 @@ describe('PortfolioMiniatureTable', () => {
       (definition) => definition.id === 'sugarkube-backyard-greenhouse'
     )!;
     const livePlacements: MiniaturePoiPlacement[] = staleDefinitions
-      .filter((definition) => (definition.position.y ?? 0) < 3)
+      .filter((definition) => getPoiFloorId(definition) === 'ground')
       .map((definition) => ({
         id: definition.id,
         position:

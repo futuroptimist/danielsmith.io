@@ -281,20 +281,74 @@ const includeBasement = process.argv.includes('--basement');
       await checkpoint('basement-ground-landing');
       await walk('basement-descent', [toe]);
       await checkpoint('basement-lower-toe');
-      await walk(
-        'basement-museum-loop',
-        [
-          { x: -3, z: toe.z },
-          { x: -18, z: toe.z },
-          { x: -18, z: -15.5 },
-          { x: -18, z: 4.5 },
-          { x: 20, z: 4.5 },
-          { x: 20, z: -17.5 },
-          { x: 20, z: toe.z },
-          toe,
-        ],
-        'basement'
+      const museum = await page.evaluate(() =>
+        window.portfolio.poi?.getCareerMuseumState?.()
       );
+      if (museum?.exhibits?.length) {
+        // These source-audited approaches match the native museum regression.
+        // The shell-only route intersects the now-solid display stands.
+        result.profile = 'house-career-museum-route-v1';
+        const approaches = [
+          [
+            'career-southern-mississippi',
+            [
+              { x: -24, z: toe.z },
+              { x: -24, z: -15.5 },
+              { x: -18, z: -15.5 },
+            ],
+          ],
+          [
+            'career-naval-research',
+            [
+              { x: -24, z: -15.5 },
+              { x: -24, z: 4.5 },
+              { x: -18, z: 4.5 },
+            ],
+          ],
+          ['career-youtube', [{ x: 20, z: 4.5 }]],
+          [
+            'career-muon-space',
+            [
+              { x: 26, z: 4.5 },
+              { x: 26, z: -17.5 },
+              { x: 20, z: -17.5 },
+            ],
+          ],
+        ];
+        for (const [id, points] of approaches) {
+          if (!museum.exhibits.some((exhibit) => exhibit.id === id))
+            throw new Error(`Museum capture requires exhibit ${id}`);
+          await walk(`museum-approach-${id}`, points, 'basement');
+          await checkpoint(id);
+        }
+        await walk(
+          'museum-perimeter-return',
+          [
+            { x: 26, z: -17.5 },
+            { x: 29, z: -17.5 },
+            { x: 29, z: 12.5 },
+            { x: -29, z: 12.5 },
+            { x: -29, z: toe.z },
+            toe,
+          ],
+          'basement'
+        );
+      } else {
+        await walk(
+          'basement-museum-loop',
+          [
+            { x: -3, z: toe.z },
+            { x: -18, z: toe.z },
+            { x: -18, z: -15.5 },
+            { x: -18, z: 4.5 },
+            { x: 20, z: 4.5 },
+            { x: 20, z: -17.5 },
+            { x: 20, z: toe.z },
+            toe,
+          ],
+          'basement'
+        );
+      }
       await checkpoint('basement-museum-loop-complete');
       await walk('basement-ascent', [landing]);
       await walk(

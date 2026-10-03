@@ -52,7 +52,22 @@
         text-anchor="middle" font-family="sans-serif" font-size="12" fill="#d7b98d"
         stroke="none">Basement stairs</text>
     </g>
-
+    <g>
+        <circle cx="864.00" cy="608.00" r="6" fill="#85e5ff" />
+        <circle cx="864.00" cy="608.00" r="3" fill="#0b1428" />
+      </g>
+<g>
+        <circle cx="864.00" cy="256.00" r="6" fill="#85e5ff" />
+        <circle cx="864.00" cy="256.00" r="3" fill="#0b1428" />
+      </g>
+<g>
+        <circle cx="256.00" cy="256.00" r="6" fill="#85e5ff" />
+        <circle cx="256.00" cy="256.00" r="3" fill="#0b1428" />
+      </g>
+<g>
+        <circle cx="256.00" cy="576.00" r="6" fill="#85e5ff" />
+        <circle cx="256.00" cy="576.00" r="3" fill="#0b1428" />
+      </g>
 
 
     <g>
