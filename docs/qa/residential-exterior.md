@@ -6,10 +6,10 @@ view. The original house outline still controls launch framing; the larger
 runtime outline only extends navigation. The selfie mirror keeps its existing
 world footprint `(28.8, -22.8)` and now derives it from corrected source data.
 A second living/studio passage spans world X `[23.5, 29.5]` at Z `-8`,
-providing a clear route into the eastern entry bay. The original aperture and
-all stair safety guards remain intact. The original lower-corner guard reaches
-X `22.18`; radius-adjusted free centers in the new passage span `[24.25, 28.75]`,
-leaving 4.5 units of circulation rather than squeezing through the stair guard.
+providing a clear route into the eastern entry bay. The original aperture remains.
+The empty lower-corner foyer guard is removed; source-backed headroom volumes
+protect the actual low treads and elevated stair sides. Radius-adjusted free
+centers in the new passage span `[24.25, 28.75]`, leaving 4.5 units of circulation.
 
 ## Sources and door contract
 
@@ -42,7 +42,8 @@ the aperture, so crossing its sensor between rendered frames still opens it.
 
 The localized DOM button and remappable Interact action remain available nearby.
 A manual close while stationary persists; moving inward again or leaving and
-re-entering the approach reopens the door. Doors do not close automatically. Sideways through-wall and inactive-floor
+re-entering the approach reopens the door. Doors do not close automatically.
+Sideways through-wall and inactive-floor
 activation are excluded. Native button activation/navigation keys do not reach
 movement or activate a second target. Ordinary gameplay and remapped letters work
 from closed HUD/door focus and from nonmodal Tutorial/Controls buttons. Remapped
@@ -102,7 +103,8 @@ and reduced motion. Proximity regressions sweep the full movement path at the
 native maximum speed from both sides with 60 Hz, 100 ms, 400 ms and 1.5 s frames;
 they also cover late sideways entry, re-approach and stationary manual closure.
 `playwright/immersive-door-proximity.spec.ts` verifies automatic opening during
-uninterrupted trusted native movement without using Interact to cross. Browser cases cover leaving/re-entering range, overlay
+uninterrupted trusted native movement without using Interact to cross. Browser
+cases cover leaving/re-entering range, overlay
 focus, reload, and 1280×720, 1920×1080, 390×844, 360×720 and landscape layouts.
 Fault-injection cases retain the real builders and DOM while exercising direct
 fatal-handler calls and actual throws after the exterior build and after control

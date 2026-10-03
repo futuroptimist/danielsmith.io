@@ -1,5 +1,48 @@
 # Reproducible performance history
 
+## Corrected software history, October 3
+
+The corrected October 3 series uses exact clean source commits and one frozen common
+driver. Each profile has three controlled suites and three routes. Earlier allocations
+and pre-feedback captures remain historical; their samples are not pooled here.
+
+This branch includes the checkpoints below. The shared profile records the environment,
+reproduction commands, archive identities and limitations. Detailed originals are
+privately retained; Git keeps aggregate ranges, medians and comparisons.
+
+| Checkpoint                  | Ready range; median (ms) | Spawn calls / geometries |
+| --------------------------- | -----------------------: | -----------------------: |
+| [Baseline][ph-baseline]     |   1,473.3–1,650.7; 1,616 |                  97 / 89 |
+| [Foundation][ph-foundation] |   1,384.8–1,515.7; 1,399 |                  97 / 89 |
+| [Basement][ph-basement]     | 1,356.1–1,483.8; 1,409.7 |                 114 / 69 |
+| [Museum][ph-museum]         |   1,499.3–1,575.9; 1,508 |                 114 / 69 |
+| [Résumé][ph-resume]         | 1,482.2–1,578.3; 1,566.7 |                 114 / 69 |
+| [Entry][ph-entry]           | 1,511.3–1,582.7; 1,516.3 |                 116 / 71 |
+
+[Shared profile][ph-profile]. Each linked record retains its baseline and predecessor deltas.
+
+Extended profiles included here have 7, 11, 11, 16 checkpoints in stage order. Each
+completed three routes and three controlled suites. Exterior profiles are version 2,
+with explicit automatic/manual door states; the street version retains only the passive
+sign.
+
+Every recorded route has a ≥1-second external rAF interval already present by spawn. The
+probe includes startup, helper work and screenshots. Rolling frame diagnostics omit
+≥1-second gaps and cannot establish stall-free traversal.
+
+These captures use software WebGL, performance quality and a 12 fps safe cap. The
+software-warning panel remains visible. Hardware p95, real-phone performance and the
+corrected owner walkthrough remain separate. Finite functional disposal checks do not
+measure teardown/re-entry performance or prove complete old-renderer/GPU reclamation.
+
+[ph-profile]: 2026-10-03-corrected-software-history/profile.json
+[ph-baseline]: 2026-10-03-corrected-software-history/baseline.json
+[ph-foundation]: 2026-10-03-corrected-software-history/foundation.json
+[ph-basement]: 2026-10-03-corrected-software-history/basement.json
+[ph-museum]: 2026-10-03-corrected-software-history/museum.json
+[ph-resume]: 2026-10-03-corrected-software-history/resume.json
+[ph-entry]: 2026-10-03-corrected-software-history/entry.json
+
 Keep only commit hashes, limited comparability metadata, and high-level checkpoint
 metrics in Git. Detailed JSON, stdout/stderr, snapshots, traces, screenshots, and
 isolated worktrees are generated under gitignored `.performance-history/`.
