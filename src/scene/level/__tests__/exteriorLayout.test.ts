@@ -83,6 +83,11 @@ describe('front entry declarative topology', () => {
   });
   it('provides all door controls and status strings in every supported locale', () => {
     expect(Object.keys(EXTERIOR_LOCALE_COPY)).toHaveLength(9);
+    expect(EXTERIOR_LOCALE_COPY.ja.closed).toBe('閉まっています');
+    expect(EXTERIOR_LOCALE_COPY.ja.closing).toBe('閉じています');
+    expect(EXTERIOR_LOCALE_COPY.ja.closed).not.toBe(
+      EXTERIOR_LOCALE_COPY.ja.closing
+    );
     for (const copy of Object.values(EXTERIOR_LOCALE_COPY)) {
       expect(Object.values(copy).every((value) => value.length > 0)).toBe(true);
       expect(copy.open).toContain('{door}');
