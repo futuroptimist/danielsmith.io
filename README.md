@@ -53,13 +53,15 @@ Avatar facing is computed from the camera-relative movement vector; see
   [docs/backlog.md](docs/backlog.md).
 - **UI placement guide** – Compare in-world vs. overlay treatments in
   [docs/guides/in-world-vs-overlay.md](docs/guides/in-world-vs-overlay.md).
-- **Résumé** – Latest résumé source is
+- **Résumé** – The active October 2026 résumé source is
   [`resume.tex`][resume-src].
   CI renders PDF and DOCX artifacts. `/resume.pdf` is the stable public résumé
   URL for runtime links, while `/resume.docx` is the stable downloadable DOCX
-  URL (served from `public/resume.docx`) when a word-processor copy is useful. The immutable
-  dated PDF archive for this source snapshot lives at
-  `public/docs/resume/2026-08/resume.pdf`. The separate
+  URL (served from `public/resume.docx`) when a word-processor copy is useful.
+  The existing published August archive remains at
+  `public/docs/resume/2026-08/resume.pdf`. PR validation builds artifacts without
+  changing published files; the main-branch workflow publishes the active dated source.
+  The separate
   [resume hosting runbook](docs/ops/resume-hosting.md) documents how the stable
   PDF is deployed to `resume.danielsmith.io`.
 - **Prompt library** – Automation-ready Codex prompts are summarized in
@@ -288,6 +290,6 @@ performance, modes, animation, and more) provide ready-to-run task scaffolding f
 `npm run build` generates distributable assets, and CI asserts that `dist/index.html`
 exists as part of the smoke suite.
 
-[resume-src]: docs/resume/2026-08/resume.tex
+[resume-src]: docs/resume/2026-10/resume.tex
 [prompt-summary]: docs/prompts/summary.md
 [baseline-prompt]: docs/prompts/codex/baseline.md

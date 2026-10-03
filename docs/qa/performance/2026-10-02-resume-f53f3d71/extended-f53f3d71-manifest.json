@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "stage": "resume stage; career museum extended route",
+  "pullRequest": 1121,
+  "sourceHead": "f53f3d71d0367cb9f292efa07d8b12a139346c4e",
+  "sourceTree": "a15efe00750acdb4291449c1e2201c5d887dacac",
+  "sourceParents": ["25679bb1164613fd77be5e2f4812f8a16d75efd0"],
+  "recordedPrBase": "25679bb1164613fd77be5e2f4812f8a16d75efd0",
+  "prMetadataObservedUtc": "2026-10-02T10:54:47Z",
+  "testedArtifact": "Clean detached source head, not a GitHub merge-ref build; PR base is independently recorded metadata.",
+  "associatedCommonEvidence": "manifest.json",
+  "commonSourceCommit": "f53f3d71d0367cb9f292efa07d8b12a139346c4e",
+  "sourceQualification": "Museum a22 differs from common 256 only in runner and tests; app source unchanged. Resume f53 is the identical source used by its common capture.",
+  "sourceTreeCleanAfter": true,
+  "capturedUtc": ["2026-10-02T10:48:02.142Z", "2026-10-02T11:01:11.085Z"],
+  "sourceRouteCapturedUtc": [
+    "2026-10-02T10:56:01.371Z",
+    "2026-10-02T11:01:10.931Z"
+  ],
+  "series": "career-museum-route-restarted-vite-v1",
+  "requestedProfile": "basement",
+  "actualRouteProfile": "house-career-museum-route-v1",
+  "callerSourceCommit": "a22fb9bde57f682f7ece5d27447a56999fdbf639",
+  "callerTreeDirty": true,
+  "dirtyCallerQualification": "Operator reports only staged camera-helper correction. Runner bytes match caller commit; selected historical helper matches measured source. Dirty caller helper was not selected.",
+  "runnerSha256": "218b7348eb52e2909b307dc5da45f9ac789d4a9b8546f0853259b34304fd5dc9",
+  "selectedRouteHelperSha256": "85ee17299963516f8edf916a9530a974c446dbe67100fa2892efdc3e28177c69",
+  "callerRouteHelperSha256": "6e12f610c848968e3c9defb8f57c07c9b984582159a935b78ed5082f9b95dfa9",
+  "lockSha256": "eb7625041fbcc671048610d6e505444584fa793fe8979c22d2c884c593b922ef",
+  "manifestSha256": "b3b941e7961338f236f050ef1964945ec2eb8ed39a5e903280f1801de8182dc0",
+  "checksumsSha256": "ad820be3922e4c5fec6e28bf3b63c2e0300979be615962afd81f327fcf1dea84",
+  "sharedEnvironment": "../2026-10-02-interior-common-profile.json#sharedProfile",
+  "captureDifferences": "New route and helper versus common series and camera-enabled basement extension. Same recorded machine/browser/quality/viewport; no concurrent browser/heavy tests, with light filesystem/GitHub work. Do not pool cross-profile timing.",
+  "command": "PLAYWRIGHT_BROWSERS_PATH=<official browser cache> npm run perf:history -- --route-profile basement --output .performance-history/museum-resume-extended-1048 a22fb9bde57f682f7ece5d27447a56999fdbf639 f53f3d71d0367cb9f292efa07d8b12a139346c4e",
+  "route": "spawn -> basement landing/toe -> Southern Mississippi -> Naval Research -> YouTube -> Muon Space -> basement loop -> upper landing -> Creators Studio -> spawn; 5471 real movement steps, 15 legs, eleven 5000 ms checkpoint dwells",
+  "cameraState": "Not captured although source getCameraState API existed. The historical helper incorrectly called it unavailable; raw originals are unchanged. Equal player poses/zoom do not prove equal actual camera/cutaway state.",
+  "poses": {
+    "spawn": {
+      "playerXYZ": [0, 0, -20.0],
+      "floor": "ground"
+    },
+    "basement-ground-landing": {
+      "playerXYZ": [3.8, 0, -11.0],
+      "floor": "ground"
+    },
+    "basement-lower-toe": {
+      "playerXYZ": [3.8, -5, -32.5],
+      "floor": "basement"
+    },
+    "career-southern-mississippi": {
+      "playerXYZ": [-18, -5, -15.5],
+      "floor": "basement"
+    },
+    "career-naval-research": {
+      "playerXYZ": [-18, -5, 4.5],
+      "floor": "basement"
+    },
+    "career-youtube": {
+      "playerXYZ": [20, -5, 4.5],
+      "floor": "basement"
+    },
+    "career-muon-space": {
+      "playerXYZ": [20, -5, -17.5],
+      "floor": "basement"
+    },
+    "basement-museum-loop-complete": {
+      "playerXYZ": [3.8, -5, -32.5],
+      "floor": "basement"
+    },
+    "upper-landing": {
+      "playerXYZ": [12.4, 5, -26.8],
+      "floor": "upper"
+    },
+    "upper-creators-studio": {
+      "playerXYZ": [-8, 5, -16],
+      "floor": "upper"
+    },
+    "returned-spawn": {
+      "playerXYZ": [-0.0, 0, -20],
+      "floor": "ground"
+    }
+  },
+  "outcome": "3 controlled suites: each 4 passed / 1 hardware-only skip; 3 complete career museum routes, zero blocked movement steps",
+  "archive": {
+    "filename": "house-museum-resume-extended-a22-f53-review.tar.gz",
+    "sha256": "a9a4848031a96665d03658ea570b696d983446388169651bcbb62750fa57067d",
+    "bytes": 11936520,
+    "availability": "Saved in the private owner review archive; no public access implied."
+  },
+  "comparisonScope": "Four career poses are additions. Baseline/foundation have no basement; comparable common entries remain separate. Museum/resume extensions share route/helper/batch, but are sequential observations with unrecorded actual camera state. Basement extension differs in route length and camera capture.",
+  "limitations": "Controlled frame time unavailable. Rolling diagnostics retain at most 180 intervals, omit >=1000 ms intervals and do not isolate checkpoint dwell. External rAF/long tasks are separate wall-clock probes. Counts are not GPU bytes; post-route resources are not launch ceilings. Hardware/phone/owner walkthrough and complete old-renderer reclamation remain unverified."
+}

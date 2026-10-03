@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "stage": "October resume iteration; common route",
+  "pullRequest": 1121,
+  "sourceHead": "f53f3d71d0367cb9f292efa07d8b12a139346c4e",
+  "sourceTree": "a15efe00750acdb4291449c1e2201c5d887dacac",
+  "sourceParents": ["25679bb1164613fd77be5e2f4812f8a16d75efd0"],
+  "measuredPredecessor": "25679bb1164613fd77be5e2f4812f8a16d75efd0",
+  "baselineCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+  "sourceAndReferencesClean": true,
+  "profileAndArchive": "../2026-10-02-interior-common-profile.json",
+  "captureBatch": "D",
+  "sourceRouteCapturedUtc": [
+    "2026-10-02T09:28:04.699Z",
+    "2026-10-02T09:30:38.581Z"
+  ],
+  "referenceBatches": {
+    "baseline": "C",
+    "predecessor": "D"
+  },
+  "sourcePopulation": "Same immersive runtime population as museum predecessor; source delta contains resume documents and resume tooling/tests, verified by Git diff.",
+  "predecessorQualification": "Compared with measured museum 25679bb1 in the same capture batch; original baseline source was measured earlier in batch C.",
+  "outcome": "3 controlled suites: each 4 passed / 1 hardware-only skip; 3 completed common routes, zero blocked movement steps",
+  "cameraState": "not captured although getCameraState API existed in this source; raw unavailable wording is a helper defect",
+  "stageCoverage": "common ground/upper only; extended stage route is separate evidence",
+  "status": "historical measured source; subsequent helper/test/docs changes require their own source identity",
+  "recordedPrBase": "25679bb1164613fd77be5e2f4812f8a16d75efd0",
+  "testedArtifact": "Clean detached source head; PR base is metadata, not a tested merge-ref build.",
+  "extendedEvidence": {
+    "sourceCommit": "f53f3d71d0367cb9f292efa07d8b12a139346c4e",
+    "manifest": "extended-f53f3d71-manifest.json",
+    "summary": "extended-f53f3d71-summary.json",
+    "attemptsCompleted": 3
+  }
+}

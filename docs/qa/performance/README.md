@@ -16,12 +16,14 @@ privately retained; Git keeps aggregate ranges, medians and comparisons.
 | [Foundation][ph-foundation] |   1,384.8–1,515.7; 1,399 |                  97 / 89 |
 | [Basement][ph-basement]     | 1,356.1–1,483.8; 1,409.7 |                 114 / 69 |
 | [Museum][ph-museum]         |   1,499.3–1,575.9; 1,508 |                 114 / 69 |
+| [Résumé][ph-resume]         | 1,482.2–1,578.3; 1,566.7 |                 114 / 69 |
 
 [Shared profile][ph-profile]. Each linked record retains its baseline and predecessor deltas.
 
-Extended profiles included here have 7, 11 checkpoints in stage order. Each completed
-three routes and three controlled suites. Exterior profiles are version 2, with explicit
-automatic/manual door states; the street version retains only the passive sign.
+Extended profiles included here have 7, 11, 11 checkpoints in stage order. Each
+completed three routes and three controlled suites. Exterior profiles are version 2,
+with explicit automatic/manual door states; the street version retains only the passive
+sign.
 
 Every recorded route has a ≥1-second external rAF interval already present by spawn. The
 probe includes startup, helper work and screenshots. Rolling frame diagnostics omit
@@ -37,6 +39,7 @@ measure teardown/re-entry performance or prove complete old-renderer/GPU reclama
 [ph-foundation]: 2026-10-03-corrected-software-history/foundation.json
 [ph-basement]: 2026-10-03-corrected-software-history/basement.json
 [ph-museum]: 2026-10-03-corrected-software-history/museum.json
+[ph-resume]: 2026-10-03-corrected-software-history/resume.json
 
 Keep only commit hashes, limited comparability metadata, and high-level checkpoint
 metrics in Git. Detailed JSON, stdout/stderr, snapshots, traces, screenshots, and
@@ -216,6 +219,22 @@ The historical helper omitted actual camera state despite the API being availabl
 that limitation remains visible. Later metadata fixes do not retroactively change
 these measured source identities. Functional disposal and repeated-route tests
 remain separate from hardware timing and complete old-renderer reclamation.
+
+## October résumé
+
+[Common manifest](2026-10-02-resume-f53f3d71/manifest.json) ·
+[Common ranges/deltas](2026-10-02-resume-f53f3d71/summary.json) ·
+[Extended manifest](2026-10-02-resume-f53f3d71/extended-f53f3d71-manifest.json) ·
+[Extended comparison](2026-10-02-resume-f53f3d71/extended-f53f3d71-summary.json)
+
+Exact source `f53f3d71` completed three controlled suites and three routes in each
+common/extended series. This stage changes no immersive runtime. The extended
+museum route and helper match the preceding museum capture; all four career
+call/triangle/texture counts match. Ready and resident-resource ranges overlap,
+with returned **650–666 geometries / 16–17 textures** versus **662–665 / 17**.
+Three descriptive samples, sequential capture times and missing actual camera
+state do not establish a speedup or strict equivalence. All original attempts,
+separate stalls and source identities remain retained; budgets are unchanged.
 
 ## Interpretation and gates
 

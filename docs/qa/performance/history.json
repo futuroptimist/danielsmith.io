@@ -76,6 +76,25 @@
       }
     },
     {
+      "id": "2026-10-02-resume-f53f3d71",
+      "stage": "October resume iteration; common route",
+      "sourceCommit": "f53f3d71d0367cb9f292efa07d8b12a139346c4e",
+      "predecessorCommit": "25679bb1164613fd77be5e2f4812f8a16d75efd0",
+      "manifest": "2026-10-02-resume-f53f3d71/manifest.json",
+      "summary": "2026-10-02-resume-f53f3d71/summary.json",
+      "series": "common-route-restarted-vite-v1",
+      "captureBatch": "D",
+      "controlledAttemptsCompletedPerCommit": 3,
+      "commonRouteAttemptsCompletedPerCommit": 3,
+      "hardwareGate": "owner-run required",
+      "extendedEvidence": {
+        "sourceCommit": "f53f3d71d0367cb9f292efa07d8b12a139346c4e",
+        "manifest": "2026-10-02-resume-f53f3d71/extended-f53f3d71-manifest.json",
+        "summary": "2026-10-02-resume-f53f3d71/extended-f53f3d71-summary.json",
+        "attemptsCompleted": 3
+      }
+    },
+    {
       "id": "2026-10-03-baseline-1ee6fcf0",
       "stage": "baseline",
       "sourceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
@@ -121,6 +140,19 @@
       "predecessorCommit": "d998360d60d02092db6e9a915bac04bebbb220fc",
       "manifest": "2026-10-03-corrected-software-history/museum.json",
       "summary": "2026-10-03-corrected-software-history/museum.json",
+      "series": "2026-10-03-corrected-software-history",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 3,
+      "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-resume-cb029e8e",
+      "stage": "resume",
+      "sourceCommit": "cb029e8e8d7392ea34698b80be49e466fcda4590",
+      "predecessorCommit": "608fd10e48aec8f6e63408ef48689723b92509a0",
+      "manifest": "2026-10-03-corrected-software-history/resume.json",
+      "summary": "2026-10-03-corrected-software-history/resume.json",
       "series": "2026-10-03-corrected-software-history",
       "controlledAttemptsCompletedPerProfile": 3,
       "commonRouteAttemptsCompleted": 3,
