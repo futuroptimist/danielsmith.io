@@ -1671,9 +1671,11 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
   await expect(debugToggle).toHaveAttribute('aria-pressed', 'true');
   await expect(debugOverlay).toBeVisible();
 
+  // This fixture starts upstairs; a ground teleport beneath the landing must stay on ground.
   await movePlayerTo(page, {
     x: stairCenterX,
     z: stairTopZ + stairDirection * 0.1,
+    floorId: 'upper',
   });
   await movePlayerTo(page, { x: stairCenterX, z: landingInteriorZ });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');
