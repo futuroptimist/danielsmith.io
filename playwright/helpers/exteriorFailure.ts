@@ -70,7 +70,9 @@ export async function injectExteriorInitializationFailure(
     body = body.replace(
       anchor,
       (line) => `${line}
-      const failureResources = { geometries: new Set(), materials: new Set(), instances: new Set() };
+      const failureResources = {
+        geometries: new Set(), materials: new Set(), instances: new Set()
+      };
       const failureCounts = { geometries: 0, materials: 0, instances: 0 };
       residentialExterior.group.traverse((object) => {
         if (object.geometry) failureResources.geometries.add(object.geometry);
@@ -80,7 +82,9 @@ export async function injectExteriorInitializationFailure(
         if (object.isInstancedMesh) failureResources.instances.add(object);
       });
       for (const [kind, resources] of Object.entries(failureResources)) {
-        for (const resource of resources) resource.addEventListener('dispose', () => failureCounts[kind]++);
+        for (const resource of resources) {
+          resource.addEventListener('dispose', () => failureCounts[kind]++);
+        }
       }
       let rendererDisposals = 0;
       const originalRendererDispose = renderer.dispose;
@@ -89,7 +93,9 @@ export async function injectExteriorInitializationFailure(
       window.repeatExteriorFailure = () => handleFatalError(failure);
       window.readExteriorFailure = () => ({
         lifecycle: residentialExterior.getLifecycle(),
-        expected: Object.fromEntries(Object.entries(failureResources).map(([kind, values]) => [kind, values.size])),
+        expected: Object.fromEntries(
+          Object.entries(failureResources).map(([kind, values]) => [kind, values.size])
+        ),
         disposed: failureCounts,
         groupAttached: residentialExterior.group.parent !== null,
         listeners: window.exteriorListenerCounts,

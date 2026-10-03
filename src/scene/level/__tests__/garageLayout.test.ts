@@ -116,7 +116,10 @@ describe('attached garage topology and safety', () => {
   });
 });
 
-it('keeps the house approach clear without moving or deleting the existing dresser and monstera', async () => {
+const clearGarageApproachTitle =
+  'keeps the house approach clear without moving or deleting ' +
+  'the existing dresser and monstera';
+it(clearGarageApproachTitle, async () => {
   const { DEFAULT_LOWER_FLOOR_FURNISHINGS } = await import(
     '../../structures/lowerFloorFurnishings'
   );

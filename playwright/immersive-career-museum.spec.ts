@@ -93,9 +93,10 @@ async function enterMuseum(page: Page) {
 
 for (const width of [1280, 901]) {
   for (const panel of ['tutorial', 'controls'] as const) {
-    test(`opens a nearby career with remapped Interact while ${panel} stays open at ${width}px`, async ({
-      page,
-    }) => {
+    const title =
+      'opens a nearby career with remapped Interact ' +
+      `while ${panel} stays open at ${width}px`;
+    test(title, async ({ page }) => {
       await page.setViewportSize({ width, height: 720 });
       await ready(page);
       await enterMuseum(page);

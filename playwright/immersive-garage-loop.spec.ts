@@ -109,9 +109,10 @@ test('walks the entire house, garage, driveway and front-entry loop in both dire
   ).toBe('ground');
 });
 
-test('matches intermediate headroom and protects an occupied overhead threshold during native input', async ({
-  page,
-}) => {
+const occupiedThresholdTitle =
+  'matches intermediate headroom and protects an occupied ' +
+  'overhead threshold during native input';
+test(occupiedThresholdTitle, async ({ page }) => {
   test.setTimeout(120000);
   await readyExterior(page);
   await enterGarage(page);
