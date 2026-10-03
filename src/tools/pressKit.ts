@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
+import { FLOOR_PLAN_LEVELS } from '../assets/floorPlan';
 import {
   IMMERSIVE_PERFORMANCE_BUDGET,
   IMMERSIVE_SCENE_BASELINE,
@@ -115,8 +115,11 @@ export const formatRemainingPercentLabel = (value: number): string => {
 };
 
 const getRoomName = (roomId: string): string => {
-  const room = FLOOR_PLAN.rooms.find((entry) => entry.id === roomId);
-  return room?.name ?? roomId;
+  for (const { plan } of FLOOR_PLAN_LEVELS) {
+    const room = plan.rooms.find((entry) => entry.id === roomId);
+    if (room) return room.name;
+  }
+  return roomId;
 };
 
 const normalizeMetrics = (
