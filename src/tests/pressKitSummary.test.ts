@@ -15,6 +15,20 @@ afterEach(() => {
 });
 
 describe('buildPressKitSummary', () => {
+  it.each([
+    ['careerMuseum', 'Career Museum'],
+    ['focusPods', 'Focus Pods'],
+    ['creatorsStudio', 'Creators Studio'],
+    ['loftLibrary', 'Loft Library'],
+  ])('uses the display name for %s across floor levels', (roomId, name) => {
+    const entries = buildPressKitSummary({ now: fixedNow }).poiCatalog.filter(
+      (entry) => entry.room.id === roomId
+    );
+
+    expect(entries.length).toBeGreaterThan(0);
+    expect(entries.every((entry) => entry.room.name === name)).toBe(true);
+  });
+
   it('captures POI metadata and performance budgets', () => {
     const definitions = registry.getPoiDefinitions();
     const expectedCategoryCounts = definitions.reduce(

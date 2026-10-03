@@ -92,7 +92,8 @@ numeric ceilings are launch gates; later resident counts are measured and
 compared with matching profiles, not silently treated as new launch failures.
 No software-renderer test establishes hardware timing.
 
-The complete basement acceptance gate remains the actual runtime down/up journey and exhibit approaches,
+The complete basement acceptance gate remains the actual runtime down/up journey
+and exhibit approaches,
 including keyboard/touch selection, hidden-floor filtering, focus restoration,
 mobile dismissal, reduced motion, and accessibility checks. Measure the entire
 scene and post-route resident resources; builder-only counters cannot establish

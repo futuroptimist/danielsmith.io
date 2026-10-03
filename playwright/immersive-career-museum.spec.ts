@@ -192,8 +192,7 @@ for (const profile of [
     browser,
   }) => {
     // Four exhibit journeys, screenshots and axe scans share this total budget.
-    // A retained CI run completed the route near 60s but lost its final trace;
-    // the tail cause is unknown. Keep action/assertion limits and retries intact.
+    // Keep individual action/assertion limits and the zero-retry policy intact.
     test.setTimeout(120_000);
     const context = await browser.newContext({
       viewport: { width: profile.width, height: profile.height },

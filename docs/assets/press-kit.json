@@ -1,5 +1,5 @@
 {
-  "generatedAtIso": "2026-10-02T08:43:52.265Z",
+  "generatedAtIso": "2026-10-03T01:11:09.493Z",
   "performance": {
     "budget": {
       "maxMaterials": 36,
@@ -196,7 +196,7 @@
       "status": "prototype",
       "room": {
         "id": "creatorsStudio",
-        "name": "creatorsStudio"
+        "name": "Creators Studio"
       },
       "metrics": [
         {
@@ -286,7 +286,7 @@
       "status": "prototype",
       "room": {
         "id": "creatorsStudio",
-        "name": "creatorsStudio"
+        "name": "Creators Studio"
       },
       "metrics": [
         {
@@ -335,7 +335,7 @@
       "status": "prototype",
       "room": {
         "id": "creatorsStudio",
-        "name": "creatorsStudio"
+        "name": "Creators Studio"
       },
       "metrics": [
         {
@@ -384,7 +384,7 @@
       "status": "prototype",
       "room": {
         "id": "focusPods",
-        "name": "focusPods"
+        "name": "Focus Pods"
       },
       "metrics": [
         {
@@ -478,7 +478,7 @@
       "status": "prototype",
       "room": {
         "id": "focusPods",
-        "name": "focusPods"
+        "name": "Focus Pods"
       },
       "metrics": [
         {
@@ -523,7 +523,7 @@
       "status": "prototype",
       "room": {
         "id": "focusPods",
-        "name": "focusPods"
+        "name": "Focus Pods"
       },
       "metrics": [
         {
@@ -568,7 +568,7 @@
       "status": "prototype",
       "room": {
         "id": "loftLibrary",
-        "name": "loftLibrary"
+        "name": "Loft Library"
       },
       "metrics": [
         {
@@ -756,7 +756,7 @@
       "interaction": "inspect",
       "room": {
         "id": "careerMuseum",
-        "name": "careerMuseum"
+        "name": "Career Museum"
       },
       "metrics": [],
       "links": [
@@ -779,7 +779,7 @@
       "interaction": "inspect",
       "room": {
         "id": "careerMuseum",
-        "name": "careerMuseum"
+        "name": "Career Museum"
       },
       "metrics": [],
       "links": [
@@ -802,7 +802,7 @@
       "interaction": "inspect",
       "room": {
         "id": "careerMuseum",
-        "name": "careerMuseum"
+        "name": "Career Museum"
       },
       "metrics": [],
       "links": [
@@ -825,7 +825,7 @@
       "interaction": "inspect",
       "room": {
         "id": "careerMuseum",
-        "name": "careerMuseum"
+        "name": "Career Museum"
       },
       "metrics": [],
       "links": [
