@@ -447,10 +447,12 @@ Maintain the launch budgets above and report raw values, absolute/percentage
 deltas, and remaining headroom. Investigate meaningful changes against repeat-run
 variance even when a run remains under budget.
 
-Keep a small versioned history index and original measurement JSON, bounded
-renderer/phase snapshots, command output, and manifest under
-`docs/qa/performance/` in the implementation stack. Link larger traces/screenshots
-to retained test artifacts and preserve a review copy before those links expire.
+Keep a small versioned history index, commit hashes, limited comparability metadata,
+and high-level checkpoint metrics under `docs/qa/performance/`. Regenerate full
+history for a supplied list of commits into gitignored runtime output. Preserve
+original measurement JSON, bounded renderer/phase snapshots, command output, full
+manifests, and traces/screenshots in a private durable review archive; record its
+filename and checksum in Git and preserve access through final stack review.
 The current controlled-result CI artifact expires after 14 days and overwrites
 the local filename on another run, so archive each run separately before rerunning.
 Failed and unsupported runs remain part of the evidence. Exclude credentials,

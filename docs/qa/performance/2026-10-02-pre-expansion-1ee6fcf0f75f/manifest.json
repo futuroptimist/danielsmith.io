@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "kind": "pre-expansion-baseline",
+  "commit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+  "treeCleanBeforeAndAfter": true,
+  "capturedAtUtc": "2026-10-02T04:23:28Z",
+  "lockSha256": "eb7625041fbcc671048610d6e505444584fa793fe8979c22d2c884c593b922ef",
+  "profile": {
+    "controlled": "existing-controlled-v1-chromium140-software-dev-node24",
+    "route": "house-common-route-v1",
+    "node": "24.19.0",
+    "playwright": "1.55.1",
+    "chromium": "140.0.7339.186",
+    "server": "Vite 5.4.20 development; served dev/dev identity is not a source SHA",
+    "renderer": "headless software; performance tier; capped at 12 fps",
+    "viewport": [1280, 720],
+    "drawingBuffer": [671, 377],
+    "browserDpr": 1,
+    "rendererDpr": 0.525,
+    "routeDwellMs": 5000,
+    "cameraZoom": 12,
+    "overlay": "software warning visible",
+    "locale": "en",
+    "motion": "normal",
+    "throttling": "none configured",
+    "context": "fresh per attempt; Vite/OS cache warmth differs; not production cold-load",
+    "originalRouteHelperSha256": "11cf1091d6b57a769c914e161f093fb1d620cc3fc809ba60aba27deaff2b7583"
+  },
+  "attempts": {
+    "controlledCompleted": 3,
+    "controlledFailedBeforeMeasurement": 2,
+    "hardwareOnlyTestsSkippedPerCompletedAttempt": 1,
+    "commonRoutesCompleted": 3,
+    "exploratoryRoutesBlocked": 1
+  },
+  "unavailable": [
+    "hardware frame-time gate",
+    "GPU bytes",
+    "complete old-context reclamation",
+    "owner browser walkthrough",
+    "basement/exterior at baseline"
+  ],
+  "diagnosticLimits": "Rolling 180-frame history omits deltas >= 1 second; five-second dwell cannot prove a post-arrival window. Dispatch delay is not input-to-paint.",
+  "archive": {
+    "filename": "house-expansion-baseline-1ee6fcf0f75f-complete-review.tar.gz",
+    "sha256": "58f83b860366da839139845701cb729898762d0cddbac471c34f3fe3d0f5772a",
+    "availability": "Saved in a private owner review archive; not publicly accessible."
+  },
+  "comparison": "First entry; no predecessor. Compare only matching profiles and disclose changes. Full metadata, original JSON/logs, screenshots/traces, failures and checksums are privately retained."
+}

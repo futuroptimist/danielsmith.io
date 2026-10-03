@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "2026-10-02-pre-expansion-1ee6fcf0f75f",
+      "stage": "pre-expansion baseline",
+      "sourceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "manifest": "2026-10-02-pre-expansion-1ee6fcf0f75f/manifest.json",
+      "summary": "2026-10-02-pre-expansion-1ee6fcf0f75f/summary.json",
+      "predecessor": null,
+      "hardwareGate": "owner-run required",
+      "controlledAttemptsCompleted": 3,
+      "commonRouteAttemptsCompleted": 3
+    },
+    {
+      "id": "2026-10-02-floor-foundation-180aa537",
+      "stage": "floor connection foundation; matched reference rerun",
+      "sourceCommit": "180aa53779fb4e5cb8d9cadfad740fbb6f923e88",
+      "referenceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "manifest": "2026-10-02-floor-foundation-180aa537/manifest.json",
+      "summary": "2026-10-02-floor-foundation-180aa537/summary.json",
+      "predecessorCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "series": "common-route-restarted-vite-v1",
+      "hardwareGate": "owner-run required",
+      "controlledAttemptsCompletedPerCommit": 3,
+      "commonRouteAttemptsCompletedPerCommit": 3
+    },
+    {
+      "id": "2026-10-02-floor-foundation-096be292",
+      "stage": "corrected floor connection foundation",
+      "sourceCommit": "096be292f64dfd0ed17576c198221bda704fc4be",
+      "predecessorCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "manifest": "2026-10-02-floor-foundation-096be292/manifest.json",
+      "summary": "2026-10-02-floor-foundation-096be292/summary.json",
+      "series": "common-route-restarted-vite-v1",
+      "controlledAttemptsCompletedPerCommit": 3,
+      "commonRouteAttemptsCompletedPerCommit": 3,
+      "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-baseline-1ee6fcf0",
+      "stage": "baseline",
+      "sourceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "predecessorCommit": null,
+      "manifest": "2026-10-03-corrected-software-history/baseline.json",
+      "summary": "2026-10-03-corrected-software-history/baseline.json",
+      "series": "2026-10-03-corrected-software-history",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 0,
+      "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-foundation-56ce2943",
+      "stage": "foundation",
+      "sourceCommit": "56ce2943843114f5eb9e33465218fca04c9715b1",
+      "predecessorCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+      "manifest": "2026-10-03-corrected-software-history/foundation.json",
+      "summary": "2026-10-03-corrected-software-history/foundation.json",
+      "series": "2026-10-03-corrected-software-history",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 0,
+      "hardwareGate": "owner-run required"
+    }
+  ]
+}

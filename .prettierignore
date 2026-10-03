@@ -1,2 +1,6 @@
 docs/prompts/codex/automation.md
 charts/danielsmith/templates/*.yaml
+
+
+# Keep runtime-generated originals byte-for-byte.
+.performance-history/

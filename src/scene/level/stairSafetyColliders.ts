@@ -10,7 +10,9 @@ import {
   assertDebugColliderId,
   type DebugColliderId,
 } from '../debug/colliderDebugIds';
+import { getDebugHash } from '../debug/debugIds';
 
+import type { FloorId } from './floorElevations';
 import type { SourceBackedCollider } from './sourceCollision';
 import { assertLevelSourceId, type LevelSourceId } from './sourceIds';
 
@@ -23,17 +25,25 @@ export interface LevelSafetyCollider
     LevelSourceId,
     'safetyCollider'
   > {
-  floor: 'ground' | 'upper';
+  floor: FloorId;
   category: SafetyColliderCategory;
   debugId: DebugColliderId;
 }
 
-export interface GroundStairSafetyColliderOptions {
+interface StairSafetyIdentityOptions {
+  /** Role-local floor and source prefix for an additional stair connection. */
+  floorId?: FloorId;
+  sourceIdPrefix?: string;
+}
+
+export interface GroundStairSafetyColliderOptions
+  extends StairSafetyIdentityOptions {
   playerRadius: number;
   guardThickness: number;
 }
 
-export interface UpperStairSafetyColliderArgs {
+export interface UpperStairSafetyColliderArgs
+  extends StairSafetyIdentityOptions {
   stairCenterX: number;
   stairHalfWidth: number;
   playerRadius: number;
@@ -94,18 +104,18 @@ export const createGroundStairSafetyColliders = (
   behavior: StairBehavior,
   options: GroundStairSafetyColliderOptions
 ): LevelSafetyCollider[] =>
-  createGroundStairBoundaryColliders(geometry, behavior, options).map(
-    ({ name, bounds }) => ({
+  createGroundStairBoundaryColliders(geometry, behavior, options)
+    .map(({ name, bounds }) => ({
       name,
-      floor: 'ground',
-      role: 'stair',
-      sourceType: 'safetyCollider',
+      floor: 'ground' as const,
+      role: 'stair' as const,
+      sourceType: 'safetyCollider' as const,
       bounds,
       ...getGroundStairSafetyColliderMetadata(name),
-    })
-  );
+    }))
+    .map((collider) => applySafetyIdentity(collider, options));
 
-export const createUpperStairSafetyColliders = ({
+const createNegativeZUpperStairSafetyColliders = ({
   stairCenterX,
   stairHalfWidth,
   playerRadius,
@@ -256,4 +266,71 @@ export const createUpperStairSafetyColliders = ({
       },
     },
   ];
+};
+
+const applySafetyIdentity = (
+  collider: LevelSafetyCollider,
+  options: StairSafetyIdentityOptions
+): LevelSafetyCollider => {
+  const nextSourceId = options.sourceIdPrefix
+    ? sourceId(
+        `${options.sourceIdPrefix}.${collider.sourceId.split('.').slice(2).join('.')}`
+      )
+    : collider.sourceId;
+  if (
+    !Object.values(collider.bounds).every(Number.isFinite) ||
+    collider.bounds.maxX <= collider.bounds.minX ||
+    collider.bounds.maxZ <= collider.bounds.minZ
+  ) {
+    throw new Error(`Stair guard '${nextSourceId}' must have positive area.`);
+  }
+  return {
+    ...collider,
+    floor: options.floorId ?? collider.floor,
+    sourceId: nextSourceId,
+    debugId: options.sourceIdPrefix
+      ? debugId(getDebugHash(nextSourceId))
+      : collider.debugId,
+  };
+};
+
+const reflectZ = (bounds: RectCollider): RectCollider => ({
+  ...bounds,
+  minZ: -bounds.maxZ,
+  maxZ: -bounds.minZ,
+});
+
+/** Mirror the established negative-Z safety layout rather than duplicating its policy. */
+export const createUpperStairSafetyColliders = (
+  args: UpperStairSafetyColliderArgs
+): LevelSafetyCollider[] => {
+  const mirrored = args.stairLayoutDirectionMultiplier === 1;
+  const normalized: UpperStairSafetyColliderArgs = mirrored
+    ? {
+        ...args,
+        stairTopZ: -args.stairTopZ,
+        stairLayoutDirectionMultiplier: -1,
+        upperLandingRoomBounds: reflectZ(args.upperLandingRoomBounds),
+        upperStairwellOpening: reflectZ(args.upperStairwellOpening),
+        stairNavigationZones: {
+          lowerStairEntrance: reflectZ(
+            args.stairNavigationZones.lowerStairEntrance
+          ),
+          stairRampBody: reflectZ(args.stairNavigationZones.stairRampBody),
+          upperLanding: reflectZ(args.stairNavigationZones.upperLanding),
+          explicitDescentCorridor: reflectZ(
+            args.stairNavigationZones.explicitDescentCorridor
+          ),
+        },
+      }
+    : args;
+  return createNegativeZUpperStairSafetyColliders(normalized).map((collider) =>
+    applySafetyIdentity(
+      {
+        ...collider,
+        bounds: mirrored ? reflectZ(collider.bounds) : collider.bounds,
+      },
+      args
+    )
+  );
 };
