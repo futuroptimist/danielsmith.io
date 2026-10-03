@@ -1,5 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { createGarageDoorDefinitions } from '../src/scene/level/garageLayout';
+import type { DoorSnapshot } from '../src/systems/doors/controller';
+
 import {
   readyExterior,
   waitDoor,
@@ -32,6 +35,28 @@ async function enterGarage(page: Page) {
       () => window.portfolio!.debugCoordinates!.getState().currentRoomId
     )
   ).toBe('garage');
+}
+
+for (const side of ['house', 'garage'] as const) {
+  test(`records the shared wall and sliding pocket from the ${side}`, async ({
+    page,
+  }) => {
+    test.setTimeout(90000);
+    await readyExterior(page);
+    await walkExteriorTo(page, { x: 29, z: -2 });
+    await waitDoor(page, 'house-garage-door', 'open');
+    if (side === 'garage') await walkExteriorTo(page, { x: 35, z: -2 });
+    for (const state of ['closed', 'open'] as const) {
+      await operate(page, 'house-garage-door', state);
+      await expect(page.locator('#app canvas').first()).toBeVisible();
+      await page.screenshot({
+        path: test.info().outputPath(`shared-wall-${side}-${state}.png`),
+      });
+    }
+    expect(
+      await page.evaluate(() => window.portfolio!.world!.getActiveFloor())
+    ).toBe('ground');
+  });
 }
 
 test('walks the entire house, garage, driveway and front-entry loop in both directions', async ({
@@ -190,6 +215,31 @@ test(occupiedThresholdTitle, async ({ page }) => {
     )
   ).toMatchObject({ occupied: true, target: 1, blocked: false, state: 'open' });
   await page.locator('#app canvas').focus();
+  const observation = await page.evaluateHandle(() => {
+    const world = window.portfolio!.world!;
+    const read = () => ({
+      position: world.getPlayerPosition(),
+      door: world.getDoorSnapshots().find((door) => door.id === 'garage-door')!,
+    });
+    const samples = [read()];
+    let active = true;
+    const record = () => {
+      if (!active) return;
+      samples.push(read());
+      requestAnimationFrame(record);
+    };
+    requestAnimationFrame(record);
+    return {
+      stop: () => {
+        active = false;
+        return samples;
+      },
+    };
+  });
+  let nativeSamples: Array<{
+    position: { x: number; z: number };
+    door: DoorSnapshot;
+  }> = [];
   await page.keyboard.down('KeyW');
   await page.keyboard.down('KeyA');
   try {
@@ -201,7 +251,33 @@ test(occupiedThresholdTitle, async ({ page }) => {
   } finally {
     await page.keyboard.up('KeyW');
     await page.keyboard.up('KeyA');
+    nativeSamples = await observation.evaluate((record) => record.stop());
+    await observation.dispose();
+    await test.info().attach('native-occupied-door-motion', {
+      body: JSON.stringify(nativeSamples, null, 2),
+      contentType: 'application/json',
+    });
   }
+  const threshold = createGarageDoorDefinitions(2).find(
+    (door) => door.id === 'garage-door'
+  )!.threshold;
+  const radius = 0.75;
+  const occupiedSamples = nativeSamples.filter(
+    ({ position }) =>
+      position.x >= threshold.minX - radius &&
+      position.x <= threshold.maxX + radius &&
+      position.z >= threshold.minZ - radius &&
+      position.z <= threshold.maxZ + radius
+  );
+  expect(occupiedSamples.length).toBeGreaterThan(0);
+  expect(
+    occupiedSamples.every(({ door }) => !door.blocked && door.target === 1)
+  ).toBe(true);
+  // Key-release latency can carry the player beyond the hold zone, where closing
+  // is correct. Re-approach through real movement for the final occupied snapshot.
+  await walkExteriorTo(page, { x: 47, z: 4 });
+  await waitDoor(page, 'garage-door', 'open');
+  await walkExteriorTo(page, { x: 50, z: 4 });
   await waitDoor(page, 'garage-door', 'open');
   expect(
     await page.evaluate(

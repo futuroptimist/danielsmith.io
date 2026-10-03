@@ -601,6 +601,9 @@ test(interruptedActivationTitle, async ({ page }) => {
   );
   expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(0.5);
   // The held-key/blur test may have legitimately moved beyond interaction range.
+  // Re-approach the automatically closed entrance before planning through it.
+  await walkExteriorTo(page, { x: 35, z: -15 });
+  await waitDoor(page, 'front-door', 'open');
   await walkExteriorTo(page, { x: 32, z: -15 });
   await page
     .getByRole('button', { name: 'Open settings and help (H)' })
@@ -667,6 +670,9 @@ test('continues native controls from focused door and dismissed settings buttons
       await expect(settings).toBeFocused();
     }
     if (fromDoorButton) {
+      // Departure can close the door; approach it before planning through it.
+      await walkExteriorTo(page, { x: 35, z: -15 });
+      await waitDoor(page, 'front-door', 'open');
       await walkExteriorTo(page, { x: 29, z: -15 });
       await page.locator(button).focus();
       await page.evaluate(() =>
@@ -683,6 +689,8 @@ test('continues native controls from focused door and dismissed settings buttons
     );
     await page.waitForTimeout(300);
   }
+  await walkExteriorTo(page, { x: 35, z: -15 });
+  await waitDoor(page, 'front-door', 'open');
   await walkExteriorTo(page, { x: 29, z: -15 });
   await expect(page.locator(button)).toBeVisible();
   await page.locator(button).focus();

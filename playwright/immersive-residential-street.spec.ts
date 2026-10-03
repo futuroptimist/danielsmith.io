@@ -295,6 +295,9 @@ test(streetCaseTitle2, async ({ page }) => {
   await expect(page.locator(stop)).toHaveText('Bus stop: Coming Soon');
   await nativeZ(page, 23, false);
   await walkExteriorTo(page, { x: 55, z: -15 });
+  // Re-approach the automatically closed entrance before planning through it.
+  await walkExteriorTo(page, { x: 35, z: -15 });
+  await waitDoor(page, 'front-door', 'open');
   await walkExteriorTo(page, { x: 0, z: -20 });
   expect(
     await page.evaluate(() => window.portfolio!.world!.getActiveFloor())

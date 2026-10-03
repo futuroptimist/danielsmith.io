@@ -25,10 +25,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialStreet.ts',
       'src/scene/structures/residentialExterior.ts',
     ],
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Automatic doors, 80% garage cutaway, persistent lamp pools and passive ' +
-      'bus signage change exterior behavior outside the original tabletop envelope.',
+      'Sliding-door pockets stay clear of shared walls; automatic doors, the 80% ' +
+      'garage cutaway, lamp pools and passive bus sign remain outside the tabletop.',
     reason:
       'The tabletop keeps its existing house/backyard envelope. The source-backed ' +
       'front opening is shared, while external landscaping and dynamic door controls ' +

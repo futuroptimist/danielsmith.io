@@ -29,9 +29,9 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
   const result = {
     schemaVersion: 1,
     profile: includeStreet
-      ? 'house-residential-street-route-v2'
+      ? 'house-residential-street-route-v3'
       : includeGarage
-        ? 'house-attached-garage-route-v2'
+        ? 'house-attached-garage-route-v3'
         : includeExterior
           ? 'house-front-entry-route-v2'
           : includeBasement
@@ -615,6 +615,13 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
         'ground'
       );
       await walk(
+        'garage-loop-to-front-entry',
+        await exteriorPath({ x: 35, z: -15 }),
+        'ground'
+      );
+      // Departure closes the entrance; approach and settle it before planning across.
+      await waitForDoor('front-door', 'open');
+      await walk(
         'garage-loop-return-to-spawn',
         await exteriorPath({ x: 0, z: -20 }),
         'ground'
@@ -622,6 +629,12 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
       await checkpoint('garage-returned-spawn');
     }
     if (includeStreet) {
+      await walk(
+        'street-outbound-to-front-entry',
+        await exteriorPath({ x: 29, z: -15 }),
+        'ground'
+      );
+      await waitForDoor('front-door', 'open');
       await walk(
         'spawn-to-residential-street',
         await exteriorPath({ x: 61, z: -20 }),
@@ -668,6 +681,12 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
         'ground'
       );
       await checkpoint('street-shelter-interior');
+      await walk(
+        'street-return-to-front-entry',
+        await exteriorPath({ x: 35, z: -15 }),
+        'ground'
+      );
+      await waitForDoor('front-door', 'open');
       await walk(
         'street-return-to-spawn',
         await exteriorPath({ x: 0, z: -20 }),

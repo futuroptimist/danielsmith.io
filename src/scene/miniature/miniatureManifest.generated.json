@@ -475,11 +475,11 @@
         "src/scene/structures/residentialStreet.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 7,
-      "syncNote": "Automatic doors, 80% garage cutaway, persistent lamp pools and passive bus signage change exterior behavior outside the original tabletop envelope.",
-      "sourceFingerprint": "0f70bffdb072a43484da10b45a116480681deb2707e56d720c1df8687a3d477e",
+      "syncRevision": 8,
+      "syncNote": "Sliding-door pockets stay clear of shared walls; automatic doors, the 80% garage cutaway, lamp pools and passive bus sign remain outside the tabletop.",
+      "sourceFingerprint": "f2141170247919658432db7b5d7ce2cbe360bf18fcf5de5cea353f3d1c818197",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "49346c6a77af973ca30de72a9042687b649a0a6127dd61d0f8d257591db880e1"
+      "metadataFingerprint": "81ae2773ec0dc2cbb4bc3cb202680df238ef80bbfa7527690198c0cb5e7ed677"
     },
     {
       "id": "level:basement-stairs",

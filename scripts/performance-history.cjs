@@ -27,6 +27,7 @@ const ROUTE_CAPABILITIES = {
     profiles: [
       'house-residential-street-route-v1',
       'house-residential-street-route-v2',
+      'house-residential-street-route-v3',
     ],
   },
   garage: {
@@ -36,6 +37,7 @@ const ROUTE_CAPABILITIES = {
     profiles: [
       'house-attached-garage-route-v1',
       'house-attached-garage-route-v2',
+      'house-attached-garage-route-v3',
     ],
   },
   exterior: {
@@ -479,7 +481,10 @@ async function run(args, options = {}) {
           parsed.routeProfile === 'street' &&
           ((profileVersion === 'house-residential-street-route-v1' &&
             passiveStreet) ||
-            (profileVersion === 'house-residential-street-route-v2' &&
+            ([
+              'house-residential-street-route-v2',
+              'house-residential-street-route-v3',
+            ].includes(profileVersion) &&
               !passiveStreet));
         if (
           !candidate.toString().includes(capability.flag) ||
