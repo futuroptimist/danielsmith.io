@@ -20,6 +20,7 @@ import {
   getSceneDetailPolicy,
   type SceneDetailPolicy,
 } from '../graphics/sceneDetailPolicy';
+import { HOUSE_CAMERA_OUTLINE } from '../level/exteriorLayout';
 import { GROUND_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
 import type { FloorId } from '../level/floorElevations';
 import { generateWallSegmentInstances } from '../level/generateWalls';
@@ -242,8 +243,8 @@ export function createPortfolioTableShell(
 }
 
 function floorEnvelope() {
-  const xs = FLOOR_PLAN.outline.map(([x]) => x);
-  const zs = FLOOR_PLAN.outline.map(([, z]) => z);
+  const xs = HOUSE_CAMERA_OUTLINE.map(([x]) => x * FLOOR_PLAN_SCALE);
+  const zs = HOUSE_CAMERA_OUTLINE.map(([, z]) => z * FLOOR_PLAN_SCALE);
   return {
     minX: Math.min(...xs),
     maxX: Math.max(...xs),
@@ -481,15 +482,26 @@ function createArchitecture() {
     );
   }
 
-  const wallInstances = generateWallSegmentInstances(getLevelFloor('ground'), {
-    coordinateScale: FLOOR_PLAN_SCALE,
-    baseElevation: GROUND_FLOOR_TOP_ELEVATION,
-    wallHeight: WALL_HEIGHT,
-    wallThickness: WALL_THICKNESS,
-    fenceHeight: FENCE_HEIGHT,
-    fenceThickness: FENCE_THICKNESS,
-    getRoomCategory,
-  });
+  const wallInstances = generateWallSegmentInstances(
+    {
+      ...getLevelFloor('ground'),
+      walls: getLevelFloor('ground').walls.filter((wall) =>
+        wall.rooms?.some(
+          (roomId) =>
+            getRoomCategory(roomId) !== 'exterior' || roomId === 'backyard'
+        )
+      ),
+    },
+    {
+      coordinateScale: FLOOR_PLAN_SCALE,
+      baseElevation: GROUND_FLOOR_TOP_ELEVATION,
+      wallHeight: WALL_HEIGHT,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: FENCE_HEIGHT,
+      fenceThickness: FENCE_THICKNESS,
+      getRoomCategory,
+    }
+  );
   const wallMeshes = createWallSegmentMeshes({
     instances: wallInstances,
     groupName: 'MiniatureGroundWallSegments',

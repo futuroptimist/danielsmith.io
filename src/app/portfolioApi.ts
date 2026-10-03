@@ -22,6 +22,7 @@ import type {
 } from '../scene/performance/performanceDiagnostics';
 import type { CareerMuseumResourceLifecycle } from '../scene/structures/careerMuseum';
 import type { KeyBindingAction } from '../systems/controls/keyBindings';
+import type { DoorSnapshot } from '../systems/doors/controller';
 import type { GitHubRepoStatsDiagnostics } from '../systems/github/repoStats';
 import type { FloorConnectionController } from '../systems/movement/floorConnections';
 import type { FloorId, StairTransitionZone } from '../systems/movement/stairs';
@@ -204,6 +205,13 @@ export interface PortfolioApi {
     setEnabled(enabled: boolean): void;
   };
   world?: {
+    getDoorSnapshots(): DoorSnapshot[];
+    getExteriorLifecycle(): {
+      isDisposed: boolean;
+      geometries: number;
+      materials: number;
+      textures: number;
+    };
     getActiveFloor(): FloorId;
     canOccupyPosition(target: {
       x: number;

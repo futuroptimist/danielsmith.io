@@ -5,19 +5,19 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
   "outline": [
     [
       -16,
-      -16,
+      -18,
     ],
     [
-      16,
-      -16,
+      29,
+      -18,
     ],
     [
-      16,
-      16,
+      29,
+      20,
     ],
     [
       -16,
-      16,
+      20,
     ],
   ],
   "rooms": [
@@ -31,6 +31,11 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": undefined,
       "doorways": [
         {
+          "end": -6,
+          "start": -9,
+          "wall": "east",
+        },
+        {
           "end": -7,
           "start": -11,
           "wall": "north",
@@ -38,6 +43,11 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
         {
           "end": 9.5,
           "start": 5.5,
+          "wall": "north",
+        },
+        {
+          "end": 14.75,
+          "start": 11.75,
           "wall": "north",
         },
       ],
@@ -57,6 +67,11 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
         {
           "end": 9.5,
           "start": 5.5,
+          "wall": "south",
+        },
+        {
+          "end": 14.75,
+          "start": 11.75,
           "wall": "south",
         },
         {
@@ -126,6 +141,51 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "id": "backyard",
       "ledColor": 2576183,
       "name": "Backyard",
+    },
+    {
+      "bounds": {
+        "maxX": 26,
+        "maxZ": -4,
+        "minX": 16,
+        "minZ": -16,
+      },
+      "category": "exterior",
+      "doorways": [
+        {
+          "end": -6,
+          "start": -9,
+          "wall": "west",
+        },
+      ],
+      "id": "frontYard",
+      "ledColor": 4547658,
+      "name": "Front Yard",
+    },
+    {
+      "bounds": {
+        "maxX": 26,
+        "maxZ": -6,
+        "minX": 16,
+        "minZ": -9,
+      },
+      "category": "exterior",
+      "doorways": undefined,
+      "id": "frontPath",
+      "ledColor": 11383984,
+      "name": "Front Path",
+    },
+    {
+      "bounds": {
+        "maxX": 29,
+        "maxZ": 20,
+        "minX": 26,
+        "minZ": -18,
+      },
+      "category": "exterior",
+      "doorways": undefined,
+      "id": "sidewalk",
+      "ledColor": 12763319,
+      "name": "Sidewalk",
     },
   ],
 }
@@ -374,7 +434,7 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
   },
   {
     "end": {
-      "x": 32.00000000000001,
+      "x": 23.500000000000004,
       "z": -8,
     },
     "orientation": "horizontal",
@@ -400,6 +460,105 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     "start": {
       "x": 19.000000000000004,
       "z": 16,
+    },
+  },
+  {
+    "end": {
+      "x": 32.00000000000001,
+      "z": -8,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "livingRoom:north",
+      "studio:south",
+    ],
+    "start": {
+      "x": 29.500000000000007,
+      "z": -8,
+    },
+  },
+  {
+    "end": {
+      "x": 52.000000000000014,
+      "z": -12,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "frontPath:north",
+    ],
+    "start": {
+      "x": 32.00000000000001,
+      "z": -12,
+    },
+  },
+  {
+    "end": {
+      "x": 52.000000000000014,
+      "z": -18,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "frontPath:south",
+    ],
+    "start": {
+      "x": 32.00000000000001,
+      "z": -18,
+    },
+  },
+  {
+    "end": {
+      "x": 52.000000000000014,
+      "z": -32,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "frontYard:south",
+    ],
+    "start": {
+      "x": 32.00000000000001,
+      "z": -32,
+    },
+  },
+  {
+    "end": {
+      "x": 52.000000000000014,
+      "z": -8,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "frontYard:north",
+    ],
+    "start": {
+      "x": 32.00000000000001,
+      "z": -8,
+    },
+  },
+  {
+    "end": {
+      "x": 58.000000000000014,
+      "z": -36,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "sidewalk:south",
+    ],
+    "start": {
+      "x": 52.000000000000014,
+      "z": -36,
+    },
+  },
+  {
+    "end": {
+      "x": 58.000000000000014,
+      "z": 40,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "sidewalk:north",
+    ],
+    "start": {
+      "x": 52.000000000000014,
+      "z": 40,
     },
   },
   {
@@ -481,6 +640,36 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     },
     "orientation": "vertical",
     "rooms": [
+      "frontYard:west",
+      "livingRoom:east",
+    ],
+    "start": {
+      "x": 32,
+      "z": -12.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 32,
+      "z": -12.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "frontPath:west",
+    ],
+    "start": {
+      "x": 32,
+      "z": -18.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 32,
+      "z": -18.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "frontYard:west",
       "livingRoom:east",
     ],
     "start": {
@@ -514,6 +703,94 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     "start": {
       "x": 32,
       "z": 16.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 52,
+      "z": -8.000000000000002,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "frontYard:east",
+      "sidewalk:west",
+    ],
+    "start": {
+      "x": 52,
+      "z": -12.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 52,
+      "z": -12.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "frontPath:east",
+      "frontYard:east",
+      "sidewalk:west",
+    ],
+    "start": {
+      "x": 52,
+      "z": -18.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 52,
+      "z": -18.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "frontYard:east",
+      "sidewalk:west",
+    ],
+    "start": {
+      "x": 52,
+      "z": -32.00000000000001,
+    },
+  },
+  {
+    "end": {
+      "x": 52,
+      "z": -32.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "sidewalk:west",
+    ],
+    "start": {
+      "x": 52,
+      "z": -36.00000000000001,
+    },
+  },
+  {
+    "end": {
+      "x": 52,
+      "z": 40.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "sidewalk:west",
+    ],
+    "start": {
+      "x": 52,
+      "z": -8.000000000000002,
+    },
+  },
+  {
+    "end": {
+      "x": 58,
+      "z": 40.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "sidewalk:east",
+    ],
+    "start": {
+      "x": 58,
+      "z": -36.00000000000001,
     },
   },
 ]

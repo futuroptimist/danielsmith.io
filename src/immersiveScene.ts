@@ -73,6 +73,7 @@ import {
   resolveInitialLocale,
   type Locale,
 } from './assets/i18n';
+import { getExteriorStrings } from './assets/i18n/exterior';
 import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
 import {
   createAvatarAccessorySuite,
@@ -153,6 +154,10 @@ import {
   getSceneDetailPolicy,
 } from './scene/graphics/sceneDetailPolicy';
 import { isBackyardSourceCollider } from './scene/level/backyardCollisionPolicies';
+import {
+  createExteriorDoorDefinitions,
+  HOUSE_CAMERA_OUTLINE,
+} from './scene/level/exteriorLayout';
 import {
   GROUND_FLOOR_TOP_ELEVATION,
   UPPER_FLOOR_TOP_ELEVATION,
@@ -327,6 +332,7 @@ import {
   createPrReaperInstallation,
   type PrReaperInstallationBuild,
 } from './scene/structures/prReaperConsole';
+import { createResidentialExterior } from './scene/structures/residentialExterior';
 import {
   createSelfieMirror,
   type SelfieMirrorBuild,
@@ -417,7 +423,10 @@ import {
   type KeyBindingAction,
   type KeyBindingConfig,
 } from './systems/controls/keyBindings';
-import { KeyboardControls } from './systems/controls/KeyboardControls';
+import {
+  KeyboardControls,
+  isUiOwnedKeyboardEvent,
+} from './systems/controls/KeyboardControls';
 import {
   createLocaleToggleControl,
   type LocaleToggleControlHandle,
@@ -427,6 +436,8 @@ import {
   type MotionBlurControlHandle,
 } from './systems/controls/motionBlurControl';
 import { VirtualJoystick } from './systems/controls/VirtualJoystick';
+import { createDoorController } from './systems/doors/controller';
+import { bindDoorInteraction } from './systems/doors/input';
 import {
   createManualModeToggle,
   type ManualModeToggleHandle,
@@ -489,6 +500,7 @@ import {
   type AccessibilityPresetManager,
 } from './ui/accessibility/presetManager';
 import { CHANGELOG_URL } from './ui/changelog';
+import { createDoorControl } from './ui/exterior/doorControl';
 import {
   createAudioSubtitles,
   type AudioSubtitlesHandle,
@@ -1544,7 +1556,13 @@ export function initializeImmersiveScene(
     locale,
   });
 
-  const floorBounds = getFloorBounds(FLOOR_PLAN);
+  const floorBounds = getFloorBounds({
+    ...FLOOR_PLAN,
+    outline: HOUSE_CAMERA_OUTLINE.map(([x, z]) => [
+      x * FLOOR_PLAN_SCALE,
+      z * FLOOR_PLAN_SCALE,
+    ]),
+  });
   const floorCenter = new Vector3(
     (floorBounds.minX + floorBounds.maxX) / 2,
     0,
@@ -1781,18 +1799,59 @@ export function initializeImmersiveScene(
     roughness: 0.58,
     metalness: 0.18,
   });
-  const floorTiles = generateFloorSurfaces(getLevelFloor('ground'), {
-    material: floorMaterial,
-    elevation: GROUND_FLOOR_TOP_ELEVATION,
-    groupName: 'GroundFloorTiles',
-    cutoutsBySurfaceId: {
-      'livingRoom-floor-main': [
-        basementStaircase.opening,
-        basementStaircase.landing,
-      ],
+  const floorTiles = generateFloorSurfaces(
+    {
+      ...getLevelFloor('ground'),
+      floorSurfaces: getLevelFloor('ground').floorSurfaces.filter(
+        (surface) => surface.purpose !== 'exterior-surface'
+      ),
     },
-  });
+    {
+      material: floorMaterial,
+      elevation: GROUND_FLOOR_TOP_ELEVATION,
+      groupName: 'GroundFloorTiles',
+      cutoutsBySurfaceId: {
+        'livingRoom-floor-main': [
+          basementStaircase.opening,
+          basementStaircase.landing,
+        ],
+      },
+    }
+  );
   groundFloorGroup.add(floorTiles.group);
+  const exteriorDoors =
+    createExteriorDoorDefinitions(FLOOR_PLAN_SCALE).map(createDoorController);
+  const doorColliders: RectCollider[] = exteriorDoors.map(
+    (door) => door.definition.blockingBounds
+  );
+  exteriorDoors.forEach((door) => {
+    namedColliderDebugNames.set(
+      door.definition.blockingBounds,
+      `Door:${door.definition.id}`
+    );
+    colliderSourceMetadata.set(door.definition.blockingBounds, {
+      sourceId: assertLevelSourceId(door.definition.sourceId),
+      sourceType: 'sceneObject',
+      purpose: 'Progress-controlled door aperture with occupancy protection',
+      intent: 'physical-boundary',
+      role: 'operable-door',
+    });
+  });
+  const residentialExterior = createResidentialExterior(
+    getLevelFloor('ground'),
+    FLOOR_PLAN_SCALE,
+    exteriorDoors
+  );
+  groundEnvironmentGroup.add(residentialExterior.group);
+  residentialExterior.solids.forEach(({ definition, collider }) => {
+    registerSceneObjectColliders(
+      [collider],
+      definition,
+      groundColliders,
+      colliderSourceMetadata
+    );
+    namedColliderDebugNames.set(collider, `Exterior:${definition.id}`);
+  });
 
   const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
   const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
@@ -1926,9 +1985,9 @@ export function initializeImmersiveScene(
     const livingRoomCenterZ =
       (livingRoom.bounds.minZ + livingRoom.bounds.maxZ) / 2;
     const selfiePosition = {
-      x: livingRoom.bounds.maxX - 3.2,
+      x: SELFIE_MIRROR_SCENE_OBJECT_DEFINITION.position.x * FLOOR_PLAN_SCALE,
       y: 0,
-      z: livingRoom.bounds.minZ + 9.2,
+      z: SELFIE_MIRROR_SCENE_OBJECT_DEFINITION.position.z * FLOOR_PLAN_SCALE,
     };
     const selfieOrientation = Math.atan2(
       livingRoomCenterX - selfiePosition.x,
@@ -2437,7 +2496,7 @@ export function initializeImmersiveScene(
       poiGroup: groundPoiGroup,
       structureGroup: groundStructureGroup,
       colliders: groundColliders,
-      additionalColliderCollections: [staticColliders],
+      additionalColliderCollections: [staticColliders, doorColliders],
       navMesh: groundNavMesh,
     },
     {
@@ -3726,6 +3785,12 @@ export function initializeImmersiveScene(
             : [],
         };
       },
+      getDoorSnapshots() {
+        return exteriorDoors.map((door) => door.snapshot());
+      },
+      getExteriorLifecycle() {
+        return residentialExterior.getLifecycle();
+      },
       getFloorRegistrySnapshot() {
         return floorRegistry.getSnapshot();
       },
@@ -4309,6 +4374,16 @@ export function initializeImmersiveScene(
     if (isTextEntryTarget(event.target)) {
       return;
     }
+    // HUD shortcuts still work after a button regains focus. Consume Help here
+    // before generic gameplay input filtering, without walking or opening a door.
+    if (
+      matchesKeyBinding(event, 'help') &&
+      !hasConflictingKeyBinding(event, 'help')
+    ) {
+      event.preventDefault();
+      toggleHelpMenu();
+      return;
+    }
     if (
       matchesKeyBinding(event, 'toggleTutorial') &&
       !hasConflictingKeyBinding(event, 'toggleTutorial')
@@ -4396,12 +4471,101 @@ export function initializeImmersiveScene(
   let cameraPanLimitX = 0;
   let cameraPanLimitZ = 0;
   let interactKeyWasPressed = false;
+  let selectedDoor: (typeof exteriorDoors)[number] | null = null;
+  const doorProjection = new Vector3();
+  const doorBlockerStates = new Map(
+    exteriorDoors.map((door) => [door.definition.id, true])
+  );
+  const reducedMotionQuery = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+  );
+  const doorOccupant = () => ({
+    x: player.position.x,
+    z: player.position.z,
+    radius: PLAYER_RADIUS,
+    floorId: activeFloorId,
+  });
+  const isDoorUiBlocked = () =>
+    Boolean(hudPanelCoordinator?.getActivePanel()) ||
+    currentSelectedPoi !== null;
+  const doorControl = createDoorControl({
+    parent: container,
+    restoreFocus: () => renderer.domElement.focus(),
+    onActivate: () => {
+      if (
+        selectedDoor &&
+        !isDoorUiBlocked() &&
+        selectedDoor.isInRange(doorOccupant())
+      )
+        selectedDoor.toggle(doorOccupant());
+    },
+  });
+  const disposeDoorInteraction = bindDoorInteraction({
+    target: window,
+    getBindings: () => keyBindings.getBindings('interact'),
+    getDoor: () =>
+      exteriorDoors.find((door) => door.isInRange(doorOccupant())) ?? null,
+    getOccupant: doorOccupant,
+    canInteract: (event) =>
+      !isDoorUiBlocked() &&
+      !isUiOwnedKeyboardEvent(event) &&
+      canHandleGameplayShortcut(
+        event,
+        hudPanelCoordinator?.getActivePanel() ?? null
+      ),
+  });
+  function updateExteriorDoors(delta: number) {
+    const occupant = doorOccupant();
+    doorColliders.length = 0;
+    for (const door of exteriorDoors) {
+      const state = door.update(
+        delta,
+        occupant,
+        reducedMotionQuery.matches ||
+          document.documentElement.dataset.accessibilityMotion === 'reduced' ||
+          getPulseScale() === 0
+      );
+      if (state.blocked) doorColliders.push(door.definition.blockingBounds);
+      if (doorBlockerStates.get(door.definition.id) !== state.blocked) {
+        doorBlockerStates.set(door.definition.id, state.blocked);
+        colliderVisualizer.setSourceActive(
+          door.definition.sourceId,
+          state.blocked
+        );
+      }
+    }
+    residentialExterior.update();
+    selectedDoor = isDoorUiBlocked()
+      ? null
+      : (exteriorDoors.find((door) => door.isInRange(occupant)) ?? null);
+    if (selectedDoor) {
+      const d = selectedDoor.definition;
+      doorProjection
+        .set(d.center.x, d.height + 0.5, d.center.z)
+        .project(camera);
+      doorControl.update(selectedDoor.snapshot(), getExteriorStrings(locale), {
+        x: ((doorProjection.x + 1) * window.innerWidth) / 2,
+        y: ((1 - doorProjection.y) * window.innerHeight) / 2,
+      });
+    } else doorControl.update(null, getExteriorStrings(locale));
+  }
   const pinchPointers = new Map<number, { x: number; y: number }>();
   let pinchStartDistance: number | null = null;
   let pinchStartZoomTarget = cameraZoomTarget;
   const mouseCameraInput = new Vector2();
   const mouseCameraStart = new Vector2();
   let mouseCameraPointerId: number | null = null;
+
+  const stopMovementOnBlur = () => {
+    // A suspended tab must not keep coasting into a doorway after input clears.
+    targetVelocity.set(0, 0, 0);
+    velocity.set(0, 0, 0);
+    joystick.reset();
+    mouseCameraInput.set(0, 0);
+    mouseCameraPointerId = null;
+    interactKeyWasPressed = false;
+  };
+  window.addEventListener('blur', stopMovementOnBlur);
 
   let helpKeyWasPressed = false;
   let helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
@@ -6303,6 +6467,14 @@ export function initializeImmersiveScene(
   onResize();
 
   function updateMovement(delta: number) {
+    if (hudPanelCoordinator?.getActivePanel() === 'settings') {
+      targetVelocity.set(0, 0, 0);
+      velocity.set(0, 0, 0);
+      joystick.reset();
+      locomotionLinearSpeed = 0;
+      locomotionAngularSpeed = 0;
+      return;
+    }
     const yawBefore = player.rotation.y;
     const rightInput =
       Number(keyBindings.isActionActive('moveRight', keyPressSource)) -
@@ -6691,8 +6863,13 @@ export function initializeImmersiveScene(
 
   function handleInteractionInput() {
     const pressed = keyBindings.isActionActive('interact', keyPressSource);
-    if (pressed && !interactKeyWasPressed && interactablePoi) {
-      poiInteractionManager?.selectPoiById(interactablePoi.definition.id);
+    if (
+      pressed &&
+      !interactKeyWasPressed &&
+      !hudPanelCoordinator?.getActivePanel()
+    ) {
+      if (!selectedDoor && interactablePoi)
+        poiInteractionManager?.selectPoiById(interactablePoi.definition.id);
     }
     interactKeyWasPressed = pressed;
   }
@@ -6974,6 +7151,11 @@ export function initializeImmersiveScene(
       locomotionLinearSpeed = 0;
       locomotionAngularSpeed = 0;
     }
+    window.removeEventListener('blur', stopMovementOnBlur);
+    joystick.reset();
+    disposeDoorInteraction();
+    doorControl.dispose();
+    residentialExterior.dispose();
     controls.dispose();
     if (livingRoomMediaWall) {
       livingRoomMediaWall.controller.dispose();
@@ -7061,6 +7243,7 @@ export function initializeImmersiveScene(
         return;
       }
       let phaseStart = performance.now();
+      updateExteriorDoors(delta);
       updateMovement(delta);
       if (locomotionAnimator) {
         locomotionAnimator.update({

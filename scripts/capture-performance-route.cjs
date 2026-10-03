@@ -10,7 +10,8 @@ if (!output)
     'Usage: node scripts/capture-performance-route.cjs OUTPUT_DIRECTORY'
   );
 const dwellMs = 5000;
-const includeBasement = process.argv.includes('--basement');
+const includeExterior = process.argv.includes('--exterior');
+const includeBasement = process.argv.includes('--basement') || includeExterior;
 (async () => {
   // Refuse to overwrite an earlier attempt, including failed or unsupported runs.
   await fs.mkdir(path.dirname(path.resolve(output)), { recursive: true });
@@ -25,18 +26,22 @@ const includeBasement = process.argv.includes('--basement');
   const page = await context.newPage();
   const result = {
     schemaVersion: 1,
-    profile: includeBasement
-      ? 'house-basement-route-v1'
-      : 'house-common-route-v1',
+    profile: includeExterior
+      ? 'house-front-entry-route-v1'
+      : includeBasement
+        ? 'house-basement-route-v1'
+        : 'house-common-route-v1',
     startedAt: new Date().toISOString(),
     browserVersion: browser.version(),
     viewport: { width: 1280, height: 720 },
     dwellMs,
     checkpoints: [],
     legs: [],
-    unavailableCheckpoints: includeBasement
-      ? ['exterior']
-      : ['basement', 'exterior'],
+    unavailableCheckpoints: includeExterior
+      ? ['garage', 'street']
+      : includeBasement
+        ? ['exterior']
+        : ['basement', 'exterior'],
     state: 'running',
   };
   await page.addInitScript(() => {
@@ -97,6 +102,89 @@ const includeBasement = process.argv.includes('--basement');
       },
     };
   });
+  async function exteriorPath(target) {
+    return page.evaluate((target) => {
+      const w = window.portfolio.world;
+      const start = w.getPlayerPosition();
+      const grid = 0.2;
+      const queue = [
+        {
+          x: Math.round(start.x / grid) * grid,
+          z: Math.round(start.z / grid) * grid,
+          parent: -1,
+        },
+      ];
+      const seen = new Set([`${queue[0].x},${queue[0].z}`]);
+      const connections = w.getFloorConnectionSnapshot().connections;
+      for (let index = 0; index < queue.length && index < 300000; index++) {
+        const node = queue[index];
+        if (Math.hypot(node.x - target.x, node.z - target.z) < 0.3) {
+          const path = [];
+          for (let i = index; i >= 0; i = queue[i].parent)
+            path.push({ x: queue[i].x, z: queue[i].z });
+          return [...path.reverse(), target];
+        }
+        for (const [dx, dz] of [
+          [grid, 0],
+          [-grid, 0],
+          [0, grid],
+          [0, -grid],
+        ]) {
+          const next = {
+            x: Math.round((node.x + dx) / grid) * grid,
+            z: Math.round((node.z + dz) / grid) * grid,
+            parent: index,
+          };
+          const key = `${next.x},${next.z}`;
+          if (
+            seen.has(key) ||
+            next.x < -32 ||
+            next.x > 80 ||
+            next.z < -36 ||
+            next.z > 48
+          )
+            continue;
+          seen.add(key);
+          if (
+            !w.canOccupyPosition({ ...next, floorId: 'ground' }) ||
+            w.predictFloorAt({ ...next, currentFloor: 'ground' }) !== 'ground'
+          )
+            continue;
+          if (
+            connections.some(
+              (c) =>
+                ![
+                  'outsideStairs',
+                  'safeUpperFloor',
+                  'upperLanding',
+                  'lowerStairEntrance',
+                ].includes(
+                  w.getStairTransitionZone({
+                    ...next,
+                    currentFloor: 'ground',
+                    connectionId: c.id,
+                  })
+                )
+            )
+          )
+            continue;
+          queue.push(next);
+        }
+      }
+      throw new Error(`No exterior capture route to ${JSON.stringify(target)}`);
+    }, target);
+  }
+  async function operateDoor(id, state) {
+    await page
+      .locator(`[data-exterior-door-control][data-door-id="${id}"]`)
+      .click();
+    await page.waitForFunction(
+      ({ id, state }) =>
+        window.portfolio.world.getDoorSnapshots().find((door) => door.id === id)
+          ?.state === state,
+      { id, state }
+    );
+  }
   async function checkpoint(name) {
     const arrival = await page.evaluate(() => ({
       timeMs: performance.now(),
@@ -120,6 +208,7 @@ const includeBasement = process.argv.includes('--basement');
         position: p.world.getPlayerPosition(),
         floor: p.world.getActiveFloor(),
         coordinates: p.debugCoordinates.getState(),
+        doors: p.world.getDoorSnapshots?.() ?? [],
         visibility: p.world.getFloorVisibilitySnapshot(),
         camera: {
           zoom: p.graphics.getCameraZoom(),
@@ -287,7 +376,7 @@ const includeBasement = process.argv.includes('--basement');
       if (museum?.exhibits?.length) {
         // These source-audited approaches match the native museum regression.
         // The shell-only route intersects the now-solid display stands.
-        result.profile = 'house-career-museum-route-v1';
+        if (!includeExterior) result.profile = 'house-career-museum-route-v1';
         const approaches = [
           [
             'career-southern-mississippi',
@@ -406,6 +495,36 @@ const includeBasement = process.argv.includes('--basement');
     await walk('upper-descent', [entrance]);
     await walk('stair-entrance-to-spawn', [...groundPath].reverse(), 'ground');
     await checkpoint('returned-spawn');
+    if (includeExterior) {
+      await walk(
+        'spawn-to-front-entry',
+        await exteriorPath({ x: 29, z: -15 }),
+        'ground'
+      );
+      await checkpoint('front-entry-closed');
+      await operateDoor('front-door', 'open');
+      await checkpoint('front-entry-open');
+      await walk(
+        'front-entry-to-sidewalk',
+        await exteriorPath({ x: 55, z: -15 }),
+        'ground'
+      );
+      await checkpoint('front-sidewalk');
+      await walk(
+        'sidewalk-to-front-entry',
+        await exteriorPath({ x: 35, z: -15 }),
+        'ground'
+      );
+      await operateDoor('front-door', 'closed');
+      await checkpoint('front-entry-outside-closed');
+      await operateDoor('front-door', 'open');
+      await walk(
+        'front-entry-to-spawn',
+        await exteriorPath({ x: 0, z: -20 }),
+        'ground'
+      );
+      await checkpoint('exterior-returned-spawn');
+    }
     result.state = 'completed';
     result.wholeRouteStallProbe = await page.evaluate(() =>
       window.__routeProbe.read()

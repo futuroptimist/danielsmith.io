@@ -213,3 +213,30 @@ separate stalls and source identities remain retained; budgets are unchanged.
   low counters from a new renderer do not prove the previous one was freed
 - Ordinary CI artifacts expire after 14 days. Preserve private review archives
   through final stack review; the runtime output directory alone is not durable
+
+## Front entrance route addition
+
+Use the same isolated multi-commit runner for the stage addition:
+
+```bash
+npm run perf:history -- --route-profile exterior <predecessor> <entry-commit>
+```
+
+Older commits without a versioned exterior helper and front-door source retain
+the common route and explicitly report the exterior portion as unavailable.
+Each result and summary records the actual route version; compare common profiles
+separately rather than ranking unlike extended routes.
+
+`node scripts/capture-performance-route.cjs <new-output-directory> --exterior`
+selects `house-front-entry-route-v1`. It preserves the complete museum and common
+upper/spawn route, then appends closed/open entrance, sidewalk, outside-close and
+returned-spawn checkpoints. Door actions use the visible DOM control. Read-only
+occupancy planning supplies waypoints to the unchanged runtime movement sampler;
+no teleport establishes a passage. Every route checkpoint also records the
+available read-only door state. The common and basement profile names and their
+legs are unchanged. New exterior poses are additions, not baseline comparisons.
+
+Run the predecessor's common/museum profiles under the same browser, server and
+quality conditions. Retain all three attempts and the separate native keyboard /
+touch functional traces; a completed software route does not close hardware p95
+or the owner's final manual review.

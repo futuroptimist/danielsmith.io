@@ -4,10 +4,12 @@ import path from 'node:path';
 import {
   FLOOR_PLAN_LEVELS,
   WALL_THICKNESS,
-  getCombinedWallSegments,
+  FLOOR_PLAN_SCALE,
   type FloorPlanDefinition,
   type FloorPlanLevel,
 } from '../src/assets/floorPlan';
+import { generateWallSegmentInstances } from '../src/scene/level/generateWalls';
+import { PORTFOLIO_LEVEL } from '../src/scene/level/portfolioLevel';
 import { getPoiDefinitions } from '../src/scene/poi/registry';
 import { getBasementStairLayout } from '../src/scene/structures/basementStaircase';
 
@@ -91,7 +93,22 @@ function renderFloorSvg(level: FloorPlanLevel): string {
   });
 
   const wallStroke = WALL_THICKNESS * SCALE;
-  const wallSegments = getCombinedWallSegments(plan);
+  const sourceFloor = PORTFOLIO_LEVEL.floors.find(
+    (floor) => floor.id === level.id
+  );
+  if (!sourceFloor)
+    throw new Error(`Missing level source for diagram: ${level.id}`);
+  // Semantic outdoor zones do not imply enclosing walls. Draw authored runs only.
+  const wallSegments = generateWallSegmentInstances(sourceFloor, {
+    coordinateScale: FLOOR_PLAN_SCALE,
+    baseElevation: 0,
+    wallHeight: 6,
+    wallThickness: WALL_THICKNESS,
+    fenceHeight: 2.4,
+    fenceThickness: 0.28,
+    getRoomCategory: (id) =>
+      sourceFloor.rooms.find((room) => room.id === id)?.category ?? 'interior',
+  }).map((instance) => instance.segment);
   const wallLayers = wallSegments.map((segment) => {
     const x1 = projectX(segment.start.x);
     const y1 = projectY(segment.start.z);

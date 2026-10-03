@@ -14,6 +14,18 @@ const HARNESS_FILES = [
   'src/app/performanceResult.ts',
   'src/scene/performance/performanceDiagnostics.ts',
 ];
+const ROUTE_CAPABILITIES = {
+  basement: {
+    flag: '--basement',
+    source: 'src/scene/level/basementStair.ts',
+    marker: 'basement-ground',
+  },
+  exterior: {
+    flag: '--exterior',
+    source: 'src/scene/level/exteriorLayout.ts',
+    marker: 'front-door',
+  },
+};
 const ownedWorktrees = new WeakSet();
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 const RUNNER_SHA256 = hash(fs.readFileSync(__filename));
@@ -48,8 +60,8 @@ function parseArgs(args) {
         if (options.output !== null) throw new Error('Duplicate --output');
         options.output = value;
       } else {
-        if (!['common', 'basement'].includes(value))
-          throw new Error('Route profile must be common or basement');
+        if (value !== 'common' && !Object.hasOwn(ROUTE_CAPABILITIES, value))
+          throw new Error('Route profile must be common, basement or exterior');
         options.routeProfile = value;
       }
     } else if (/^[A-Za-z0-9_./@~^:-]+$/.test(arg) && !arg.startsWith('-'))
@@ -414,30 +426,28 @@ async function run(args, options = {}) {
       skippedRouteCapabilities: [],
     };
     let historicalRoute = null;
-    if (parsed.routeProfile === 'basement') {
+    if (parsed.routeProfile !== 'common') {
+      const capability = ROUTE_CAPABILITIES[parsed.routeProfile];
       try {
         const candidate = blob(
           repo,
           ref.commit,
           'scripts/capture-performance-route.cjs'
         );
-        const basementDefinition = blob(
-          repo,
-          ref.commit,
-          'src/scene/level/basementStair.ts'
-        ).toString();
+        const definition = blob(repo, ref.commit, capability.source).toString();
         if (
-          !candidate.toString().includes('--basement') ||
-          !basementDefinition.includes('basement-ground')
+          !candidate.toString().includes(capability.flag) ||
+          !definition.includes(capability.marker)
         )
-          throw new Error('basement route capability unavailable');
+          throw new Error(
+            `${parsed.routeProfile} route capability unavailable`
+          );
         historicalRoute = candidate;
-        entry.routeProfile = 'basement';
+        entry.routeProfile = parsed.routeProfile;
       } catch {
         entry.skippedRouteCapabilities.push({
-          capability: 'basement',
-          reason:
-            'No versioned basement helper and connection in this commit; common route retained',
+          capability: parsed.routeProfile,
+          reason: `No versioned ${parsed.routeProfile} helper and source in this commit; common route retained`,
         });
       }
     }
@@ -537,7 +547,8 @@ async function run(args, options = {}) {
           await waitForServer(server, options.signal);
           const directory = path.join(target, `route-${attempt}`);
           const routeArgs = [selectedHelper, directory];
-          if (entry.routeProfile === 'basement') routeArgs.push('--basement');
+          if (entry.routeProfile !== 'common')
+            routeArgs.push(ROUTE_CAPABILITIES[entry.routeProfile].flag);
           const status = await execute(
             process.execPath,
             routeArgs,

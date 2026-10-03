@@ -2657,3 +2657,27 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   outline: 2px solid var(--hud-surface-text);
   outline-offset: -2px;
 }
+
+.exterior-door-control {
+  position: fixed;
+  z-index: 20;
+  transform: translate(-50%, -100%);
+  min-height: 44px;
+  max-width: min(240px, calc(100vw - 32px));
+  padding: 0.65rem 1rem;
+  border: 1px solid #d1c4a4;
+  border-radius: 0.85rem;
+  background: #202c3af2;
+  color: #fff4df;
+  font: inherit;
+  box-shadow: 0 3px 14px #0006;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+.exterior-door-control[hidden] {
+  display: none;
+}
+.exterior-door-control:focus-visible {
+  outline: 3px solid #fff4df;
+  outline-offset: 4px;
+}

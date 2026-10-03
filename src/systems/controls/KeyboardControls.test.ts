@@ -29,6 +29,38 @@ describe('KeyboardControls', () => {
     expect(controls.isPressed('w')).toBe(false);
   });
 
+  it('clears held input on blur and ignores keys owned by a DOM control', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w' }));
+    window.dispatchEvent(new Event('blur'));
+    expect(controls.isPressed('w')).toBe(false);
+    const button = document.createElement('button');
+    document.body.append(button);
+    button.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+    );
+    expect(controls.isPressed('Enter')).toBe(false);
+    button.remove();
+  });
+
+  it('allows gameplay letters from ordinary buttons but never from open dialogs', () => {
+    const button = document.createElement('button');
+    document.body.append(button);
+    button.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'w', bubbles: true })
+    );
+    expect(controls.isPressed('w')).toBe(true);
+    window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w' }));
+    const dialog = document.createElement('div');
+    dialog.setAttribute('role', 'dialog');
+    document.body.append(dialog);
+    dialog.append(button);
+    button.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'w', bubbles: true })
+    );
+    expect(controls.isPressed('w')).toBe(false);
+    dialog.remove();
+  });
+
   it('tracks multiple simultaneous keys for diagonal movement', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w' }));
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd' }));
