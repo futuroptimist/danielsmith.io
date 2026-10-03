@@ -94,7 +94,29 @@ export async function walkExteriorTo(
     }
     if (found < 0)
       throw new Error(
-        `No ground route to ${JSON.stringify(target)} from ${JSON.stringify(start)}; reached ${queue.length} nodes, maxX ${Math.max(...queue.map((n) => n.x))}, maxZ ${Math.max(...queue.map((n) => n.z))}, targetFree ${world.canOccupyPosition({ ...target, floorId: 'ground' })}, prediction ${world.predictFloorAt({ ...target, currentFloor: 'ground' })}, zones ${JSON.stringify(world.getFloorConnectionSnapshot().connections.map((c) => [c.id, world.getStairTransitionZone({ ...target, currentFloor: 'ground', connectionId: c.id })]))}, nearest ${JSON.stringify(queue.sort((a, b) => Math.hypot(a.x - target.x, a.z - target.z) - Math.hypot(b.x - target.x, b.z - target.z)).slice(0, 3))}`
+        `No ground route to ${JSON.stringify(target)} from ${JSON.stringify(start)}; ` +
+          `reached ${queue.length} nodes, maxX ${Math.max(...queue.map((n) => n.x))}, ` +
+          `maxZ ${Math.max(...queue.map((n) => n.z))}, ` +
+          `targetFree ${world.canOccupyPosition({ ...target, floorId: 'ground' })}, ` +
+          `prediction ${world.predictFloorAt({ ...target, currentFloor: 'ground' })}, ` +
+          `zones ${JSON.stringify(
+            world.getFloorConnectionSnapshot().connections.map((c) => [
+              c.id,
+              world.getStairTransitionZone({
+                ...target,
+                currentFloor: 'ground',
+                connectionId: c.id,
+              }),
+            ])
+          )}, nearest ${JSON.stringify(
+            queue
+              .sort(
+                (a, b) =>
+                  Math.hypot(a.x - target.x, a.z - target.z) -
+                  Math.hypot(b.x - target.x, b.z - target.z)
+              )
+              .slice(0, 3)
+          )}`
       );
     const path: Array<{ x: number; z: number; parent: number }> = [];
     for (let i = found; i >= 0; i = queue[i].parent) path.push(queue[i]);

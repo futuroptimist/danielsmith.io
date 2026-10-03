@@ -89,9 +89,10 @@ for (const panel of ['tutorial', 'controls'] as const) {
 }
 
 for (const key of ['w', 'h'] as const) {
-  test(`preserves ${key === 'w' ? 'movement' : 'Help'} when Interact shares ${key} near a door`, async ({
-    page,
-  }) => {
+  const title =
+    `preserves ${key === 'w' ? 'movement' : 'Help'} ` +
+    `when Interact shares ${key} near a door`;
+  test(title, async ({ page }) => {
     await readyExterior(page);
     await walkExteriorTo(page, { x: 29, z: -15 });
     await expect(page.locator(button)).toBeVisible();
@@ -275,9 +276,10 @@ test('walks from fresh spawn through the front door to the sidewalk and back', a
   ).toBe('ground');
 });
 
-test('handles interrupted/repeated activation, occupancy, blur, modal focus and reduced motion', async ({
-  page,
-}) => {
+const interruptedActivationTitle =
+  'handles interrupted/repeated activation, occupancy, blur, ' +
+  'modal focus and reduced motion';
+test(interruptedActivationTitle, async ({ page }) => {
   // The combined door journey and accessibility scan share this total budget.
   // Individual action/assertion limits and the zero-retry policy remain intact.
   test.setTimeout(120_000);
@@ -424,9 +426,10 @@ test('continues native controls from focused door and dismissed settings buttons
   expect(await page.evaluate(() => window.portfolio?.world)).toBeUndefined();
 });
 
-test('keeps a long pseudo-locale door label onscreen and ignores native activation repeats', async ({
-  page,
-}) => {
+const pseudoLocaleTitle =
+  'keeps a long pseudo-locale door label onscreen ' +
+  'and ignores native activation repeats';
+test(pseudoLocaleTitle, async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await readyExterior(page);
   await page.locator('[data-control="help"]').click();
@@ -485,9 +488,10 @@ for (const viewport of [
   { width: 844, height: 390 },
   { width: 1920, height: 1080 },
 ]) {
-  test(`door control fits ${viewport.width}×${viewport.height} and restores safe closed state on reload`, async ({
-    page,
-  }) => {
+  const title =
+    `door control fits ${viewport.width}×${viewport.height} ` +
+    'and restores safe closed state on reload';
+  test(title, async ({ page }) => {
     // Two immersive startups plus traversal need their own aggregate budget.
     test.setTimeout(120_000);
     await page.setViewportSize(viewport);
