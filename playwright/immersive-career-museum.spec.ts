@@ -191,6 +191,10 @@ for (const profile of [
   test(`walks to all careers with accessible details and dismissal on ${profile.name}`, async ({
     browser,
   }) => {
+    // Four exhibit journeys, screenshots and axe scans share this total budget.
+    // A retained CI run completed the route near 60s but lost its final trace;
+    // the tail cause is unknown. Keep action/assertion limits and retries intact.
+    test.setTimeout(120_000);
     const context = await browser.newContext({
       viewport: { width: profile.width, height: profile.height },
       hasTouch: profile.touch,

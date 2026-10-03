@@ -36,6 +36,44 @@
       "controlledAttemptsCompletedPerCommit": 3,
       "commonRouteAttemptsCompletedPerCommit": 3,
       "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-02-basement-b07fc96c",
+      "stage": "basement shell and staircase; common route",
+      "sourceCommit": "b07fc96c6b0068410b4fbfe4cba67deaa985755b",
+      "predecessorCommit": "096be292f64dfd0ed17576c198221bda704fc4be",
+      "manifest": "2026-10-02-basement-b07fc96c/manifest.json",
+      "summary": "2026-10-02-basement-b07fc96c/summary.json",
+      "series": "common-route-restarted-vite-v1",
+      "captureBatch": "D",
+      "controlledAttemptsCompletedPerCommit": 3,
+      "commonRouteAttemptsCompletedPerCommit": 3,
+      "hardwareGate": "owner-run required",
+      "extendedEvidence": {
+        "sourceCommit": "6ac34f194bfa88797470bea6ba3882e9ac6cb9bf",
+        "manifest": "2026-10-02-basement-b07fc96c/extended-6ac34f19-manifest.json",
+        "summary": "2026-10-02-basement-b07fc96c/extended-6ac34f19-summary.json",
+        "attemptsCompleted": 3
+      }
+    },
+    {
+      "id": "2026-10-02-museum-25679bb1",
+      "stage": "career museum exhibits; common route",
+      "sourceCommit": "25679bb1164613fd77be5e2f4812f8a16d75efd0",
+      "predecessorCommit": "b07fc96c6b0068410b4fbfe4cba67deaa985755b",
+      "manifest": "2026-10-02-museum-25679bb1/manifest.json",
+      "summary": "2026-10-02-museum-25679bb1/summary.json",
+      "series": "common-route-restarted-vite-v1",
+      "captureBatch": "D",
+      "controlledAttemptsCompletedPerCommit": 3,
+      "commonRouteAttemptsCompletedPerCommit": 3,
+      "hardwareGate": "owner-run required",
+      "extendedEvidence": {
+        "sourceCommit": "a22fb9bde57f682f7ece5d27447a56999fdbf639",
+        "manifest": "2026-10-02-museum-25679bb1/extended-a22fb9bd-manifest.json",
+        "summary": "2026-10-02-museum-25679bb1/extended-a22fb9bd-summary.json",
+        "attemptsCompleted": 3
+      }
     }
   ]
 }
