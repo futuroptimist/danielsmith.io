@@ -192,6 +192,7 @@ export function createExteriorDoorDefinitions(scale: number): DoorDefinition[] {
       travel: width + 0.22,
       duration: 0.85,
       clearanceProgress: 1,
+      automatic: true,
       blockingBounds,
       threshold: { ...blockingBounds, minX: x - 1.2, maxX: x + 1.2 },
       sweep: { ...blockingBounds, maxZ: z + width * 1.5 + 0.22 },

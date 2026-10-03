@@ -15,6 +15,12 @@ import { pressNativeMovementChord } from './helpers/nativeMovementChord';
 
 const button = '[data-exterior-door-control]';
 
+async function closeFrontDoorForManualTest(page: Page) {
+  await waitDoor(page, 'front-door', 'open');
+  await page.locator(button).click();
+  await waitDoor(page, 'front-door', 'closed');
+}
+
 for (const [point, cleanupThrows] of [
   ['locale', false],
   ['debug-storage', false],
@@ -207,12 +213,12 @@ for (const cleanupScope of ['exterior', 'initialization'] as const) {
       expect(snapshot.controlsRemaining).toBe(0);
       expect(snapshot.worldAvailable).toBe(false);
       expect(snapshot.listeners).toEqual({
-        keyAdded: 2,
-        keyRemoved: 2,
+        keyAdded: 1,
+        keyRemoved: 1,
         blurAdded: 1,
         blurRemoved: 1,
-        resizeAdded: 2,
-        resizeRemoved: 2,
+        resizeAdded: 1,
+        resizeRemoved: 1,
       });
       expect(snapshot.museum).not.toBeNull();
       expect(snapshot.museum!.isDisposed).toBe(true);
@@ -285,6 +291,7 @@ for (const key of ['w', 'h'] as const) {
   test(title, async ({ page }) => {
     await readyExterior(page);
     await walkExteriorTo(page, { x: 29, z: -15 });
+    await closeFrontDoorForManualTest(page);
     await expect(page.locator(button)).toBeVisible();
     await page.locator(button).focus();
     await expect(page.locator(button)).toBeFocused();
@@ -442,6 +449,7 @@ test('routes from a valid fractional pose beside a solid planter without snappin
   test.setTimeout(120_000);
   await readyExterior(page);
   await walkExteriorTo(page, { x: 29, z: -15 });
+  await closeFrontDoorForManualTest(page);
   await page.locator(button).click();
   await waitDoor(page, 'front-door', 'open');
   const edge = { x: 41.72, z: -9.2 };
@@ -490,19 +498,21 @@ test('walks from fresh spawn through the front door to the sidewalk and back', a
     await page.evaluate(() => window.portfolio!.world!.getPlayerPosition())
   ).toMatchObject({ x: 0, y: 0 });
   await walkExteriorTo(page, { x: 29, z: -15 });
+  await closeFrontDoorForManualTest(page);
   await expect(page.locator(button)).toHaveAccessibleName('Open Front door');
   const closed = await page.evaluate(() => {
     const w = window.portfolio!.world!;
     const before = w.getPlayerPosition();
-    for (let i = 0; i < 50; i++) w.stepPlayerForTest({ dx: 0.1, dz: 0 });
     return {
       before,
       after: w.getPlayerPosition(),
+      canCross: w.canOccupyPosition({ x: 32, z: -15, floorId: 'ground' }),
       door: w.getDoorSnapshots()[0],
     };
   });
   expect(closed.after.x).toBeLessThan(32);
   expect(closed.door.blocked).toBe(true);
+  expect(closed.canCross).toBe(false);
   // Native remappable Interact, followed by native camera-relative movement across the aperture.
   await page.locator('#app canvas').focus();
   await page.keyboard.press('KeyF');
@@ -559,6 +569,7 @@ test(interruptedActivationTitle, async ({ page }) => {
   test.setTimeout(120_000);
   await readyExterior(page);
   await walkExteriorTo(page, { x: 29, z: -15 });
+  await closeFrontDoorForManualTest(page);
   await page.locator(button).click();
   await expect
     .poll(() =>
@@ -624,6 +635,7 @@ test('continues native controls from focused door and dismissed settings buttons
   test.setTimeout(120_000);
   await readyExterior(page);
   await walkExteriorTo(page, { x: 29, z: -15 });
+  await closeFrontDoorForManualTest(page);
   await page.locator(button).click();
   await waitDoor(page, 'front-door', 'open');
   await expect(page.locator(button)).toBeFocused();
@@ -712,6 +724,7 @@ test(pseudoLocaleTitle, async ({ page }) => {
     .click();
   await page.keyboard.press('Escape');
   await walkExteriorTo(page, { x: 29, z: -15 });
+  await closeFrontDoorForManualTest(page);
   const control = page.locator(button);
   await expect(control).toBeVisible();
   const bounds = (await control.boundingBox())!;
@@ -771,6 +784,7 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     await readyExterior(page);
     await walkExteriorTo(page, { x: 29, z: -15 });
+    await closeFrontDoorForManualTest(page);
     await expect(page.locator(button)).toBeVisible();
     const bounds = (await page.locator(button).boundingBox())!;
     expect(bounds.x).toBeGreaterThanOrEqual(0);
@@ -799,6 +813,7 @@ test('opens once by touch and crosses both ways using the phone joystick', async
   const page = await context.newPage();
   await readyExterior(page);
   await walkExteriorTo(page, { x: 29, z: -15 });
+  await closeFrontDoorForManualTest(page);
   await page.locator(button).tap();
   await waitDoor(page, 'front-door', 'open');
   await page.waitForTimeout(300);

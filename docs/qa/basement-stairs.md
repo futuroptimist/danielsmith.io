@@ -17,18 +17,24 @@ existing staircase constructor and movement controller.
 The validated reservation remains level X `1.9`, width `2.4`, bottom Z `-14.65`,
 positive-Z ascent to `-7`, and landing end `-4.4`. World coordinates are therefore
 center X `3.8`, clear physical stair width `4.8`, bottom Z `-29.3`, top Z `-14`,
-and landing end `-8.8`. The upper landing is entered from the west. The narrow gap
-between the two parallel stair runs is not a circulation route.
+and landing end `-8.8`. The upper landing is entered from the west. The front-entry stage enables a grounded approach beneath the high upstairs
+flight, then through the existing gap to this landing. The preserved floor plan
+has a narrow 0.92-world-unit avatar-center bottleneck here after expanding both
+side guards by the 0.75-unit avatar radius; it is a deliberate exception to the
+2.5-unit circulation target. Earlier stages without the underpass retain the
+west landing approach. Do not cross the low treads or physical void rails.
 
 The solid `living-room-slim-entry-console` was relocated from world `(3.2, -13)`
 to `(-6.5, -10)`, retaining its `2.6 × 0.7` footprint and blocking policy. Its
 former position occupied the new landing. No upstairs guard was moved or removed.
-The nearby living-room wall segment becomes translucent while the avatar is on
-or approaching this landing; its source-backed wall collider stays unchanged.
+The nearby living-room wall segment stays at **80% opacity** while the avatar is
+on or approaching this landing; its source-backed wall collider stays unchanged.
 This keeps the avatar visible without moving the spawn or changing the fixed
 camera orientation or initial framing. The wall restores on departure.
 Its cloned material follows the shared wall's animated lightmap intensity while
 keeping cutaway opacity, transparency, and depth-writing state independent.
+The clone restores its original material settings on exit and is disposed once
+on normal or interrupted scene teardown without disposing the shared wall material.
 
 - The complete descending run is cut out of the ground slab; the shared landing
   top is exactly ground elevation
@@ -39,6 +45,29 @@ keeping cutaway opacity, transparency, and depth-writing state independent.
   unrelated upstairs connection is hidden in the basement
 - The tabletop ground view uses the same stair opening; below-ground content is
   outside its ground-only presentation
+
+## Rail surface seams
+
+The ground-floor cutout includes the source-derived guard/trim footprints, so
+the floor slab and brown trim cannot render the same long inner opening faces.
+The final stepped parapets stop at the trim underside rather than extending
+through the ground rails. Their safety colliders and continuous visible guard
+coverage are unchanged; neither correction uses polygon offsets or depth bias.
+
+[Surface audit tests](../../src/scene/structures/__tests__/meshSurfaceAudit.test.ts) cover the
+two reported visual defects using actual generated stair and floor triangles.
+Its reusable helper compares nearly coplanar, equally facing surfaces in world
+space and clips the triangles to measure positive overlap area. It reports mesh
+names, semantic source IDs, face indices, plane separation, and overlap area.
+Fixtures cover transforms, indexed geometry, material groups, hidden ancestors,
+near-plane tolerances, edge contacts, and ordinary perpendicular intersections.
+
+This is a focused geometry check, not universal artifact detection. It does not
+simulate occlusion, shader deformation, polygon offsets, instancing, or hardware
+depth precision. Visual review must still inspect both rail junctions while in
+the basement and the long trim from the ground landing, including small camera
+movements that reveal shimmering. Revisit and leave the landing to check the
+80% wall treatment, full-opacity restoration, and unchanged wall collision.
 
 ## Measured clearance
 

@@ -26,6 +26,8 @@ export interface StairConnection extends StairFloorPair {
   readonly layout: StairLayoutResult;
   readonly behavior: StairBehavior;
   readonly groups: readonly Object3D[];
+  /** Admit lower-floor ascent only at the foot when ground also runs below the stairs. */
+  readonly lowerEntranceOnly?: boolean;
   readonly sources: {
     readonly visual: string;
     readonly navigation: string;
@@ -180,8 +182,16 @@ export function createFloorConnectionController({
     x: number,
     z: number,
     floorId: FloorId
-  ) =>
-    classifyStairTransitionZone(
+  ): StairTransitionZone => {
+    if (
+      connection.lowerEntranceOnly &&
+      floorId === connection.lowerFloorId &&
+      isWithinStairWidth(connection.geometry, x) &&
+      Math.abs(z - connection.geometry.bottomZ) <=
+        connection.behavior.transitionMargin
+    )
+      return 'lowerStairEntrance';
+    return classifyStairTransitionZone(
       connection.geometry,
       connection.behavior,
       x,
@@ -189,6 +199,7 @@ export function createFloorConnectionController({
       floorId,
       connection
     );
+  };
 
   const resolve = (
     x: number,
@@ -202,7 +213,13 @@ export function createFloorConnectionController({
     const candidates = connections.filter(
       (connection) =>
         isConnectionAdjacent(connection, floorId) &&
-        isTransitionZone(classify(connection, x, z, floorId))
+        isTransitionZone(classify(connection, x, z, floorId)) &&
+        (!connection.lowerEntranceOnly ||
+          floorId !== connection.lowerFloorId ||
+          state.activeConnectionId === connection.id ||
+          (isWithinStairWidth(connection.geometry, x) &&
+            Math.abs(z - connection.geometry.bottomZ) <=
+              connection.behavior.transitionMargin))
     );
     if (candidates.length > 1) {
       throw new Error(`Ambiguous stair transition on floor '${floorId}'.`);
@@ -265,25 +282,33 @@ export function createFloorConnectionController({
       state = preview(x, z);
       return { ...state };
     },
-    reset(floorId: FloorId) {
+    reset(floorId: FloorId, activeConnectionId: string | null = null) {
       floors.get(floorId);
+      if (
+        activeConnectionId &&
+        !isConnectionAdjacent(getConnection(activeConnectionId), floorId)
+      ) {
+        throw new Error(
+          `Connection '${activeConnectionId}' is not adjacent to '${floorId}'.`
+        );
+      }
       state = {
         floorId,
-        activeConnectionId: null,
+        activeConnectionId,
         descentOriginFloorId: null,
         zone: 'outsideStairs',
       };
     },
-    sampleHeight(x: number, z: number): number {
-      const connection = state.activeConnectionId
-        ? getConnection(state.activeConnectionId)
-        : resolve(x, z, state.floorId);
-      if (!connection) return floors.get(state.floorId).elevation;
+    sampleHeight(x: number, z: number, sampleState = state): number {
+      const connection = sampleState.activeConnectionId
+        ? getConnection(sampleState.activeConnectionId)
+        : resolve(x, z, sampleState.floorId);
+      if (!connection) return floors.get(sampleState.floorId).elevation;
       return sampleStairSurfaceHeight({
         ...connection,
         x,
         z,
-        currentFloor: state.descentOriginFloorId ?? state.floorId,
+        currentFloor: sampleState.descentOriginFloorId ?? sampleState.floorId,
       });
     },
     getSnapshot(x: number, z: number) {

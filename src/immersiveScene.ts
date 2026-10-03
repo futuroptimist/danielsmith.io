@@ -182,11 +182,9 @@ import {
   type LevelSourceId,
 } from './scene/level/sourceIds';
 import {
-  createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
   type LevelSafetyCollider,
 } from './scene/level/stairSafetyColliders';
-import { BUS_STOP } from './scene/level/streetLayout';
 import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from './scene/level/upperStairwellLandingSegments';
 import { getWallColliderDebugIdentity } from './scene/level/wallColliderDebugIdentity';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
@@ -277,6 +275,7 @@ import {
   createAxelNavigator,
   type AxelNavigatorBuild,
 } from './scene/structures/axelNavigator';
+import { createBasementLandingCutaway } from './scene/structures/basementLandingCutaway';
 import { createBasementStaircase } from './scene/structures/basementStaircase';
 import {
   createCareerMuseum,
@@ -357,6 +356,7 @@ import {
   createUpperLandingFloorCutouts,
   createUpperLandingStairRunApproachFootprint,
 } from './scene/structures/upperLandingFloorCutouts';
+import { createUpperStairGroundPassage } from './scene/structures/upperStairGroundPassage';
 import {
   createUpperStairwellLanding,
   type UpperStairwellLandingCollider,
@@ -503,7 +503,7 @@ import {
   type AccessibilityPresetManager,
 } from './ui/accessibility/presetManager';
 import { CHANGELOG_URL } from './ui/changelog';
-import { createBusStopControl } from './ui/exterior/busStopControl';
+import { createBusStopDescription } from './ui/exterior/busStopDescription';
 import { createDoorControl } from './ui/exterior/doorControl';
 import {
   createAudioSubtitles,
@@ -1448,6 +1448,7 @@ function buildImmersiveScene(
   let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
   let partiallyInitializedTutorialPanel: TutorialPanelHandle | null = null;
+  let disposeBasementLandingCutaway: (() => void) | null = null;
   let removePartiallyInitializedTutorialVisitedSubscription:
     | (() => void)
     | null = null;
@@ -1459,6 +1460,7 @@ function buildImmersiveScene(
       return;
     }
     immersiveLifecycle = 'disposing';
+    disposeBasementLandingCutaway?.();
     if (inputLatencyTelemetry) {
       inputLatencyTelemetry.report('dispose-partial');
       inputLatencyTelemetry.dispose();
@@ -1875,10 +1877,7 @@ function buildImmersiveScene(
       elevation: GROUND_FLOOR_TOP_ELEVATION,
       groupName: 'GroundFloorTiles',
       cutoutsBySurfaceId: {
-        'livingRoom-floor-main': [
-          basementStaircase.opening,
-          basementStaircase.landing,
-        ],
+        'livingRoom-floor-main': basementStaircase.floorCutouts,
       },
     }
   );
@@ -1977,7 +1976,9 @@ function buildImmersiveScene(
       getRoomCategory,
     }
   );
-  const basementLandingWallMaterial = wallMaterial.clone();
+  const basementLandingCutaway = createBasementLandingCutaway(wallMaterial);
+  const basementLandingWallMaterial = basementLandingCutaway.material;
+  disposeBasementLandingCutaway = basementLandingCutaway.dispose;
   let basementLandingCutawayActive = false;
   const groundWallMeshes = createWallSegmentMeshes({
     instances: groundWallInstances,
@@ -2161,6 +2162,7 @@ function buildImmersiveScene(
   const stairConnections: StairConnection[] = [
     {
       id: 'ground-upper',
+      lowerEntranceOnly: true,
       lowerFloorId: 'ground',
       upperFloorId: 'upper',
       lowerFloorElevation: GROUND_FLOOR_TOP_ELEVATION,
@@ -2189,22 +2191,6 @@ function buildImmersiveScene(
   ];
   const upperStairNavZones = [stairNavigationZones.upperLanding];
   const stairGuardThickness = toWorldUnits(0.22);
-  const stairGuardMinZ = stairLayout.guardRange.minZ;
-  const stairGuardMaxZ = stairLayout.guardRange.maxZ;
-
-  groundColliders.push({
-    minX: stairCenterX - stairHalfWidth - stairGuardThickness,
-    maxX: stairCenterX - stairHalfWidth,
-    minZ: stairGuardMinZ,
-    maxZ: stairGuardMaxZ,
-  });
-  groundColliders.push({
-    minX: stairCenterX + stairHalfWidth,
-    maxX: stairCenterX + stairHalfWidth + stairGuardThickness,
-    minZ: stairGuardMinZ,
-    maxZ: stairGuardMaxZ,
-  });
-
   const floorBuildColliders = new Map<string, RectCollider[]>([
     ['basement', basementColliders],
     ['ground', groundColliders],
@@ -2233,8 +2219,8 @@ function buildImmersiveScene(
     registerSafetyCollider(collider);
   };
 
-  createGroundStairSafetyColliders(stairGeometry, stairBehavior, {
-    playerRadius: PLAYER_RADIUS,
+  createUpperStairGroundPassage(STAIRCASE_CONFIG, {
+    connectionId: 'ground-upper',
     guardThickness: stairGuardThickness,
   }).forEach(registerOriginalStairSafetyCollider);
 
@@ -3800,7 +3786,12 @@ function buildImmersiveScene(
             `Cannot occupy (${x.toFixed(2)}, ${z.toFixed(2)}) on floor ${predictedFloor}`
           );
         }
-        floorConnections.reset(predictedFloor);
+        const candidate = floorConnections.preview(
+          x,
+          z,
+          floorId ?? activeFloorId
+        );
+        floorConnections.reset(predictedFloor, candidate.activeConnectionId);
         player.position.x = x;
         player.position.z = z;
         setActiveFloorId(predictedFloor);
@@ -4622,48 +4613,9 @@ function buildImmersiveScene(
       ),
   });
   exteriorCleanup.add(disposeDoorInteraction);
-  const busStopControl = createBusStopControl({
-    parent: container,
-    restoreFocus: () => renderer.domElement.focus(),
-  });
-  exteriorCleanup.add(() => busStopControl.dispose());
-  const busStopInRange = () =>
-    activeFloorId === 'ground' &&
-    Math.hypot(
-      player.position.x - BUS_STOP.x * FLOOR_PLAN_SCALE,
-      player.position.z - BUS_STOP.z * FLOOR_PLAN_SCALE
-    ) <= BUS_STOP.interactionRadius;
-  const onBusStopKey = (event: KeyboardEvent) => {
-    if (
-      event.defaultPrevented ||
-      event.altKey ||
-      event.ctrlKey ||
-      event.metaKey ||
-      isDoorUiBlocked() ||
-      isUiOwnedKeyboardEvent(event) ||
-      hasConflictingKeyBinding(event, 'interact') ||
-      !busStopInRange() ||
-      !canHandleGameplayShortcut(
-        event,
-        hudPanelCoordinator?.getActivePanel() ?? null
-      )
-    )
-      return;
-    if (
-      !keyBindings
-        .getBindings('interact')
-        .some((key) => key.toLowerCase() === event.key.toLowerCase())
-    )
-      return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    if (!event.repeat) busStopControl.activate();
-  };
-  window.addEventListener('keydown', onBusStopKey, true);
-  exteriorCleanup.add(() =>
-    window.removeEventListener('keydown', onBusStopKey, true)
-  );
-  function updateExteriorDoors(delta: number) {
+  const busStopDescription = createBusStopDescription(container);
+  exteriorCleanup.add(() => busStopDescription.dispose());
+  function updateExteriorDoors(delta: number, movement = { x: 0, z: 0 }) {
     const occupant = doorOccupant();
     doorColliders.length = 0;
     for (const door of exteriorDoors) {
@@ -4672,7 +4624,8 @@ function buildImmersiveScene(
         occupant,
         reducedMotionQuery.matches ||
           document.documentElement.dataset.accessibilityMotion === 'reduced' ||
-          getPulseScale() === 0
+          getPulseScale() === 0,
+        { maximumSpeed: PLAYER_SPEED, movement }
       );
       if (state.blocked) doorColliders.push(door.definition.blockingBounds);
       if (doorBlockerStates.get(door.definition.id) !== state.blocked) {
@@ -4686,14 +4639,10 @@ function buildImmersiveScene(
     residentialExterior.update(occupant);
     residentialStreet.update(activeSceneDetailPolicy, occupant);
     residentialStreet.setStrings(getExteriorStrings(locale));
-    const busStopVisible = !isDoorUiBlocked() && busStopInRange();
-    doorProjection
-      .set(BUS_STOP.x * FLOOR_PLAN_SCALE, 2, BUS_STOP.z * FLOOR_PLAN_SCALE)
-      .project(camera);
-    busStopControl.update(busStopVisible, getExteriorStrings(locale), {
-      x: ((doorProjection.x + 1) * window.innerWidth) / 2,
-      y: ((1 - doorProjection.y) * window.innerHeight) / 2,
-    });
+    busStopDescription.update(
+      activeFloorId === 'ground',
+      getExteriorStrings(locale)
+    );
 
     selectedDoor = isDoorUiBlocked()
       ? null
@@ -4931,6 +4880,19 @@ function buildImmersiveScene(
   const predictFloorId = (x: number, z: number, current: FloorId): FloorId =>
     floorConnections.preview(x, z, current).floorId;
 
+  const getCollisionActor = (x: number, z: number, floorId: FloorId) => {
+    const candidate = floorConnections.preview(x, z, activeFloorId);
+    return {
+      feetY:
+        candidate.floorId === floorId
+          ? floorConnections.sampleHeight(x, z, candidate)
+          : floorRegistry.get(floorId).elevation,
+      height: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
+      activeConnectionId:
+        candidate.floorId === floorId ? candidate.activeConnectionId : null,
+    };
+  };
+
   const canOccupyPosition = (
     x: number,
     z: number,
@@ -4944,7 +4906,13 @@ function buildImmersiveScene(
 
     if (
       getFloorCollisionCollections(floor).some((colliders) =>
-        collidesWithColliders(x, z, PLAYER_RADIUS, colliders)
+        collidesWithColliders(
+          x,
+          z,
+          PLAYER_RADIUS,
+          colliders,
+          getCollisionActor(x, z, floorId)
+        )
       )
     ) {
       return false;
@@ -4980,28 +4948,12 @@ function buildImmersiveScene(
     // cuts away while the avatar approaches this otherwise-hidden ground landing.
     if (nearBasementLanding !== basementLandingCutawayActive) {
       basementLandingCutawayActive = nearBasementLanding;
-      basementLandingWallMaterial.opacity = nearBasementLanding ? 0.18 : 1;
-      basementLandingWallMaterial.transparent = nearBasementLanding;
-      basementLandingWallMaterial.depthWrite = !nearBasementLanding;
-      basementLandingWallMaterial.needsUpdate = true;
+      basementLandingCutaway.setActive(nearBasementLanding);
     }
     player.position.y = floorConnections.sampleHeight(
       player.position.x,
       player.position.z
     );
-  };
-
-  const collidesWithCollider = (
-    x: number,
-    z: number,
-    radius: number,
-    collider: RectCollider
-  ): boolean => {
-    const closestX = MathUtils.clamp(x, collider.minX, collider.maxX);
-    const closestZ = MathUtils.clamp(z, collider.minZ, collider.maxZ);
-    const dx = x - closestX;
-    const dz = z - closestZ;
-    return dx * dx + dz * dz < radius * radius;
   };
 
   const getBlockingNamesAt = (
@@ -5018,7 +4970,15 @@ function buildImmersiveScene(
 
     for (const colliders of getFloorCollisionCollections(floor)) {
       for (const collider of colliders) {
-        if (collidesWithCollider(x, z, PLAYER_RADIUS, collider)) {
+        if (
+          collidesWithColliders(
+            x,
+            z,
+            PLAYER_RADIUS,
+            [collider],
+            getCollisionActor(x, z, floorId)
+          )
+        ) {
           blockedBy.add(
             namedColliderDebugNames.get(collider) ?? `${floorId}Collider`
           );
@@ -5685,9 +5645,13 @@ function buildImmersiveScene(
       .filter(
         (collider) =>
           (collider.floor === floorId || collider.floor === 'all') &&
-          collidesWithColliders(target.x, target.z, PLAYER_RADIUS, [
-            collider.bounds,
-          ])
+          collidesWithColliders(
+            target.x,
+            target.z,
+            PLAYER_RADIUS,
+            [collider.bounds],
+            getCollisionActor(target.x, target.z, floorId)
+          )
       );
   };
 
@@ -6631,6 +6595,7 @@ function buildImmersiveScene(
 
   function updateMovement(delta: number) {
     if (hudPanelCoordinator?.getActivePanel() === 'settings') {
+      updateExteriorDoors(delta);
       targetVelocity.set(0, 0, 0);
       velocity.set(0, 0, 0);
       joystick.reset();
@@ -6689,6 +6654,7 @@ function buildImmersiveScene(
 
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
+    updateExteriorDoors(delta, { x: stepX, z: stepZ });
 
     if (stepX !== 0 || stepZ !== 0) {
       const movementStep = applyPlayerMovementStep(stepX, stepZ);
@@ -7061,6 +7027,7 @@ function buildImmersiveScene(
       return;
     }
     immersiveLifecycle = 'disposing';
+    disposeBasementLandingCutaway?.();
     if (inputLatencyTelemetry) {
       inputLatencyTelemetry.report('dispose');
       inputLatencyTelemetry.dispose();
@@ -7404,7 +7371,6 @@ function buildImmersiveScene(
         return;
       }
       let phaseStart = performance.now();
-      updateExteriorDoors(delta);
       updateMovement(delta);
       if (locomotionAnimator) {
         locomotionAnimator.update({

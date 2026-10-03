@@ -114,9 +114,48 @@ it('cuts away the closed overhead visual inside the garage without changing coll
   expect(door.snapshot()).toMatchObject({ progress: 0, blocked: true });
   const panel = build.group.getObjectByName('DoorPanel:garage-door')!;
   const slab = panel.children[0] as Mesh;
-  expect((slab.material as { opacity: number }).opacity).toBe(0.22);
+  const material = slab.material as {
+    opacity: number;
+    transparent: boolean;
+    depthWrite: boolean;
+  };
+  expect(material).toMatchObject({
+    opacity: 0.8,
+    transparent: true,
+    depthWrite: false,
+  });
+  const front = build.group.getObjectByName('DoorPanel:front-door')!
+    .children[0] as Mesh;
+  expect((front.material as { opacity: number }).opacity).toBe(1);
   build.update({ x: 53, z: 4, floorId: 'ground' });
   expect(build.getCutawaySourceIds()).toEqual([]);
-  expect((slab.material as { opacity: number }).opacity).toBe(1);
+  expect(material).toMatchObject({
+    opacity: 1,
+    transparent: false,
+    depthWrite: true,
+  });
+  build.update({ x: 47, z: 4, floorId: 'basement' });
+  expect(material).toMatchObject({
+    opacity: 1,
+    transparent: false,
+    depthWrite: true,
+  });
+  const materialDisposals: ReturnType<typeof vi.fn>[] = [];
+  const owned = new Set();
+  build.group.traverse((object) => {
+    if (!(object instanceof Mesh)) return;
+    const materials = Array.isArray(object.material)
+      ? object.material
+      : [object.material];
+    for (const entry of materials) {
+      if (owned.has(entry)) continue;
+      owned.add(entry);
+      materialDisposals.push(vi.spyOn(entry, 'dispose'));
+    }
+  });
   build.dispose();
+  build.dispose();
+  materialDisposals.forEach((dispose) =>
+    expect(dispose).toHaveBeenCalledTimes(1)
+  );
 });

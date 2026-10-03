@@ -51,8 +51,10 @@ for (const mode of ['handler', 'throw'] as const) {
       expect(snapshot.controlsRemaining).toBe(0);
       expect(snapshot.worldAvailable).toBe(false);
       expect(snapshot.rendererDisposals).toBe(1);
-      const allocated = phase === 'controls' ? 2 : 0;
+      const allocated = phase === 'controls' ? 1 : 0;
       expect(snapshot.controlsAllocated).toBe(allocated);
+      expect(snapshot.descriptionsAllocated).toBe(allocated);
+      expect(snapshot.descriptionsRemaining).toBe(0);
       expect(snapshot.listeners).toEqual({
         keyAdded: allocated,
         keyRemoved: allocated,
@@ -103,33 +105,46 @@ for (const mode of ['throw-cleanup', 'async-cleanup'] as const) {
       lights: 4,
     });
     expect(snapshot.disposed).toEqual(snapshot.expected);
-    expect(snapshot.controlsAllocated).toBe(2);
+    expect(snapshot.controlsAllocated).toBe(1);
+    expect(snapshot.descriptionsAllocated).toBe(1);
+    expect(snapshot.descriptionsRemaining).toBe(0);
     expect(snapshot.controlsRemaining).toBe(0);
     expect(snapshot.groupAttached).toBe(false);
     expect(snapshot.worldAvailable).toBe(false);
     expect(snapshot.listeners).toEqual({
-      keyAdded: 2,
-      keyRemoved: 2,
+      keyAdded: 1,
+      keyRemoved: 1,
       blurAdded: 1,
       blurRemoved: 1,
-      resizeAdded: 2,
-      resizeRemoved: 2,
+      resizeAdded: 1,
+      resizeRemoved: 1,
     });
   });
 }
 
-async function exitHouse(page: Page) {
+async function ensureFrontDoorOpen(page: Page) {
   await walkExteriorTo(page, { x: 29, z: -15 });
-  await page
-    .locator('[data-exterior-door-control][data-door-id="front-door"]')
-    .click();
+  // Proximity updates run on the next scene frame after collision stepping.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          window
+            .portfolio!.world!.getDoorSnapshots()
+            .find((door) => door.id === 'front-door')?.target
+      )
+    )
+    .toBe(1);
   await waitDoor(page, 'front-door', 'open');
+}
+async function exitHouse(page: Page) {
+  await ensureFrontDoorOpen(page);
   await walkExteriorTo(page, { x: 55, z: -15 });
 }
 async function reachStop(page: Page) {
   await exitHouse(page);
   await walkExteriorTo(page, { x: 55, z: 32 });
-  await expect(page.locator(stop)).toBeVisible();
+  await expect(page.locator('[data-bus-stop-description]')).toHaveCount(1);
 }
 async function nativeZ(page: Page, target: number, positive: boolean) {
   await page.locator('#app canvas').focus();
@@ -277,7 +292,7 @@ test(streetCaseTitle2, async ({ page }) => {
   await nativeZ(page, 31.8, true);
   // Reproducible normal-view sign pose after native traversal.
   await walkExteriorTo(page, { x: 55, z: 32 });
-  await expect(page.locator(stop)).toBeVisible();
+  await expect(page.locator(stop)).toHaveText('Bus stop: Coming Soon');
   const snapshot = await page.evaluate(() =>
     window.portfolio!.world!.getStreetSnapshot()
   );
@@ -341,49 +356,137 @@ test(streetCaseTitle2, async ({ page }) => {
   ).toBe('ground');
 });
 
+test('keeps downward lamp pools visible on approach, passing and departure', async ({
+  page,
+}) => {
+  test.setTimeout(180000);
+  await page.addInitScript(() => {
+    localStorage.setItem('danielsmith:graphics-quality-level', 'balanced');
+  });
+  await readyExterior(page);
+  // Software rendering deliberately ignores stored quality at startup. Select
+  // the real Balanced mode so this case exercises the dynamic-light boundary.
+  if (
+    (await page.evaluate(() => window.portfolio!.graphics!.getLevel())) !==
+    'balanced'
+  ) {
+    await Promise.all([
+      page.waitForEvent('domcontentloaded'),
+      page.evaluate(() => window.portfolio!.graphics!.setLevel('balanced')),
+    ]);
+  }
+  await page.waitForFunction(
+    () =>
+      document.documentElement.dataset.appMode === 'immersive' &&
+      window.portfolio?.graphics?.getLevel() === 'balanced' &&
+      !!window.portfolio?.world?.getStreetSnapshot
+  );
+  const safe = page.locator('[data-action="continue-safe-immersive"]');
+  if (await safe.isVisible()) await safe.click();
+  await ensureFrontDoorOpen(page);
+  const samples = [];
+  for (const [name, x, z] of [
+    ['approach', 44.9, -15],
+    ['activation-boundary', 45.1, -15],
+    ['sidewalk', 55, -15],
+    ['first-pole', 55, -28],
+    ['second-pole', 55, -8],
+    ['third-pole', 55, 12],
+    ['fourth-pole', 55, 32],
+    ['return', 55, -15],
+    ['departure-boundary', 44.9, -15],
+  ] as const) {
+    await walkExteriorTo(page, { x, z });
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          window
+            .portfolio!.world!.getStreetSnapshot()
+            .lamps.every((lamp) => lamp.groundPoolVisible)
+        )
+      )
+      .toBe(true);
+    await page.waitForTimeout(200);
+    const sample = await page.evaluate(() => {
+      const diagnostics = window.portfolio!.performance!.getSnapshot();
+      return {
+        position: window.portfolio!.world!.getPlayerPosition(),
+        camera: window.portfolio!.world!.getCameraState(),
+        street: window.portfolio!.world!.getStreetSnapshot(),
+        quality: diagnostics.quality,
+        renderer: {
+          isSoftwareRenderer: diagnostics.renderer.isSoftwareRenderer,
+          riskLevel: diagnostics.renderer.riskLevel,
+        },
+        counters: diagnostics.rendererCounters,
+      };
+    });
+    samples.push({ name, ...sample });
+    expect(sample.camera.cutawaySourceIds).not.toContain('ground.street.lamps');
+    for (const lamp of sample.street.lamps) {
+      expect(lamp.groundPoolVisible).toBe(true);
+      expect(lamp.hoodOpaque).toBe(true);
+      expect(lamp.position.y).toBeGreaterThan(lamp.target.y);
+      expect(lamp.castShadow).toBe(false);
+    }
+    if (
+      [
+        'approach',
+        'activation-boundary',
+        'fourth-pole',
+        'departure-boundary',
+      ].includes(name)
+    ) {
+      await page.screenshot({
+        path: test.info().outputPath(`lamp-pools-${name}.png`),
+      });
+    }
+  }
+  writeFileSync(
+    test.info().outputPath('lamp-approach-passing-departure.json'),
+    JSON.stringify(samples, null, 2)
+  );
+  await test.info().attach('lamp-approach-passing-departure.json', {
+    body: JSON.stringify(samples, null, 2),
+    contentType: 'application/json',
+  });
+  expect(samples[0].street.lamps.every((lamp) => !lamp.active)).toBe(true);
+  // Prove the high-detail replacement boundary was actually crossed in this run.
+  expect(samples[1].quality.level).toBe('balanced');
+  expect(
+    samples[1].quality.sceneDetail?.policy.effects.dynamicPointLights
+  ).toBe(true);
+  expect(samples[1].street.lamps.every((lamp) => lamp.active)).toBe(true);
+  expect(samples.at(-1)!.street.lamps.every((lamp) => !lamp.active)).toBe(true);
+});
+
 const streetCaseTitle3 =
-  'keeps Coming Soon informational through native repeats, ' +
-  'dismissal, settings, range changes and accessibility checks';
+  'keeps the world sign passive through keyboard input, settings and accessibility checks';
 test(streetCaseTitle3, async ({ page }) => {
   test.setTimeout(150000);
   await readyExterior(page);
   await reachStop(page);
-  const button = page.locator(`${stop} button`);
-  await expect(button).toHaveAccessibleName('Bus stop: Coming Soon');
+  const description = page.locator('[data-bus-stop-description]');
+  await expect(description).toHaveText('Bus stop: Coming Soon');
+  await expect(
+    page.locator(`${stop} button, ${stop} a, .exterior-bus-stop-control`)
+  ).toHaveCount(0);
   const url = page.url();
   const before = await page.evaluate(() =>
     window.portfolio!.world!.getPlayerPosition()
   );
-  await button.focus();
-  await page.keyboard.down('Enter');
-  for (let i = 0; i < 3; i++) await page.keyboard.down('Enter');
-  await page.keyboard.up('Enter');
-  await expect(button).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator(`${stop} p`)).toHaveText(
-    EXTERIOR_LOCALE_COPY.en.busStopMessage
-  );
+  for (const key of ['KeyF', 'Enter', 'Space', 'Escape'])
+    await page.keyboard.press(key);
   expect(page.url()).toBe(url);
   expect(
     await page.evaluate(() => window.portfolio!.world!.getPlayerPosition())
   ).toEqual(before);
-  await page.keyboard.press('Escape');
-  await expect(button).toHaveAttribute('aria-expanded', 'false');
+  await expect(description).not.toHaveAttribute('aria-expanded');
   await expect(page.locator('#app canvas')).toBeFocused();
-  await button.focus();
-  await page.keyboard.press('Space');
-  await expect(button).toHaveAttribute('aria-expanded', 'true');
-  await page.keyboard.press('Space');
-  await expect(button).toHaveAttribute('aria-expanded', 'false');
-  await page.keyboard.press('Escape');
-  await page.keyboard.down('KeyF');
-  await page.keyboard.down('KeyF');
-  await page.keyboard.up('KeyF');
-  await expect(button).toHaveAttribute('aria-expanded', 'true');
   await page.locator('[data-control="help"]').click();
-  await expect(page.locator(stop)).toBeHidden();
+  await expect(page.locator('.help-modal-backdrop')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(button).toHaveAttribute('aria-expanded', 'false');
-  await button.click();
+  await expect(page.locator('.help-modal-backdrop')).toBeHidden();
   await page.addScriptTag({ content: axeSource });
   const violations = await page.evaluate(async () =>
     (
@@ -403,44 +506,14 @@ test(streetCaseTitle3, async ({ page }) => {
   );
   expect(violations).toEqual([]);
   await walkExteriorTo(page, { x: 55, z: 22 });
-  await expect(page.locator(stop)).toBeHidden();
+  await expect(
+    page.locator(`${stop} button, ${stop} a, .exterior-bus-stop-control`)
+  ).toHaveCount(0);
 });
-
-for (const key of ['w', 'h']) {
-  test(`keeps conflicting ${key} input from activating the bus stop`, async ({
-    page,
-  }) => {
-    await readyExterior(page);
-    await reachStop(page);
-    const button = page.locator(`${stop} button`);
-    await expect(button).toHaveAttribute('aria-expanded', 'false');
-    await expect(page.locator('.help-modal-backdrop')).toHaveCount(1);
-    await page.evaluate((binding) => {
-      window.portfolio!.input!.keyBindings!.setBinding('interact', [binding]);
-    }, key);
-    await page.locator('#app canvas').focus();
-    const before = await page.evaluate(() =>
-      window.portfolio!.world!.getPlayerPosition()
-    );
-    await page.keyboard.press(key, { delay: 400 });
-    await expect(button).toHaveAttribute('aria-expanded', 'false');
-    if (key === 'w') {
-      await expect(page.locator('.help-modal-backdrop')).toBeHidden();
-      const after = await page.evaluate(() =>
-        window.portfolio!.world!.getPlayerPosition()
-      );
-      expect(
-        Math.hypot(after.x - before.x, after.z - before.z)
-      ).toBeGreaterThan(0.25);
-    } else {
-      await expect(page.locator('.help-modal-backdrop')).toBeVisible();
-    }
-  });
-}
 
 const streetCaseTitle4 =
   'uses all nine native locale choices for the world sign, ' +
-  'disclosure and text alternative';
+  'passive description and text alternative';
 test(streetCaseTitle4, async ({ page }) => {
   test.setTimeout(300000);
   for (const [locale, strings] of Object.entries(EXTERIOR_LOCALE_COPY)) {
@@ -451,16 +524,14 @@ test(streetCaseTitle4, async ({ page }) => {
       .click();
     await page.keyboard.press('Escape');
     await reachStop(page);
-    await expect(page.locator(`${stop} button`)).toHaveText(
+    await expect(page.locator(stop)).toHaveText(
       `${strings.busStop}: ${strings.comingSoon}`
     );
     expect(
       (await page.evaluate(() => window.portfolio!.world!.getStreetSnapshot()))
         .busStop.signText
     ).toBe(`${strings.busStop} · ${strings.comingSoon}`);
-    await page.locator(`${stop} button`).click();
-    await expect(page.locator(`${stop} p`)).toHaveText(strings.busStopMessage);
-    await page.keyboard.press('Escape');
+    await expect(page.locator(`${stop} button, ${stop} a`)).toHaveCount(0);
     await page.keyboard.press('KeyT');
     await expect(page.locator('html')).toHaveAttribute(
       'data-app-mode',
@@ -470,7 +541,10 @@ test(streetCaseTitle4, async ({ page }) => {
       'data-availability',
       'coming-soon'
     );
-    await expect(page.locator(`${stop} p`)).toHaveText(strings.busStopMessage);
+    await expect(page.locator(stop)).toHaveText(
+      `${strings.busStop}: ${strings.comingSoon}`
+    );
+    await expect(page.locator(`${stop} button, ${stop} a`)).toHaveCount(0);
   }
 });
 
@@ -501,25 +575,13 @@ for (const viewport of [
       await page.keyboard.press('Escape');
     }
     await reachStop(page);
-    const control = page.locator(stop);
-    await control.locator('button').tap();
-    await expect(control.locator('button')).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    );
-    const bounds = (await control.boundingBox())!;
-    expect(bounds.x).toBeGreaterThanOrEqual(0);
-    expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width);
-    expect(bounds.y).toBeGreaterThanOrEqual(0);
-    expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height);
+    await expect(
+      page.locator(`${stop} button, ${stop} a, .exterior-bus-stop-control`)
+    ).toHaveCount(0);
+    await expect(page.locator('[data-bus-stop-description]')).toHaveCount(1);
     await page.screenshot({
-      path: test.info().outputPath('street-mobile-disclosure.png'),
+      path: test.info().outputPath('street-mobile-world-sign.png'),
     });
-    await control.locator('button').tap();
-    await expect(control.locator('button')).toHaveAttribute(
-      'aria-expanded',
-      'false'
-    );
     if (viewport.width === 390) {
       const session = await context.newCDPSession(page);
       const origin = { x: 120, y: 620 };
@@ -543,7 +605,7 @@ for (const viewport of [
           touchPoints: [],
         });
       }
-      await expect(control).toBeHidden();
+      await expect(page.locator('.exterior-bus-stop-control')).toHaveCount(0);
     }
     await context.close();
   });
@@ -584,10 +646,8 @@ test(streetCaseTitle5, async ({ page }) => {
     )
   ).toEqual(first);
   await reachStop(page);
-  await expect(page.locator(`${stop} button`)).toHaveAttribute(
-    'aria-expanded',
-    'false'
-  );
+  await expect(page.locator('[data-bus-stop-description]')).toHaveCount(1);
+  await expect(page.locator(`${stop} button, ${stop} a`)).toHaveCount(0);
 });
 
 // The diagram is generated from the same source-owned wall apertures and boundaries.

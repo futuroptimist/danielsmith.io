@@ -140,7 +140,10 @@ export async function injectExteriorInitializationFailure(
       };
       const failure = new Error('Injected exterior initialization failure: ${phase}');
       const controlsAllocated = document.querySelectorAll(
-        '[data-exterior-door-control], .exterior-bus-stop-control'
+        '[data-exterior-door-control]'
+      ).length;
+      const descriptionsAllocated = document.querySelectorAll(
+        '[data-bus-stop-description]'
       ).length;
       window.exteriorCleanupFailures = 0;
       ${
@@ -173,8 +176,12 @@ export async function injectExteriorInitializationFailure(
         groupAttached: ${builder}.group.parent !== null,
         listeners: window.exteriorListenerCounts,
         controlsAllocated,
+        descriptionsAllocated,
+        descriptionsRemaining: document.querySelectorAll(
+          '[data-bus-stop-description]'
+        ).length,
         controlsRemaining: document.querySelectorAll(
-          '[data-exterior-door-control], .exterior-bus-stop-control'
+          '[data-exterior-door-control]'
         ).length,
         worldAvailable: Boolean(window.portfolio?.world),
         rendererDisposals,
@@ -219,6 +226,8 @@ export async function readExteriorFailureSnapshot(page: Page) {
           disposed: Record<string, number>;
           groupAttached: boolean;
           controlsAllocated: number;
+          descriptionsAllocated: number;
+          descriptionsRemaining: number;
           controlsRemaining: number;
           worldAvailable: boolean;
           rendererDisposals: number;

@@ -32,8 +32,17 @@ one polite status announcement. Same-target requests coalesce, reversals retain
 progress, and reduced motion applies the same safety check before an instant
 transition. State is session-local and resets closed on a safe fresh spawn.
 
-Approach from either side within the aperture to reveal the localized DOM button,
-or use the remappable Interact action. Sideways through-wall and inactive-floor
+Approaching the aperture from either side opens the front door automatically.
+The lead distance derives from the native maximum speed and time needed for the
+panel to clear. The same-frame intended movement also detects late turns and
+coarse frames; when less lead time remains, the visible panel accelerates to its
+clearance position before collision tests the movement. Collision never opens
+before the panel clears. The full path across a coarse frame is checked against
+the aperture, so crossing its sensor between rendered frames still opens it.
+
+The localized DOM button and remappable Interact action remain available nearby.
+A manual close while stationary persists; moving inward again or leaving and
+re-entering the approach reopens the door. Doors do not close automatically. Sideways through-wall and inactive-floor
 activation are excluded. Native button activation/navigation keys do not reach
 movement or activate a second target. Ordinary gameplay and remapped letters work
 from closed HUD/door focus and from nonmodal Tutorial/Controls buttons. Remapped
@@ -89,7 +98,11 @@ A planter-edge regression reaches a fractional free pose through movement, prove
 that its globally rounded neighbor collides, then walks onward to the sidewalk.
 No destination teleport establishes traversal. Isolated controller unit tests
 cover repeats, interrupted reversal, occupancy during closing, non-finite delta,
-and reduced motion. Browser cases cover leaving/re-entering range, overlay
+and reduced motion. Proximity regressions sweep the full movement path at the
+native maximum speed from both sides with 60 Hz, 100 ms, 400 ms and 1.5 s frames;
+they also cover late sideways entry, re-approach and stationary manual closure.
+`playwright/immersive-door-proximity.spec.ts` verifies automatic opening during
+uninterrupted trusted native movement without using Interact to cross. Browser cases cover leaving/re-entering range, overlay
 focus, reload, and 1280×720, 1920×1080, 390×844, 360×720 and landscape layouts.
 Fault-injection cases retain the real builders and DOM while exercising direct
 fatal-handler calls and actual throws after the exterior build and after control
@@ -117,7 +130,9 @@ and dresser, which retain their positions and solid colliders; the garage's east
 a fourteen-world-unit vehicle aperture. The garage south wall replaces the
 corresponding yard fence run explicitly in source. The remaining fence segment
 continues to the sidewalk. No overlapping obsolete wall or guard is removed at
-runtime. Both garage doors reuse the front-door controller and input binding. Operable
+runtime. Both garage doors reuse the front-door controller and input binding. Each opens
+automatically on approach from either side, using the same maximum-speed lead
+and same-frame aperture clearance as the front entry. Operable
 apertures explicitly belong to their custom frame factory, so generic interior
 doorway trim is never built through the moving panels or their clear openings.
 
@@ -126,8 +141,10 @@ sidewalk starts at X `26`. This keeps the pedestrian lane flat, visible and clea
 without coplanar pavement. A solid workbench and storage cabinet occupy the back
 of the garage, clear of the full-width vehicle threshold and house approach.
 The existing translucent ceiling treatment preserves the interior cutaway. While
-the avatar is inside, the overhead panel becomes translucent so it cannot hide
-the avatar; its progress and solid blocker are unchanged. Outside it is opaque.
+the avatar is inside, the overhead panel stays 80% opaque so the closed door
+remains legible while revealing the avatar. Its progress and solid blocker are
+unchanged. Outside the cutaway it restores full opacity and depth writing; the
+owned cloned panel materials do not alter the frame or other doors.
 The nearby DOM control stays below the measured HUD rectangle, including phone
 portrait and landscape, rather than being covered by the Text or Settings controls.
 
@@ -138,6 +155,10 @@ whole threshold before the collision gate can reactivate. The slat instances,
 shared geometry and materials are explicitly disposed with the exterior.
 
 Run `playwright/immersive-garage-loop.spec.ts` alongside the front-entry suite.
+`playwright/immersive-door-proximity.spec.ts` approaches all three initially closed
+doors from both sides with uninterrupted native movement, at normal and reduced
+motion. The shared controller sweep repeats maximum-speed passage at 60 Hz,
+100 ms, 400 ms and 1.5 s frames, including late entry and closing reversals.
 It covers house → garage → driveway → sidewalk → front entrance → house and the
 reverse, closed blockers, native keyboard vehicle-door crossing, operations from
 both sides, occupancy and reduced-motion touch. The native occupied-closing
@@ -168,8 +189,10 @@ parked scenery; driving and traffic are outside this stage.
 Four evenly spaced fixtures have opaque hoods and single-sided emissive
 undersides. Their spotlights target the point directly below each fixture, use a
 36-degree half-angle entirely below horizontal, and cast no shadows. Realtime
-lights are active only near the ground-floor street at compatible quality tiers;
-lower tiers use shared, static ground pools. No omnidirectional lamps or upward
+lights are active only near the ground-floor street at compatible quality tiers.
+Shared static downward ground pools stay visible at every quality tier, including
+approach, passing and departure. Realtime light augments those pools instead of
+removing them at the proximity boundary. No omnidirectional lamps or upward
 bulbs are introduced. The street asset pool owns seven geometries, eleven
 materials and one static sign texture. Sign pixels update only when locale copy
 changes. Repeated boxes, wheels, lamp undersides and pools are instanced; all
@@ -181,29 +204,26 @@ its cutaway source is included in camera diagnostics. Shelter dimensions are
 explicit world units for the current two-to-one plan, not an arbitrary-scale
 factory contract.
 
-`residential-bus-stop` is a stable informational interaction with availability
-`coming-soon` and a future destination reference, without a destination URL,
-loader or travel action. The world sign, accessible native disclosure and text
-fallback share the same nine-locale catalog. Enter, Space, the remappable interact
-key and touch expose the message; repeats coalesce, Escape restores canvas focus,
-and walking away or opening a modal collapses it. Long localized content is
-measured and positioned below the HUD within portrait and landscape viewports.
-Projected controls cache their own and HUD dimensions until resize or relevant
-layout/content changes, and skip unchanged DOM writes. Conflicting movement or
-Help bindings remain owned by those actions before the stop handler consumes
-Interact.
+`residential-bus-stop` identifies passive scenery with availability `coming-soon`.
+The physical world sign, screen-reader description and text fallback share the
+same nine-locale sign wording. There is no button, tooltip, disclosure, destination
+reference, keyboard/touch handler or travel suggestion. The screen-reader text is
+available on the ground floor and removed with the immersive scene.
 
-An idempotent disposal scope owns street geometry, lighting, the disclosure and
-its capture listener immediately after allocation. Both handled initialization
-failures and synchronous throws release those resources, detach controls and
-clear only their own published world API. Browser fault-injection cases exercise
-early and late failures through the real initialization error path; ordinary
-text transitions and re-entry retain their separate lifecycle assertions.
+An idempotent disposal scope owns street geometry, lighting and the passive
+text description immediately after allocation. Both handled initialization
+failures and synchronous throws release those resources, detach the remaining
+door control and description, and clear only their own published world API.
+Browser fault-injection cases count the real remaining control, its capture key
+listener and projected-layout resize listener separately from the passive text.
+They retain exact geometry/material/texture/light disposal equality, blur cleanup,
+renderer disposal and repeated-failure assertions. Ordinary text transitions and
+re-entry retain their separate lifecycle assertions.
 
 Run `playwright/immersive-residential-street.spec.ts` with the existing entry,
 garage, basement, upstairs, accessibility and launch-budget suites. Inspect the
 named normal/minimum/maximum-zoom screenshots, parked sedan, shelter cutaway and
-localized touch controls. The versioned `--street` performance profile preserves
+localized passive sign text and touch movement. The versioned `--street` performance profile preserves
 all common, museum, entry and garage legs before appending the parked EV, bus stop,
 shelter interior and return to spawn. Browser lifecycle assertions separately
 verify disposal and a fresh bounded resource pool after text-mode re-entry.

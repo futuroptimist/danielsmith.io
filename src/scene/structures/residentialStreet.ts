@@ -35,7 +35,6 @@ export interface StreetSnapshot {
   busStop: {
     id: string;
     availability: string;
-    futureDestinationRef: string;
     signText: string;
   };
   lamps: Array<{
@@ -45,6 +44,7 @@ export interface StreetSnapshot {
     angle: number;
     castShadow: boolean;
     active: boolean;
+    groundPoolVisible: boolean;
     hoodOpaque: boolean;
   }>;
   carBounds: ExteriorSolid['collider'];
@@ -271,6 +271,7 @@ export function createResidentialStreet(
     materials.pool,
     STREET_LAMPS.z.length
   );
+  pools.name = 'StreetLampDownwardPools';
   const undersides = new InstancedMesh(
     undersideGeometry,
     materials.light,
@@ -446,10 +447,11 @@ export function createResidentialStreet(
     }
     const nearby = occupant.floorId === 'ground' && occupant.x > 45;
     const dynamic = nearby && policy.effects.dynamicPointLights;
+    // Keep the authored downward footprint continuous across the proximity and
+    // quality boundary. Realtime light augments it rather than replacing it.
     spotlights.forEach((light) => {
       light.visible = dynamic;
     });
-    pools.visible = !dynamic;
   }
   function getSnapshot(): StreetSnapshot {
     group.updateMatrixWorld(true);
@@ -457,7 +459,6 @@ export function createResidentialStreet(
       busStop: {
         id: BUS_STOP.id,
         availability: BUS_STOP.availability,
-        futureDestinationRef: BUS_STOP.futureDestinationRef,
         signText,
       },
       carBounds: { ...carBounds },
@@ -468,6 +469,7 @@ export function createResidentialStreet(
         angle: light.angle,
         castShadow: light.castShadow,
         active: light.visible,
+        groundPoolVisible: pools.visible,
         hoodOpaque:
           !materials.metal.transparent && materials.metal.opacity === 1,
       })),

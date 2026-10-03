@@ -6,14 +6,12 @@ import type {
 } from './schema';
 import { assertLevelSourceId as source } from './sourceIds';
 
-/** Stable future travel seam. It deliberately contains no destination URL or loader. */
+/** Passive world-sign identity and placement; the stop has no interaction. */
 export const BUS_STOP = {
   id: 'residential-bus-stop',
   availability: 'coming-soon',
-  futureDestinationRef: 'future-remote-location',
   x: 25.6,
   z: 16,
-  interactionRadius: 5,
 } as const;
 export const PARKED_EV = { x: 33, z: -10, width: 4.6, depth: 9.2 } as const;
 export const STREET_LAMPS = {
@@ -119,8 +117,7 @@ export const STREET_OBJECTS: SceneObjectDefinition[] = [
     floorId: 'ground',
     roomId: 'busStop',
     position: { x: BUS_STOP.x, z: BUS_STOP.z },
-    purpose:
-      'Coming Soon travel seam with solid shelter posts and bench; no travel action',
+    purpose: 'Passive Coming Soon sign with solid shelter posts and bench',
     colliderPolicy: {
       kind: 'custom',
       purpose:

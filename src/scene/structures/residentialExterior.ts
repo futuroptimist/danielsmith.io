@@ -319,7 +319,7 @@ export function createResidentialExterior(
             view.z <= garageBounds.maxZ * scale
         );
         for (const material of [bodyMaterial, accentMaterial]) {
-          const opacity = cutaway ? 0.22 : 1;
+          const opacity = cutaway ? 0.8 : 1;
           if (material.opacity !== opacity) {
             material.opacity = opacity;
             material.transparent = cutaway;

@@ -137,6 +137,11 @@ const cloneBounds = (bounds: RectCollider): RectCollider => ({
   maxX: bounds.maxX,
   minZ: bounds.minZ,
   maxZ: bounds.maxZ,
+  ...(bounds.minY !== undefined ? { minY: bounds.minY } : {}),
+  ...(bounds.maxY !== undefined ? { maxY: bounds.maxY } : {}),
+  ...(bounds.traversableConnectionId !== undefined
+    ? { traversableConnectionId: bounds.traversableConnectionId }
+    : {}),
 });
 
 const isVisibleOnFloor = (
@@ -440,7 +445,7 @@ export function createColliderVisualizer(options: {
       const mesh = new Mesh(geometry, material);
       const centerX = (collider.bounds.minX + collider.bounds.maxX) / 2;
       const centerZ = (collider.bounds.minZ + collider.bounds.maxZ) / 2;
-      const baseElevation = collider.elevation ?? 0;
+      const baseElevation = collider.bounds.minY ?? collider.elevation ?? 0;
       mesh.position.set(centerX, baseElevation + height / 2, centerZ);
       mesh.name = getDebugColliderMeshName({ id, ...metadataWithoutId });
       mesh.renderOrder = 20_000;

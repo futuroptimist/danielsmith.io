@@ -1229,9 +1229,7 @@ export function renderTextFallback(
   busStopSection.dataset.availability = BUS_STOP.availability;
   const busStopHeading = documentTarget.createElement('h2');
   busStopHeading.textContent = `${streetStrings.busStop}: ${streetStrings.comingSoon}`;
-  const busStopMessage = documentTarget.createElement('p');
-  busStopMessage.textContent = streetStrings.busStopMessage;
-  busStopSection.append(busStopHeading, busStopMessage);
+  busStopSection.append(busStopHeading);
   section.append(busStopSection);
 
   const buildInfoFooter = documentTarget.createElement('footer');

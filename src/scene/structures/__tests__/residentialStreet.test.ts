@@ -28,7 +28,7 @@ afterEach(() => vi.restoreAllMocks());
 describe('original residential street assets', () => {
   const streetCaseTitle1 =
     'uses only fully downward spotlights under opaque shared ' +
-    'hoods, with baked pools in low detail';
+    'hoods and persistent shared ground pools';
   it(streetCaseTitle1, () => {
     const build = make();
     const lights: SpotLight[] = [];
@@ -89,6 +89,57 @@ describe('original residential street assets', () => {
       floorId: 'ground',
     });
     expect(build.getCutawaySourceIds()).toEqual([]);
+    build.dispose();
+  });
+  it('keeps every fixture and pool visible through approach, passing and departure', () => {
+    const build = make();
+    const pools = build.group.getObjectByName(
+      'StreetLampDownwardPools'
+    ) as InstancedMesh;
+    expect(pools.count).toBe(4);
+    // Cross the former x=45 replacement boundary in both directions, pass every
+    // pole and enter/leave the shelter. Quality changes must not remove the pools.
+    for (const level of [
+      'cinematic',
+      'balanced',
+      'performance',
+      'low',
+      'micro',
+    ] as const) {
+      for (const [x, z] of [
+        [44.9, -15],
+        [45, -15],
+        [45.1, -15],
+        [55, -28],
+        [55, -8],
+        [55, 12],
+        [55, 32],
+        [50, 32],
+        [55, 32],
+        [55, 12],
+        [55, -8],
+        [55, -28],
+        [45.1, -15],
+        [45, -15],
+        [44.9, -15],
+      ]) {
+        build.update(getSceneDetailPolicy(level), { x, z, floorId: 'ground' });
+        expect(pools.visible).toBe(true);
+        build.group.traverse((object) => {
+          if (object.userData.levelSourceId === 'ground.street.lamps') {
+            expect(object.visible).toBe(true);
+            if (object instanceof Mesh) {
+              const material = object.material as MeshStandardMaterial;
+              expect(material.opacity).toBeGreaterThan(0);
+            }
+          }
+        });
+        for (const lamp of build.getSnapshot().lamps) {
+          expect(lamp.groundPoolVisible).toBe(true);
+          expect(lamp.hoodOpaque).toBe(true);
+        }
+      }
+    }
     build.dispose();
   });
   const streetCaseTitle2 =

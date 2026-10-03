@@ -53,15 +53,16 @@ describe('residential street source topology', () => {
       .map((z, i) => z - STREET_LAMPS.z[i]);
     expect(spacing).toEqual([10, 10, 10]);
   });
-  it('reserves a stable informational travel seam and translates all visible copy', () => {
+  it('keeps a passive sign identity and translates all visible copy', () => {
     expect(BUS_STOP).toMatchObject({
       id: 'residential-bus-stop',
       availability: 'coming-soon',
-      futureDestinationRef: 'future-remote-location',
     });
     expect(BUS_STOP).not.toHaveProperty('url');
+    expect(BUS_STOP).not.toHaveProperty('futureDestinationRef');
+    expect(BUS_STOP).not.toHaveProperty('interactionRadius');
     for (const strings of Object.values(EXTERIOR_LOCALE_COPY))
-      for (const key of ['busStop', 'comingSoon', 'busStopMessage'] as const)
+      for (const key of ['busStop', 'comingSoon'] as const)
         expect(strings[key].length).toBeGreaterThan(1);
   });
 });

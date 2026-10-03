@@ -396,11 +396,21 @@
       "id": "career:reviewed-content",
       "sourceFiles": ["src/scene/poi/careers.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Shared localized career content and level-backed placement are separate from ground-floor project miniature proxies.",
-      "sourceFingerprint": "84d4a991975c34514c383261977461fa6e6d6def5b900f480277ca2c05bf3f54",
+      "syncRevision": 2,
+      "syncNote": "Career source links are omitted from visible details; historical provenance remains available.",
+      "sourceFingerprint": "c00a0bc1a66cb9aa1df9f841144de229500edfd7bd301be0b35bf37785fec057",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "76ba145f5e89cebdea1777dab1573c6860a78385d562a3517a3e1883f358a146"
+      "metadataFingerprint": "9dabfb7f4c3f92aae5bf427646eba6477abfcf08e6642a5abc8371b300c8cd53"
+    },
+    {
+      "id": "collision:upper-stair-ground-passage",
+      "sourceFiles": ["src/scene/structures/upperStairGroundPassage.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "Elevation-aware runtime collision volumes derive from the shared staircase without changing its visible miniature geometry.",
+      "sourceFingerprint": "60bd0463d563529a6edd28fc34efe7dda37c19c403fb66c0ee5daa519c3171cb",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "634ce254745c8b7e0e8cd87a7b129b7b6838fc2b9647f020f8ef25d56d10b66a"
     },
     {
       "id": "debug:visualizers",
@@ -409,11 +419,11 @@
         "src/scene/debug/solidVisualizer.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "Progress-controlled door blockers retain IDs while inactive bounds disappear from queries and debug wireframes.",
-      "sourceFingerprint": "abac64fe3f6555b116e27ac9653cc1cf3dad00f12e82f780f94c25ffceab7301",
+      "syncRevision": 4,
+      "syncNote": "Elevated stair collision snapshots retain underside bounds and connection context; debug wireframes sit at the same elevation without changing production miniature geometry.",
+      "sourceFingerprint": "285889b0d7c773137629b78baf7bb738e880511f5a8f7a7aefed0c3e31d190a0",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "999cbb31779d112ab4a55d694db417dad2183ceea5659cf71b74335c5acdd606"
+      "metadataFingerprint": "97b22b5035d2fd03b9a2ba2143136d4481a2abaed662a3e35fd806b6bea790bd"
     },
     {
       "id": "decor:ceiling-panels",
@@ -465,24 +475,25 @@
         "src/scene/structures/residentialStreet.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 5,
-      "syncNote": "Street, shielded lamps, parked EV and shelter remain outside the original miniature envelope. Attached garage surfaces, solid workshop storage, and overhead/sliding door geometry share the exterior resource pool; the miniature keeps its original house envelope. Formatting-only door metadata wrapping leaves source and proxy geometry unchanged.",
-      "sourceFingerprint": "3767393dfe6e1e5b75a1a3774227d3c6cdaa1043786f5f74f79e899908149fd2",
+      "syncRevision": 7,
+      "syncNote": "Automatic doors, 80% garage cutaway, persistent lamp pools and passive bus signage change exterior behavior outside the original tabletop envelope.",
+      "sourceFingerprint": "0f70bffdb072a43484da10b45a116480681deb2707e56d720c1df8687a3d477e",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "65faaa795011f575d7c0f665e989cbc9138781f5daca1fb7a22cbd505813aa1a"
+      "metadataFingerprint": "49346c6a77af973ca30de72a9042687b649a0a6127dd61d0f8d257591db880e1"
     },
     {
       "id": "level:basement-stairs",
       "sourceFiles": [
         "src/scene/level/basementStair.ts",
+        "src/scene/structures/basementLandingCutaway.ts",
         "src/scene/structures/basementStaircase.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "The shared descriptor also identifies the landing visual occluder; its runtime cutaway preserves collision. The tabletop retains the source-derived opening and its ground-only view.",
-      "sourceFingerprint": "cb43257fb1fbb78016a3cfa99efeeb0c3365c55e09b59445ac82939e2a9daf6b",
+      "syncRevision": 4,
+      "syncNote": "Ground-floor rail trim owns its slab footprint and the final parapets meet its underside. The independent 80% landing-wall cutaway preserves collision. The tabletop retains the shared opening and its ground-only view.",
+      "sourceFingerprint": "96237a9011a26e90d2b55561cd1eebe904f9dc9524790e96b31b507bed3882f2",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "8bd86b98548b8bcf86ff6983d5602bc5d46b935e7ceb084be0bef5f3fc40832c"
+      "metadataFingerprint": "22d03e8a972ef51325244e4ee957dd619132c0a849faf5ef923c3a073c9ce43a"
     },
     {
       "id": "level:career-museum-layout",
@@ -697,15 +708,16 @@
       "id": "poi:markers-labels",
       "sourceFiles": [
         "src/scene/poi/markers.ts",
+        "src/scene/poi/titleFont.ts",
         "src/scene/poi/visitedBadge.ts",
         "src/scene/poi/worldTooltip.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "Guided-tour recommendation rendering was removed from in-world POI labels; marker and tabletop proxy geometry is unchanged.",
-      "sourceFingerprint": "91ee89df6f6cd9046ee6289f05b1322910afe96bb5d400035559ae2ff7fdb379",
+      "syncRevision": 4,
+      "syncNote": "Complete career titles fit the existing two-line labels; project marker geometry is unchanged.",
+      "sourceFingerprint": "753268d799097a0a2444b4ef07c0573bc2ded72735cab478d1aa23843dfddba8",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "4a545859c153b60ca4fa6758284be0d587d98947944b80451e8528c0e128744a"
+      "metadataFingerprint": "0773ae465db7d7fc0fd4692705758f795d0abd0b4e2993fb36a50260387fa1c3"
     },
     {
       "id": "poi:pr-reaper-backyard-console",
