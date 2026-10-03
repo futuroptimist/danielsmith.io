@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import * as poiRegistry from '../scene/poi/registry';
-
 import {
   assertManifestUpdateIsAcknowledged,
   checkManifest,
   normalizedTypeScriptTokens,
 } from '../../scripts/miniatureManifest';
+import * as poiRegistry from '../scene/poi/registry';
 
 const entry = {
   id: 'poi:test',

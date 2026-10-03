@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "stage": "basement shell and staircase; common route",
+  "pullRequest": 1119,
+  "sourceHead": "b07fc96c6b0068410b4fbfe4cba67deaa985755b",
+  "sourceTree": "358cc386dbbc6daf5b1c19392a36914bd65b7bc7",
+  "sourceParents": [
+    "eecba90b3d808ef007b25e8c165fd07a35d6f815",
+    "56ce2943843114f5eb9e33465218fca04c9715b1"
+  ],
+  "measuredPredecessor": "096be292f64dfd0ed17576c198221bda704fc4be",
+  "baselineCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
+  "sourceAndReferencesClean": true,
+  "profileAndArchive": "../2026-10-02-interior-common-profile.json",
+  "captureBatch": "D",
+  "sourceRouteCapturedUtc": [
+    "2026-10-02T09:20:38.062Z",
+    "2026-10-02T09:23:02.770Z"
+  ],
+  "referenceBatches": {
+    "baseline": "C",
+    "predecessor": "C"
+  },
+  "sourcePopulation": "Three floors with basement shell/stair geometry; common checkpoints remain ground/upper. Baseline and foundation have two floors.",
+  "predecessorQualification": "Measured 096be292 is the foundation runtime source; tested PR base 56ce2943 differs only in four performance evidence files, verified by Git diff. Earlier basement eecba90b is retained in batch C, not used as stage predecessor.",
+  "outcome": "3 controlled suites: each 4 passed / 1 hardware-only skip; 3 completed common routes, zero blocked movement steps",
+  "cameraState": "not captured although getCameraState API existed in this source; raw unavailable wording is a helper defect",
+  "stageCoverage": "common ground/upper only; extended stage route is separate evidence",
+  "status": "historical measured source; subsequent helper/test/docs changes require their own source identity",
+  "extendedEvidence": {
+    "sourceCommit": "6ac34f194bfa88797470bea6ba3882e9ac6cb9bf",
+    "manifest": "extended-6ac34f19-manifest.json",
+    "summary": "extended-6ac34f19-summary.json",
+    "attemptsCompleted": 3
+  },
+  "recordedPrBase": "56ce2943843114f5eb9e33465218fca04c9715b1",
+  "captureSourceQualification": "Measurements use the clean detached source head, not a GitHub merge-ref build. The PR base is recorded metadata, not a separately measured combined checkout."
+}

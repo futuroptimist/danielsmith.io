@@ -246,8 +246,13 @@ def main() -> int:
             f"positions {before_pos}, {after_pos}",
         )
 
-    for result in experience_pair_checks(config, plain, headings):
-        check(result.label, result.passed, result.detail)
+    layout_headings = heading_positions(layout.splitlines(), section_names)
+    for name, extracted, positions in (
+        ("plain", plain, headings),
+        ("layout", layout, layout_headings),
+    ):
+        for result in experience_pair_checks(config, extracted, positions):
+            check(f"{result.label} ({name} extraction)", result.passed, result.detail)
 
     education_observations, education_warnings, education_failures = (
         education_pair_observations(config, plain, headings)

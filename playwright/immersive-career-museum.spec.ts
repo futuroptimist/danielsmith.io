@@ -191,6 +191,10 @@ for (const profile of [
   test(`walks to all careers with accessible details and dismissal on ${profile.name}`, async ({
     browser,
   }) => {
+    // Four exhibit journeys, screenshots and axe scans share this total budget.
+    // A retained CI run completed the route near 60s but lost its final trace;
+    // the tail cause is unknown. Keep action/assertion limits and retries intact.
+    test.setTimeout(120_000);
     const context = await browser.newContext({
       viewport: { width: profile.width, height: profile.height },
       hasTouch: profile.touch,
@@ -464,6 +468,9 @@ test('keeps high-contrast career details accessible and gallery context visible 
 test('records repeated residency, retains the museum resource pool, and releases it on text transition', async ({
   page,
 }) => {
+  // Six bounded software-rendered routes need setup and teardown time beyond
+  // the single-journey default; all traversal and disposal assertions stay intact.
+  test.setTimeout(120_000);
   await ready(page);
   const counts = [];
   let plateauObserved = false;

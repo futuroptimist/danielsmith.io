@@ -176,6 +176,79 @@ describe('resume ATS smoke', () => {
       expect(failedChecklistEntries(summary).length > 0).toBe(Boolean(before));
     }
   );
+  it('rejects swapped dates in layout extraction even when plain extraction is valid', async () => {
+    const pdfPath = await createPdfFixture();
+    await createPdfinfoFixture();
+    const plainPath = path.join(fixtureDir, 'plain.txt');
+    const layoutPath = path.join(fixtureDir, 'layout.txt');
+    const summaryPath = path.join(fixtureDir, 'summary.md');
+    const configPath = path.join(fixtureDir, 'config.json');
+    const plain = [
+      'Summary',
+      'Overview',
+      'Experience',
+      'Muon Space',
+      'Senior Software Engineer Sep 2026 – Present',
+      'Mission Planning Platform',
+      'YouTube (Google)',
+      'Site Reliability Engineer Sep 2018 – May 2025',
+      'Skills',
+      'Education',
+    ].join('\n');
+    const layout = plain
+      .replace(
+        'Overview',
+        'A differently wrapped overview with more horizontal spacing'
+      )
+      .replace(
+        'Senior Software Engineer Sep 2026 – Present',
+        'Senior Software Engineer Sep 2018 – May 2025'
+      )
+      .replace(
+        'Site Reliability Engineer Sep 2018 – May 2025',
+        'Site Reliability Engineer Sep 2026 – Present'
+      );
+    await writeFile(plainPath, plain);
+    await writeFile(layoutPath, layout);
+    await writeFile(
+      configPath,
+      JSON.stringify({
+        minimumPlainCharacters: 0,
+        sectionOrderPairs: [
+          ['Summary', 'Experience'],
+          ['Experience', 'Skills'],
+        ],
+        experiencePairing: [
+          {
+            employer: 'Muon Space',
+            role: 'Senior Software Engineer',
+            dates: 'Sep 2026 – Present',
+            team: 'Mission Planning Platform',
+          },
+          {
+            employer: 'YouTube (Google)',
+            role: 'Site Reliability Engineer',
+            dates: 'Sep 2018 – May 2025',
+          },
+        ],
+      })
+    );
+    await expect(
+      runAtsSmoke(pdfPath, plainPath, layoutPath, summaryPath, configPath)
+    ).rejects.toMatchObject({
+      stdout: expect.stringContaining('layout extraction'),
+    });
+    const summary = await readFile(summaryPath, 'utf8');
+    expect(failedChecklistEntries(summary)).toHaveLength(2);
+    expect(
+      failedChecklistEntries(summary).every((line) =>
+        line.includes('layout extraction')
+      )
+    ).toBe(true);
+    expect(summary).toContain(
+      'Experience pairing: `Muon Space` / `Sep 2026 – Present` (plain extraction)'
+    );
+  });
 });
 
 function failedChecklistEntries(summary: string): string[] {
