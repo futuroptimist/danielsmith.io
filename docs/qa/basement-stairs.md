@@ -17,7 +17,8 @@ existing staircase constructor and movement controller.
 The validated reservation remains level X `1.9`, width `2.4`, bottom Z `-14.65`,
 positive-Z ascent to `-7`, and landing end `-4.4`. World coordinates are therefore
 center X `3.8`, clear physical stair width `4.8`, bottom Z `-29.3`, top Z `-14`,
-and landing end `-8.8`. The upper landing is entered from the west. The front-entry stage enables a grounded approach beneath the high upstairs
+and landing end `-8.8`. The upper landing is entered from the west. The front-entry
+stage enables a grounded approach beneath the high upstairs
 flight, then through the existing gap to this landing. The preserved floor plan
 has a narrow 0.92-world-unit avatar-center bottleneck here after expanding both
 side guards by the 0.75-unit avatar radius; it is a deliberate exception to the

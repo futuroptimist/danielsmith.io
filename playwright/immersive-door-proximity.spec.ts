@@ -33,9 +33,10 @@ async function waitForApproachOpen(page: Page, id: string) {
 for (const door of approaches) {
   for (const side of [-1, 1]) {
     for (const reducedMotion of [false, true]) {
-      test(`opens ${door.id} during uninterrupted native maximum-speed approach from ${side} (reduced ${reducedMotion})`, async ({
-        page,
-      }) => {
+      const title =
+        `opens ${door.id} during uninterrupted native maximum-speed approach ` +
+        `from ${side} (reduced ${reducedMotion})`;
+      test(title, async ({ page }) => {
         test.setTimeout(120_000);
         await page.emulateMedia({
           reducedMotion: reducedMotion ? 'reduce' : 'no-preference',
