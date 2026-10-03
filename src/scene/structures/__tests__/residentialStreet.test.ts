@@ -26,7 +26,10 @@ const make = () => {
 };
 afterEach(() => vi.restoreAllMocks());
 describe('original residential street assets', () => {
-  it('uses only fully downward spotlights under opaque shared hoods, with baked pools in low detail', () => {
+  const streetCaseTitle1 =
+    'uses only fully downward spotlights under opaque shared ' +
+    'hoods, with baked pools in low detail';
+  it(streetCaseTitle1, () => {
     const build = make();
     const lights: SpotLight[] = [];
     build.group.traverse((object) => {
@@ -88,7 +91,10 @@ describe('original residential street assets', () => {
     expect(build.getCutawaySourceIds()).toEqual([]);
     build.dispose();
   });
-  it('owns solid car, four pole bases, four shelter posts and bench without blocking the sidewalk', () => {
+  const streetCaseTitle2 =
+    'owns solid car, four pole bases, four shelter posts and ' +
+    'bench without blocking the sidewalk';
+  it(streetCaseTitle2, () => {
     const build = make();
     expect(build.solids).toHaveLength(10);
     expect(new Set(build.solids.map((solid) => solid.debugId)).size).toBe(10);
@@ -114,7 +120,10 @@ describe('original residential street assets', () => {
     });
     build.dispose();
   });
-  it('renders localized sign copy only on changes and disposes every shared asset and instance once', () => {
+  const streetCaseTitle3 =
+    'renders localized sign copy only on changes and disposes ' +
+    'every shared asset and instance once';
+  it(streetCaseTitle3, () => {
     const build = make();
     const geometries = new Set<Mesh['geometry']>();
     const materials = new Set<Mesh['material']>();

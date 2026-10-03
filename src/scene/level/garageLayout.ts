@@ -114,7 +114,8 @@ export const GARAGE_OBJECTS: SceneObjectDefinition[] = [
     colliderPolicy: {
       kind: 'custom',
       purpose:
-        'The overhead panel blocks until its lower edge provides avatar headroom; occupancy prevents closing',
+        'The overhead panel blocks until its lower edge provides avatar ' +
+        'headroom; occupancy prevents closing',
     },
   },
   {

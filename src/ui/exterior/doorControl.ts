@@ -1,6 +1,8 @@
 import type { ExteriorStrings } from '../../assets/i18n/exterior';
 import type { DoorSnapshot } from '../../systems/doors/controller';
 
+import { createProjectedControlLayout } from './projectedControlLayout';
+
 const format = (template: string, door: string, state = '') =>
   template.replace('{door}', door).replace('{state}', state);
 
@@ -19,6 +21,10 @@ export function createDoorControl(options: {
   live.setAttribute('aria-live', 'polite');
   live.setAttribute('aria-atomic', 'true');
   options.parent.append(button, live);
+  const layout = createProjectedControlLayout(button);
+  const setAttribute = (name: string, value: string) => {
+    if (button.getAttribute(name) !== value) button.setAttribute(name, value);
+  };
   const activate = () => options.onActivate();
   const stopKey = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
@@ -42,7 +48,10 @@ export function createDoorControl(options: {
     ) {
       const hidden = !snapshot;
       if (hidden && document.activeElement === button) options.restoreFocus();
-      button.hidden = hidden;
+      if (button.hidden !== hidden) {
+        button.hidden = hidden;
+        layout.invalidate();
+      }
       if (!snapshot) {
         lastAnnouncement = '';
         return;
@@ -60,32 +69,15 @@ export function createDoorControl(options: {
         snapshot.target ? strings.close : strings.open,
         name
       );
-      if (button.textContent !== label) button.textContent = label;
-      button.setAttribute('aria-label', label);
-      button.setAttribute('aria-pressed', String(snapshot.target === 1));
-      button.dataset.doorId = snapshot.id;
-      button.dataset.state = snapshot.state;
-      if (position) {
-        const bounds = button.getBoundingClientRect();
-        const hudBottom =
-          document.querySelector('#control-overlay')?.getBoundingClientRect()
-            .bottom ?? 0;
-        const halfWidth = bounds.width / 2;
-        const x = Math.max(
-          halfWidth + 16,
-          Math.min(window.innerWidth - halfWidth - 16, position.x)
-        );
-        const minimumBottom = Math.max(
-          bounds.height + 16,
-          hudBottom + bounds.height + 12
-        );
-        const y = Math.max(
-          minimumBottom,
-          Math.min(window.innerHeight - 100, position.y)
-        );
-        button.style.left = `${Math.round(x)}px`;
-        button.style.top = `${Math.round(y)}px`;
+      if (button.textContent !== label) {
+        button.textContent = label;
+        layout.invalidate();
       }
+      setAttribute('aria-label', label);
+      setAttribute('aria-pressed', String(snapshot.target === 1));
+      setAttribute('data-door-id', snapshot.id);
+      setAttribute('data-state', snapshot.state);
+      if (position) layout.update(position);
       const announcement = format(strings.status, name, state);
       if (announcement !== lastAnnouncement) {
         live.textContent = announcement;
@@ -93,6 +85,7 @@ export function createDoorControl(options: {
       }
     },
     dispose() {
+      layout.dispose();
       button.removeEventListener('click', activate);
       button.removeEventListener('keydown', stopKey);
       button.remove();

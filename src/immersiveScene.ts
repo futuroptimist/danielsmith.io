@@ -31,6 +31,7 @@ import type {
   AppReadyMarker,
   ImmersiveFatalErrorHandler,
 } from './app/bootstrap';
+import { createDisposalScope } from './app/disposalScope';
 import {
   clearPortfolioInputKeyBindings,
   clearPortfolioSection,
@@ -931,10 +932,34 @@ export function initializeImmersiveScene(
   onFatalError: ImmersiveFatalErrorHandler,
   markAppReady: AppReadyMarker
 ) {
+  let handleInitializationFailure: (error: unknown) => void = onFatalError;
+  try {
+    buildImmersiveScene(container, onFatalError, markAppReady, (handler) => {
+      handleInitializationFailure = handler;
+    });
+  } catch (error) {
+    handleInitializationFailure(error);
+  }
+}
+
+function buildImmersiveScene(
+  container: HTMLElement,
+  onFatalError: ImmersiveFatalErrorHandler,
+  markAppReady: AppReadyMarker,
+  registerFailureHandler: (handler: (error: unknown) => void) => void
+) {
   clearPoiVisualAnchors();
   clearPoiModelRoots();
   const immersiveUrl = createImmersiveModeUrl();
   const renderer = new WebGLRenderer({ antialias: true });
+  const initializationCleanup = createDisposalScope();
+  registerFailureHandler((error) => {
+    try {
+      initializationCleanup.dispose();
+    } finally {
+      onFatalError(error, { renderer });
+    }
+  });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
@@ -1065,6 +1090,10 @@ export function initializeImmersiveScene(
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
+  initializationCleanup.add(() => {
+    if (renderer.domElement.parentElement === container)
+      renderer.domElement.remove();
+  });
 
   ledStripMaterials.length = 0;
   ledFillLightsList.length = 0;
@@ -1079,6 +1108,7 @@ export function initializeImmersiveScene(
   let immersiveLifecycle: 'building' | 'ready' | 'disposing' | 'disposed' =
     'building';
   let immersiveDisposed = false;
+  const exteriorCleanup = createDisposalScope();
   let lowFpsRecoveryPopup: HTMLElement | null = null;
   let lowFpsRecoveryMonitor: LowFpsRecoveryMonitor | null = null;
   let beforeUnloadHandler: (() => void) | null = null;
@@ -1253,6 +1283,10 @@ export function initializeImmersiveScene(
     documentTarget: document,
     budgetMs: INPUT_LATENCY_P95_BUDGET_MS,
   });
+  initializationCleanup.add(() => {
+    inputLatencyTelemetry?.dispose();
+    inputLatencyTelemetry = null;
+  });
 
   const detectedLanguage =
     typeof navigator !== 'undefined' && navigator.language
@@ -1385,6 +1419,7 @@ export function initializeImmersiveScene(
     ? false
     : debugFpsUrlEnabled || debugFpsStoredEnabled;
   const debugPerformanceOverlay = createDebugPerformanceOverlay();
+  initializationCleanup.add(() => debugPerformanceOverlay.dispose());
   debugPerformanceOverlay.setFpsEnabled(debugFpsEnabled);
 
   let debugCoordinatesControl: HTMLButtonElement | null = null;
@@ -1412,6 +1447,7 @@ export function initializeImmersiveScene(
       inputLatencyTelemetry.dispose();
       inputLatencyTelemetry = null;
     }
+    initializationCleanup.dispose();
     softwareSafeRenderEvents.forEach((eventName) => {
       window.removeEventListener(eventName, requestSoftwareSafeRender);
     });
@@ -1431,6 +1467,7 @@ export function initializeImmersiveScene(
       partiallyInitializedTutorialPanel.dispose();
       partiallyInitializedTutorialPanel = null;
     }
+    exteriorCleanup.dispose();
     disposeCareerMuseumBuild();
     disposePortfolioMiniatureTableBuild();
     disposePrReaperInstallationBuild();
@@ -1450,6 +1487,19 @@ export function initializeImmersiveScene(
     }
     disposePartiallyInitializedImmersiveResources();
   }
+
+  const handleFatalError = (error: unknown) => {
+    crashBreadcrumbs.record({
+      type: 'fatal-error',
+      message: error instanceof Error ? error.message : String(error),
+      renderer: rendererInfo,
+      softwareRendererPolicy,
+      snapshot: performanceDiagnostics?.methods.getSnapshot(),
+    });
+    disposeInitializedOrPartialImmersiveResources();
+    onFatalError(error, { renderer });
+  };
+  registerFailureHandler(handleFatalError);
 
   if (rendererInfo.isDangerousSoftwareRenderer) {
     softwareRendererWarning = createSoftwareRendererWarning({
@@ -1526,18 +1576,6 @@ export function initializeImmersiveScene(
       },
     },
   });
-
-  const handleFatalError = (error: unknown) => {
-    crashBreadcrumbs.record({
-      type: 'fatal-error',
-      message: error instanceof Error ? error.message : String(error),
-      renderer: rendererInfo,
-      softwareRendererPolicy,
-      snapshot: performanceDiagnostics?.methods.getSnapshot(),
-    });
-    disposeInitializedOrPartialImmersiveResources();
-    onFatalError(error, { renderer });
-  };
 
   const scene = new Scene();
   scene.background = createImmersiveGradientTexture();
@@ -1845,6 +1883,7 @@ export function initializeImmersiveScene(
     FLOOR_PLAN_SCALE,
     exteriorDoors
   );
+  exteriorCleanup.add(() => residentialExterior.dispose());
   groundEnvironmentGroup.add(residentialExterior.group);
   residentialExterior.solids.forEach(({ definition, collider }) => {
     registerSceneObjectColliders(
@@ -1861,6 +1900,7 @@ export function initializeImmersiveScene(
     FLOOR_PLAN_SCALE,
     getExteriorStrings(locale)
   );
+  exteriorCleanup.add(() => residentialStreet.dispose());
   groundEnvironmentGroup.add(residentialStreet.group);
   residentialStreet.solids.forEach(
     ({ definition, collider, role, debugId }) => {
@@ -3715,7 +3755,7 @@ export function initializeImmersiveScene(
 
   ensureKeyBindingApi();
   const ensureWorldApi = () => {
-    setPortfolioSection('world', {
+    return setPortfolioSection('world', {
       getActiveFloor() {
         return activeFloorId;
       },
@@ -3886,7 +3926,10 @@ export function initializeImmersiveScene(
       },
     });
   };
-  ensureWorldApi();
+  const worldApi = ensureWorldApi();
+  exteriorCleanup.add(() => {
+    if (window.portfolio?.world === worldApi) clearPortfolioSection('world');
+  });
   const getAvatarAssetPipeline = () => {
     if (!avatarAssetPipeline) {
       avatarAssetPipeline = createAvatarAssetPipeline({
@@ -4539,6 +4582,7 @@ export function initializeImmersiveScene(
         selectedDoor.toggle(doorOccupant());
     },
   });
+  exteriorCleanup.add(() => doorControl.dispose());
   const disposeDoorInteraction = bindDoorInteraction({
     target: window,
     getBindings: () => keyBindings.getBindings('interact'),
@@ -4548,15 +4592,18 @@ export function initializeImmersiveScene(
     canInteract: (event) =>
       !isDoorUiBlocked() &&
       !isUiOwnedKeyboardEvent(event) &&
+      !hasConflictingKeyBinding(event, 'interact') &&
       canHandleGameplayShortcut(
         event,
         hudPanelCoordinator?.getActivePanel() ?? null
       ),
   });
+  exteriorCleanup.add(disposeDoorInteraction);
   const busStopControl = createBusStopControl({
     parent: container,
     restoreFocus: () => renderer.domElement.focus(),
   });
+  exteriorCleanup.add(() => busStopControl.dispose());
   const busStopInRange = () =>
     activeFloorId === 'ground' &&
     Math.hypot(
@@ -4571,6 +4618,7 @@ export function initializeImmersiveScene(
       event.metaKey ||
       isDoorUiBlocked() ||
       isUiOwnedKeyboardEvent(event) ||
+      hasConflictingKeyBinding(event, 'interact') ||
       !busStopInRange() ||
       !canHandleGameplayShortcut(
         event,
@@ -4589,6 +4637,9 @@ export function initializeImmersiveScene(
     if (!event.repeat) busStopControl.activate();
   };
   window.addEventListener('keydown', onBusStopKey, true);
+  exteriorCleanup.add(() =>
+    window.removeEventListener('keydown', onBusStopKey, true)
+  );
   function updateExteriorDoors(delta: number) {
     const occupant = doorOccupant();
     doorColliders.length = 0;
@@ -4652,6 +4703,9 @@ export function initializeImmersiveScene(
     interactKeyWasPressed = false;
   };
   window.addEventListener('blur', stopMovementOnBlur);
+  exteriorCleanup.add(() =>
+    window.removeEventListener('blur', stopMovementOnBlur)
+  );
 
   let helpKeyWasPressed = false;
   let helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
@@ -6952,7 +7006,7 @@ export function initializeImmersiveScene(
     if (
       pressed &&
       !interactKeyWasPressed &&
-      !hudPanelCoordinator?.getActivePanel()
+      hudPanelCoordinator?.getActivePanel() !== 'settings'
     ) {
       if (!selectedDoor && interactablePoi)
         poiInteractionManager?.selectPoiById(interactablePoi.definition.id);
@@ -6989,6 +7043,7 @@ export function initializeImmersiveScene(
       inputLatencyTelemetry.dispose();
       inputLatencyTelemetry = null;
     }
+    initializationCleanup.dispose();
     softwareSafeRenderEvents.forEach((eventName) => {
       window.removeEventListener(eventName, requestSoftwareSafeRender);
     });
@@ -7237,14 +7292,8 @@ export function initializeImmersiveScene(
       locomotionLinearSpeed = 0;
       locomotionAngularSpeed = 0;
     }
-    window.removeEventListener('blur', stopMovementOnBlur);
+    exteriorCleanup.dispose();
     joystick.reset();
-    disposeDoorInteraction();
-    window.removeEventListener('keydown', onBusStopKey, true);
-    busStopControl.dispose();
-    residentialStreet.dispose();
-    doorControl.dispose();
-    residentialExterior.dispose();
     controls.dispose();
     if (livingRoomMediaWall) {
       livingRoomMediaWall.controller.dispose();

@@ -39,7 +39,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     busStop: 'Parada de autobús',
     comingSoon: 'Próximamente',
     busStopMessage:
-      'Los viajes desde esta parada estarán disponibles más adelante. Aún no hay servicio de autobús ni viaje rápido.',
+      'Los viajes desde esta parada estarán disponibles más adelante. ' +
+      'Aún no hay servicio de autobús ni viaje rápido.',
     frontDoor: 'Puerta principal',
     houseDoor: 'Puerta de la casa al garaje',
     garageDoor: 'Puerta del garaje',
@@ -56,7 +57,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     busStop: 'Ponto de ônibus',
     comingSoon: 'Em breve',
     busStopMessage:
-      'As viagens a partir deste ponto estarão disponíveis no futuro. Ainda não há serviço de ônibus nem viagem rápida.',
+      'As viagens a partir deste ponto estarão disponíveis no futuro. ' +
+      'Ainda não há serviço de ônibus nem viagem rápida.',
     frontDoor: 'Porta da frente',
     houseDoor: 'Porta entre a casa e a garagem',
     garageDoor: 'Porta da garagem',
@@ -73,7 +75,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     busStop: 'Bushaltestelle',
     comingSoon: 'Demnächst',
     busStopMessage:
-      'Reisen ab dieser Haltestelle sind für später geplant. Es gibt noch keinen Busverkehr und keine Schnellreise.',
+      'Reisen ab dieser Haltestelle sind für später geplant. Es gibt ' +
+      'noch keinen Busverkehr und keine Schnellreise.',
     frontDoor: 'Haustür',
     houseDoor: 'Tür zwischen Haus und Garage',
     garageDoor: 'Garagentor',
@@ -90,7 +93,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     busStop: 'Buszmegálló',
     comingSoon: 'Hamarosan',
     busStopMessage:
-      'Az utazás erről a megállóról később lesz elérhető. Egyelőre nincs buszjárat vagy gyorsutazás.',
+      'Az utazás erről a megállóról később lesz elérhető. Egyelőre ' +
+      'nincs buszjárat vagy gyorsutazás.',
     frontDoor: 'Bejárati ajtó',
     houseDoor: 'Ház és garázs közötti ajtó',
     garageDoor: 'Garázskapu',
@@ -113,7 +117,7 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     garageDoor: 'ガレージドア',
     open: '{door}を開く',
     close: '{door}を閉じる',
-    closed: '閉じています',
+    closed: '閉まっています',
     opening: '開いています',
     opened: '開放中',
     closing: '閉じています',

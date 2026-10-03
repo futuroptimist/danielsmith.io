@@ -521,7 +521,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     recursionBoundary: true,
     syncRevision: 12,
     syncNote:
-      'The miniature filters all rooms, walls and LED fixtures by its original house envelope while sharing the new house-to-garage opening.',
+      'The miniature filters all rooms, walls and LED fixtures by its ' +
+      'original house envelope while sharing the new house-to-garage ' +
+      'opening.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

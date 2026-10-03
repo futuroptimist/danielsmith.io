@@ -5,6 +5,25 @@ import { createBusStopControl } from '../busStopControl';
 
 afterEach(() => document.body.replaceChildren());
 describe('accessible coming-soon disclosure', () => {
+  it('reuses layout measurements until the disclosure changes size', () => {
+    const control = createBusStopControl({
+      parent: document.body,
+      restoreFocus: vi.fn(),
+    });
+    const measure = vi.spyOn(control.container, 'getBoundingClientRect');
+    control.update(true, EXTERIOR_LOCALE_COPY.en, { x: 200, y: 200 });
+    const initialReads = measure.mock.calls.length;
+    expect(initialReads).toBeGreaterThan(0);
+    for (let i = 0; i < 20; i++) {
+      control.update(true, EXTERIOR_LOCALE_COPY.en, { x: 200 + i, y: 200 });
+    }
+    expect(measure).toHaveBeenCalledTimes(initialReads);
+    control.button.click();
+    control.update(true, EXTERIOR_LOCALE_COPY.en, { x: 200, y: 200 });
+    expect(measure.mock.calls.length).toBeGreaterThan(initialReads);
+    control.dispose();
+  });
+
   it('opens locally, dismisses with Escape and ignores held activation keys', () => {
     const restoreFocus = vi.fn();
     const control = createBusStopControl({

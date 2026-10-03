@@ -23,13 +23,16 @@ export async function walkExteriorTo(
     const world = window.portfolio!.world!;
     const start = world.getPlayerPosition();
     const grid = 0.2;
+    // The actual pose is valid; rounding it onto a global grid can enter a solid.
     const startNode = {
-      x: Math.round(start.x / grid) * grid,
-      z: Math.round(start.z / grid) * grid,
+      x: start.x,
+      z: start.z,
+      cellX: 0,
+      cellZ: 0,
       parent: -1,
     };
     const queue = [startNode];
-    const seen = new Set([`${startNode.x},${startNode.z}`]);
+    const seen = new Set(['0,0']);
     let found = -1;
     for (let index = 0; index < queue.length && index < 300000; index++) {
       const node = queue[index];
@@ -38,17 +41,21 @@ export async function walkExteriorTo(
         break;
       }
       for (const [dx, dz] of [
-        [grid, 0],
-        [-grid, 0],
-        [0, grid],
-        [0, -grid],
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
       ]) {
+        const cellX = node.cellX + dx;
+        const cellZ = node.cellZ + dz;
         const next = {
-          x: Math.round((node.x + dx) / grid) * grid,
-          z: Math.round((node.z + dz) / grid) * grid,
+          x: start.x + cellX * grid,
+          z: start.z + cellZ * grid,
+          cellX,
+          cellZ,
           parent: index,
         };
-        const key = `${next.x},${next.z}`;
+        const key = `${cellX},${cellZ}`;
         if (
           seen.has(key) ||
           next.x < -32 ||
@@ -87,9 +94,31 @@ export async function walkExteriorTo(
     }
     if (found < 0)
       throw new Error(
-        `No ground route to ${JSON.stringify(target)} from ${JSON.stringify(start)}; reached ${queue.length} nodes, maxX ${Math.max(...queue.map((n) => n.x))}, maxZ ${Math.max(...queue.map((n) => n.z))}, targetFree ${world.canOccupyPosition({ ...target, floorId: 'ground' })}, prediction ${world.predictFloorAt({ ...target, currentFloor: 'ground' })}, zones ${JSON.stringify(world.getFloorConnectionSnapshot().connections.map((c) => [c.id, world.getStairTransitionZone({ ...target, currentFloor: 'ground', connectionId: c.id })]))}, nearest ${JSON.stringify(queue.sort((a, b) => Math.hypot(a.x - target.x, a.z - target.z) - Math.hypot(b.x - target.x, b.z - target.z)).slice(0, 3))}`
+        `No ground route to ${JSON.stringify(target)} from ${JSON.stringify(start)}; ` +
+          `reached ${queue.length} nodes, maxX ${Math.max(...queue.map((n) => n.x))}, ` +
+          `maxZ ${Math.max(...queue.map((n) => n.z))}, ` +
+          `targetFree ${world.canOccupyPosition({ ...target, floorId: 'ground' })}, ` +
+          `prediction ${world.predictFloorAt({ ...target, currentFloor: 'ground' })}, ` +
+          `zones ${JSON.stringify(
+            world.getFloorConnectionSnapshot().connections.map((c) => [
+              c.id,
+              world.getStairTransitionZone({
+                ...target,
+                currentFloor: 'ground',
+                connectionId: c.id,
+              }),
+            ])
+          )}, nearest ${JSON.stringify(
+            queue
+              .sort(
+                (a, b) =>
+                  Math.hypot(a.x - target.x, a.z - target.z) -
+                  Math.hypot(b.x - target.x, b.z - target.z)
+              )
+              .slice(0, 3)
+          )}`
       );
-    const path = [];
+    const path: Array<{ x: number; z: number; parent: number }> = [];
     for (let i = found; i >= 0; i = queue[i].parent) path.push(queue[i]);
     path.reverse();
     path.push({ ...target, parent: -1 });

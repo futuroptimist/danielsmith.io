@@ -262,6 +262,30 @@ describe('createResponsiveControlOverlay', () => {
     handle.dispose();
   });
 
+  it('keeps the combined layout stable while pressing an exhibit detail control', () => {
+    const { container, button, popover, list } = createOverlay();
+    const handle = createResponsiveControlOverlay({
+      container,
+      button,
+      popover,
+      list,
+      strings: createStrings(),
+    });
+    const detail = document.createElement('section');
+    detail.className = 'poi-tooltip-overlay';
+    const close = document.createElement('button');
+    detail.append(close);
+    document.body.append(detail);
+    handle.open();
+    close.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+    expect(handle.isOpen()).toBe(true);
+    document.body.dispatchEvent(
+      new MouseEvent('pointerdown', { bubbles: true })
+    );
+    expect(handle.isOpen()).toBe(false);
+    handle.dispose();
+  });
+
   it('closes on outside pointer input but ignores pointer input in the popover or button', () => {
     const { container, button, popover, list } = createOverlay();
     const outside = document.createElement('button');
