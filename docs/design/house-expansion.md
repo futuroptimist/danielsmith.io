@@ -788,7 +788,8 @@ planned PRs above.
 - **Immersive/text positioning** ([#1112](https://github.com/futuroptimist/danielsmith.io/issues/1112)): clarify the
   distinction between exploration and the text-only experience. The current HUD
   and tutorial already communicate the alternative; preserve those controls now
-- **Bus-stop future work** ([#1113](https://github.com/futuroptimist/danielsmith.io/issues/1113)): outside this
+- **Bus-stop future work**
+  ([#1113](https://github.com/futuroptimist/danielsmith.io/issues/1113)): outside this
   expansion. The current stop retains only its physical Coming Soon sign and
   passive text equivalent; it advertises no future capability
 - **2040 house redesign** ([#1114](https://github.com/futuroptimist/danielsmith.io/issues/1114)): a broader visual

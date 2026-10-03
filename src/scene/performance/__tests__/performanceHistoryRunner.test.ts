@@ -155,7 +155,9 @@ function fixture(
     put(
       repo,
       'scripts/capture-performance-route.cjs',
-      '// versioned --basement --exterior --garage --street house-front-entry-route-v1 house-attached-garage-route-v1 house-residential-street-route-v1 routes\n'
+      '// versioned --basement --exterior --garage --street ' +
+        'house-front-entry-route-v1 house-attached-garage-route-v1 ' +
+        'house-residential-street-route-v1 routes\n'
     );
   }
   git(repo, 'add', '.');
