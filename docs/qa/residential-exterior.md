@@ -235,6 +235,8 @@ The native street round trip, camera/lighting inspection and each locale journey
 use separate bounded browser cases. This preserves the full out-and-back route,
 all collision and zoom assertions, and nine native locale choices without sharing
 a cumulative case deadline. Individual native movement deadlines and zero retries
+remain unchanged. The complete scene gives the existing two-direction garage
+loop a three-minute total budget; its individual door and native-input bounds
 remain unchanged.
 
 Record failures and reruns honestly. Automated software-WebGL traversal, local
