@@ -145,6 +145,13 @@ const UPPER_FLOOR_BASE_PLAN: FloorPlanDefinition = compileLegacyFloorPlan(
   { includeDoorwaysFromWallGaps: true }
 );
 
+export const BASEMENT_FLOOR_PLAN: FloorPlanDefinition =
+  scaleFloorPlanDefinition(
+    compileLegacyFloorPlan(PORTFOLIO_LEVEL, 'basement', {
+      includeDoorwaysFromWallGaps: true,
+    })
+  );
+
 export const FLOOR_PLAN: FloorPlanDefinition =
   scaleFloorPlanDefinition(BASE_FLOOR_PLAN);
 
@@ -162,6 +169,7 @@ export interface FloorPlanLevel {
 }
 
 export const FLOOR_PLAN_LEVELS: FloorPlanLevel[] = [
+  { id: 'basement', name: 'Career Museum', plan: BASEMENT_FLOOR_PLAN },
   { id: 'ground', name: 'Ground Floor', plan: FLOOR_PLAN },
   { id: 'upper', name: 'Upper Floor', plan: UPPER_FLOOR_PLAN },
 ];

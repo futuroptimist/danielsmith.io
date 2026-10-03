@@ -410,12 +410,18 @@ async function walkStairCenterlineToUpperLanding(page: Page) {
     };
   });
   expect(connectionDebug.floors.map((floor) => floor.id)).toEqual([
+    'basement',
     'ground',
     'upper',
   ]);
   expect(connectionDebug.connections.activeConnectionId).toBe('ground-upper');
   expect(connectionDebug.connections.floorId).toBe('upper');
-  expect(connectionDebug.connections.connections).toHaveLength(1);
+  expect(connectionDebug.connections.connections).toHaveLength(2);
+  expect(connectionDebug.connections.connections[1]).toMatchObject({
+    id: 'basement-ground',
+    visible: false,
+    adjacent: false,
+  });
   expect(connectionDebug.connections.connections[0]).toMatchObject({
     id: 'ground-upper',
     lowerFloorId: 'ground',

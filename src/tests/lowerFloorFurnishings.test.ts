@@ -306,10 +306,10 @@ describe('lower floor furnishings foundation', () => {
         maxZ: -16.55,
       },
       'living-room-slim-entry-console': {
-        minX: 1.9,
-        maxX: 4.5,
-        minZ: -13.35,
-        maxZ: -12.65,
+        minX: -7.8,
+        maxX: -5.2,
+        minZ: -10.35,
+        maxZ: -9.65,
       },
       'kitchen-breakfast-table': {
         minX: -7.9,

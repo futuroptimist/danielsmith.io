@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  resolveColliderAuditFloor,
   classifyReachabilityEvidence,
   collectDominatingColliderEvidence,
   parseColliderReachabilityAuditArgs,
@@ -236,5 +237,15 @@ describe('collider reachability audit aggregation', () => {
       gridResolution: 0.4,
       maxExploredNodes: 42,
     });
+  });
+});
+
+describe('collider audit floor resolution', () => {
+  it('keeps basement candidates on basement instead of silently testing ground', () => {
+    expect(resolveColliderAuditFloor('basement')).toBe('basement');
+    expect(resolveColliderAuditFloor('all')).toBe('ground');
+    expect(() => resolveColliderAuditFloor('unknown')).toThrow(
+      'Unknown collider floor'
+    );
   });
 });

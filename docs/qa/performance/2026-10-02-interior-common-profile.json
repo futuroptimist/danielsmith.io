@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "series": "common-route-restarted-vite-v1",
+  "statistics": {
+    "rangeMean": "[minimum, maximum, arithmetic mean] across three independent attempts; two decimal places",
+    "delta": "[absolute mean difference, percent difference, raw range relation] from source minus reference; no pooled percentiles",
+    "scope": "Descriptive finite samples, not confidence intervals, equivalence tests or causal speedup estimates"
+  },
+  "batches": {
+    "C": {
+      "capturedUtc": ["2026-10-02T08:24:10.228Z", "2026-10-02T08:36:31.163Z"],
+      "callerSourceCommit": "096be292f64dfd0ed17576c198221bda704fc4be",
+      "callerTreeDirty": false,
+      "manifestSha256": "bdc39042cf12e1b5907d3140c60d57fee0eb237da949564e4ee0599a6ca9512b",
+      "checksumsSha256": "1a40cf839c641c96a7091e96a28054adfa1635f0e633d1af9c9ce76af1ad84ac",
+      "runnerSha256": "a34784f1667763db5bf64e8fc7706016437279016986c2f84d5b9d06f02e49be",
+      "routeHelperSha256": "d94584090259132a347180c28160f418ca30aba542a49e70f82e614b44036af0",
+      "archive": {
+        "filename": "house-corrected-common-096-eec-review.tar.gz",
+        "sha256": "5b671fd56979cf0fb3205f93758be5e07a06937feac953da262723c358008bd4",
+        "bytes": 5991978,
+        "availability": "Saved in the private owner review archive; no public access implied."
+      },
+      "concurrentWork": "No other browser or heavy build; light filesystem and remote GitHub publication continued.",
+      "command": "PLAYWRIGHT_BROWSERS_PATH=<official browser cache> npm run perf:history -- --output .performance-history/corrected-common-0824 1ee6fcf0f75fcc05f8087026f478cb80d02ca15e 096be292f64dfd0ed17576c198221bda704fc4be eecba90b3d808ef007b25e8c165fd07a35d6f815"
+    },
+    "D": {
+      "capturedUtc": ["2026-10-02T09:19:14.244Z", "2026-10-02T09:30:38.703Z"],
+      "callerSourceCommit": "56ce2943843114f5eb9e33465218fca04c9715b1",
+      "callerTreeDirty": false,
+      "manifestSha256": "f72dc3cc97f97199c02eb8d80b76ced1afb2d6d95bf0c8af0fdce737ccecd8e4",
+      "checksumsSha256": "501781034b2f263b9a7499cd970880d61295a691016d62b50c9dc450d8bce0f1",
+      "runnerSha256": "a34784f1667763db5bf64e8fc7706016437279016986c2f84d5b9d06f02e49be",
+      "routeHelperSha256": "d94584090259132a347180c28160f418ca30aba542a49e70f82e614b44036af0",
+      "archive": {
+        "filename": "house-interior-common-b07-256-f53-review.tar.gz",
+        "sha256": "f0d385677da1a0a36c7d0f0c26d39ab53576fc1ad12de61b2ff6e5f99492a1d6",
+        "bytes": 6452805,
+        "availability": "Saved in the private owner review archive; no public access implied."
+      },
+      "concurrentWork": "No other browser or heavy build; light source editing, short focused unit checks, filesystem and remote GitHub publication continued.",
+      "command": "PLAYWRIGHT_BROWSERS_PATH=<official browser cache> npm run perf:history -- --output .performance-history/stack-interior-common-0918 b07fc96c6b0068410b4fbfe4cba67deaa985755b 25679bb1164613fd77be5e2f4812f8a16d75efd0 f53f3d71d0367cb9f292efa07d8b12a139346c4e"
+    }
+  },
+  "sharedProfile": {
+    "platform": "linux 6.18.44 x64",
+    "cpuModelReportedByKernel": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 9,
+    "ramBytes": 10451464192,
+    "physicalDeviceGpuPowerThermals": "unknown; software rendering does not identify physical GPU",
+    "node": "v24.19.0",
+    "npm": "11.9.0",
+    "playwright": "1.55.1",
+    "chromium": "140.0.7339.186",
+    "vite": "5.4.20",
+    "lockSha256": "eb7625041fbcc671048610d6e505444584fa793fe8979c22d2c884c593b922ef",
+    "renderer": "official headless Chromium, software WebGL, safe policy 12 fps cap; warning visible",
+    "viewport": [1280, 720],
+    "drawingBuffer": [671, 377],
+    "browserDpr": 1,
+    "rendererDpr": 0.525,
+    "qualityAndSceneDetail": "performance",
+    "bloomComposerMirror": "disabled",
+    "cameraZoom": 12,
+    "panInput": [0, 0],
+    "locale": "en",
+    "reducedMotion": false,
+    "navigatorOverrides": {
+      "webdriver": false,
+      "hardwareConcurrency": 8,
+      "deviceMemory": 8
+    },
+    "serverIdentity": "Vite development dev/dev; source identity verified by clean detached checkout",
+    "cacheAndThrottling": "fresh browser contexts and Vite processes; shared OS/dependency caches; no configured throttling; external network conditions not measured",
+    "controlledWindow": "5000 ms warmup; one ready sample and 40 dispatch events per attempt; frame time unsupported",
+    "route": "house-common-route-v1; spawn -> upper landing -> Creators Studio -> spawn; 2147 real movement steps, zero blocks, four 5000 ms checkpoint dwells",
+    "poseXZ": {
+      "spawn": [0, -20],
+      "upper-landing": [12.4, -26.8],
+      "upper-creators-studio": [-8, -16],
+      "returned-spawn": [0, -20]
+    }
+  },
+  "referenceMetrics": {
+    "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e": {
+      "batch": "C",
+      "rangeMean": {
+        "applicationReadyMs": [1366.1, 1379.8, 1372.77],
+        "dispatchP95Ms": [103.1, 135.1, 119.47],
+        "spawn.calls": [89, 96, 93.67],
+        "spawn.triangles": [4304, 4604, 4504],
+        "spawn.memoryGeometries": [89, 89, 89],
+        "spawn.memoryTextures": [7, 7, 7],
+        "spawn.rollingFrameP95Ms": [105.3, 115.8, 108.97],
+        "spawn.rollingSampleCount": [57, 58, 57.33],
+        "upper-landing.calls": [112, 112, 112],
+        "upper-landing.triangles": [2358, 2358, 2358],
+        "upper-landing.memoryGeometries": [523, 528, 524.67],
+        "upper-landing.memoryTextures": [8, 9, 8.67],
+        "upper-landing.rollingFrameP95Ms": [100.2, 113.7, 108.8],
+        "upper-landing.rollingSampleCount": [180, 180, 180],
+        "upper-creators-studio.calls": [87, 87, 87],
+        "upper-creators-studio.triangles": [12324, 12324, 12324],
+        "upper-creators-studio.memoryGeometries": [639, 645, 641.67],
+        "upper-creators-studio.memoryTextures": [9, 10, 9.67],
+        "upper-creators-studio.rollingFrameP95Ms": [100.7, 108.3, 104.47],
+        "upper-creators-studio.rollingSampleCount": [180, 180, 180],
+        "returned-spawn.calls": [84, 97, 88.33],
+        "returned-spawn.triangles": [4124, 4664, 4304],
+        "returned-spawn.memoryGeometries": [647, 658, 653.67],
+        "returned-spawn.memoryTextures": [10, 12, 11.33],
+        "returned-spawn.rollingFrameP95Ms": [106.3, 131.2, 122.2],
+        "returned-spawn.rollingSampleCount": [180, 180, 180],
+        "wholeRoute.elapsedMs": [45555.4, 51254.2, 48225.77],
+        "wholeRoute.rafMaxMs": [1816.6, 1883.2, 1844.33],
+        "wholeRoute.rafIntervalsAtLeast1000Ms": [1, 1, 1],
+        "wholeRoute.longTaskCount": [335, 386, 356.33],
+        "wholeRoute.longTaskMaxMs": [1077, 1140, 1101.33]
+      }
+    },
+    "096be292f64dfd0ed17576c198221bda704fc4be": {
+      "batch": "C",
+      "rangeMean": {
+        "applicationReadyMs": [1303.3, 1490.3, 1372.9],
+        "dispatchP95Ms": [0.3, 113.9, 70.77],
+        "spawn.calls": [96, 97, 96.67],
+        "spawn.triangles": [4604, 4664, 4644],
+        "spawn.memoryGeometries": [89, 89, 89],
+        "spawn.memoryTextures": [7, 7, 7],
+        "spawn.rollingFrameP95Ms": [108.5, 133.8, 121.3],
+        "spawn.rollingSampleCount": [55, 58, 56.67],
+        "upper-landing.calls": [112, 112, 112],
+        "upper-landing.triangles": [2358, 2358, 2358],
+        "upper-landing.memoryGeometries": [517, 524, 520],
+        "upper-landing.memoryTextures": [8, 10, 9],
+        "upper-landing.rollingFrameP95Ms": [111, 116, 114.13],
+        "upper-landing.rollingSampleCount": [180, 180, 180],
+        "upper-creators-studio.calls": [87, 87, 87],
+        "upper-creators-studio.triangles": [12324, 12324, 12324],
+        "upper-creators-studio.memoryGeometries": [634, 640, 636],
+        "upper-creators-studio.memoryTextures": [9, 11, 10],
+        "upper-creators-studio.rollingFrameP95Ms": [100.2, 108, 103.93],
+        "upper-creators-studio.rollingSampleCount": [180, 180, 180],
+        "returned-spawn.calls": [84, 97, 92.67],
+        "returned-spawn.triangles": [4124, 4664, 4484],
+        "returned-spawn.memoryGeometries": [643, 653, 648],
+        "returned-spawn.memoryTextures": [11, 13, 12],
+        "returned-spawn.rollingFrameP95Ms": [108.4, 115.7, 112.63],
+        "returned-spawn.rollingSampleCount": [180, 180, 180],
+        "wholeRoute.elapsedMs": [43585.9, 50956.9, 47936.73],
+        "wholeRoute.rafMaxMs": [1866.7, 2283.2, 2033.27],
+        "wholeRoute.rafIntervalsAtLeast1000Ms": [1, 1, 1],
+        "wholeRoute.longTaskCount": [310, 379, 347.67],
+        "wholeRoute.longTaskMaxMs": [1096, 1464, 1243]
+      }
+    }
+  },
+  "limitations": [
+    "Baseline means original pre-expansion source 1ee6 measured again in batch C. The original before-edit capture and earlier series remain separate; no attempts are pooled.",
+    "Batch D and batch C share recorded tools, lock, route and settings but differ in capture time and light background activity. Baseline and basement predecessor comparisons across batches are observational.",
+    "Actual camera position/focus/cutaway IDs were not captured. The API existed from basement onward; the old helper incorrectly called it unavailable. Those raw records remain unchanged. Do not infer identical camera state from equal zoom/player pose.",
+    "Three-floor scene populations differ intentionally from baseline/foundation. Common routes do not visit the basement, career exhibits or exterior. The raw unavailableCheckpoints field is profile omission, not proof that basement was absent.",
+    "Rolling diagnostics hold at most 180 rendered-frame wall-clock intervals, omit intervals >=1000 ms and provide no reset/sample timestamps. Count 180 does not isolate the dwell. Phase diagnostics are retained privately, not CPU/GPU frame timing.",
+    "Every route observed one external requestAnimationFrame interval >=1000 ms. Whole-route stall probes remain separate from renderer diagnostics; event dispatch delay is not input-to-paint.",
+    "Geometry/texture counts are resource counts, not GPU bytes. Post-route residency is not the 125-geometry launch limit. These captures do not prove teardown disposal or full reclamation.",
+    "Hardware p95 <=80 ms, real phone evidence, full stage routes and owner walkthrough remain separate gates. No budget change or speedup/equivalence claim."
+  ],
+  "historicalSourceRetained": {
+    "commit": "eecba90b3d808ef007b25e8c165fd07a35d6f815",
+    "batch": "C",
+    "status": "earlier basement source; not substituted for the later measured b07 source"
+  }
+}

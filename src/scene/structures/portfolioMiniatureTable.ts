@@ -31,6 +31,7 @@ import { MINIATURE_SCENE_COMPONENT_PROXIES } from '../miniature/sceneComponentRe
 import { getPoiPhysicalMetadata } from '../poi/physicalMetadata';
 import type { PoiDefinition, PoiFootprint, PoiId } from '../poi/types';
 
+import { getBasementStairLayout } from './basementStaircase';
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from './portfolioMiniatureTableContract';
 import {
   CEILING_COVE_OFFSET,
@@ -379,20 +380,48 @@ function createArchitecture() {
   const groundSlabs = FLOOR_PLAN.rooms.filter(
     (room) => room.category !== 'exterior'
   );
+  const basementOpening = getBasementStairLayout().opening;
   for (const room of groundSlabs) {
     const { minX, maxX, minZ, maxZ } = room.bounds;
     const role = getRoomMiniatureMaterialRole(room);
-    const mesh = addBox(
-      root,
-      `MiniatureGroundFloor:${room.id}`,
-      [maxX - minX, 0.09, maxZ - minZ],
-      [(minX + maxX) / 2, GROUND_FLOOR_TOP_ELEVATION, (minZ + maxZ) / 2],
-      materials[role]
-    );
-    mesh.userData.floor = 'ground';
-    mesh.userData.materialRole = role;
-    mesh.userData.filledFloorArea = (maxX - minX) * (maxZ - minZ);
-    mesh.userData.opaqueFilledFloor = true;
+    const pieces =
+      room.id === 'livingRoom'
+        ? [
+            { minX, maxX: basementOpening.minX, minZ, maxZ },
+            { minX: basementOpening.maxX, maxX, minZ, maxZ },
+            {
+              minX: basementOpening.minX,
+              maxX: basementOpening.maxX,
+              minZ,
+              maxZ: basementOpening.minZ,
+            },
+            {
+              minX: basementOpening.minX,
+              maxX: basementOpening.maxX,
+              minZ: basementOpening.maxZ,
+              maxZ,
+            },
+          ]
+        : [room.bounds];
+    pieces.forEach((bounds, index) => {
+      const width = bounds.maxX - bounds.minX;
+      const depth = bounds.maxZ - bounds.minZ;
+      const mesh = addBox(
+        root,
+        `MiniatureGroundFloor:${room.id}${index ? `:${index}` : ''}`,
+        [width, 0.09, depth],
+        [
+          (bounds.minX + bounds.maxX) / 2,
+          GROUND_FLOOR_TOP_ELEVATION,
+          (bounds.minZ + bounds.maxZ) / 2,
+        ],
+        materials[role]
+      );
+      mesh.userData.floor = 'ground';
+      mesh.userData.materialRole = role;
+      mesh.userData.filledFloorArea = width * depth;
+      mesh.userData.opaqueFilledFloor = true;
+    });
   }
 
   const backyardRoom = FLOOR_PLAN.rooms.find(

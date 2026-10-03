@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1088" height="896" viewBox="0 0 1088 896" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="1088" height="896" fill="#0b1428" />
+  <g>
+    <path d="M32.00,864.00 L1056.00,864.00 L1056.00,32.00 L32.00,32.00 Z" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
+
+      <g>
+        <rect
+          x="32.00"
+          y="32.00"
+          width="1024.00"
+          height="832.00"
+          fill="#e5ba7e"
+          fill-opacity="0.22"
+          stroke="#e5ba7e"
+          stroke-opacity="0.5"
+          stroke-width="1.5"
+        />
+        <text x="544.00" y="448.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Career Museum</text>
+      </g>
+
+    <line x1="32.00" y1="32.00" x2="1056.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="864.00" x2="1056.00" y2="864.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="1056.00" y1="864.00" x2="1056.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="32.00" y1="864.00" x2="32.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+    <g aria-label="Basement stair connection" fill="none" stroke="#d7b98d" stroke-width="2">
+      <rect x="566.40"
+        y="428.80"
+        width="76.80"
+        height="328.00" />
+      <line x1="566.40"
+          x2="643.20"
+          y1="729.60" y2="729.60" /><line x1="566.40"
+          x2="643.20"
+          y1="702.40" y2="702.40" /><line x1="566.40"
+          x2="643.20"
+          y1="675.20" y2="675.20" /><line x1="566.40"
+          x2="643.20"
+          y1="648.00" y2="648.00" /><line x1="566.40"
+          x2="643.20"
+          y1="620.80" y2="620.80" /><line x1="566.40"
+          x2="643.20"
+          y1="593.60" y2="593.60" /><line x1="566.40"
+          x2="643.20"
+          y1="566.40" y2="566.40" /><line x1="566.40"
+          x2="643.20"
+          y1="539.20" y2="539.20" /><line x1="566.40"
+          x2="643.20"
+          y1="512.00" y2="512.00" />
+      <text x="604.80"
+        y="774.80"
+        text-anchor="middle" font-family="sans-serif" font-size="12" fill="#d7b98d"
+        stroke="none">Basement stairs</text>
+    </g>
+
+
+
+    <g>
+      <rect x="878.00" y="810.00" width="200" height="76" rx="8" fill="#0e1730" stroke="#223559" stroke-width="1" />
+      <g transform="translate(892.00, 826.00)">
+        <circle cx="8" cy="10" r="6" fill="#85e5ff" />
+        <circle cx="8" cy="10" r="3" fill="#0b1428" />
+        <text x="22" y="14" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">POI</text>
+        <rect x="0" y="26" width="14" height="14" fill="#ffd166" stroke="#ffeb99" stroke-width="1" />
+        <text x="22" y="38" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Spawn</text>
+      </g>
+    </g>
+  </g>
+</svg>

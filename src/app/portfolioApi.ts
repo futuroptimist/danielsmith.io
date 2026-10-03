@@ -217,6 +217,12 @@ export interface PortfolioApi {
       currentFloor?: FloorId;
       connectionId?: string;
     }): StairTransitionZone;
+    getCameraState(): {
+      cutawaySourceIds: string[];
+      position: { x: number; y: number; z: number };
+      focus: { x: number; y: number; z: number };
+      zoom: number;
+    };
     getFloorRegistrySnapshot(): ReturnType<FloorRegistry['getSnapshot']>;
     getFloorConnectionSnapshot(): ReturnType<
       FloorConnectionController['getSnapshot']

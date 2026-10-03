@@ -38,6 +38,25 @@
       "hardwareGate": "owner-run required"
     },
     {
+      "id": "2026-10-02-basement-b07fc96c",
+      "stage": "basement shell and staircase; common route",
+      "sourceCommit": "b07fc96c6b0068410b4fbfe4cba67deaa985755b",
+      "predecessorCommit": "096be292f64dfd0ed17576c198221bda704fc4be",
+      "manifest": "2026-10-02-basement-b07fc96c/manifest.json",
+      "summary": "2026-10-02-basement-b07fc96c/summary.json",
+      "series": "common-route-restarted-vite-v1",
+      "captureBatch": "D",
+      "controlledAttemptsCompletedPerCommit": 3,
+      "commonRouteAttemptsCompletedPerCommit": 3,
+      "hardwareGate": "owner-run required",
+      "extendedEvidence": {
+        "sourceCommit": "6ac34f194bfa88797470bea6ba3882e9ac6cb9bf",
+        "manifest": "2026-10-02-basement-b07fc96c/extended-6ac34f19-manifest.json",
+        "summary": "2026-10-02-basement-b07fc96c/extended-6ac34f19-summary.json",
+        "attemptsCompleted": 3
+      }
+    },
+    {
       "id": "2026-10-03-baseline-1ee6fcf0",
       "stage": "baseline",
       "sourceCommit": "1ee6fcf0f75fcc05f8087026f478cb80d02ca15e",
@@ -61,6 +80,19 @@
       "controlledAttemptsCompletedPerProfile": 3,
       "commonRouteAttemptsCompleted": 3,
       "extendedRouteAttemptsCompleted": 0,
+      "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-basement-d998360d",
+      "stage": "basement",
+      "sourceCommit": "d998360d60d02092db6e9a915bac04bebbb220fc",
+      "predecessorCommit": "56ce2943843114f5eb9e33465218fca04c9715b1",
+      "manifest": "2026-10-03-corrected-software-history/basement.json",
+      "summary": "2026-10-03-corrected-software-history/basement.json",
+      "series": "2026-10-03-corrected-software-history",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 3,
       "hardwareGate": "owner-run required"
     }
   ]

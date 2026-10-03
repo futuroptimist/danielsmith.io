@@ -1096,7 +1096,8 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       id: 'living-room-slim-entry-console',
       category: 'storage',
       roomId: 'livingRoom',
-      position: { x: 3.2, z: -13.0 },
+      // The west landing approach stays open; retain the console as a solid prop.
+      position: { x: -6.5, z: -10.0 },
       orientationRadians: 0,
       solidFootprint: { width: 2.6, depth: 0.7 },
       kind: 'storage-slim-entry-console',
