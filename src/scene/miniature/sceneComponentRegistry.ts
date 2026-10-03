@@ -59,10 +59,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: [
       'src/scene/level/basementStair.ts',
       'src/scene/structures/basementStaircase.ts',
+      'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'The shared descriptor also identifies the landing visual occluder; its runtime cutaway preserves collision. The tabletop retains the source-derived opening and its ground-only view.',
+      'Ground-floor rail trim owns its slab footprint and the final parapets meet its underside. The independent 80% landing-wall cutaway preserves collision. The tabletop retains the shared opening and its ground-only view.',
   },
   {
     id: 'environment:backyard',

@@ -439,14 +439,15 @@
       "id": "level:basement-stairs",
       "sourceFiles": [
         "src/scene/level/basementStair.ts",
+        "src/scene/structures/basementLandingCutaway.ts",
         "src/scene/structures/basementStaircase.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "The shared descriptor also identifies the landing visual occluder; its runtime cutaway preserves collision. The tabletop retains the source-derived opening and its ground-only view.",
-      "sourceFingerprint": "cb43257fb1fbb78016a3cfa99efeeb0c3365c55e09b59445ac82939e2a9daf6b",
+      "syncRevision": 4,
+      "syncNote": "Ground-floor rail trim owns its slab footprint and the final parapets meet its underside. The independent 80% landing-wall cutaway preserves collision. The tabletop retains the shared opening and its ground-only view.",
+      "sourceFingerprint": "96237a9011a26e90d2b55561cd1eebe904f9dc9524790e96b31b507bed3882f2",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "8bd86b98548b8bcf86ff6983d5602bc5d46b935e7ceb084be0bef5f3fc40832c"
+      "metadataFingerprint": "22d03e8a972ef51325244e4ee957dd619132c0a849faf5ef923c3a073c9ce43a"
     },
     {
       "id": "level:floors-walls",
