@@ -949,10 +949,40 @@ function buildImmersiveScene(
   clearPoiModelRoots();
   const immersiveUrl = createImmersiveModeUrl();
   const renderer = new WebGLRenderer({ antialias: true });
+  const crashBreadcrumbs = createCrashBreadcrumbStore({
+    storage: (() => {
+      try {
+        return window.localStorage;
+      } catch {
+        try {
+          return window.sessionStorage;
+        } catch {
+          return undefined;
+        }
+      }
+    })(),
+  });
+  // Each scope drains its own callbacks before rethrowing. Keep that failure
+  // visible without abandoning sibling resources or the lifecycle transition.
+  const disposeOwnedScope = (
+    scope: ReturnType<typeof createDisposalScope>,
+    name: 'initialization' | 'exterior'
+  ) => {
+    try {
+      scope.dispose();
+    } catch (error) {
+      crashBreadcrumbs.record({
+        type: 'cleanup-error',
+        message:
+          `${name} cleanup failed: ` +
+          (error instanceof Error ? error.message : String(error)),
+      });
+    }
+  };
   const initializationCleanup = createDisposalScope();
   registerFailureHandler((error) => {
     try {
-      initializationCleanup.dispose();
+      disposeOwnedScope(initializationCleanup, 'initialization');
     } finally {
       onFatalError(error, { renderer });
     }
@@ -1068,19 +1098,6 @@ function buildImmersiveScene(
     rendererInfo.isDangerousSoftwareRenderer
   );
 
-  const crashBreadcrumbs = createCrashBreadcrumbStore({
-    storage: (() => {
-      try {
-        return window.localStorage;
-      } catch {
-        try {
-          return window.sessionStorage;
-        } catch {
-          return undefined;
-        }
-      }
-    })(),
-  });
   const adaptivePixelRatioCap = Number.POSITIVE_INFINITY;
   let basePixelRatio = initialQualityPolicy.basePixelRatioCap;
   renderer.setPixelRatio(basePixelRatio);
@@ -1444,7 +1461,7 @@ function buildImmersiveScene(
       inputLatencyTelemetry.dispose();
       inputLatencyTelemetry = null;
     }
-    initializationCleanup.dispose();
+    disposeOwnedScope(initializationCleanup, 'initialization');
     softwareSafeRenderEvents.forEach((eventName) => {
       window.removeEventListener(eventName, requestSoftwareSafeRender);
     });
@@ -1464,7 +1481,7 @@ function buildImmersiveScene(
       partiallyInitializedTutorialPanel.dispose();
       partiallyInitializedTutorialPanel = null;
     }
-    exteriorCleanup.dispose();
+    disposeOwnedScope(exteriorCleanup, 'exterior');
     disposeCareerMuseumBuild();
     disposePortfolioMiniatureTableBuild();
     disposePrReaperInstallationBuild();
@@ -1491,7 +1508,10 @@ function buildImmersiveScene(
       message: error instanceof Error ? error.message : String(error),
       renderer: rendererInfo,
       softwareRendererPolicy,
-      snapshot: performanceDiagnostics?.methods.getSnapshot(),
+      snapshot:
+        immersiveLifecycle === 'disposing' || immersiveLifecycle === 'disposed'
+          ? undefined
+          : performanceDiagnostics?.methods.getSnapshot(),
     });
     try {
       disposeInitializedOrPartialImmersiveResources();
@@ -6962,7 +6982,7 @@ function buildImmersiveScene(
       inputLatencyTelemetry.dispose();
       inputLatencyTelemetry = null;
     }
-    initializationCleanup.dispose();
+    disposeOwnedScope(initializationCleanup, 'initialization');
     softwareSafeRenderEvents.forEach((eventName) => {
       window.removeEventListener(eventName, requestSoftwareSafeRender);
     });
@@ -7211,7 +7231,7 @@ function buildImmersiveScene(
       locomotionLinearSpeed = 0;
       locomotionAngularSpeed = 0;
     }
-    exteriorCleanup.dispose();
+    disposeOwnedScope(exteriorCleanup, 'exterior');
     joystick.reset();
     controls.dispose();
     if (livingRoomMediaWall) {
