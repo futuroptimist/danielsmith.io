@@ -184,6 +184,32 @@
       "commonRouteAttemptsCompleted": 3,
       "extendedRouteAttemptsCompleted": 3,
       "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-door-wall-corrections-entry",
+      "stage": "entry; door departure and shared-wall corrections",
+      "sourceCommit": "02fe6cd894763cdc3b440efacd68f3d09e2caa0d",
+      "predecessorCommit": "b4189b982ba133c5fb19a2e0fa4566654fddca4e",
+      "manifest": "2026-10-03-door-wall-corrections/profile.json",
+      "summary": "2026-10-03-door-wall-corrections/entry.json",
+      "series": "2026-10-03-door-wall-corrections",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 3,
+      "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-door-wall-corrections-garage",
+      "stage": "garage; door departure and shared-wall corrections",
+      "sourceCommit": "e981405649194914c836f4c4698d876e43c31845",
+      "predecessorCommit": "02fe6cd894763cdc3b440efacd68f3d09e2caa0d",
+      "manifest": "2026-10-03-door-wall-corrections/profile.json",
+      "summary": "2026-10-03-door-wall-corrections/garage.json",
+      "series": "2026-10-03-door-wall-corrections",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 3,
+      "hardwareGate": "owner-run required"
     }
   ]
 }

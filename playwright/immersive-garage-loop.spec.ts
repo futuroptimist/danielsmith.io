@@ -8,6 +8,7 @@ import {
   waitDoor,
   walkExteriorTo,
 } from './helpers/exteriorJourney';
+import { pressNativeMovementChord } from './helpers/nativeMovementChord';
 
 async function operate(page: Page, id: string, state: 'open' | 'closed') {
   const button = page.locator(
@@ -239,17 +240,19 @@ test(occupiedThresholdTitle, async ({ page }) => {
     position: { x: number; z: number };
     door: DoorSnapshot;
   }> = [];
-  await page.keyboard.down('KeyW');
-  await page.keyboard.down('KeyA');
   try {
-    await page.waitForFunction(
-      () => window.portfolio!.world!.getPlayerPosition().x <= 50.5,
-      undefined,
-      { timeout: 15000 }
-    );
+    await expect
+      .poll(
+        async () => {
+          await pressNativeMovementChord(page, ['KeyW', 'KeyA'], 100);
+          return page.evaluate(
+            () => window.portfolio!.world!.getPlayerPosition().x
+          );
+        },
+        { timeout: 15000 }
+      )
+      .toBeLessThanOrEqual(50.5);
   } finally {
-    await page.keyboard.up('KeyW');
-    await page.keyboard.up('KeyA');
     nativeSamples = await observation.evaluate((record) => record.stop());
     await observation.dispose();
     await test.info().attach('native-occupied-door-motion', {
@@ -272,8 +275,9 @@ test(occupiedThresholdTitle, async ({ page }) => {
   expect(
     occupiedSamples.every(({ door }) => !door.blocked && door.target === 1)
   ).toBe(true);
-  // Key-release latency can carry the player beyond the hold zone, where closing
-  // is correct. Re-approach through real movement for the final occupied snapshot.
+  // Each native pulse releases its keys before reading the endpoint. Departure
+  // beyond the hold zone may still close the door. Re-approach through real
+  // movement for the final occupied snapshot.
   await walkExteriorTo(page, { x: 47, z: 4 });
   await waitDoor(page, 'garage-door', 'open');
   await walkExteriorTo(page, { x: 50, z: 4 });
