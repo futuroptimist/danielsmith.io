@@ -58,10 +58,11 @@ jobs:
       - name: Upstairs, keyboard, and small-screen traversal
         run: >-
           npm run test:e2e -- playwright/immersive-stairs-roundtrip.spec.ts
+          playwright/immersive-basement-roundtrip.spec.ts
           playwright/keyboard-traversal.spec.ts playwright/small-screen-hud.spec.ts
           --workers=1 --retries=0 --trace=retain-on-failure
-      - name: Retain traversal failure evidence
-        if: failure()
+      - name: Retain traversal evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: immersive-traversal-${{ github.run_id }}-${{ github.run_attempt }}

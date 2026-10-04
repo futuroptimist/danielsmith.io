@@ -3,7 +3,7 @@
   <rect x="0" y="0" width="960" height="1024" fill="#0b1428" />
   <g>
     <path d="M32.00,992.00 L928.00,992.00 L928.00,32.00 L32.00,32.00 Z" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
-    
+
       <g>
         <rect
           x="544.00"
@@ -18,7 +18,7 @@
         />
         <text x="678.40" y="864.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Upper Landing</text>
       </g>
-    
+
 
       <g>
         <rect
@@ -34,7 +34,7 @@
         />
         <text x="352.00" y="736.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Creators Studio</text>
       </g>
-    
+
 
       <g>
         <rect
@@ -50,7 +50,7 @@
         />
         <text x="704.00" y="512.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Loft Library</text>
       </g>
-    
+
 
       <g>
         <rect
@@ -66,9 +66,8 @@
         />
         <text x="512.00" y="160.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Focus Pods</text>
       </g>
-    
-    <line x1="544.00" y1="736.00" x2="614.40" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="742.40" y1="736.00" x2="812.80" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+
+    <line x1="742.40" y1="736.00" x2="812.80" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="812.80" y1="736.00" x2="864.00" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="160.00" y1="992.00" x2="544.00" y2="992.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="544.00" y1="992.00" x2="812.80" y2="992.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
@@ -77,8 +76,7 @@
 <line x1="672.00" y1="288.00" x2="864.00" y2="288.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="160.00" y1="32.00" x2="864.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="812.80" y1="992.00" x2="812.80" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="544.00" y1="992.00" x2="544.00" y2="928.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="544.00" y1="800.00" x2="544.00" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="544.00" y1="898.24" x2="544.00" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="544.00" y1="736.00" x2="544.00" y2="672.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="544.00" y1="544.00" x2="544.00" y2="480.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="544.00" y1="480.00" x2="544.00" y2="288.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
@@ -86,5 +84,46 @@
 <line x1="160.00" y1="288.00" x2="160.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="864.00" y1="736.00" x2="864.00" y2="288.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="864.00" y1="288.00" x2="864.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+
+    <g>
+        <circle cx="203.52" cy="592.32" r="6" fill="#85e5ff" />
+        <circle cx="203.52" cy="592.32" r="3" fill="#0b1428" />
+      </g>
+<g>
+        <circle cx="211.84" cy="940.80" r="6" fill="#85e5ff" />
+        <circle cx="211.84" cy="940.80" r="3" fill="#0b1428" />
+      </g>
+<g>
+        <circle cx="281.28" cy="786.88" r="6" fill="#85e5ff" />
+        <circle cx="281.28" cy="786.88" r="3" fill="#0b1428" />
+      </g>
+<g>
+        <circle cx="210.08" cy="204.32" r="6" fill="#85e5ff" />
+        <circle cx="210.08" cy="204.32" r="3" fill="#0b1428" />
+      </g>
+<g>
+        <circle cx="469.92" cy="255.52" r="6" fill="#85e5ff" />
+        <circle cx="469.92" cy="255.52" r="3" fill="#0b1428" />
+      </g>
+<g>
+        <circle cx="745.44" cy="197.44" r="6" fill="#85e5ff" />
+        <circle cx="745.44" cy="197.44" r="3" fill="#0b1428" />
+      </g>
+<g>
+        <circle cx="743.68" cy="411.68" r="6" fill="#85e5ff" />
+        <circle cx="743.68" cy="411.68" r="3" fill="#0b1428" />
+      </g>
+
+
+    <g>
+      <rect x="750.00" y="938.00" width="200" height="76" rx="8" fill="#0e1730" stroke="#223559" stroke-width="1" />
+      <g transform="translate(764.00, 954.00)">
+        <circle cx="8" cy="10" r="6" fill="#85e5ff" />
+        <circle cx="8" cy="10" r="3" fill="#0b1428" />
+        <text x="22" y="14" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">POI</text>
+        <rect x="0" y="26" width="14" height="14" fill="#ffd166" stroke="#ffeb99" stroke-width="1" />
+        <text x="22" y="38" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Spawn</text>
+      </g>
+    </g>
   </g>
 </svg>

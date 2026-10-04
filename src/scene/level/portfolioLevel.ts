@@ -110,6 +110,7 @@ const sceneObject = (
 });
 
 const FLOOR_SURFACE_SOURCE_IDS: Readonly<Record<string, string>> = {
+  'basement:careerMuseum': 'basement.careerMuseum.floor.main',
   'ground:livingRoom': 'ground.livingRoom.floor.main',
   'ground:studio': 'ground.studio.floor.main',
   'ground:kitchen': 'ground.kitchen.floor.main',
@@ -177,6 +178,63 @@ const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => ({
 export const PORTFOLIO_LEVEL: LevelDefinition = {
   id: 'portfolio',
   floors: [
+    buildFloor({
+      id: 'basement',
+      name: 'Career Museum',
+      outline: [
+        [-16, -18],
+        [16, -18],
+        [16, 8],
+        [-16, 8],
+      ],
+      rooms: [
+        {
+          id: 'careerMuseum',
+          sourceId: sourceId('basement.careerMuseum.room'),
+          name: 'Career Museum',
+          bounds: { minX: -16, maxX: 16, minZ: -18, maxZ: 8 },
+          ledColor: 0xe5ba7e,
+        },
+      ],
+      walls: [
+        horizontalWall(
+          'museum-south-wall',
+          'basement.careerMuseum.southWall',
+          'basement',
+          -18,
+          -16,
+          16,
+          ['careerMuseum']
+        ),
+        horizontalWall(
+          'museum-north-wall',
+          'basement.careerMuseum.northWall',
+          'basement',
+          8,
+          -16,
+          16,
+          ['careerMuseum']
+        ),
+        verticalWall(
+          'museum-west-wall',
+          'basement.careerMuseum.westWall',
+          'basement',
+          -16,
+          -18,
+          8,
+          ['careerMuseum']
+        ),
+        verticalWall(
+          'museum-east-wall',
+          'basement.careerMuseum.eastWall',
+          'basement',
+          16,
+          -18,
+          8,
+          ['careerMuseum']
+        ),
+      ],
+    }),
     buildFloor({
       id: 'ground',
       name: 'Ground Floor',

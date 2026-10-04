@@ -98,8 +98,11 @@ describe('wall collider debug identities', () => {
     ).toBe(generatedIdentities.length);
     expect(
       generatedIdentities.every(({ floorId, identity, instance }) => {
-        const prefix =
-          floorId === 'ground' ? 'GroundWallCollider' : 'UpperWallCollider';
+        const prefix = {
+          basement: 'BasementWallCollider',
+          ground: 'GroundWallCollider',
+          upper: 'UpperWallCollider',
+        }[floorId];
         return (
           identity.name ===
             `${prefix}:${instance.sourceId}:${identity.debugId}` &&

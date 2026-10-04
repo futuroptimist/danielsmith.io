@@ -40,6 +40,7 @@ import {
   type KeyBindingSnapshot,
 } from './app/portfolioApi';
 import {
+  BASEMENT_FLOOR_PLAN,
   FLOOR_PLAN,
   FLOOR_PLAN_SCALE,
   UPPER_FLOOR_PLAN,
@@ -264,6 +265,8 @@ import {
   createAxelNavigator,
   type AxelNavigatorBuild,
 } from './scene/structures/axelNavigator';
+import { createBasementLandingCutaway } from './scene/structures/basementLandingCutaway';
+import { createBasementStaircase } from './scene/structures/basementStaircase';
 import { createRoomCeilingPanels } from './scene/structures/ceilingPanels';
 import { createDoorwayOpenings } from './scene/structures/doorwayOpenings';
 import {
@@ -1358,6 +1361,7 @@ export function initializeImmersiveScene(
   let debugCoordinatesHeading: HTMLDivElement | null = null;
   let debugCoordinatesInterval: number | null = null;
   let partiallyInitializedTutorialPanel: TutorialPanelHandle | null = null;
+  let disposeBasementLandingCutaway: (() => void) | null = null;
   let removePartiallyInitializedTutorialVisitedSubscription:
     | (() => void)
     | null = null;
@@ -1369,6 +1373,7 @@ export function initializeImmersiveScene(
       return;
     }
     immersiveLifecycle = 'disposing';
+    disposeBasementLandingCutaway?.();
     if (inputLatencyTelemetry) {
       inputLatencyTelemetry.report('dispose-partial');
       inputLatencyTelemetry.dispose();
@@ -1689,6 +1694,62 @@ export function initializeImmersiveScene(
     });
   }
 
+  const basementStaircase = createBasementStaircase(PLAYER_RADIUS);
+  scene.add(basementStaircase.group);
+  const basementFloorGroup = new Group();
+  basementFloorGroup.name = 'BasementFloorVisuals';
+  const basementStructureGroup = new Group();
+  basementStructureGroup.name = 'BasementStructureVisuals';
+  const basementPoiGroup = new Group();
+  basementPoiGroup.name = 'BasementPoiVisuals';
+  scene.add(basementFloorGroup, basementStructureGroup, basementPoiGroup);
+  const basementColliders: RectCollider[] = [];
+  const basementFloorMaterial = new MeshStandardMaterial({
+    color: 0x5a5147,
+    roughness: 0.8,
+    metalness: 0.02,
+  });
+  basementFloorGroup.add(
+    generateFloorSurfaces(getLevelFloor('basement'), {
+      material: basementFloorMaterial,
+      elevation: basementStaircase.definition.lowerFloorElevation,
+      groupName: 'BasementFloorTiles',
+    }).group
+  );
+  const basementWallMaterial = new MeshStandardMaterial({
+    color: 0x716759,
+    roughness: 0.8,
+  });
+  const basementWallInstances = generateWallSegmentInstances(
+    getLevelFloor('basement'),
+    {
+      coordinateScale: FLOOR_PLAN_SCALE,
+      baseElevation: basementStaircase.definition.lowerFloorElevation,
+      wallHeight: 4.2,
+      wallThickness: WALL_THICKNESS,
+      fenceHeight: FENCE_HEIGHT,
+      fenceThickness: FENCE_THICKNESS,
+      getRoomCategory,
+    }
+  );
+  basementFloorGroup.add(
+    createWallSegmentMeshes({
+      instances: basementWallInstances,
+      groupName: 'BasementWallSegments',
+      getMaterial: () => basementWallMaterial,
+    }).group
+  );
+  basementWallInstances.forEach((instance) => {
+    const identity = getWallColliderDebugIdentity('basement', instance);
+    basementColliders.push(instance.collider);
+    namedColliderDebugNames.set(instance.collider, identity.name);
+    colliderSourceMetadata.set(instance.collider, {
+      sourceId: instance.sourceId,
+      sourceType: 'wall',
+      debugId: identity.debugId,
+    });
+  });
+
   const groundFloorGroup = new Group();
   groundFloorGroup.name = 'GroundFloorVisuals';
   scene.add(groundFloorGroup);
@@ -1702,6 +1763,9 @@ export function initializeImmersiveScene(
     material: floorMaterial,
     elevation: GROUND_FLOOR_TOP_ELEVATION,
     groupName: 'GroundFloorTiles',
+    cutoutsBySurfaceId: {
+      'livingRoom-floor-main': basementStaircase.floorCutouts,
+    },
   });
   groundFloorGroup.add(floorTiles.group);
 
@@ -1739,10 +1803,22 @@ export function initializeImmersiveScene(
       getRoomCategory,
     }
   );
+  const basementLandingCutaway = createBasementLandingCutaway(wallMaterial);
+  const basementLandingWallMaterial = basementLandingCutaway.material;
+  disposeBasementLandingCutaway = basementLandingCutaway.dispose;
+  let basementLandingCutawayActive = false;
   const groundWallMeshes = createWallSegmentMeshes({
     instances: groundWallInstances,
     groupName: 'GroundWallSegments',
     getMaterial(instance) {
+      if (
+        instance.sourceId ===
+          basementStaircase.definition.landingOccluderSourceId &&
+        instance.collider.minX <= basementStaircase.geometry.centerX &&
+        instance.collider.maxX >= basementStaircase.geometry.centerX
+      ) {
+        return basementLandingWallMaterial;
+      }
       return instance.isFence ? fenceMaterial : wallMaterial;
     },
   });
@@ -1923,6 +1999,7 @@ export function initializeImmersiveScene(
       },
     },
   ];
+  stairConnections.push(basementStaircase.connection);
   staircase.group.userData.connectionId = stairConnections[0].id;
   staircase.group.userData.sourceId = stairConnections[0].sources.visual;
   const stairNavigationZones = createStairNavigationZones(
@@ -1952,6 +2029,7 @@ export function initializeImmersiveScene(
   });
 
   const floorBuildColliders = new Map<string, RectCollider[]>([
+    ['basement', basementColliders],
     ['ground', groundColliders],
     ['upper', upperFloorColliders],
   ]);
@@ -1960,7 +2038,6 @@ export function initializeImmersiveScene(
     if (!targetColliders)
       throw new Error(`Unbuilt safety collider floor '${collider.floor}'.`);
     targetColliders.push(collider.bounds);
-    stairConnectionSafetySourceIds.push(collider.sourceId);
     namedColliderDebugNames.set(collider.bounds, collider.name);
     colliderSourceMetadata.set(collider.bounds, {
       sourceId: collider.sourceId,
@@ -1972,10 +2049,19 @@ export function initializeImmersiveScene(
     });
   };
 
+  const registerOriginalStairSafetyCollider = (
+    collider: LevelSafetyCollider
+  ) => {
+    stairConnectionSafetySourceIds.push(collider.sourceId);
+    registerSafetyCollider(collider);
+  };
+
   createGroundStairSafetyColliders(stairGeometry, stairBehavior, {
     playerRadius: PLAYER_RADIUS,
     guardThickness: stairGuardThickness,
-  }).forEach(registerSafetyCollider);
+  }).forEach(registerOriginalStairSafetyCollider);
+
+  basementStaircase.safety.forEach(registerSafetyCollider);
 
   wallPaintings = createWallPaintings();
   groundStructureGroup.add(wallPaintings.groundGroup);
@@ -2074,7 +2160,7 @@ export function initializeImmersiveScene(
       upperStairwellOpening,
       stairNavigationZones,
       upperStairBannisterThickness: STAIRCASE_CONFIG.landing.guard.thickness,
-    }).forEach(registerSafetyCollider);
+    }).forEach(registerOriginalStairSafetyCollider);
   }
 
   const staircaseLandingFootprint = {
@@ -2210,7 +2296,15 @@ export function initializeImmersiveScene(
   const groundNavMesh = createNavMesh(FLOOR_PLAN, {
     padding: doorwayPadding,
     depth: doorwayDepth,
-    extraZones: groundStairNavZones,
+    extraZones: [...groundStairNavZones, basementStaircase.zones.upperLanding],
+  });
+  const basementNavMesh = createNavMesh(BASEMENT_FLOOR_PLAN, {
+    padding: doorwayPadding,
+    depth: doorwayDepth,
+    extraZones: [
+      basementStaircase.zones.lowerStairEntrance,
+      basementStaircase.zones.stairRampBody,
+    ],
   });
   const upperNavMesh = createNavMesh(UPPER_FLOOR_PLAN, {
     padding: doorwayPadding,
@@ -2275,6 +2369,7 @@ export function initializeImmersiveScene(
   lightmapAnimator = createLightmapBounceAnimator({
     floorMaterial,
     wallMaterial,
+    wallMaterialClones: [basementLandingWallMaterial],
     fenceMaterial,
     ceilingPanels: ceilings.panels,
     programs: seasonalPrograms,
@@ -2292,6 +2387,17 @@ export function initializeImmersiveScene(
   scene.add(upperPoiGroup);
 
   const floorRegistry = createFloorRegistry([
+    {
+      id: 'basement',
+      elevation: basementStaircase.definition.lowerFloorElevation,
+      plan: BASEMENT_FLOOR_PLAN,
+      groups: [basementFloorGroup, basementPoiGroup, basementStructureGroup],
+      lightingGroups: [],
+      poiGroup: basementPoiGroup,
+      structureGroup: basementStructureGroup,
+      colliders: basementColliders,
+      navMesh: basementNavMesh,
+    },
     {
       id: 'ground',
       elevation: GROUND_FLOOR_TOP_ELEVATION,
@@ -3494,6 +3600,20 @@ export function initializeImmersiveScene(
           upperFloorElevation: connection.upperFloorElevation,
         };
       },
+      getCameraState() {
+        return {
+          position: {
+            x: camera.position.x,
+            y: camera.position.y,
+            z: camera.position.z,
+          },
+          focus: { x: cameraCenter.x, y: cameraCenter.y, z: cameraCenter.z },
+          zoom: camera.zoom,
+          cutawaySourceIds: basementLandingCutawayActive
+            ? [basementStaircase.definition.landingOccluderSourceId]
+            : [],
+        };
+      },
       getFloorRegistrySnapshot() {
         return floorRegistry.getSnapshot();
       },
@@ -4402,6 +4522,21 @@ export function initializeImmersiveScene(
   };
 
   const updatePlayerVerticalPosition = () => {
+    const { geometry } = basementStaircase;
+    const nearBasementLanding =
+      activeFloorId === 'ground' &&
+      player.position.x >=
+        geometry.centerX - geometry.halfWidth - PLAYER_RADIUS * 3 &&
+      player.position.x <=
+        geometry.centerX + geometry.halfWidth + PLAYER_RADIUS &&
+      player.position.z >= geometry.topZ - PLAYER_RADIUS * 2 &&
+      player.position.z <= geometry.landingMaxZ + PLAYER_RADIUS;
+    // Retain the physical wall and fixed camera. Only its occluding visual segment
+    // cuts away while the avatar approaches this otherwise-hidden ground landing.
+    if (nearBasementLanding !== basementLandingCutawayActive) {
+      basementLandingCutawayActive = nearBasementLanding;
+      basementLandingCutaway.setActive(nearBasementLanding);
+    }
     player.position.y = floorConnections.sampleHeight(
       player.position.x,
       player.position.z
@@ -6465,6 +6600,7 @@ export function initializeImmersiveScene(
       return;
     }
     immersiveLifecycle = 'disposing';
+    disposeBasementLandingCutaway?.();
     if (inputLatencyTelemetry) {
       inputLatencyTelemetry.report('dispose');
       inputLatencyTelemetry.dispose();

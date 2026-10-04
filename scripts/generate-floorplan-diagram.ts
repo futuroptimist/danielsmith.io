@@ -9,6 +9,7 @@ import {
   type FloorPlanLevel,
 } from '../src/assets/floorPlan';
 import { getPoiDefinitions } from '../src/scene/poi/registry';
+import { getBasementStairLayout } from '../src/scene/structures/basementStaircase';
 
 const OUTPUT_DIR = path.resolve(process.cwd(), 'docs/assets');
 const PADDING = 32;
@@ -101,6 +102,29 @@ function renderFloorSvg(level: FloorPlanLevel): string {
     return `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="${stroke}" stroke-width="${wallStroke.toFixed(2)}" stroke-linecap="round" />`;
   });
 
+  const basementStair = getBasementStairLayout();
+  const stairGeometry = basementStair.geometry;
+  const stairLayer =
+    level.id === 'ground' || level.id === 'basement'
+      ? `<g aria-label="Basement stair connection" fill="none" stroke="#d7b98d" stroke-width="2">
+      <rect x="${projectX(stairGeometry.centerX - stairGeometry.halfWidth).toFixed(2)}"
+        y="${projectY(stairGeometry.landingMaxZ).toFixed(2)}"
+        width="${(stairGeometry.halfWidth * 2 * SCALE).toFixed(2)}"
+        height="${((stairGeometry.landingMaxZ - stairGeometry.bottomZ) * SCALE).toFixed(2)}" />
+      ${Array.from({ length: basementStair.config.step.count }, (_, index) => {
+        const z =
+          stairGeometry.bottomZ + (index + 1) * basementStair.config.step.run;
+        return `<line x1="${projectX(stairGeometry.centerX - stairGeometry.halfWidth).toFixed(2)}"
+          x2="${projectX(stairGeometry.centerX + stairGeometry.halfWidth).toFixed(2)}"
+          y1="${projectY(z).toFixed(2)}" y2="${projectY(z).toFixed(2)}" />`;
+      }).join('')}
+      <text x="${projectX(stairGeometry.centerX).toFixed(2)}"
+        y="${(projectY(stairGeometry.bottomZ) + 18).toFixed(2)}"
+        text-anchor="middle" font-family="sans-serif" font-size="12" fill="#d7b98d"
+        stroke="none">Basement stairs</text>
+    </g>`
+      : '';
+
   // Icons
   const pois = getPoiDefinitions().filter((p) =>
     plan.rooms.some((r) => r.id === p.roomId)
@@ -152,6 +176,7 @@ function renderFloorSvg(level: FloorPlanLevel): string {
     <path d="${outlinePath.join(' ')}" fill="#151d2f" stroke="#1e2a3f" stroke-width="2" stroke-linejoin="round" />
     ${roomLayers.join('\n')}
     ${wallLayers.join('\n')}
+    ${stairLayer}
     ${iconLayers}
     ${spawnLayer}
     ${legend}
@@ -169,7 +194,7 @@ async function generate() {
   await ensureDirectoryExists(OUTPUT_DIR);
   await Promise.all(
     FLOOR_PLAN_LEVELS.map(async (level) => {
-      const svg = renderFloorSvg(level);
+      const svg = renderFloorSvg(level).replace(/[ \t]+$/gm, '');
       const filePath = path.resolve(OUTPUT_DIR, `floorplan-${level.id}.svg`);
       await fs.writeFile(filePath, svg, 'utf8');
     })

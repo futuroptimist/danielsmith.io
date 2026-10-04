@@ -23,9 +23,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'FloorId now comes from the elevation registry; the authored ground and upper layout and miniature geometry are unchanged.',
+      'The basement shell is below the tabletop ground-only view; the ground-floor ' +
+      'stair reservation is represented by the shared basement stair descriptor.',
   },
   {
     id: 'level:floors-walls',
@@ -49,8 +50,24 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/upperStairwellLanding.ts',
       'src/scene/level/upperStairwellLandingSegments.ts',
     ],
-    syncRevision: 1,
-    syncNote: 'Stairs and upper landing have shared dimensions.',
+    syncRevision: 2,
+    syncNote:
+      'Both stair builds share tread geometry; the ground miniature retains the ' +
+      'upstairs silhouette and renders the source-derived basement opening.',
+  },
+  {
+    id: 'level:basement-stairs',
+    kind: 'shared-source',
+    sourceFiles: [
+      'src/scene/level/basementStair.ts',
+      'src/scene/structures/basementStaircase.ts',
+      'src/scene/structures/basementLandingCutaway.ts',
+    ],
+    syncRevision: 4,
+    syncNote:
+      'Ground-floor rail trim owns its slab footprint and the final parapets meet ' +
+      'its underside. The independent 80% landing-wall cutaway preserves collision. ' +
+      'The tabletop retains the shared opening and its ground-only view.',
   },
   {
     id: 'environment:backyard',
@@ -93,9 +110,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'decor:lower-floor-furnishings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 35,
+    syncRevision: 36,
     syncNote:
-      'Studio rug footprint shifts only floor-decor placement; tabletop furnishing proxy coverage is unchanged.',
+      'The solid entry console moves west to clear the basement landing; furnishings ' +
+      'remain excluded from the ground-only tabletop.',
     reason:
       'Lower- and upper-floor furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
   },
@@ -312,9 +330,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:lighting:lightmapBounceAnimator',
     kind: 'excluded',
     sourceFiles: ['src/scene/lighting/lightmapBounceAnimator.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Wall clones share animated lightmap brightness; the static miniature gains no geometry.',
   },
   {
     id: 'audit:src:scene:lighting:seasonalPresets',

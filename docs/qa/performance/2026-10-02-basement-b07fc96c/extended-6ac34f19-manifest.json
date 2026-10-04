@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "stage": "basement shell and staircase; extended route",
+  "pullRequest": 1119,
+  "sourceHead": "6ac34f194bfa88797470bea6ba3882e9ac6cb9bf",
+  "sourceTree": "fe3e5cf2ce6124818471bbfede91fbc950ac7a90",
+  "sourceParent": "b07fc96c6b0068410b4fbfe4cba67deaa985755b",
+  "associatedCommonEvidence": "manifest.json",
+  "sourceQualification": "Only capture helper differs from measured common-route source b07fc96c; app runtime is unchanged. Exact source identities remain distinct.",
+  "sourceTreeCleanAfter": true,
+  "capturedUtc": ["2026-10-02T10:42:34.798Z", "2026-10-02T10:47:42.941Z"],
+  "series": "basement-route-restarted-vite-camera-v1",
+  "routeProfile": "house-basement-route-v1",
+  "callerSourceCommit": "a22fb9bde57f682f7ece5d27447a56999fdbf639",
+  "callerTreeDirty": true,
+  "dirtyCallerQualification": "Operator reports only staged camera-helper correction. Runner bytes match the caller commit; historical route-helper bytes match exact measured source 6ac34f19. The dirty caller helper was not selected for this historical basement route.",
+  "runnerSha256": "218b7348eb52e2909b307dc5da45f9ac789d4a9b8546f0853259b34304fd5dc9",
+  "selectedRouteHelperSha256": "60bce84d2fe8b96af7256be1b523aeb73b5f05162156201f461c18cc3ef9c02f",
+  "callerRouteHelperSha256": "6e12f610c848968e3c9defb8f57c07c9b984582159a935b78ed5082f9b95dfa9",
+  "manifestSha256": "21f6caead4a88cca75537314d2ac27aca2b78ec8c60b98bd3c6afea8d0c13e09",
+  "checksumsSha256": "4aeaa96bbb6c96787864bb679a68d950ebc7c1ef1d8813b50feb0dfc4e7003fb",
+  "lockSha256": "eb7625041fbcc671048610d6e505444584fa793fe8979c22d2c884c593b922ef",
+  "sharedEnvironment": "../2026-10-02-interior-common-profile.json#sharedProfile",
+  "captureDifferences": "Later capture window and new runner/helper; same recorded Node/npm/browser/Vite/OS/CPU/RAM/renderer/quality/viewport. No concurrent browser/heavy tests; a small runner unit suite and filesystem/GitHub activity continued. Do not pool timing with common series.",
+  "command": "PLAYWRIGHT_BROWSERS_PATH=<official browser cache> npm run perf:history -- --route-profile basement --output .performance-history/basement-extended-1042 6ac34f194bfa88797470bea6ba3882e9ac6cb9bf",
+  "route": "spawn -> basement ground landing -> lower toe -> museum perimeter loop -> upper landing -> Creators Studio -> spawn; 3973 real movement steps, 11 legs, seven 5000 ms checkpoint dwells",
+  "cameraState": "Actual position, focus and cutaway IDs captured in all 21 checkpoints; rounded poses below match across the three attempts. Raw precision remains private.",
+  "poses": {
+    "spawn": {
+      "playerXYZ": [0, 0, -20.0],
+      "floor": "ground",
+      "cameraXYZ": [56.286, 58.098, 36.286],
+      "focusXYZ": [0, 0.75, -20.0],
+      "cutawaySourceIds": []
+    },
+    "basement-ground-landing": {
+      "playerXYZ": [3.8, 0, -11.0],
+      "floor": "ground",
+      "cameraXYZ": [60.086, 58.098, 45.286],
+      "focusXYZ": [3.8, 0.75, -11.0],
+      "cutawaySourceIds": ["ground.living_room.north_wall"]
+    },
+    "basement-lower-toe": {
+      "playerXYZ": [3.8, -5, -32.5],
+      "floor": "basement",
+      "cameraXYZ": [60.086, 53.098, 23.786],
+      "focusXYZ": [3.8, -4.25, -32.5],
+      "cutawaySourceIds": []
+    },
+    "basement-museum-loop-complete": {
+      "playerXYZ": [3.8, -5, -32.5],
+      "floor": "basement",
+      "cameraXYZ": [60.086, 53.098, 23.786],
+      "focusXYZ": [3.8, -4.25, -32.5],
+      "cutawaySourceIds": []
+    },
+    "upper-landing": {
+      "playerXYZ": [12.4, 5, -26.8],
+      "floor": "upper",
+      "cameraXYZ": [68.686, 63.098, 29.486],
+      "focusXYZ": [12.4, 5.75, -26.8],
+      "cutawaySourceIds": []
+    },
+    "upper-creators-studio": {
+      "playerXYZ": [-8, 5, -16],
+      "floor": "upper",
+      "cameraXYZ": [48.286, 63.098, 40.286],
+      "focusXYZ": [-8, 5.75, -16],
+      "cutawaySourceIds": []
+    },
+    "returned-spawn": {
+      "playerXYZ": [-0.0, 0, -20],
+      "floor": "ground",
+      "cameraXYZ": [56.286, 58.098, 36.286],
+      "focusXYZ": [-0.0, 0.75, -20],
+      "cutawaySourceIds": []
+    }
+  },
+  "outcome": "3 controlled suites: each 4 passed / 1 hardware-only skip; 3 complete extended routes, zero blocked movement steps",
+  "archive": {
+    "filename": "house-basement-extended-6ac-review.tar.gz",
+    "sha256": "36313e3c33e9f8be94774c784fc28584ce01fcac616a2915b4a7178ef63ae8f9",
+    "bytes": 4011279,
+    "availability": "Saved in the private owner review archive; no public access implied."
+  },
+  "comparisonScope": "Basement poses are additions absent from pre-expansion/foundation sources. Common evidence retains baseline and predecessor comparisons; changed route history prevents direct pooling of extended timing/residency with common checkpoints.",
+  "limitations": "Controlled frame time remains unavailable. Rolling windows still omit >=1000 ms intervals and are not isolated by the 5000 ms dwell. External rAF/long tasks are separate wall-clock probes. Resource counts are not GPU bytes; 125 geometries is the launch ceiling. Hardware timing, complete old-renderer reclamation, real phone results and owner walkthrough remain unverified.",
+  "recordedPrBase": "56ce2943843114f5eb9e33465218fca04c9715b1",
+  "captureSourceQualification": "Measurements use the clean detached source head, not a GitHub merge-ref build. The PR base is recorded metadata, not a separately measured combined checkout."
+}
