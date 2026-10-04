@@ -194,7 +194,9 @@ describe('POI registry', () => {
     const firstCall = getPoiDefinitionsByCategory('project');
     const secondCall = getPoiDefinitionsByCategory('project');
 
-    expect(firstCall.length).toBe(pois.length);
+    expect(firstCall.length).toBe(
+      pois.filter((poi) => poi.category === 'project').length
+    );
     expect(firstCall.every((poi) => poi.category === 'project')).toBe(true);
 
     expect(firstCall).not.toBe(secondCall);

@@ -76,35 +76,7 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       },
       timeline: {
         heading: wrap('Work timeline'),
-        entries: [
-          {
-            period: wrap('Sep 2018 — May 2025'),
-            location: wrap('San Bruno, CA'),
-            role: wrap('Site Reliability Engineer (L4)'),
-            org: wrap('YouTube (Google)'),
-            summary: wrap(
-              'Ran on-call across multiple surfaces, automated monitoring in Python/Go/SQL/C++, and guided reliability reviews for leadership.'
-            ),
-          },
-          {
-            period: wrap('Jan 2017 — Sep 2018'),
-            location: wrap('Stennis Space Center, MS'),
-            role: wrap('Software Engineer'),
-            org: wrap('Naval Research Laboratory'),
-            summary: wrap(
-              'Shipped C++/Qt data-processing applications and remote demos inside Scrum sprints.'
-            ),
-          },
-          {
-            period: wrap('Mar 2014 — Dec 2016'),
-            location: wrap('Hattiesburg, MS'),
-            role: wrap('Software Developer'),
-            org: wrap('The University of Southern Mississippi'),
-            summary: wrap(
-              'Built Objective-C frameworks for live content delivery in university iOS apps.'
-            ),
-          },
-        ],
+        entries: [],
       },
       contact: {
         heading: wrap('Contact'),

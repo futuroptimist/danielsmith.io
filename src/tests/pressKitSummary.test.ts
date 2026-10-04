@@ -15,6 +15,20 @@ afterEach(() => {
 });
 
 describe('buildPressKitSummary', () => {
+  it.each([
+    ['careerMuseum', 'Career Museum'],
+    ['focusPods', 'Focus Pods'],
+    ['creatorsStudio', 'Creators Studio'],
+    ['loftLibrary', 'Loft Library'],
+  ])('uses the display name for %s across floor levels', (roomId, name) => {
+    const entries = buildPressKitSummary({ now: fixedNow }).poiCatalog.filter(
+      (entry) => entry.room.id === roomId
+    );
+
+    expect(entries.length).toBeGreaterThan(0);
+    expect(entries.every((entry) => entry.room.name === name)).toBe(true);
+  });
+
   it('captures POI metadata and performance budgets', () => {
     const definitions = registry.getPoiDefinitions();
     const expectedCategoryCounts = definitions.reduce(
@@ -22,7 +36,7 @@ describe('buildPressKitSummary', () => {
         acc[poi.category] += 1;
         return acc;
       },
-      { project: 0, environment: 0 }
+      { project: 0, environment: 0, career: 0 }
     );
     const expectedRooms = new Set(definitions.map((poi) => poi.roomId)).size;
     const expectedReport = performance.createPerformanceBudgetReport(
@@ -121,7 +135,11 @@ describe('buildPressKitSummary', () => {
     expect(summary.poiCatalog).toHaveLength(1);
     expect(summary.poiCatalog[0].metrics).toEqual([]);
     expect(summary.poiCatalog[0].links).toEqual([]);
-    expect(summary.totals.categories).toEqual({ project: 1, environment: 0 });
+    expect(summary.totals.categories).toEqual({
+      project: 1,
+      environment: 0,
+      career: 0,
+    });
   });
 
   it('marks headroom entries as invalid when measurements are malformed', () => {

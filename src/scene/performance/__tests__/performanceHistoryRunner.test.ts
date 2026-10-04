@@ -49,6 +49,9 @@ const runner = createRequire(import.meta.url)(
   artifactChecksums(
     root: string
   ): Array<{ path: string; sha256: string; bytes: number }>;
+  summarize(
+    entries: Array<Record<string, unknown>>
+  ): Array<{ checkpoints: Array<{ profile: string | null }> }>;
   run(
     args: string[],
     options: { cwd: string }
@@ -191,6 +194,39 @@ describe('performance history command', () => {
         false
       )
     ).toBe('failed-or-unavailable');
+  });
+
+  it('preserves actual per-run route identities instead of only a capability label', () => {
+    const [summary] = runner.summarize([
+      {
+        commit: 'source',
+        routeProfile: 'basement',
+        routes: [
+          {
+            attempt: 1,
+            result: {
+              state: 'completed',
+              profile: 'house-basement-route-v1',
+              checkpoints: [],
+            },
+          },
+          {
+            attempt: 2,
+            result: {
+              state: 'completed',
+              profile: 'house-career-museum-route-v1',
+              checkpoints: [],
+            },
+          },
+          { attempt: 3 },
+        ],
+      },
+    ]);
+    expect(summary.checkpoints.map((run) => run.profile)).toEqual([
+      'house-basement-route-v1',
+      'house-career-museum-route-v1',
+      null,
+    ]);
   });
 
   it('checksums generated evidence without following worktrees or symlinks', () => {

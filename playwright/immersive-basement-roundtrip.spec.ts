@@ -259,12 +259,18 @@ test('walks fresh spawn through basement and every upper room, then reverses the
   await checkpoint(page, 'basement-lower-toe');
   const museumLoop = [
     { x: -3, z: -32.5 },
-    { x: -18, z: -32.5 },
+    { x: -24, z: -32.5 },
+    { x: -24, z: -15.5 },
     { x: -18, z: -15.5 },
+    { x: -24, z: -15.5 },
+    { x: -24, z: 4.5 },
     { x: -18, z: 4.5 },
     { x: 20, z: 4.5 },
+    { x: 26, z: 4.5 },
+    { x: 26, z: -17.5 },
     { x: 20, z: -17.5 },
-    { x: 20, z: -32.5 },
+    { x: 26, z: -17.5 },
+    { x: 26, z: -32.5 },
     TOE,
   ];
   await walk(page, museumLoop, 0.12, 'basement');

@@ -245,6 +245,19 @@ describe('PoiInteractionManager', () => {
     manager.dispose();
   });
 
+  it('preserves keyboard focus when its detail panel causes a canvas mouseleave', () => {
+    const hover = vi.fn();
+    manager.addHoverListener(hover);
+    manager.start();
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
+    expect(hover).toHaveBeenLastCalledWith(definition);
+    domElement.dispatchEvent(new MouseEvent('mouseleave'));
+    expect(hover).toHaveBeenLastCalledWith(definition);
+    expect(poi.focusTarget).toBe(1);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    expect(poi.focusTarget).toBe(1);
+  });
+
   it('updates focus target based on pointer hover', () => {
     const hoverListener = vi.fn();
     const removeHover = manager.addHoverListener(hoverListener);

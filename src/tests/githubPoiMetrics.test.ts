@@ -136,6 +136,32 @@ const createPoi = (
 });
 
 describe('wireGitHubRepoMetrics', () => {
+  it('preserves supported environment POI repository metrics', async () => {
+    const service = new MockRepoStatsService();
+    const controller = wireGitHubRepoMetrics({
+      definitions: [
+        createPoi({
+          category: 'environment',
+          metrics: [
+            {
+              label: 'Stars',
+              value: 'Unknown',
+              source: {
+                type: 'githubStars',
+                owner: 'futuroptimist',
+                repo: 'flywheel',
+              },
+            },
+          ],
+        }),
+      ],
+      service,
+    });
+    await controller.refreshAll();
+    expect(service.requested).toEqual(['futuroptimist/flywheel']);
+    controller.dispose();
+  });
+
   it('refreshes POI metrics when GitHub stats resolve', async () => {
     const definitions: PoiDefinition[] = [
       createPoi({

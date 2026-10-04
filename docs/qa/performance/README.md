@@ -15,11 +15,12 @@ privately retained; Git keeps aggregate ranges, medians and comparisons.
 | [Baseline][ph-baseline]     |   1,473.3–1,650.7; 1,616 |                  97 / 89 |
 | [Foundation][ph-foundation] |   1,384.8–1,515.7; 1,399 |                  97 / 89 |
 | [Basement][ph-basement]     | 1,356.1–1,483.8; 1,409.7 |                 114 / 69 |
+| [Museum][ph-museum]         |   1,499.3–1,575.9; 1,508 |                 114 / 69 |
 
 [Shared profile][ph-profile]. Each linked record retains its baseline and predecessor deltas.
 
-Extended profiles included here have 7 checkpoints in stage order. Each completed three
-routes and three controlled suites. Exterior profiles are version 2, with explicit
+Extended profiles included here have 7, 11 checkpoints in stage order. Each completed
+three routes and three controlled suites. Exterior profiles are version 2, with explicit
 automatic/manual door states; the street version retains only the passive sign.
 
 Every recorded route has a ≥1-second external rAF interval already present by spawn. The
@@ -35,6 +36,7 @@ measure teardown/re-entry performance or prove complete old-renderer/GPU reclama
 [ph-baseline]: 2026-10-03-corrected-software-history/baseline.json
 [ph-foundation]: 2026-10-03-corrected-software-history/foundation.json
 [ph-basement]: 2026-10-03-corrected-software-history/basement.json
+[ph-museum]: 2026-10-03-corrected-software-history/museum.json
 
 Keep only commit hashes, limited comparability metadata, and high-level checkpoint
 metrics in Git. Detailed JSON, stdout/stderr, snapshots, traces, screenshots, and
@@ -86,7 +88,12 @@ npm run perf:history -- --route-profile basement <baseline-commit> <stage-commit
 
 The runner uses that commit's `--basement` helper when the helper and basement
 connection exist. Older refs retain the common route and explicitly report the
-basement addition as skipped. The helper hash and actual profile are recorded;
+basement addition as skipped. When that commit contains the career museum, its
+helper uses the verified routes around the solid exhibits and records
+`house-career-museum-route-v1`, including four named exhibit checkpoints. The
+shell retains `house-basement-route-v1`; these extended routes are different
+series. Run the default common profile separately for direct baseline and
+predecessor comparisons. The helper hash and actual profile are recorded;
 do not compare different routes as one series. Later stage additions must preserve
 the common route and record their own capability/profile instead of teleporting.
 
@@ -185,6 +192,30 @@ the basement toe/perimeter and both upper poses. The ground landing records
 Actual camera position/focus/cutaway IDs are captured at every extended checkpoint;
 older common captures omitted that available API and remain labeled not captured.
 Hardware timing, full old-renderer reclamation and owner walkthrough remain open.
+
+## Career museum
+
+[Common manifest](2026-10-02-museum-25679bb1/manifest.json) ·
+[Common ranges/deltas](2026-10-02-museum-25679bb1/summary.json) ·
+[Extended manifest](2026-10-02-museum-25679bb1/extended-a22fb9bd-manifest.json) ·
+[Career checkpoints](2026-10-02-museum-25679bb1/extended-a22fb9bd-summary.json)
+
+Measured common source `25679bb1` and same-runtime extended source `a22fb9bd`
+each completed three suites and three routes. Common application-ready duration
+was **1,385.1–1,412.3 ms**, above the baseline rerun's **1,366.1–1,379.8 ms**;
+the cross-batch mean difference is **+21.47 ms (+1.56%)**, with workload/pose
+limitations retained instead of an equivalence claim. Spawn resource counts and
+launch headroom match the basement common checkpoint.
+
+The extended **5,471-step**, eleven-checkpoint museum route visits all four
+careers before the upper floor and return. The four exhibit views record
+**40/41/40/39 calls** and **9/10/11/12 textures**. Returned residency is
+**662–665 geometries / 17 textures**, explicitly reported rather than substituted
+for launch counters. All raw attempts and separate stall probes are preserved.
+The historical helper omitted actual camera state despite the API being available;
+that limitation remains visible. Later metadata fixes do not retroactively change
+these measured source identities. Functional disposal and repeated-route tests
+remain separate from hardware timing and complete old-renderer reclamation.
 
 ## Interpretation and gates
 

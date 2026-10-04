@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   assertManifestUpdateIsAcknowledged,
   checkManifest,
   normalizedTypeScriptTokens,
 } from '../../scripts/miniatureManifest';
+import * as poiRegistry from '../scene/poi/registry';
 
 const entry = {
   id: 'poi:test',
@@ -23,7 +24,21 @@ const manifest = (override = {}) => ({
   entries: [{ ...entry, ...override }],
 });
 
+afterEach(() => vi.restoreAllMocks());
+
 describe('miniature manifest', () => {
+  it('retains supported environment POIs in proxy validation', () => {
+    const definitions = poiRegistry
+      .getPoiDefinitions()
+      .map((poi) =>
+        poi.category === 'project'
+          ? { ...poi, category: 'environment' as const }
+          : poi
+      );
+    vi.spyOn(poiRegistry, 'getPoiDefinitions').mockReturnValue(definitions);
+    expect(() => checkManifest()).not.toThrow();
+  });
+
   it('normalizes TypeScript tokens independent of comments and whitespace', () => {
     const a = 'const value = 1; // comment\nexport { value };';
     const b = 'const   value=1;\n/* block */ export {value};';

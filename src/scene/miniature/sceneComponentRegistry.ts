@@ -16,6 +16,38 @@ const SELF_FILE = 'src/scene/miniature/sceneComponentRegistry.ts';
 
 export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
   {
+    id: 'level:career-museum-layout',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/level/careerMuseumLayout.ts'],
+    syncRevision: 1,
+    reason:
+      'Source-backed basement museum placement is outside the existing ground-floor miniature.',
+  },
+  {
+    id: 'career:museum-exhibits',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/structures/careerMuseum.ts'],
+    syncRevision: 2,
+    syncNote:
+      'Static title plaques and shared gallery furnishings are included; the ' +
+      'ground-floor miniature remains unchanged.',
+    reason:
+      'The basement career museum is outside the ground-floor miniature; its ' +
+      'original exhibit geometry has explicit source coverage here.',
+  },
+  {
+    id: 'career:reviewed-content',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/poi/careers.ts'],
+    syncRevision: 2,
+    syncNote:
+      'Career source links are omitted from visible details; historical provenance ' +
+      'remains available.',
+    reason:
+      'Shared localized career content and level-backed placement are separate from ' +
+      'ground-floor project miniature proxies.',
+  },
+  {
     id: 'level:portfolio-layout',
     kind: 'shared-source',
     sourceFiles: [
@@ -23,10 +55,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 4,
+    syncRevision: 5,
     syncNote:
-      'The basement shell is below the tabletop ground-only view; the ground-floor ' +
-      'stair reservation is represented by the shared basement stair descriptor.',
+      'The basement now has source-backed career exhibits and furnishings; the ' +
+      'ground-floor miniature remains unchanged.',
   },
   {
     id: 'level:floors-walls',
@@ -133,10 +165,14 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'excluded',
     sourceFiles: [
       'src/scene/poi/markers.ts',
+      'src/scene/poi/titleFont.ts',
       'src/scene/poi/worldTooltip.ts',
       'src/scene/poi/visitedBadge.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
+    syncNote:
+      'Complete career titles fit the existing two-line labels; project marker ' +
+      'geometry is unchanged.',
     reason:
       'Guided-tour recommendation rendering was removed from in-world POI labels; marker and tabletop proxy geometry is unchanged.',
   },
@@ -362,17 +398,22 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:githubMetrics',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/githubMetrics.ts'],
-    syncRevision: 1,
+    syncRevision: 3,
+    syncNote:
+      'Existing environment POI metrics remain supported while careers stay ' +
+      'excluded; miniature geometry is unchanged.',
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Career content is discriminated from project metadata; this presentation and ' +
+      'validation source does not alter ground-floor miniature geometry.',
   },
   {
     id: 'audit:src:scene:poi:interactionManager',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/interactionManager.ts'],
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Restricted POI cycling to Q/E only (dropped ArrowLeft/ArrowRight aliases so they no longer conflict with player movement); no miniature geometry impact.',
+      'Keyboard-selected exhibits retain focus across overlay-induced mouseleave; ' +
+      'miniature geometry is unchanged.',
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },
@@ -404,29 +445,34 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:structuredData',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/structuredData.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Career content is discriminated from project metadata; this presentation and ' +
+      'validation source does not alter ground-floor miniature geometry.',
   },
   {
     id: 'audit:src:scene:poi:tooltipOverlay',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/tooltipOverlay.ts'],
-    syncRevision: 4,
+    syncRevision: 5,
     syncNote:
-      'Environment links were added to the overlay; miniature geometry is unchanged.',
+      'Career details and the personal-portfolio disclaimer are now accessible DOM ' +
+      'content; miniature geometry is unchanged.',
     reason:
-      'Guided-tour recommendation UI was removed from the DOM overlay; no miniature geometry proxy changes are required.',
+      'Career content is discriminated from project metadata; this presentation and ' +
+      'validation source does not alter ground-floor miniature geometry.',
   },
   {
     id: 'audit:src:scene:poi:validation',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/validation.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Environment metadata validation changed; miniature geometry is unchanged.',
+      'Career validation excludes project-only metadata without changing project ' +
+      'miniature geometry.',
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Career content is discriminated from project metadata; this presentation and ' +
+      'validation source does not alter ground-floor miniature geometry.',
   },
   {
     id: 'audit:src:scene:poi:visitedState',

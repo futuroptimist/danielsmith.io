@@ -1,7 +1,9 @@
+import { CAREER_LOCALE_COPY } from '../careers';
 import type { LocaleStrings } from '../types';
 
 export const EN_LOCALE_STRINGS: LocaleStrings = {
   locale: 'en',
+  careers: CAREER_LOCALE_COPY.en,
   site: {
     name: 'Daniel Smith Immersive Portfolio',
     structuredData: {
@@ -78,32 +80,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       },
       timeline: {
         heading: 'Work timeline',
-        entries: [
-          {
-            period: 'Sep 2018 — May 2025',
-            location: 'San Bruno, CA',
-            role: 'Site Reliability Engineer (L4)',
-            org: 'YouTube (Google)',
-            summary:
-              'Ran on-call across multiple surfaces, automated monitoring in Python/Go/SQL/C++, and guided reliability reviews for leadership.',
-          },
-          {
-            period: 'Jan 2017 — Sep 2018',
-            location: 'Stennis Space Center, MS',
-            role: 'Software Engineer',
-            org: 'Naval Research Laboratory',
-            summary:
-              'Shipped C++/Qt data-processing applications and remote demos inside Scrum sprints.',
-          },
-          {
-            period: 'Mar 2014 — Dec 2016',
-            location: 'Hattiesburg, MS',
-            role: 'Software Developer',
-            org: 'The University of Southern Mississippi',
-            summary:
-              'Built Objective-C frameworks for live content delivery in university iOS apps.',
-          },
-        ],
+        entries: [],
       },
       contact: {
         heading: 'Contact',

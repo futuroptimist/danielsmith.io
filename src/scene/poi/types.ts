@@ -1,4 +1,4 @@
-export type PoiId =
+export type ProjectPoiId =
   | 'futuroptimist-living-room-tv'
   | 'flywheel-studio-flywheel'
   | 'jobbot-studio-terminal'
@@ -14,7 +14,20 @@ export type PoiId =
   | 'pr-reaper-backyard-console'
   | 'danielsmith-portfolio-table';
 
-export type PoiCategory = 'project' | 'environment';
+export type CareerId =
+  | 'southern-mississippi'
+  | 'naval-research'
+  | 'youtube'
+  | 'muon-space';
+
+export type CareerPoiId =
+  | 'career-southern-mississippi'
+  | 'career-naval-research'
+  | 'career-youtube'
+  | 'career-muon-space';
+
+export type PoiId = ProjectPoiId | CareerPoiId;
+export type PoiCategory = 'project' | 'environment' | 'career';
 
 export type PoiEnvironmentId = 'staging' | 'production';
 
@@ -113,11 +126,10 @@ export interface PoiHologramPedestalConfig {
 
 export type PoiPedestalConfig = PoiHologramPedestalConfig;
 
-export interface PoiDefinition {
+export interface PoiPresentation {
   id: PoiId;
   title: string;
   summary: string;
-  category: PoiCategory;
   interaction: PoiInteraction;
   roomId: string;
   /** Bottom/base anchor for floor-standing POIs; wall-mounted POIs may use explicit display height. */
@@ -127,16 +139,58 @@ export interface PoiDefinition {
   headingRadians?: number;
   interactionRadius: number;
   footprint: PoiFootprint;
+  links?: PoiLink[];
+  pedestal?: PoiPedestalConfig;
+  interactionPrompt: string;
+}
+
+export interface ProjectPoiDefinition extends PoiPresentation {
+  id: ProjectPoiId;
+  category: 'project' | 'environment';
   outcome?: PoiOutcome;
   metrics?: PoiMetric[];
-  links?: PoiLink[];
   /** Verified public deployment destinations; omitted when no URL is established. */
   environments?: PoiEnvironment[];
   /** Optional note to surface prototype status in tooltips. */
   status?: 'prototype' | 'live';
-  pedestal?: PoiPedestalConfig;
-  interactionPrompt: string;
+  career?: never;
 }
+
+export interface CareerProvenance {
+  kind: 'resume' | 'owner-confirmed' | 'public-role-posting';
+  href?: string;
+}
+
+export interface CareerContent {
+  id: CareerId;
+  organization: string;
+  role: string;
+  team?: string;
+  period: string;
+  location?: string;
+  startDate: string;
+  endDate: string | null;
+  responsibility: string;
+  illustrationNote: string;
+  disclaimer?: string;
+  provenance: readonly CareerProvenance[];
+}
+
+export interface CareerPoiDefinition extends PoiPresentation {
+  id: CareerPoiId;
+  category: 'career';
+  career: CareerContent;
+  interactionAnchorPosition: { x: number; y: number; z: number };
+  outcome?: never;
+  metrics?: never;
+  environments?: never;
+  status?: never;
+}
+
+export type PoiDefinition = ProjectPoiDefinition | CareerPoiDefinition;
+
+export const isProjectPoi = (poi: PoiDefinition): poi is ProjectPoiDefinition =>
+  poi.category !== 'career';
 
 export interface PoiAnalytics {
   hoverStarted?(poi: PoiDefinition): void;

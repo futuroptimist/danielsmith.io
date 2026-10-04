@@ -157,6 +157,8 @@ export function applyManualPoiPlacements(
   defs: PoiDefinition[]
 ): PoiDefinition[] {
   return defs.map((d) => {
+    // Careers are constructed directly from their level-backed placement contract.
+    if (d.category === 'career') return d;
     const override =
       getSceneObjectPoiPlacementOverride(d.id) ?? MANUAL_POI_PLACEMENTS[d.id];
     if (!override) return d;
