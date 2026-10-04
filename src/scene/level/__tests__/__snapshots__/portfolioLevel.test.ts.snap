@@ -80,6 +80,11 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
           "wall": "west",
         },
         {
+          "end": 0.5,
+          "start": -2.5,
+          "wall": "east",
+        },
+        {
           "end": 9.5,
           "start": 5.5,
           "wall": "north",
@@ -141,6 +146,49 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "id": "backyard",
       "ledColor": 2576183,
       "name": "Backyard",
+    },
+    {
+      "bounds": {
+        "maxX": 25,
+        "maxZ": 8,
+        "minX": 16,
+        "minZ": -4,
+      },
+      "category": "interior",
+      "doorways": [
+        {
+          "end": 5.5,
+          "start": -1.5,
+          "wall": "east",
+        },
+        {
+          "end": 0.5,
+          "start": -2.5,
+          "wall": "west",
+        },
+      ],
+      "id": "garage",
+      "ledColor": 15191977,
+      "name": "Attached Garage",
+    },
+    {
+      "bounds": {
+        "maxX": 29,
+        "maxZ": 8,
+        "minX": 25,
+        "minZ": -4,
+      },
+      "category": "exterior",
+      "doorways": [
+        {
+          "end": 5.5,
+          "start": -1.5,
+          "wall": "west",
+        },
+      ],
+      "id": "driveway",
+      "ledColor": 6714236,
+      "name": "Driveway",
     },
     {
       "bounds": {
@@ -521,16 +569,60 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
   },
   {
     "end": {
-      "x": 52.000000000000014,
+      "x": 50.000000000000014,
       "z": -8,
     },
     "orientation": "horizontal",
     "rooms": [
       "frontYard:north",
+      "garage:south",
     ],
     "start": {
       "x": 32.00000000000001,
       "z": -8,
+    },
+  },
+  {
+    "end": {
+      "x": 50.000000000000014,
+      "z": 16,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "garage:north",
+    ],
+    "start": {
+      "x": 32.00000000000001,
+      "z": 16,
+    },
+  },
+  {
+    "end": {
+      "x": 52.000000000000014,
+      "z": -8,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "driveway:south",
+      "frontYard:north",
+    ],
+    "start": {
+      "x": 50.000000000000014,
+      "z": -8,
+    },
+  },
+  {
+    "end": {
+      "x": 58.000000000000014,
+      "z": 16,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "driveway:north",
+    ],
+    "start": {
+      "x": 50.000000000000014,
+      "z": 16,
     },
   },
   {
@@ -545,6 +637,20 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     "start": {
       "x": 52.000000000000014,
       "z": -36,
+    },
+  },
+  {
+    "end": {
+      "x": 58.000000000000014,
+      "z": -8,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "driveway:south",
+    ],
+    "start": {
+      "x": 52.000000000000014,
+      "z": -8,
     },
   },
   {
@@ -680,15 +786,31 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
   {
     "end": {
       "x": 32,
-      "z": 16.000000000000004,
+      "z": -5.000000000000001,
     },
     "orientation": "vertical",
     "rooms": [
+      "garage:west",
       "studio:east",
     ],
     "start": {
       "x": 32,
       "z": -8.000000000000002,
+    },
+  },
+  {
+    "end": {
+      "x": 32,
+      "z": 16.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "garage:west",
+      "studio:east",
+    ],
+    "start": {
+      "x": 32,
+      "z": 1.0000000000000002,
     },
   },
   {
@@ -703,6 +825,36 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     "start": {
       "x": 32,
       "z": 16.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 50,
+      "z": -3.000000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "driveway:west",
+      "garage:east",
+    ],
+    "start": {
+      "x": 50,
+      "z": -8.000000000000002,
+    },
+  },
+  {
+    "end": {
+      "x": 50,
+      "z": 16.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "driveway:west",
+      "garage:east",
+    ],
+    "start": {
+      "x": 50,
+      "z": 11.000000000000002,
     },
   },
   {
@@ -782,7 +934,7 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
   {
     "end": {
       "x": 58,
-      "z": 40.00000000000001,
+      "z": -8.000000000000002,
     },
     "orientation": "vertical",
     "rooms": [
@@ -791,6 +943,35 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     "start": {
       "x": 58,
       "z": -36.00000000000001,
+    },
+  },
+  {
+    "end": {
+      "x": 58,
+      "z": 16.000000000000004,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "driveway:east",
+      "sidewalk:east",
+    ],
+    "start": {
+      "x": 58,
+      "z": -8.000000000000002,
+    },
+  },
+  {
+    "end": {
+      "x": 58,
+      "z": 40.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "sidewalk:east",
+    ],
+    "start": {
+      "x": 58,
+      "z": 16.000000000000004,
     },
   },
 ]

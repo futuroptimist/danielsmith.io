@@ -94,7 +94,7 @@ for (const mode of ['handler', 'throw'] as const) {
         contentType: 'application/json',
       });
       expect(snapshot.lifecycle.isDisposed).toBe(true);
-      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 6 });
+      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 8 });
       expect(snapshot.expected.instances).toBeGreaterThan(0);
       expect(snapshot.disposed).toEqual(snapshot.expected);
       expect(snapshot.groupAttached).toBe(false);
@@ -205,7 +205,7 @@ for (const cleanupScope of ['exterior', 'initialization'] as const) {
       expect(snapshot.cleanupFailures).toBe(1);
       expect(snapshot.rendererDisposals).toBe(1);
       expect(snapshot.lifecycle.isDisposed).toBe(true);
-      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 6 });
+      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 8 });
       expect(snapshot.expected.instances).toBeGreaterThan(0);
       expect(snapshot.disposed).toEqual(snapshot.expected);
       expect(snapshot.groupAttached).toBe(false);

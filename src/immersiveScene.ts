@@ -1981,6 +1981,11 @@ function buildImmersiveScene(
   });
 
   const doorwayOpenings = createDoorwayOpenings(FLOOR_PLAN, {
+    factoryFramedOpenings: exteriorDoors.map(({ definition }) => ({
+      axis: 'vertical',
+      center: { ...definition.center },
+      width: definition.width,
+    })),
     wallHeight: WALL_HEIGHT,
     baseElevation: GROUND_FLOOR_TOP_ELEVATION,
     doorHeight: WALL_HEIGHT * 0.72,
@@ -3834,9 +3839,12 @@ function buildImmersiveScene(
           },
           focus: { x: cameraCenter.x, y: cameraCenter.y, z: cameraCenter.z },
           zoom: camera.zoom,
-          cutawaySourceIds: basementLandingCutawayActive
-            ? [basementStaircase.definition.landingOccluderSourceId]
-            : [],
+          cutawaySourceIds: [
+            ...(basementLandingCutawayActive
+              ? [basementStaircase.definition.landingOccluderSourceId]
+              : []),
+            ...residentialExterior.getCutawaySourceIds(),
+          ],
         };
       },
       getDoorSnapshots() {
@@ -4595,7 +4603,7 @@ function buildImmersiveScene(
         );
       }
     }
-    residentialExterior.update();
+    residentialExterior.update(occupant);
     selectedDoor = isDoorUiBlocked()
       ? null
       : (exteriorDoors.find((door) => door.isInRange(occupant)) ?? null);

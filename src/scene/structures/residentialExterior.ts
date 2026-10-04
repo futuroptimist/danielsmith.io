@@ -95,19 +95,85 @@ export function createResidentialExterior(
         },
       });
     });
+  floor.sceneObjects
+    ?.filter((object) => object.kind.startsWith('garage.'))
+    .forEach((definition) => {
+      const x = definition.position.x * scale;
+      const z = definition.position.z * scale;
+      const isBench = definition.kind === 'garage.workbench';
+      const width = isBench ? 6.4 : 2;
+      const depth = isBench ? 1.6 : 1.8;
+      if (isBench) {
+        add('wood', x, 1.25, z, width, 0.22, depth, definition.sourceId);
+        for (const side of [-1, 1])
+          add(
+            'slate',
+            x + side * 2.7,
+            0.6,
+            z,
+            0.28,
+            1.2,
+            1.4,
+            definition.sourceId
+          );
+        add('slate', x, 0.35, z, 5.8, 0.14, 1.3, definition.sourceId);
+        add('wood', x - 1.9, 1.55, z, 1.25, 0.4, 0.9, definition.sourceId);
+        add('trim', x + 1.5, 1.39, z, 0.8, 0.06, 0.22, definition.sourceId);
+      } else {
+        add('slate', x, 1.2, z, width, 2.4, depth, definition.sourceId);
+        for (const offset of [-0.6, 0.2, 1])
+          add(
+            'wood',
+            x,
+            1.2 + offset,
+            z + depth / 2 + 0.025,
+            1.7,
+            0.05,
+            0.05,
+            definition.sourceId
+          );
+      }
+      solids.push({
+        definition,
+        collider: {
+          minX: x - width / 2,
+          maxX: x + width / 2,
+          minZ: z - depth / 2,
+          maxZ: z + depth / 2,
+        },
+      });
+    });
+  const cutawayMaterials: MeshStandardMaterial[] = [];
   const panels = doors.map((door) => {
     const d = door.definition;
-    // The lateral pocket sits within the existing solid wall, never in the walking lane.
-    add(
-      'slate',
-      d.center.x,
-      d.height / 2,
-      d.center.z + d.width + 0.22,
-      d.depth + 0.14,
-      d.height,
-      d.width + 0.44,
-      d.sourceId
-    );
+    if (d.kind === 'sliding') {
+      // The lateral pocket sits within the existing solid wall, never in the walking lane.
+      // Keep its sides inside the wall faces and its base below the floor plane.
+      // The small vertical overhang still encloses the moving panel at either endpoint.
+      const pocketClearance = 0.02;
+      add(
+        'slate',
+        d.center.x,
+        d.height / 2,
+        d.center.z + d.width + 0.22,
+        d.depth + 0.14 - pocketClearance * 2,
+        d.height + pocketClearance * 2,
+        d.width + 0.44,
+        d.sourceId
+      );
+    } else {
+      // Opaque roll housing: the sectional panel retracts upward into this cap.
+      add(
+        'slate',
+        d.center.x,
+        d.height + 0.32,
+        d.center.z,
+        0.9,
+        0.64,
+        d.width + 0.5,
+        d.sourceId
+      );
+    }
     for (const sign of [-1, 1])
       add(
         'wood',
@@ -119,27 +185,53 @@ export function createResidentialExterior(
         0.24,
         d.sourceId
       );
-    add(
-      'wood',
-      d.center.x,
-      d.height + 0.16,
-      d.center.z,
-      0.62,
-      0.32,
-      d.width + 0.48,
-      d.sourceId
-    );
+    if (d.kind === 'sliding') {
+      add(
+        'wood',
+        d.center.x,
+        d.height + 0.16,
+        d.center.z,
+        0.62,
+        0.32,
+        d.width + 0.48,
+        d.sourceId
+      );
+    }
     const panel = new Group();
     panel.name = `DoorPanel:${d.id}`;
     panel.userData.levelSourceId = d.sourceId;
-    const slab = new Mesh(geometry, palette.slate);
+    const bodyMaterial =
+      d.kind === 'overhead' ? palette.slate.clone() : palette.slate;
+    const accentMaterial =
+      d.kind === 'overhead' ? palette.trim.clone() : palette.trim;
+    if (d.kind === 'overhead')
+      cutawayMaterials.push(bodyMaterial, accentMaterial);
+    const slab = new Mesh(geometry, bodyMaterial);
     slab.scale.set(d.depth, d.height, d.width);
     panel.add(slab);
     for (const side of [-1, 1]) {
-      const accent = new Mesh(geometry, palette.trim);
-      accent.position.set(side * (d.depth / 2 + 0.015), 0, -d.width * 0.28);
-      accent.scale.set(0.035, d.height * 0.5, 0.12);
-      panel.add(accent);
+      if (d.kind === 'overhead') {
+        const slats = new InstancedMesh(geometry, accentMaterial, 7);
+        const transform = new Object3D();
+        for (let index = 0; index < 7; index++) {
+          transform.position.set(
+            side * (d.depth / 2 + 0.015),
+            -d.height / 2 + ((index + 1) * d.height) / 8,
+            0
+          );
+          transform.scale.set(0.035, 0.025, d.width - 0.3);
+          transform.updateMatrix();
+          slats.setMatrixAt(index, transform.matrix);
+        }
+        slats.instanceMatrix.needsUpdate = true;
+        slats.computeBoundingSphere();
+        panel.add(slats);
+      } else {
+        const accent = new Mesh(geometry, palette.trim);
+        accent.position.set(side * (d.depth / 2 + 0.015), 0, -d.width * 0.28);
+        accent.scale.set(0.035, d.height * 0.5, 0.12);
+        panel.add(accent);
+      }
     }
     panel.traverse((node) => {
       node.userData.levelSourceId = d.sourceId;
@@ -149,10 +241,15 @@ export function createResidentialExterior(
       };
     });
     group.add(panel);
-    return { door, panel };
+    return { door, panel, bodyMaterial, accentMaterial };
   });
   const transform = new Object3D();
   const instanceMeshes: InstancedMesh[] = [];
+  panels.forEach(({ panel }) =>
+    panel.traverse((node) => {
+      if (node instanceof InstancedMesh) instanceMeshes.push(node);
+    })
+  );
   const instanceKeys = new Set(
     parts.map((part) => `${part.palette}|${part.sourceId}`)
   );
@@ -195,25 +292,60 @@ export function createResidentialExterior(
     instanceMeshes.push(mesh);
   }
   let disposed = false;
-  const update = () =>
-    panels.forEach(({ door, panel }) => {
+  let cutawaySourceIds: string[] = [];
+  const garageBounds = floor.rooms.find((room) => room.id === 'garage')?.bounds;
+  const update = (view?: { x: number; z: number; floorId: string }) => {
+    cutawaySourceIds = [];
+    panels.forEach(({ door, panel, bodyMaterial, accentMaterial }) => {
       const d = door.definition;
-      panel.position.set(
-        d.center.x,
-        d.height / 2,
-        d.center.z + door.snapshot().progress * d.travel
-      );
+      const progress = door.snapshot().progress;
+      if (d.kind === 'overhead') {
+        const cutaway = Boolean(
+          view &&
+            garageBounds &&
+            view.floorId === 'ground' &&
+            view.x >= garageBounds.minX * scale &&
+            view.x < d.center.x &&
+            view.z >= garageBounds.minZ * scale &&
+            view.z <= garageBounds.maxZ * scale
+        );
+        for (const material of [bodyMaterial, accentMaterial]) {
+          const opacity = cutaway ? 0.8 : 1;
+          if (material.opacity !== opacity) {
+            material.opacity = opacity;
+            material.transparent = cutaway;
+            material.depthWrite = !cutaway;
+            material.needsUpdate = true;
+          }
+        }
+        if (cutaway && progress < 1) cutawaySourceIds.push(d.sourceId);
+        panel.visible = progress < 1;
+        panel.scale.y = Math.max(0.0001, 1 - progress);
+        panel.position.set(
+          d.center.x,
+          (d.height * (1 + progress)) / 2,
+          d.center.z
+        );
+      } else {
+        panel.position.set(
+          d.center.x,
+          d.height / 2,
+          d.center.z + progress * d.travel
+        );
+      }
     });
+  };
   update();
   return {
     group,
     solids,
     update,
+    getCutawaySourceIds: () => [...cutawaySourceIds],
     getLifecycle: () => ({
       isDisposed: disposed,
       geometries: 1,
       instances: instanceMeshes.length,
-      materials: Object.keys(palette).length,
+      materials: Object.keys(palette).length + cutawayMaterials.length,
       textures: 0,
     }),
     dispose() {
@@ -222,6 +354,7 @@ export function createResidentialExterior(
       instanceMeshes.forEach((mesh) => mesh.dispose());
       geometry.dispose();
       Object.values(palette).forEach((material) => material.dispose());
+      cutawayMaterials.forEach((material) => material.dispose());
       group.removeFromParent();
     },
   };
