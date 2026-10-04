@@ -289,3 +289,32 @@ Run the predecessor's common/museum profiles under the same browser, server and
 quality conditions. Retain all three attempts and the separate native keyboard /
 touch functional traces; a completed software route does not close hardware p95
 or the owner's final manual review.
+
+## Door departure and shared-wall correction evidence
+
+The [capture profile](2026-10-03-door-wall-corrections/profile.json) and
+[reference records](2026-10-03-door-wall-corrections/references.json) retain the
+matched baseline, preceding stage and before-correction identities. Each source
+completed three controlled suites and three common routes; each corrected stage
+also has a separate three-attempt extension. Later test/QA-only descendants are
+not relabeled as measured commits. Detailed originals, screenshots and excluded
+attempts are durably archived; public metadata contains only filenames, sizes
+and checksums. Reproduce with the existing `perf:history` command from the recorded
+driver commit, writing to a new ignored directory.
+
+These are sequential software-WebGL observations. Ready-duration and dispatch
+ranges overlap their matched before-correction ranges; dispatch is not
+input-to-paint latency. Near-zero reference medians make percentage changes
+misleading without the absolute ranges. The rolling frame diagnostic is not an
+arrival-isolated sample and omits intervals of at least one second. Separate
+whole-route probes retain those stalls. No hardware timing or causal performance
+claim follows from these samples, and the launch budgets are unchanged.
+
+### Front-entry correction
+
+[Entry metrics](2026-10-03-door-wall-corrections/entry.json) measure `02fe6cd8`.
+The common route has 2,147 movement steps; exterior v2 has 16 checkpoints and
+6,875 steps per attempt. Worst launch counts are 116 calls, 4,892 triangles,
+71 geometries and 7 textures, with unchanged median counts against the
+before-correction source. The extension returns with 687–692 resident geometries;
+route residency is distinct from the 125-geometry launch ceiling.
