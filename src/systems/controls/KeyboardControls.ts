@@ -1,9 +1,25 @@
+/** Native UI keys stay with controls; ordinary HUD focus must not trap gameplay. */
+export function isUiOwnedKeyboardEvent(
+  event: Pick<KeyboardEvent, 'target' | 'key'>
+): boolean {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return false;
+  if (
+    target.closest(
+      'input, select, textarea, [contenteditable], [aria-modal="true"], [role="alertdialog"], dialog'
+    )
+  )
+    return true;
+  return (
+    Boolean(target.closest('button')) &&
+    ['Enter', ' ', 'Spacebar', 'Tab', 'Escape'].includes(event.key)
+  );
+}
+
 export class KeyboardControls {
   private readonly pressedKeys = new Set<string>();
   private readonly onKeyDown = (event: KeyboardEvent) => {
-    if (event.defaultPrevented) {
-      return;
-    }
+    if (event.defaultPrevented || isUiOwnedKeyboardEvent(event)) return;
 
     this.pressedKeys.add(this.normalizeKey(event.key));
   };
@@ -12,9 +28,12 @@ export class KeyboardControls {
     this.pressedKeys.delete(this.normalizeKey(event.key));
   };
 
+  private readonly onBlur = () => this.pressedKeys.clear();
+
   constructor(target: Window = window) {
     target.addEventListener('keydown', this.onKeyDown);
     target.addEventListener('keyup', this.onKeyUp);
+    target.addEventListener('blur', this.onBlur);
   }
 
   isPressed(key: string): boolean {
@@ -24,6 +43,7 @@ export class KeyboardControls {
   dispose(target: Window = window): void {
     target.removeEventListener('keydown', this.onKeyDown);
     target.removeEventListener('keyup', this.onKeyUp);
+    target.removeEventListener('blur', this.onBlur);
     this.pressedKeys.clear();
   }
 

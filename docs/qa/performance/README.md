@@ -17,10 +17,11 @@ privately retained; Git keeps aggregate ranges, medians and comparisons.
 | [Basement][ph-basement]     | 1,356.1–1,483.8; 1,409.7 |                 114 / 69 |
 | [Museum][ph-museum]         |   1,499.3–1,575.9; 1,508 |                 114 / 69 |
 | [Résumé][ph-resume]         | 1,482.2–1,578.3; 1,566.7 |                 114 / 69 |
+| [Entry][ph-entry]           | 1,511.3–1,582.7; 1,516.3 |                 116 / 71 |
 
 [Shared profile][ph-profile]. Each linked record retains its baseline and predecessor deltas.
 
-Extended profiles included here have 7, 11, 11 checkpoints in stage order. Each
+Extended profiles included here have 7, 11, 11, 16 checkpoints in stage order. Each
 completed three routes and three controlled suites. Exterior profiles are version 2,
 with explicit automatic/manual door states; the street version retains only the passive
 sign.
@@ -40,6 +41,7 @@ measure teardown/re-entry performance or prove complete old-renderer/GPU reclama
 [ph-basement]: 2026-10-03-corrected-software-history/basement.json
 [ph-museum]: 2026-10-03-corrected-software-history/museum.json
 [ph-resume]: 2026-10-03-corrected-software-history/resume.json
+[ph-entry]: 2026-10-03-corrected-software-history/entry.json
 
 Keep only commit hashes, limited comparability metadata, and high-level checkpoint
 metrics in Git. Detailed JSON, stdout/stderr, snapshots, traces, screenshots, and
@@ -254,3 +256,65 @@ separate stalls and source identities remain retained; budgets are unchanged.
   low counters from a new renderer do not prove the previous one was freed
 - Ordinary CI artifacts expire after 14 days. Preserve private review archives
   through final stack review; the runtime output directory alone is not durable
+
+## Front entrance route addition
+
+Use the same isolated multi-commit runner for the stage addition:
+
+```bash
+npm run perf:history -- --route-profile exterior <predecessor> <entry-commit>
+```
+
+Older commits without a versioned exterior helper and front-door source retain
+the common route and explicitly report the exterior portion as unavailable.
+Each result and summary records the actual route version; compare common profiles
+separately rather than ranking unlike extended routes.
+
+`node scripts/capture-performance-route.cjs <new-output-directory> --exterior`
+selects `house-front-entry-route-v2`. It preserves the complete museum and common
+upper/spawn route, then appends closed/open entrance, sidewalk, outside-close and
+returned-spawn checkpoints. Version 2 handles proximity opening: door actions
+inspect the requested target before toggling the visible DOM control, and closed
+checkpoints explicitly close the door while the avatar stays at the named pose.
+Each open/closed checkpoint asserts its expected door state before and after the
+dwell and records that expectation alongside actual snapshots. Historical v1
+helpers stay labeled v1 and are supported for their original manual-door source;
+a v1 helper paired with automatic-door source is skipped, as are unknown versions. Read-only
+occupancy planning supplies waypoints to the unchanged runtime movement sampler;
+no teleport establishes a passage. Every route checkpoint also records the
+available read-only door state. The common and basement profile names and their
+legs are unchanged. New exterior poses are additions, not baseline comparisons.
+
+Run the predecessor's common/museum profiles under the same browser, server and
+quality conditions. Retain all three attempts and the separate native keyboard /
+touch functional traces; a completed software route does not close hardware p95
+or the owner's final manual review.
+
+## Door departure and shared-wall correction evidence
+
+The [capture profile](2026-10-03-door-wall-corrections/profile.json) and
+[reference records](2026-10-03-door-wall-corrections/references.json) retain the
+matched baseline, preceding stage and before-correction identities. Each source
+completed three controlled suites and three common routes; each corrected stage
+also has a separate three-attempt extension. Later test/QA-only descendants are
+not relabeled as measured commits. Detailed originals, screenshots and excluded
+attempts are durably archived; public metadata contains only filenames, sizes
+and checksums. Reproduce with the existing `perf:history` command from the recorded
+driver commit, writing to a new ignored directory.
+
+These are sequential software-WebGL observations. Ready-duration and dispatch
+ranges overlap their matched before-correction ranges; dispatch is not
+input-to-paint latency. Near-zero reference medians make percentage changes
+misleading without the absolute ranges. The rolling frame diagnostic is not an
+arrival-isolated sample and omits intervals of at least one second. Separate
+whole-route probes retain those stalls. No hardware timing or causal performance
+claim follows from these samples, and the launch budgets are unchanged.
+
+### Front-entry correction
+
+[Entry metrics](2026-10-03-door-wall-corrections/entry.json) measure `02fe6cd8`.
+The common route has 2,147 movement steps; exterior v2 has 16 checkpoints and
+6,875 steps per attempt. Worst launch counts are 116 calls, 4,892 triangles,
+71 geometries and 7 textures, with unchanged median counts against the
+before-correction source. The extension returns with 687–692 resident geometries;
+route residency is distinct from the 125-geometry launch ceiling.

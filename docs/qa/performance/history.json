@@ -158,6 +158,32 @@
       "commonRouteAttemptsCompleted": 3,
       "extendedRouteAttemptsCompleted": 3,
       "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-entry-14c713ff",
+      "stage": "entry",
+      "sourceCommit": "14c713ffa16d01e3fa7f4a96879302a64da78da7",
+      "predecessorCommit": "cb029e8e8d7392ea34698b80be49e466fcda4590",
+      "manifest": "2026-10-03-corrected-software-history/entry.json",
+      "summary": "2026-10-03-corrected-software-history/entry.json",
+      "series": "2026-10-03-corrected-software-history",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 3,
+      "hardwareGate": "owner-run required"
+    },
+    {
+      "id": "2026-10-03-door-wall-corrections-entry",
+      "stage": "entry; door departure and shared-wall corrections",
+      "sourceCommit": "02fe6cd894763cdc3b440efacd68f3d09e2caa0d",
+      "predecessorCommit": "b4189b982ba133c5fb19a2e0fa4566654fddca4e",
+      "manifest": "2026-10-03-door-wall-corrections/profile.json",
+      "summary": "2026-10-03-door-wall-corrections/entry.json",
+      "series": "2026-10-03-door-wall-corrections",
+      "controlledAttemptsCompletedPerProfile": 3,
+      "commonRouteAttemptsCompleted": 3,
+      "extendedRouteAttemptsCompleted": 3,
+      "hardwareGate": "owner-run required"
     }
   ]
 }

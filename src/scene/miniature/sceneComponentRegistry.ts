@@ -16,6 +16,22 @@ const SELF_FILE = 'src/scene/miniature/sceneComponentRegistry.ts';
 
 export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
   {
+    id: 'exterior:front-entry',
+    kind: 'excluded',
+    sourceFiles: [
+      'src/scene/level/exteriorLayout.ts',
+      'src/scene/structures/residentialExterior.ts',
+    ],
+    syncRevision: 3,
+    syncNote:
+      'Automatic front-entry approach changes session-local door behavior; dynamic ' +
+      'panels remain outside the tabletop envelope.',
+    reason:
+      'The tabletop keeps its existing house/backyard envelope. The source-backed ' +
+      'front opening is shared, while external landscaping and dynamic door controls ' +
+      'stay outside the miniature.',
+  },
+  {
     id: 'level:career-museum-layout',
     kind: 'excluded',
     sourceFiles: ['src/scene/level/careerMuseumLayout.ts'],
@@ -55,10 +71,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
-      'The basement now has source-backed career exhibits and furnishings; the ' +
-      'ground-floor miniature remains unchanged.',
+      'The front opening is source-backed; exterior surfaces and collision zones ' +
+      'extend the runtime while the miniature retains the original house envelope.',
   },
   {
     id: 'level:floors-walls',
@@ -185,13 +201,26 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'Collider helper supports opt-in include-only bounds; tabletop proxy silhouettes remain covered by POI entries.',
   },
   {
+    id: 'collision:upper-stair-ground-passage',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/structures/upperStairGroundPassage.ts'],
+    syncRevision: 1,
+    reason:
+      'Elevation-aware runtime collision volumes derive from the shared staircase ' +
+      'without changing its visible miniature geometry.',
+  },
+  {
     id: 'debug:visualizers',
     kind: 'excluded',
     sourceFiles: [
       'src/scene/debug/colliderVisualizer.ts',
       'src/scene/debug/solidVisualizer.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 4,
+    syncNote:
+      'Elevated stair collision snapshots retain underside bounds and connection ' +
+      'context; debug wireframes sit at the same elevation without changing ' +
+      'production miniature geometry.',
     reason:
       'Type-only debug metadata guards do not affect production miniature geometry.',
   },

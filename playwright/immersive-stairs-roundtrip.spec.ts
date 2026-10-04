@@ -1159,7 +1159,7 @@ test('blocks coarse displacements through upstairs side and back rails', async (
       dx: 0,
       dz: -12,
     },
-    { floorId: 'ground' as const, x: 23, z: -18, dx: -12, dz: 0 },
+    { floorId: 'ground' as const, x: 17, z: -18, dx: -12, dz: 0 },
   ];
   for (const fixture of fixtures) {
     const result = await page.evaluate((fixture) => {
@@ -1188,11 +1188,13 @@ test('ground stair side guard blocks squeeze entry and preserves the stair path'
   const html = page.locator('html');
   const { stairCenterX, stairBottomZ, stairTopZ } = await getStairMetrics(page);
   const blockedSamples = [
-    { x: 17.38, z: -8.84, floorId: 'ground' as const },
-    { x: 21.35, z: -14.66, floorId: 'ground' as const },
-    { x: 22.1, z: -14.66, floorId: 'ground' as const },
+    { x: 15.7, z: -10, floorId: 'ground' as const },
+    { x: 15.7, z: -14.66, floorId: 'ground' as const },
+    { x: 9.1, z: -18, floorId: 'ground' as const },
   ];
   const livingRoomSamples = [
+    { x: 21.35, z: -14.66, floorId: 'ground' as const },
+    { x: 22.1, z: -14.66, floorId: 'ground' as const },
     { x: 23, z: -18, floorId: 'ground' as const },
     { x: 24, z: -18, floorId: 'ground' as const },
   ];
@@ -1669,9 +1671,11 @@ test('debug coordinates and upstairs POI state stay floor-aware', async ({
   await expect(debugToggle).toHaveAttribute('aria-pressed', 'true');
   await expect(debugOverlay).toBeVisible();
 
+  // This fixture starts upstairs; a ground teleport beneath the landing must stay on ground.
   await movePlayerTo(page, {
     x: stairCenterX,
     z: stairTopZ + stairDirection * 0.1,
+    floorId: 'upper',
   });
   await movePlayerTo(page, { x: stairCenterX, z: landingInteriorZ });
   await expect(html).toHaveAttribute('data-active-floor', 'upper');

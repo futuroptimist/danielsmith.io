@@ -8,6 +8,7 @@ const targets = cliTargets.length
   : [
       'src/systems/controls',
       'src/ui/hud',
+      'src/ui/exterior',
       'src/ui/accessibility',
       'src/ui/softwareRendererWarning.ts',
       'src/scene/poi',
