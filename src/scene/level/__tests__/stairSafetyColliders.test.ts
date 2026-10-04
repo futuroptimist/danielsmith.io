@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { collidesWithColliders } from '../../../systems/collision';
 import {
   createStairNavigationZones,
   type StairBehavior,
@@ -132,5 +133,124 @@ describe('stair safety collider source definitions', () => {
         })
       ).toBe(collider.debugId);
     });
+  });
+});
+
+describe('mirrored stair safety on both local floor roles', () => {
+  const reflect = (bounds: {
+    minX: number;
+    maxX: number;
+    minZ: number;
+    maxZ: number;
+  }) => ({
+    ...bounds,
+    minZ: -bounds.maxZ,
+    maxZ: -bounds.minZ,
+  });
+  const positiveGeometry = {
+    ...geometry,
+    bottomZ: -geometry.bottomZ,
+    topZ: -geometry.topZ,
+    landingMinZ: -geometry.landingMaxZ,
+    landingMaxZ: -geometry.landingMinZ,
+    direction: 1 as const,
+  };
+
+  it('gives positive-Z lower-corner guards positive area and mirrored squeeze protection', () => {
+    const negative = createGroundStairSafetyColliders(geometry, behavior, {
+      playerRadius: PLAYER_RADIUS,
+      guardThickness: 0.44,
+    });
+    const positive = createGroundStairSafetyColliders(
+      positiveGeometry,
+      behavior,
+      {
+        playerRadius: PLAYER_RADIUS,
+        guardThickness: 0.44,
+        floorId: 'basement',
+        sourceIdPrefix: 'basement.stairwell',
+      }
+    );
+    expect(positive[0].bounds).toEqual(reflect(negative[0].bounds));
+    expect(positive[0].bounds.maxZ).toBeGreaterThan(positive[0].bounds.minZ);
+    expect(positive[0].floor).toBe('basement');
+    expect(positive[0].sourceId).toBe(
+      'basement.stairwell.lowerCorner.safetyCollider'
+    );
+    for (const point of [
+      { x: 17.38, z: -8.84 },
+      { x: 21.35, z: -14.66 },
+      { x: 22.1, z: -14.66 },
+    ]) {
+      expect(
+        collidesWithColliders(
+          point.x,
+          -point.z,
+          PLAYER_RADIUS,
+          positive.map((entry) => entry.bounds)
+        )
+      ).toBe(true);
+    }
+    expect(
+      collidesWithColliders(
+        geometry.centerX,
+        -geometry.bottomZ - 0.3,
+        PLAYER_RADIUS,
+        positive.map((entry) => entry.bounds)
+      )
+    ).toBe(false);
+  });
+
+  it('mirrors upper side/back guards while preserving the entry corridor and unique sources', () => {
+    const negative = createUpperStairSafetyColliders(upperArgs);
+    const positive = createUpperStairSafetyColliders({
+      ...upperArgs,
+      floorId: 'ground',
+      sourceIdPrefix: 'ground.basementStairwell',
+      stairTopZ: -upperArgs.stairTopZ,
+      stairLayoutDirectionMultiplier: 1,
+      upperLandingRoomBounds: reflect(upperArgs.upperLandingRoomBounds),
+      upperStairwellOpening: reflect(upperArgs.upperStairwellOpening),
+      stairNavigationZones: createStairNavigationZones(
+        positiveGeometry,
+        behavior
+      ),
+    });
+    expect(positive.map((entry) => entry.bounds)).toEqual(
+      negative.map((entry) => reflect(entry.bounds))
+    );
+    positive.forEach((entry) => {
+      expect(entry.floor).toBe('ground');
+      expect(entry.bounds.maxX).toBeGreaterThan(entry.bounds.minX);
+      expect(entry.bounds.maxZ).toBeGreaterThan(entry.bounds.minZ);
+      const x = (entry.bounds.minX + entry.bounds.maxX) / 2;
+      const z = (entry.bounds.minZ + entry.bounds.maxZ) / 2;
+      expect(
+        collidesWithColliders(
+          x,
+          z,
+          PLAYER_RADIUS,
+          positive.map((guard) => guard.bounds)
+        )
+      ).toBe(true);
+    });
+    expect(
+      collidesWithColliders(
+        geometry.centerX,
+        -geometry.topZ - 0.7,
+        PLAYER_RADIUS,
+        positive.map((entry) => entry.bounds)
+      )
+    ).toBe(false);
+    expect(validateSourceCollisionRecords([...negative, ...positive])).toEqual(
+      []
+    );
+    expect(() =>
+      assertDebugColliderIdsDoNotCollide(
+        [...negative, ...positive].map(
+          (entry) => [entry.sourceId, entry.debugId] as const
+        )
+      )
+    ).not.toThrow();
   });
 });

@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "series": "common-route-restarted-vite-v1",
+  "repetitionsPerCommit": 3,
+  "deltaStatistic": "Difference between arithmetic means of all three attempts; ranges retained. Dispatch compares per-run p95s, not a pooled percentile.",
+  "applicationReadyMs": {
+    "baseline": {
+      "range": [1315.3, 1412.9],
+      "mean": 1373.0
+    },
+    "foundation": {
+      "range": [1316.9, 1371.1],
+      "mean": 1340.77
+    },
+    "meanDelta": -32.23,
+    "meanDeltaPercent": -2.35
+  },
+  "dispatchP95Ms": {
+    "baseline": {
+      "range": [79.9, 111.6],
+      "mean": 100.47
+    },
+    "foundation": {
+      "range": [0.5, 116.6],
+      "mean": 39.23
+    },
+    "meanDelta": -61.23,
+    "meanDeltaPercent": -60.95
+  },
+  "checkpoints": [
+    {
+      "name": "spawn",
+      "baselineRanges": {
+        "drawCalls": [91, 95],
+        "triangles": [4384, 4544],
+        "residentGeometries": [89, 89],
+        "residentTextures": [7, 7]
+      },
+      "foundationRanges": {
+        "drawCalls": [97, 97],
+        "triangles": [4664, 4664],
+        "residentGeometries": [89, 89],
+        "residentTextures": [7, 7]
+      },
+      "meanDeltas": {
+        "drawCalls": 4.33,
+        "triangles": 206.67,
+        "residentGeometries": 0,
+        "residentTextures": 0
+      },
+      "meanDeltaPercents": {
+        "drawCalls": 4.68,
+        "triangles": 4.64,
+        "residentGeometries": 0.0,
+        "residentTextures": 0.0
+      }
+    },
+    {
+      "name": "upper-landing",
+      "baselineRanges": {
+        "drawCalls": [112, 112],
+        "triangles": [2358, 2358],
+        "residentGeometries": [503, 528],
+        "residentTextures": [9, 10]
+      },
+      "foundationRanges": {
+        "drawCalls": [112, 112],
+        "triangles": [2358, 2358],
+        "residentGeometries": [518, 528],
+        "residentTextures": [9, 10]
+      },
+      "meanDeltas": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "residentGeometries": 5.33,
+        "residentTextures": 0.0
+      },
+      "meanDeltaPercents": {
+        "drawCalls": 0.0,
+        "triangles": 0.0,
+        "residentGeometries": 1.03,
+        "residentTextures": 0.0
+      }
+    },
+    {
+      "name": "upper-creators-studio",
+      "baselineRanges": {
+        "drawCalls": [87, 87],
+        "triangles": [12324, 12324],
+        "residentGeometries": [621, 648],
+        "residentTextures": [10, 11]
+      },
+      "foundationRanges": {
+        "drawCalls": [87, 87],
+        "triangles": [12324, 12324],
+        "residentGeometries": [637, 647],
+        "residentTextures": [10, 11]
+      },
+      "meanDeltas": {
+        "drawCalls": 0,
+        "triangles": 0,
+        "residentGeometries": 5.67,
+        "residentTextures": 0.0
+      },
+      "meanDeltaPercents": {
+        "drawCalls": 0.0,
+        "triangles": 0.0,
+        "residentGeometries": 0.89,
+        "residentTextures": 0.0
+      }
+    },
+    {
+      "name": "returned-spawn",
+      "baselineRanges": {
+        "drawCalls": [84, 84],
+        "triangles": [4124, 4124],
+        "residentGeometries": [647, 660],
+        "residentTextures": [10, 13]
+      },
+      "foundationRanges": {
+        "drawCalls": [84, 97],
+        "triangles": [4124, 4664],
+        "residentGeometries": [641, 658],
+        "residentTextures": [10, 12]
+      },
+      "meanDeltas": {
+        "drawCalls": 8.67,
+        "triangles": 360,
+        "residentGeometries": -3.67,
+        "residentTextures": -0.67
+      },
+      "meanDeltaPercents": {
+        "drawCalls": 10.32,
+        "triangles": 8.73,
+        "residentGeometries": -0.56,
+        "residentTextures": -5.71
+      }
+    }
+  ],
+  "launchHeadroom": {
+    "calls": {
+      "limit": 150,
+      "remainingFromWorst": 53,
+      "remainingPercent": 35.33
+    },
+    "triangles": {
+      "limit": 50000,
+      "remainingFromWorst": 45336,
+      "remainingPercent": 90.67
+    },
+    "memoryGeometries": {
+      "limit": 125,
+      "remainingFromWorst": 36,
+      "remainingPercent": 28.8
+    },
+    "memoryTextures": {
+      "limit": 32,
+      "remainingFromWorst": 25,
+      "remainingPercent": 78.12
+    }
+  },
+  "interpretation": "Ready ranges and resident-resource ranges overlap. Dispatch-delay variance precludes a speedup claim. Returned-spawn calls shifted from 84 to 84–97; camera, pose, quality, and legacy visibility match, but the cause of phase/run variation is unproven. No budget changes.",
+  "hardwareP95": "unsupported; 80 ms owner-run gate unchanged"
+}

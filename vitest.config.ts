@@ -9,7 +9,11 @@ export default defineConfig({
       },
     },
     globals: true,
-    exclude: [...configDefaults.exclude, 'playwright/**'],
+    exclude: [
+      ...configDefaults.exclude,
+      'playwright/**',
+      '**/.performance-history/**',
+    ],
     coverage: {
       enabled: false,
     },

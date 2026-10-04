@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "series": "2026-10-03-corrected-software-history",
+  "statistics": {
+    "rangeMedian": "[minimum, maximum, median] across three independent attempts; two decimals. A median of per-attempt p95 values is descriptive, not a pooled percentile.",
+    "delta": "[absolute median difference, percentage of reference median, relation between observed ranges]; source minus reference. Numeric deltas use unrounded medians; zero reference gives null percentage. Range labels compare rounded endpoints; identical means equal singleton ranges, and all other intersecting ranges are overlap.",
+    "scope": "Finite observations; no equivalence, confidence interval, causal speedup or regression attribution."
+  },
+  "sourceQualification": "Each measurement uses its exact clean detached source commit, not a GitHub merged-base build. Recorded PR heads/bases were read at 2026-10-03T08:35:53.228Z. Evidence-only descendants must not be relabeled as measured commits.",
+  "caller": {
+    "sourceCommit": "6ca2ae6211ed67654d94ae7d4e36ea6dae504c43",
+    "treeDirty": false,
+    "runnerSha256": "b9888216378645c12f9b29c7980732865335090ca921b621629ab004b01decde",
+    "commonHelperSha256": "5e6ac63b832f1a0452323089e4a281d06b160c2ebfb9bf2b406fedf33f2c5fd7",
+    "privateLauncherSha256": "82ecba3fe8e5520bba32d553224778de6f0bae2bae94ac299cab9b6aefb7fcfc"
+  },
+  "commands": {
+    "common": "PLAYWRIGHT_BROWSERS_PATH=<official cache> node <frozen-current-driver>/performance-history.cjs --output <new-ignored-directory> <source-SHA>",
+    "extended": "Same command with --route-profile basement|exterior|garage|street. Each exact target supplies its extended helper; every actual hash/profile is retained.",
+    "publicReproduction": "npm run perf:history -- --output <new-ignored-directory> <commit...>; invoke from the recorded driver source and use each recorded extended flag separately.",
+    "context": "One target per invocation; default three suites and three fresh-context routes. Restart Vite before every route; no smoke override."
+  },
+  "environment": {
+    "allocation": "Fresh restored cloud environment on 2026-10-03; October 2 raw history is a separate allocation even where reported labels match.",
+    "os": "Debian GNU/Linux 13 (trixie); linux 6.18.44 x64",
+    "cpuReported": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 9,
+    "ramBytes": 10451464192,
+    "deviceGpuPowerThermals": "Physical host model, GPU, power mode and thermal state unknown.",
+    "node": "24.19.0",
+    "npm": "11.9.0",
+    "playwright": "1.55.1",
+    "chromium": "140.0.7339.186 (official build1193 headless shell)",
+    "vite": "5.4.20",
+    "lockSha256": "eb7625041fbcc671048610d6e505444584fa793fe8979c22d2c884c593b922ef",
+    "server": "Vite development; served dev/dev is not source identity. Clean detached Git SHA establishes source.",
+    "renderer": "Software WebGL, dangerous-software classification, safe policy capped at 12 fps. Software-warning panel remains visible in inspected PNGs.",
+    "viewport": [1280, 720],
+    "browserDpr": 1,
+    "rendererDpr": 0.525,
+    "drawingBuffer": [671, 377],
+    "quality": "performance",
+    "sceneDetail": "performance",
+    "bloomComposerMirror": "disabled",
+    "cameraZoom": 12,
+    "panInput": [0, 0],
+    "locale": "en",
+    "reducedMotion": false,
+    "navigatorOverrides": {
+      "webdriver": false,
+      "hardwareConcurrency": 8,
+      "deviceMemory": 8
+    },
+    "cacheAndNetwork": "Fresh browser contexts and Vite processes; shared OS/dependency caches. No configured network/CPU throttling; external network conditions not measured.",
+    "concurrentWork": "Coordinator declared no competing browser/static/build/compression/upload during targets; light filesystem and read-only GitHub work continued.",
+    "panInputQualification": "Declared helper input setting, not an independently measured pan-input trace."
+  },
+  "windows": {
+    "allCapturesUtc": ["2026-10-03T08:35:21.496Z", "2026-10-03T10:35:30.520Z"],
+    "intentionalPauseUtc": ["2026-10-03T08:40:11Z", "2026-10-03T08:42:04Z"],
+    "pauseReason": "Preview artifact packaging/Library transfer between baseline and foundation; no source/driver changes or browser/build activity during that gap.",
+    "comparison": "Sequential observations across this window, not simultaneous experiments. Controlled samples for common and extensions stay separate."
+  },
+  "outcome": {
+    "targets": 14,
+    "controlledSuites": 42,
+    "softwareCasesPassed": 168,
+    "hardwareCasesSkipped": 42,
+    "routesCompleted": 42,
+    "failedAttempts": 0,
+    "allSourceTreesCleanAfter": true,
+    "allOwnedWorktreesRemoved": true
+  },
+  "controlledWindow": "5000 ms warmup, one ready-duration sample and 40 dispatch-event samples per attempt. Dispatch delay is not input-to-paint.",
+  "routeWindow": "5000 ms requested checkpoint dwell. Common is 2147 genuine runtime movement steps, four named checkpoints, zero blocked steps. Extended profiles preserve common legs and add stage-specific itineraries.",
+  "camera": "Actual position/focus/cutaway state unavailable in baseline and foundation source APIs; captured from basement onward. Equal zoom/player pose alone cannot prove equal camera state for the older references.",
+  "budgets": {
+    "launch": {
+      "calls": 150,
+      "triangles": 50000,
+      "memoryGeometries": 125,
+      "memoryTextures": 32
+    },
+    "hardwareFrameP95Ms": 80,
+    "scope": "Headroom is budget minus worst observed spawn count in each profile. Route residency is not the 125-geometry launch ceiling; counts are not GPU bytes."
+  },
+  "archives": [
+    {
+      "filename": "corrected-common-20261003.tar.gz",
+      "sha256": "98dfd8d9698c2d62aaa2a572c0f8d49ed0a37e3ae2d3585fba9d957b20a868a7",
+      "bytes": 16920499,
+      "availability": "durably_saved_private_archive"
+    },
+    {
+      "filename": "corrected-interior-extensions-20261003.tar.gz",
+      "sha256": "d621af2128385855f9b7b1eb4d8afc65dd0088fb3c39c625a81f77ba88a6c2b8",
+      "bytes": 16105278,
+      "availability": "durably_saved_private_archive"
+    },
+    {
+      "filename": "corrected-exterior-entry-garage-20261003.tar.gz",
+      "sha256": "3ea93b4d4d9c8267d1137c206f32ea3a0ec939635fdfee1ed763e5b841ec6d49",
+      "bytes": 20578120,
+      "availability": "durably_saved_private_archive"
+    },
+    {
+      "filename": "corrected-exterior-street-20261003.tar.gz",
+      "sha256": "1f479802829907c0df95c54f12eda5de3829fe4be1261f15f7da04269299c240",
+      "bytes": 14266265,
+      "availability": "durably_saved_private_archive"
+    },
+    {
+      "filename": "historical-pre-feedback-performance-20261003.tar.gz",
+      "sha256": "ebb3bcd98da4a731a2584160f3d0087768cbc26e63e7a643311f6cf01c4f2e98",
+      "bytes": 18745278,
+      "availability": "durably_saved_private_archive"
+    }
+  ],
+  "limitations": [
+    "Rolling diagnostics retain at most 180 rendered-frame wall-clock intervals, omit >=1000 ms intervals and lack reset/sample timestamps. Neither 180 samples nor a 5 s dwell proves an arrival-isolated window. Phase values are private diagnostics, not CPU/GPU timing.",
+    "The external rAF/long-task probe begins at document initialization and includes startup through the route end. It is distinct from rendered frames. Every route includes a >=1s rAF interval already present by spawn; street adds later intervals, explicitly retained in its metrics.",
+    "overlay.visibleDialogCount=0 does not mean unobstructed: inspected images show the software-warning panel. The profile keeps that warning visible.",
+    "Common matched-driver comparisons provide baseline/predecessor observations. Extended helpers, itineraries and resource histories vary; compare shared poses only with those qualifications, and label new poses as additions. Exterior/garage/street v2 are separate from their historical v1 profiles.",
+    "Earlier October 3 pre-feedback measurements remain historical with their original SHAs/driver and interruption state. October 2 evidence remains separately archived. No samples from those populations are pooled here.",
+    "Hardware p95, real-phone performance and owner walkthrough remain separate gates. Same-session teardown/re-entry performance was not captured; functional lifecycle/disposal assertions do not prove complete old-renderer reclamation."
+  ],
+  "functionalLifecycleEvidence": {
+    "exactSource": "6ca2ae6211ed67654d94ae7d4e36ea6dae504c43",
+    "hostedJob": "https://github.com/futuroptimist/danielsmith.io/actions/runs/37109448621/job/111164360667",
+    "result": "113/113 cases, including finite owned-resource/listener/disposal and repeated museum-pool assertions.",
+    "manualArchive": {
+      "filename": "danielsmith-io-manual-review-evidence-2026-10-03.tar.gz",
+      "bytes": 117903069,
+      "sha256": "1c1a9588fcab1f1fdae5a67d3612424be95fba6ae6e016165847b1dd172b68a9",
+      "qualification": "Its 46-case run used candidate tree 8e38424f with application subtree ca075304831139a4683b7835bb81f6c4322bd147, identical to published 6ca2. It is not relabeled as a full 6ca2 commit run."
+    },
+    "limit": "Finite disposal checks do not measure same-session teardown/re-entry performance or prove complete old-renderer/GPU reclamation."
+  },
+  "archiveGroups": {
+    "common": "corrected-common-20261003.tar.gz",
+    "basementMuseumResumeExtensions": "corrected-interior-extensions-20261003.tar.gz",
+    "entryGarageExtensions": "corrected-exterior-entry-garage-20261003.tar.gz",
+    "streetExtension": "corrected-exterior-street-20261003.tar.gz",
+    "preFeedbackHistorical": "historical-pre-feedback-performance-20261003.tar.gz"
+  },
+  "counterInterpretation": "Later-source broad camera/pose/floor-visibility/closed-door records do not explain observed draw-count variation. Some returned-spawn PNGs show changing cyan decoration, but screenshot-after-snapshot ordering prevents frame-exact attribution. Avatar orientation/animation and per-object visibility are not recorded."
+}

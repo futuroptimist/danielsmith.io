@@ -1,4 +1,4 @@
-import { getFloorTopElevation } from './floorElevations';
+import { getFloorTopElevation, type FloorId } from './floorElevations';
 import type {
   FloorDefinition,
   LevelDefinition,
@@ -26,7 +26,7 @@ const gap = (start: number, end: number, label: string) => ({
 const horizontalWall = (
   id: string,
   source: string,
-  floorId: 'ground' | 'upper',
+  floorId: FloorId,
   z: number,
   startX: number,
   endX: number,
@@ -50,7 +50,7 @@ const horizontalWall = (
 const verticalWall = (
   id: string,
   source: string,
-  floorId: 'ground' | 'upper',
+  floorId: FloorId,
   x: number,
   startZ: number,
   endZ: number,
@@ -87,7 +87,7 @@ const centeredGap = (runStart: number, center: number, label: string) => {
 const sceneObject = (
   id: string,
   source: string,
-  floorId: 'ground' | 'upper',
+  floorId: FloorId,
   kind: string,
   roomId: string,
   position: { x: number; y?: number; z: number },

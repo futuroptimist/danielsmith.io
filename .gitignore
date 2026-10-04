@@ -8,3 +8,6 @@ dist-ssr
 *.log
 coverage
 test-results/
+
+# Runtime-generated performance evidence and isolated capture worktrees.
+.performance-history/

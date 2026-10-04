@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
-type FloorId = 'ground' | 'upper';
+import type { FloorId } from '../../src/scene/level/floorElevations';
 
 type ImmersiveSampleTarget = { x: number; z: number; floorId?: FloorId };
 

@@ -21,6 +21,7 @@ import {
   type SceneDetailPolicy,
 } from '../graphics/sceneDetailPolicy';
 import { GROUND_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
+import type { FloorId } from '../level/floorElevations';
 import { generateWallSegmentInstances } from '../level/generateWalls';
 import { PORTFOLIO_LEVEL } from '../level/portfolioLevel';
 import { createRoomLedStrips } from '../lighting/ledStrips';
@@ -70,7 +71,7 @@ export interface PortfolioMiniatureTableBuild {
   update(options: {
     playerWorldPosition: Vector3;
     playerYaw: number;
-    activeFloor?: 'ground' | 'upper';
+    activeFloor?: FloorId;
   }): void;
   setPlayerPalette(palette: PortfolioMannequinPalette): void;
   dispose(): void;
@@ -80,7 +81,7 @@ export interface MiniaturePoiPlacement {
   id: PoiId;
   position: { x: number; y: number; z: number };
   headingRadians: number;
-  floor: 'ground' | 'upper';
+  floor: FloorId;
   roomId: string;
   footprint: PoiFootprint;
   definition: PoiDefinition;
@@ -109,7 +110,7 @@ export function resolveGroundFloorMiniaturePoiPlacements(
     worldYaw: number;
     kind: MiniaturePoiPlacement['anchorKind'];
   } | null,
-  getFloorId: (definition: PoiDefinition) => 'ground' | 'upper',
+  getFloorId: (definition: PoiDefinition) => FloorId,
   finiteSelfPlacement?: MiniaturePoiPlacement
 ): GroundFloorMiniaturePoiPlacementResolution {
   const placements: MiniaturePoiPlacement[] = [];
@@ -338,7 +339,7 @@ const getRoomMiniatureMaterialRole = (
 const getRoomCategory = (roomId: string) =>
   FLOOR_PLAN.rooms.find((room) => room.id === roomId)?.category ?? 'interior';
 
-const getLevelFloor = (floorId: 'ground' | 'upper') => {
+const getLevelFloor = (floorId: FloorId) => {
   const floor = PORTFOLIO_LEVEL.floors.find(
     (candidate) => candidate.id === floorId
   );
