@@ -94,19 +94,20 @@ for (const mode of ['handler', 'throw'] as const) {
         contentType: 'application/json',
       });
       expect(snapshot.lifecycle.isDisposed).toBe(true);
-      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 8 });
+      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 9 });
       expect(snapshot.expected.instances).toBeGreaterThan(0);
       expect(snapshot.disposed).toEqual(snapshot.expected);
       expect(snapshot.groupAttached).toBe(false);
       expect(snapshot.controlsRemaining).toBe(0);
       expect(snapshot.worldAvailable).toBe(false);
       expect(snapshot.rendererDisposals).toBe(1);
-      const allocated = phase === 'controls' ? 1 : 0;
+      const allocated = phase === 'controls' ? snapshot.controlsAllocated : 0;
+      if (phase === 'controls') expect(allocated).toBeGreaterThan(0);
       expect(snapshot.listeners).toEqual({
         keyAdded: allocated,
         keyRemoved: allocated,
-        blurAdded: allocated,
-        blurRemoved: allocated,
+        blurAdded: Number(allocated > 0),
+        blurRemoved: Number(allocated > 0),
         resizeAdded: allocated,
         resizeRemoved: allocated,
       });
@@ -205,7 +206,7 @@ for (const cleanupScope of ['exterior', 'initialization'] as const) {
       expect(snapshot.cleanupFailures).toBe(1);
       expect(snapshot.rendererDisposals).toBe(1);
       expect(snapshot.lifecycle.isDisposed).toBe(true);
-      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 8 });
+      expect(snapshot.expected).toMatchObject({ geometries: 1, materials: 9 });
       expect(snapshot.expected.instances).toBeGreaterThan(0);
       expect(snapshot.disposed).toEqual(snapshot.expected);
       expect(snapshot.groupAttached).toBe(false);

@@ -13,6 +13,12 @@ import type {
   WallDefinition,
 } from './schema';
 import { assertLevelSourceId } from './sourceIds';
+import {
+  STREET_ROOMS,
+  STREET_OBJECTS,
+  STREET_WALLS,
+  STREET_SURFACES,
+} from './streetLayout';
 
 /** Preserve the original launch framing while navigation grows outside the house. */
 export const HOUSE_CAMERA_OUTLINE: Array<[number, number]> = [
@@ -27,6 +33,7 @@ export const FRONT_ENTRY_APPROACH = { start: 11.75, end: 14.75 } as const;
 const source = assertLevelSourceId;
 export const EXTERIOR_ROOMS: SemanticRoomDefinition[] = [
   ...GARAGE_ROOMS,
+  ...STREET_ROOMS,
   {
     id: 'frontYard',
     sourceId: source('ground.frontYard.room'),
@@ -53,8 +60,12 @@ export const EXTERIOR_ROOMS: SemanticRoomDefinition[] = [
   },
 ];
 export const EXTERIOR_SURFACES: FloorSurfaceDefinition[] =
-  EXTERIOR_ROOMS.filter((room) => room.category === 'exterior').flatMap(
-    (room) => {
+  EXTERIOR_ROOMS.filter(
+    (room) =>
+      room.category === 'exterior' &&
+      !STREET_ROOMS.some((streetRoom) => streetRoom.id === room.id)
+  )
+    .flatMap<FloorSurfaceDefinition>((room) => {
       const path = EXTERIOR_ROOMS.find(
         (candidate) => candidate.id === 'frontPath'
       )!;
@@ -87,10 +98,11 @@ export const EXTERIOR_SURFACES: FloorSurfaceDefinition[] =
         bounds,
         purpose: 'exterior-surface',
       }));
-    }
-  );
+    })
+    .concat(STREET_SURFACES);
 export const EXTERIOR_OBJECTS: SceneObjectDefinition[] = [
   ...GARAGE_OBJECTS,
+  ...STREET_OBJECTS,
   {
     id: 'front-door',
     sourceId: source('ground.frontEntry.door'),
@@ -121,6 +133,7 @@ export const EXTERIOR_OBJECTS: SceneObjectDefinition[] = [
 ];
 export const EXTERIOR_WALLS: WallDefinition[] = [
   ...GARAGE_WALLS,
+  ...STREET_WALLS,
   {
     id: 'front-yard-south-boundary',
     sourceId: source('ground.frontYard.southBoundary'),
@@ -140,16 +153,6 @@ export const EXTERIOR_WALLS: WallDefinition[] = [
     rooms: ['frontYard'],
     purpose: 'exterior-boundary',
     run: { start: { x: 25, z: -4 }, end: { x: 26, z: -4 } },
-  },
-  {
-    id: 'sidewalk-east-boundary',
-    sourceId: source('ground.sidewalk.eastBoundary'),
-    floorId: 'ground',
-    wallKind: 'fence',
-    height: 0.6,
-    rooms: ['sidewalk'],
-    purpose: 'exterior-boundary',
-    run: { start: { x: 29, z: -18 }, end: { x: 29, z: 20 } },
   },
   ...[-18, 20].map(
     (z, index): WallDefinition => ({

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "purpose": "One supplemental diagnostic; excluded from all authoritative comparison aggregates",
+  "sourceCommit": "6ca2ae6211ed67654d94ae7d4e36ea6dae504c43",
+  "sourceTree": "7419aafd62958882ced86a9e4ee35487818b7c45",
+  "sourceCleanBeforeAndAfter": true,
+  "callerSourceCommit": "6ca2ae6211ed67654d94ae7d4e36ea6dae504c43",
+  "callerTreeDirty": true,
+  "callerQualification": "Parent checkout contained staged style/evidence work; the measured detached source was unchanged and clean.",
+  "profile": "house-residential-street-route-v2",
+  "environment": "profile.json#environment",
+  "attempts": 1,
+  "capturedUtc": ["2026-10-03T11:02:00.792Z", "2026-10-03T11:08:22.802Z"],
+  "timeoutMs": 600000,
+  "result": {
+    "state": "completed-supplemental",
+    "checkpoints": 25,
+    "realMovementSteps": 11071,
+    "blockedSteps": 0,
+    "ownedWorktreeCleanup": "removed"
+  },
+  "helperSha256": "303f050af2b29dddd687dfcf3ba6e0c373b28569393c0f08768ad8cb05a49e6b",
+  "originalHelperSha256": "5e6ac63b832f1a0452323089e4a281d06b160c2ebfb9bf2b406fedf33f2c5fd7",
+  "wrapperSha256": "e4b7e13449cce200b99e51523c74ae0182e009ef9a07f4b6e866c58b18dbac53",
+  "rawManifestSha256": "484a4a0d9b739b0e9c451d006a21e10278d923b03620b057e9280f945adcaf41",
+  "rawDiagnosticsSha256": "b3a36887fd7dd557b6d1912b549847005fb74917c79d228710a6702f8df3fe31",
+  "instrumentation": "External helper copy only. Sparse in-memory search/movement/checkpoint markers, long rAF/task events and screenshot/write bounds; route, targets, door assertions, movement pacing and requested 5 s dwells preserved. Browser clock reads around screenshots and final observer drain are acknowledged additions.",
+  "rafIntervalsAtLeast1000Ms": 4,
+  "startupRafIntervalMs": 2816.5,
+  "laterIntervals": [
+    {
+      "leg": "garage-loop-return-to-spawn",
+      "rafIntervalMs": 1150,
+      "rafTimestampBoundsMs": [276190.2, 277340.2],
+      "searchDurationMs": 1076.9,
+      "searchBoundsMs": [276178.6, 277255.5],
+      "expandedNodes": 101141
+    },
+    {
+      "leg": "spawn-to-residential-street",
+      "rafIntervalMs": 1216.7,
+      "rafTimestampBoundsMs": [305455.6, 306672.3],
+      "searchDurationMs": 1031.3,
+      "searchBoundsMs": [305468.1, 306499.4],
+      "expandedNodes": 95240
+    },
+    {
+      "leg": "street-return-to-spawn",
+      "rafIntervalMs": 1300,
+      "rafTimestampBoundsMs": [348187.3, 349487.3],
+      "searchDurationMs": 1195.0,
+      "searchBoundsMs": [348194.3, 349389.3],
+      "expandedNodes": 116754
+    }
+  ],
+  "maxEightStepMovementBatchMs": 3.4,
+  "observation": "Each later rAF interval overlaps a >1s synchronous helper BFS. No later interval overlaps a recorded screenshot, JSON-write or movement-batch bound. Search includes runtime collision/navmesh query cost; it is helper-initiated work, not ordinary native-input movement.",
+  "longTaskObserver": {
+    "supported": true,
+    "observeAccepted": true,
+    "limitation": "The three searches do not have matching Long Tasks entries despite accepted observation. Nearby tasks have unknown attribution; those entries cannot supply missing search attribution."
+  },
+  "limits": [
+    "This one pass demonstrates substantial synchronous helper blocking and temporal overlap; it does not assign the full rAF interval exclusively to search or retroactively identify every authoritative-run stall.",
+    "The initial 2816.5 ms scheduling gap remains unattributed. Host/browser time-origin alignment is approximate; screenshot/write bounds are observations, not CPU execution accounting.",
+    "RAF bounds use callback timestamp arguments, not independently recorded callback delivery times. Intervals can span several activities; observer/scheduling uncertainty remains.",
+    "No optimization, runtime edit, budget change, authoritative recapture or extra attempt followed. Hardware p95 and full renderer reclamation remain unverified."
+  ],
+  "archive": {
+    "filename": "supplemental-street-stalls-one-run-20261003.tar.gz",
+    "sha256": "6adede81ef06ad0600479763f7fbc2d6ee73116c6f198c6ee11d96202bbf7853",
+    "bytes": 4777427,
+    "availability": "Saved in the private owner review archive; no public access implied."
+  }
+}

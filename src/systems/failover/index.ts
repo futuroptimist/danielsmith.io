@@ -9,6 +9,8 @@ import {
   getSiteStrings,
   type SiteTextFallbackStrings,
 } from '../../assets/i18n';
+import { getExteriorStrings } from '../../assets/i18n/exterior';
+import { BUS_STOP } from '../../scene/level/streetLayout';
 import { getPoiDefinitions } from '../../scene/poi/registry';
 import { isProjectPoi, type PoiLink } from '../../scene/poi/types';
 import type { FallbackReason } from '../../types/failover';
@@ -1219,6 +1221,16 @@ export function renderTextFallback(
   if (portfolioSection) {
     section.appendChild(portfolioSection);
   }
+
+  const streetStrings = getExteriorStrings(resolvedLocale);
+  const busStopSection = documentTarget.createElement('section');
+  busStopSection.className = 'text-fallback__bus-stop';
+  busStopSection.dataset.busStopId = BUS_STOP.id;
+  busStopSection.dataset.availability = BUS_STOP.availability;
+  const busStopHeading = documentTarget.createElement('h2');
+  busStopHeading.textContent = `${streetStrings.busStop}: ${streetStrings.comingSoon}`;
+  busStopSection.append(busStopHeading);
+  section.append(busStopSection);
 
   const buildInfoFooter = documentTarget.createElement('footer');
   buildInfoFooter.className = 'text-fallback__build-info';

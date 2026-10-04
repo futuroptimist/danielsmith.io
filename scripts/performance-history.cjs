@@ -20,6 +20,16 @@ const ROUTE_CAPABILITIES = {
     source: 'src/scene/level/basementStair.ts',
     marker: 'basement-ground',
   },
+  street: {
+    flag: '--street',
+    source: 'src/scene/level/streetLayout.ts',
+    marker: 'residential-bus-stop',
+    profiles: [
+      'house-residential-street-route-v1',
+      'house-residential-street-route-v2',
+      'house-residential-street-route-v3',
+    ],
+  },
   garage: {
     flag: '--garage',
     source: 'src/scene/level/garageLayout.ts',
@@ -73,7 +83,7 @@ function parseArgs(args) {
       } else {
         if (value !== 'common' && !Object.hasOwn(ROUTE_CAPABILITIES, value))
           throw new Error(
-            'Route profile must be common, basement, exterior or garage'
+            'Route profile must be common, basement, exterior, garage or street'
           );
         options.routeProfile = value;
       }
@@ -453,8 +463,32 @@ async function run(args, options = {}) {
         const profileVersion = capability.profiles?.find((profile) =>
           declaredProfiles.includes(profile)
         );
+        let passiveStreet = false;
+        if (parsed.routeProfile === 'street') {
+          try {
+            passiveStreet = blob(
+              repo,
+              ref.commit,
+              'src/ui/exterior/busStopDescription.ts'
+            )
+              .toString()
+              .includes('createBusStopDescription');
+          } catch {
+            // Historical interactive stops have no passive-description module.
+          }
+        }
+        const mismatchedStreetContract =
+          parsed.routeProfile === 'street' &&
+          ((profileVersion === 'house-residential-street-route-v1' &&
+            passiveStreet) ||
+            ([
+              'house-residential-street-route-v2',
+              'house-residential-street-route-v3',
+            ].includes(profileVersion) &&
+              !passiveStreet));
         if (
           !candidate.toString().includes(capability.flag) ||
+          mismatchedStreetContract ||
           !definition.includes(capability.marker) ||
           (capability.profiles && !profileVersion) ||
           (/automatic:\s*true/.test(definition) &&

@@ -1,6 +1,8 @@
 import type { Locale } from './types';
 
 export interface ExteriorStrings {
+  busStop: string;
+  comingSoon: string;
   frontDoor: string;
   houseDoor: string;
   garageDoor: string;
@@ -14,6 +16,8 @@ export interface ExteriorStrings {
   status: string;
 }
 const english: ExteriorStrings = {
+  busStop: 'Bus stop',
+  comingSoon: 'Coming Soon',
   frontDoor: 'Front door',
   houseDoor: 'House–garage door',
   garageDoor: 'Garage door',
@@ -29,6 +33,8 @@ const english: ExteriorStrings = {
 export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
   en: english,
   es: {
+    busStop: 'Parada de autobús',
+    comingSoon: 'Próximamente',
     frontDoor: 'Puerta principal',
     houseDoor: 'Puerta de la casa al garaje',
     garageDoor: 'Puerta del garaje',
@@ -42,6 +48,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}: {state}',
   },
   pt: {
+    busStop: 'Ponto de ônibus',
+    comingSoon: 'Em breve',
     frontDoor: 'Porta da frente',
     houseDoor: 'Porta entre a casa e a garagem',
     garageDoor: 'Porta da garagem',
@@ -55,6 +63,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}: {state}',
   },
   de: {
+    busStop: 'Bushaltestelle',
+    comingSoon: 'Demnächst',
     frontDoor: 'Haustür',
     houseDoor: 'Tür zwischen Haus und Garage',
     garageDoor: 'Garagentor',
@@ -68,6 +78,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}: {state}',
   },
   hu: {
+    busStop: 'Buszmegálló',
+    comingSoon: 'Hamarosan',
     frontDoor: 'Bejárati ajtó',
     houseDoor: 'Ház és garázs közötti ajtó',
     garageDoor: 'Garázskapu',
@@ -81,6 +93,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}: {state}',
   },
   ja: {
+    busStop: 'バス停',
+    comingSoon: '近日公開',
     frontDoor: '玄関ドア',
     houseDoor: '家とガレージのドア',
     garageDoor: 'ガレージドア',
@@ -94,6 +108,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}：{state}',
   },
   'zh-Hans': {
+    busStop: '公交站',
+    comingSoon: '即将推出',
     frontDoor: '前门',
     houseDoor: '房屋与车库之间的门',
     garageDoor: '车库门',
@@ -107,6 +123,8 @@ export const EXTERIOR_LOCALE_COPY: Record<Locale, ExteriorStrings> = {
     status: '{door}：{state}',
   },
   ar: {
+    busStop: 'موقف الحافلات',
+    comingSoon: 'قريبًا',
     frontDoor: 'الباب الأمامي',
     houseDoor: 'باب المنزل والمرآب',
     garageDoor: 'باب المرآب',

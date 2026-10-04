@@ -16,7 +16,14 @@ export interface ExteriorSolid {
   definition: SceneObjectDefinition;
   collider: RectCollider;
 }
-type Palette = 'paving' | 'grass' | 'slate' | 'wood' | 'foliage' | 'trim';
+type Palette =
+  | 'paving'
+  | 'grass'
+  | 'slate'
+  | 'wood'
+  | 'foliage'
+  | 'trim'
+  | 'asphalt';
 interface Part {
   palette: Palette;
   position: [number, number, number];
@@ -34,6 +41,7 @@ export function createResidentialExterior(
   group.name = 'ResidentialExterior';
   const geometry = new BoxGeometry(1, 1, 1);
   const palette: Record<Palette, MeshStandardMaterial> = {
+    asphalt: new MeshStandardMaterial({ color: 0x343e49, roughness: 1 }),
     paving: new MeshStandardMaterial({ color: 0xa7aba4, roughness: 0.92 }),
     grass: new MeshStandardMaterial({ color: 0x344b3e, roughness: 1 }),
     slate: new MeshStandardMaterial({ color: 0x384352, roughness: 0.75 }),
@@ -61,12 +69,16 @@ export function createResidentialExterior(
   floor.floorSurfaces
     .filter((surface) => surface.purpose === 'exterior-surface')
     .forEach((surface) => {
-      const isYard = surface.roomId === 'frontYard';
+      const isYard = ['frontYard', 'verge'].includes(surface.roomId ?? '');
       const rectangles = [surface.bounds];
       // The source-authored paving cuts through the grass; no coplanar overlap.
       for (const b of rectangles)
         add(
-          isYard ? 'grass' : 'paving',
+          isYard
+            ? 'grass'
+            : surface.id === 'street-asphalt-surface'
+              ? 'asphalt'
+              : 'paving',
           ((b.minX + b.maxX) * scale) / 2,
           isYard ? -0.15 : -0.06,
           ((b.minZ + b.maxZ) * scale) / 2,

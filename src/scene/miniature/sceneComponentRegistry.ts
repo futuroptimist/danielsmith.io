@@ -21,12 +21,14 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: [
       'src/scene/level/exteriorLayout.ts',
       'src/scene/level/garageLayout.ts',
+      'src/scene/level/streetLayout.ts',
+      'src/scene/structures/residentialStreet.ts',
       'src/scene/structures/residentialExterior.ts',
     ],
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Sliding-door pocket faces are separated from the shared house/garage wall; ' +
-      'these dynamic exterior panels remain outside the tabletop envelope.',
+      'Sliding-door pockets stay clear of shared walls; automatic doors, the 80% ' +
+      'garage cutaway, lamp pools and passive bus sign remain outside the tabletop.',
     reason:
       'The tabletop keeps its existing house/backyard envelope. The source-backed ' +
       'front opening is shared, while external landscaping and dynamic door controls ' +
@@ -72,11 +74,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'The source now includes an attached garage and driveway; its ' +
-      'house connection is shared while outside-envelope garage ' +
-      'geometry is excluded from the miniature.',
+      'The source adds flat street, verge and bus-stop zones plus ' +
+      'explicit outer boundaries; the miniature retains its original ' +
+      'house/backyard envelope and shared house connections.',
   },
   {
     id: 'level:floors-walls',
@@ -519,8 +521,8 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: ['src/scene/structures/doorwayOpenings.ts'],
     syncRevision: 2,
     syncNote:
-      'Operable apertures declare their frame factory ownership so ' +
-      'generic trim cannot overlap moving panels or walking clearance.',
+      'Operable apertures declare their frame factory ownership so generic trim ' +
+      'cannot overlap moving panels or walking clearance.',
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },

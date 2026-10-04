@@ -2,9 +2,9 @@
 
 ## Status and approval boundary
 
-This is a design proposal, not an implementation. The first pull request changes
-only this document. Stop after making that design pull request reviewable and
-wait for explicit design approval before creating implementation changes.
+This document records the design approved in #1111 and its subsequent owner
+walkthrough refinements. Implementation changes retain the final human-review
+boundary and acceptance requirements below.
 
 After approval, deliver small, sequential, stacked draft pull requests with the
 checks and evidence described below. Keep the entire stack available for final
@@ -24,10 +24,10 @@ The visitor journey is:
 The exterior follows the current stylized isometric house. A broader redesign of
 the entire house as a 2040 home is outside this proposal. The sedan is a static
 2040-inspired prop; driving, traffic simulation, transit service, and a working
-bus are also outside scope. Future bus-stop fast travel to a remote location is
-explicitly out of scope. Reserve a stable bus-stop interaction ID and optional
-future destination reference; current behavior is only the Coming Soon message,
-with no travel system, loading transition, or remote scene.
+bus are also outside scope. The bus stop is passive scenery: its physical Coming
+Soon sign has a noninteractive accessible text equivalent. Do not add a button,
+tooltip, disclosure,
+travel suggestion, destination reference, or travel system.
 
 ## Current implementation and constraints
 
@@ -93,8 +93,14 @@ layout for graybox validation, in **level units**, is:
 
 The extended museum edge leaves room for a lower-nose turning pad; keeping the
 old Z `-16` edge would leave only `2.7` world units before wall/clearance deductions.
-The narrow gap between parallel stair runs is not a designated walking route;
-approach each opening from its landing instead of creating a squeeze-through.
+The owner subsequently chose to preserve this floor plan while opening the
+physically clear ground passage beneath the high part of the upper flight.
+Its southbound inter-flight exit retains a measured `0.92` world units of
+avatar-center clearance (`2.42` physical width). This accepted narrow route is
+an explicit exception to the general `2.5` circulation target below; do not
+claim that target is met there or move the flights to widen it. Remove empty
+foyer/approach barriers, retain real tread headroom and rail collision, and admit
+the upstairs connection only through its physical entrance.
 
 These coordinates are a candidate reservation, not certified collision clearance.
 Before accepting them, run source/geometry and reachability audits against current
@@ -109,6 +115,12 @@ railings, floor cutout, nav areas, and safety colliders must all derive from one
 connection definition. There must be no opaque slab over the ramp, invisible
 wall at either lip, side entrance through a railing, or floor change caused by
 walking alongside the opening.
+
+The final basement parapets must meet the ground trim without overlapping faces,
+and the floor slab must exclude the trim footprint. A reusable nearly-coplanar
+triangle-surface check must reproduce both reported conflicts before the fix;
+matched visual inspection remains necessary because it is not a depth-buffer
+simulation. The landing wall cutaway is `0.8` opacity and restores on exit.
 
 ### Front entrance and street orientation
 
@@ -195,6 +207,10 @@ Use one reviewed career data source for museum details and the accessible work
 timeline. All new UI strings pass through the existing locale structure, including
 the pseudo-locale. Preserve localized layouts and text fallback parity; a visitor
 must not have to enter WebGL to read any career content.
+Use the full title **The University of Southern Mississippi** in career headings
+and labels. Historical résumé/job-posting URLs remain provenance metadata, but
+career details and their text-only equivalents render no source-link buttons.
+This does not remove résumé downloads elsewhere or other durable project links.
 
 ### Exhibit treatments
 
@@ -320,7 +336,11 @@ requested target, explicit closed/opening/open/closing state, threshold safety
 region, visual transform, collision policy, and accessible status.
 
 - Use the existing remappable interact action and pointer/touch conventions,
-  plus a properly labeled DOM control near the selected door
+  plus a properly labeled DOM control near the selected door as a manual fallback
+- All three doors open automatically from either side early enough for an
+  uninterrupted maximum-speed approach. Base lead distance on clearance time,
+  maximum speed and avatar radius; cover late turns and coarse frames while
+  keeping the actual visible aperture authoritative for collision
 - Derive the visual panel and blocking state from one authoritative progress
   value, not independent timers
 - Keep a door blocking until its aperture clears the avatar, including radius
@@ -353,6 +373,7 @@ per-zone bounds without changing initial avatar framing. Check basement height
 following, return-to-ground height, pan/zoom near every door, and garage/roof
 occlusion. Use the existing cutaway/active-floor visual approach so ceilings or
 the house shell do not hide the avatar or doorway while inside.
+The closed garage panel's interior cutaway is `0.8` opacity and restores outside.
 
 Streetlamps must cast light **only downward**. Use at least three visible opaque
 hoods with emissive undersides and downward-targeted spotlights, or baked ground
@@ -360,6 +381,8 @@ pools in lower quality settings. The cone must stay entirely below the horizonta
 plane of its luminaire. Do not use omnidirectional point lights or glowing
 upper-facing bulbs. Share/instance fixture geometry, limit shadows, and preserve
 clear pedestrian contrast in performance mode.
+Downward ground pools remain visible during approach, passing and departure;
+enabling the higher-detail spotlights must not make the existing pools disappear.
 
 Keep existing quality tiers and the current launch budgets: at most 150 draw
 calls, 50,000 triangles, 125 geometries, and 32 textures, with the existing 80 ms
@@ -379,8 +402,9 @@ high-contrast/accessibility presets, locale handling, caption preferences, and
 mobile joystick controls. The current HUD and tutorial already advertise the
 text-only experience, including the Text control and T shortcut. Preserve those
 entry points and resume/contact access without adding an entry-UX redesign.
-Every career exhibit and bus-stop message has a text
-alternative. Door controls have a meaningful accessible name and state; use
+Every career exhibit and the physical bus-stop sign have a text
+alternative. The bus-stop equivalent is passive and adds no keyboard or touch
+control. Door controls have a meaningful accessible name and state; use
 polite announcements for state changes without repeating them every frame.
 
 ### Baseline and per-stage performance history
@@ -541,6 +565,8 @@ Mandatory journeys and assertions:
   existing off-stair ground-point, squeeze-entry, and intentional-descent cases
 - Closed front/garage doors block; sufficiently open doors pass in both
   directions; visual opening and collision state agree at intermediate progress
+- Native maximum-speed approaches cross each automatic door from both sides
+  without stopping; ground traversal beneath the high stair retains ground height
 - Repeated/interrupted activation, occupied-threshold closing, leaving/re-entering
   range, modal open/close, tab blur/focus, and immersive/text/recovery cycles
 - House → front door → sidewalk → driveway → garage → house and reverse, with
@@ -762,9 +788,10 @@ planned PRs above.
 - **Immersive/text positioning** ([#1112](https://github.com/futuroptimist/danielsmith.io/issues/1112)): clarify the
   distinction between exploration and the text-only experience. The current HUD
   and tutorial already communicate the alternative; preserve those controls now
-- **Bus-stop fast travel** ([#1113](https://github.com/futuroptimist/danielsmith.io/issues/1113)): a remote destination
-  using the reserved interaction/destination seam. Current behavior stays Coming
-  Soon, with no travel or remote-scene implementation
+- **Bus-stop future work**
+  ([#1113](https://github.com/futuroptimist/danielsmith.io/issues/1113)): outside this
+  expansion. The current stop retains only its physical Coming Soon sign and
+  passive text equivalent; it advertises no future capability
 - **2040 house redesign** ([#1114](https://github.com/futuroptimist/danielsmith.io/issues/1114)): a broader visual
   restyling after the expansion's navigation and interactions are proven
 - **Historical performance backfill** ([#1115](https://github.com/futuroptimist/danielsmith.io/issues/1115)): replay

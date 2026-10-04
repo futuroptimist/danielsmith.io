@@ -334,6 +334,7 @@ import {
   type PrReaperInstallationBuild,
 } from './scene/structures/prReaperConsole';
 import { createResidentialExterior } from './scene/structures/residentialExterior';
+import { createResidentialStreet } from './scene/structures/residentialStreet';
 import {
   createSelfieMirror,
   type SelfieMirrorBuild,
@@ -502,6 +503,7 @@ import {
   type AccessibilityPresetManager,
 } from './ui/accessibility/presetManager';
 import { CHANGELOG_URL } from './ui/changelog';
+import { createBusStopDescription } from './ui/exterior/busStopDescription';
 import { createDoorControl } from './ui/exterior/doorControl';
 import {
   createAudioSubtitles,
@@ -1914,6 +1916,31 @@ function buildImmersiveScene(
     );
     namedColliderDebugNames.set(collider, `Exterior:${definition.id}`);
   });
+
+  const residentialStreet = createResidentialStreet(
+    getLevelFloor('ground'),
+    FLOOR_PLAN_SCALE,
+    getExteriorStrings(locale)
+  );
+  exteriorCleanup.add(() => residentialStreet.dispose());
+  groundEnvironmentGroup.add(residentialStreet.group);
+  residentialStreet.solids.forEach(
+    ({ definition, collider, role, debugId }) => {
+      registerSceneObjectColliders(
+        [collider],
+        definition,
+        groundColliders,
+        colliderSourceMetadata
+      );
+      colliderSourceMetadata.set(collider, {
+        ...colliderSourceMetadata.get(collider)!,
+        role,
+        debugId,
+        intent: 'physical-boundary',
+      });
+      namedColliderDebugNames.set(collider, `Street:${definition.id}:${role}`);
+    }
+  );
 
   const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
   const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
@@ -3844,11 +3871,15 @@ function buildImmersiveScene(
               ? [basementStaircase.definition.landingOccluderSourceId]
               : []),
             ...residentialExterior.getCutawaySourceIds(),
+            ...residentialStreet.getCutawaySourceIds(),
           ],
         };
       },
       getDoorSnapshots() {
         return exteriorDoors.map((door) => door.snapshot());
+      },
+      getStreetSnapshot() {
+        return residentialStreet.getSnapshot();
       },
       getExteriorLifecycle() {
         return residentialExterior.getLifecycle();
@@ -4582,6 +4613,8 @@ function buildImmersiveScene(
       ),
   });
   exteriorCleanup.add(disposeDoorInteraction);
+  const busStopDescription = createBusStopDescription(container);
+  exteriorCleanup.add(() => busStopDescription.dispose());
   function updateExteriorDoors(delta: number, movement = { x: 0, z: 0 }) {
     const occupant = doorOccupant();
     doorColliders.length = 0;
@@ -4604,6 +4637,13 @@ function buildImmersiveScene(
       }
     }
     residentialExterior.update(occupant);
+    residentialStreet.update(activeSceneDetailPolicy, occupant);
+    residentialStreet.setStrings(getExteriorStrings(locale));
+    busStopDescription.update(
+      activeFloorId === 'ground',
+      getExteriorStrings(locale)
+    );
+
     selectedDoor = isDoorUiBlocked()
       ? null
       : (exteriorDoors.find((door) => door.isInRange(occupant)) ?? null);

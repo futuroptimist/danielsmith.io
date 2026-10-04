@@ -253,8 +253,8 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
       name: 'Ground Floor',
       outline: [
         [-16, -18],
-        [29, -18],
-        [29, 20],
+        [40, -18],
+        [40, 20],
         [-16, 20],
       ],
       rooms: [
@@ -480,6 +480,20 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           floorId: 'ground',
           rooms: ['garage', 'driveway'],
           label: 'Garage to driveway',
+        },
+        {
+          id: 'sidewalk-to-street',
+          sourceId: sourceId('ground.street.sidewalkConnection'),
+          floorId: 'ground',
+          rooms: ['sidewalk', 'street'],
+          label: 'Flush curb to residential street',
+        },
+        {
+          id: 'sidewalk-to-bus-stop',
+          sourceId: sourceId('ground.busStop.sidewalkConnection'),
+          floorId: 'ground',
+          rooms: ['sidewalk', 'busStop', 'verge'],
+          label: 'Sidewalk to bus shelter',
         },
         {
           id: 'driveway-to-sidewalk',

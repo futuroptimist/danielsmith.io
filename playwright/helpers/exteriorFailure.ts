@@ -7,8 +7,12 @@ export async function injectExteriorInitializationFailure(
   page: Page,
   phase: ExteriorFailurePhase,
   mode: 'handler' | 'throw' | 'throw-cleanup' | 'async-cleanup',
-  options: { cleanupScope?: 'exterior' | 'initialization' } = {}
+  options: {
+    target?: 'exterior' | 'street';
+    cleanupScope?: 'exterior' | 'initialization';
+  } = {}
 ) {
+  const target = options.target ?? 'exterior';
   const cleanupScope = options.cleanupScope ?? 'exterior';
   await page.addInitScript(() => {
     const counts = {
@@ -62,9 +66,15 @@ export async function injectExteriorInitializationFailure(
   await page.route('**/src/immersiveScene.ts*', async (route) => {
     const response = await route.fetch();
     let body = await response.text();
+    const builder =
+      target === 'street' ? 'residentialStreet' : 'residentialExterior';
+    const lifecycleRead =
+      target === 'street'
+        ? `${builder}.getSnapshot().lifecycle`
+        : `${builder}.getLifecycle()`;
     const anchor =
       phase === 'build'
-        ? /groundEnvironmentGroup\.add\(residentialExterior\.group\);/
+        ? new RegExp(`groundEnvironmentGroup\\.add\\(${builder}\\.group\\);`)
         : phase === 'controls'
           ? /let helpKeyWasPressed = false;/
           : /immersiveLifecycle = ["']ready["'];/;
@@ -79,19 +89,32 @@ export async function injectExteriorInitializationFailure(
       anchor,
       (line) => `${line}
       const failureResources = {
-        geometries: new Set(), materials: new Set(), instances: new Set()
+        geometries: new Set(), materials: new Set(), instances: new Set(),
+        textures: new Set(), lights: new Set()
       };
-      const failureCounts = { geometries: 0, materials: 0, instances: 0 };
-      residentialExterior.group.traverse((object) => {
+      const failureCounts = {
+        geometries: 0, materials: 0, instances: 0, textures: 0, lights: 0
+      };
+      ${builder}.group.traverse((object) => {
         if (object.geometry) failureResources.geometries.add(object.geometry);
         if (object.material) {
-          for (const material of [object.material].flat()) failureResources.materials.add(material);
+          for (const material of [object.material].flat()) {
+            failureResources.materials.add(material);
+            if (material.map?.isTexture) failureResources.textures.add(material.map);
+          }
         }
         if (object.isInstancedMesh) failureResources.instances.add(object);
+        if (object.isLight) failureResources.lights.add(object);
       });
       for (const [kind, resources] of Object.entries(failureResources)) {
         for (const resource of resources) {
-          resource.addEventListener('dispose', () => failureCounts[kind]++);
+          if (kind === 'lights') {
+            const original = resource.dispose;
+            resource.dispose = () => {
+              failureCounts[kind]++;
+              original.call(resource);
+            };
+          } else resource.addEventListener('dispose', () => failureCounts[kind]++);
         }
       }
       const failureMuseum = careerMuseum;
@@ -116,6 +139,12 @@ export async function injectExteriorInitializationFailure(
         originalRendererDispose.call(renderer);
       };
       const failure = new Error('Injected exterior initialization failure: ${phase}');
+      const controlsAllocated = document.querySelectorAll(
+        '[data-exterior-door-control]'
+      ).length;
+      const descriptionsAllocated = document.querySelectorAll(
+        '[data-bus-stop-description]'
+      ).length;
       window.exteriorCleanupFailures = 0;
       ${
         mode.endsWith('-cleanup')
@@ -139,14 +168,21 @@ export async function injectExteriorInitializationFailure(
         fatalErrors: crashBreadcrumbs.read().entries
           .filter((entry) => entry.type === 'fatal-error')
           .map((entry) => entry.message),
-        lifecycle: residentialExterior.getLifecycle(),
+        lifecycle: ${lifecycleRead},
         expected: Object.fromEntries(
           Object.entries(failureResources).map(([kind, values]) => [kind, values.size])
         ),
         disposed: failureCounts,
-        groupAttached: residentialExterior.group.parent !== null,
+        groupAttached: ${builder}.group.parent !== null,
         listeners: window.exteriorListenerCounts,
-        controlsRemaining: document.querySelectorAll('[data-exterior-door-control]').length,
+        controlsAllocated,
+        descriptionsAllocated,
+        descriptionsRemaining: document.querySelectorAll(
+          '[data-bus-stop-description]'
+        ).length,
+        controlsRemaining: document.querySelectorAll(
+          '[data-exterior-door-control]'
+        ).length,
         worldAvailable: Boolean(window.portfolio?.world),
         rendererDisposals,
         cleanupFailures: window.exteriorCleanupFailures
@@ -189,6 +225,9 @@ export async function readExteriorFailureSnapshot(page: Page) {
           expected: Record<string, number>;
           disposed: Record<string, number>;
           groupAttached: boolean;
+          controlsAllocated: number;
+          descriptionsAllocated: number;
+          descriptionsRemaining: number;
           controlsRemaining: number;
           worldAvailable: boolean;
           rendererDisposals: number;

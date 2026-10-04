@@ -82,7 +82,12 @@ function put(repo: string, name: string, text: string) {
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, text);
 }
-function fixture(basement = false, exterior = false, garage = false) {
+function fixture(
+  basement = false,
+  exterior = false,
+  garage = false,
+  street = false
+) {
   const repo = mkdtempSync(path.join(tmpdir(), 'performance-history-test-'));
   fixtures.push(repo);
   git(repo, 'init');
@@ -139,6 +144,20 @@ function fixture(basement = false, exterior = false, garage = false) {
       repo,
       'scripts/capture-performance-route.cjs',
       '// versioned --basement --exterior --garage house-front-entry-route-v1 house-attached-garage-route-v1 routes\n'
+    );
+  }
+  if (street) {
+    put(
+      repo,
+      'src/scene/level/streetLayout.ts',
+      "export const id = 'residential-bus-stop';\n"
+    );
+    put(
+      repo,
+      'scripts/capture-performance-route.cjs',
+      '// versioned --basement --exterior --garage --street ' +
+        'house-front-entry-route-v1 house-attached-garage-route-v1 ' +
+        'house-residential-street-route-v1 routes\n'
     );
   }
   git(repo, 'add', '.');
@@ -503,6 +522,27 @@ describe('performance history command', () => {
     });
   });
 
+  it('retains common routes when a historical ref has no street', async () => {
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'street', 'HEAD'],
+      { cwd: fixture(true, true, true) }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'common',
+      skippedRouteCapabilities: [{ capability: 'street' }],
+    });
+  });
+  it('recognizes the versioned street helper and source definition', async () => {
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'street', 'HEAD'],
+      { cwd: fixture(true, true, true, true) }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'street',
+      skippedRouteCapabilities: [],
+    });
+  });
+
   it.each(['v1', 'v2', 'v3', 'v10'])(
     'keeps the exterior profile %s explicit',
     async (version) => {
@@ -636,6 +676,60 @@ describe('performance history command', () => {
       skippedRouteCapabilities: [{ capability: 'garage' }],
     });
   });
+
+  it.each([
+    ['v1', false, true],
+    ['v2', true, true],
+    ['v3', true, true],
+    ['v4', true, false],
+    ['v10', true, false],
+    ['v1', true, false],
+    ['v2', false, false],
+    ['v3', false, false],
+  ] as const)(
+    'matches street %s to passive=%s before capture',
+    async (version, passive, supported) => {
+      const repo = fixture(true, true, true, true);
+      put(
+        repo,
+        'scripts/capture-performance-route.cjs',
+        `// --street house-residential-street-route-${version}\n`
+      );
+      if (passive)
+        put(
+          repo,
+          'src/ui/exterior/busStopDescription.ts',
+          'export function createBusStopDescription() {}\n'
+        );
+      git(repo, 'add', '.');
+      git(
+        repo,
+        '-c',
+        'user.name=Performance Test',
+        '-c',
+        'user.email=test@example.invalid',
+        'commit',
+        '-m',
+        'Set street route contract'
+      );
+      const result = await runner.run(
+        ['--check-only', '--route-profile', 'street', 'HEAD'],
+        { cwd: repo }
+      );
+      expect(result.manifest.entries[0]).toMatchObject(
+        supported
+          ? {
+              routeProfile: 'street',
+              routeProfileVersion: `house-residential-street-route-${version}`,
+              skippedRouteCapabilities: [],
+            }
+          : {
+              routeProfile: 'common',
+              skippedRouteCapabilities: [{ capability: 'street' }],
+            }
+      );
+    }
+  );
 
   it('recognizes the versioned stage2 basement capability', async () => {
     const result = await runner.run(

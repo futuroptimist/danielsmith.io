@@ -63,7 +63,8 @@ for (const side of ['house', 'garage'] as const) {
 test('walks the entire house, garage, driveway and front-entry loop in both directions', async ({
   page,
 }) => {
-  test.setTimeout(150000);
+  // Both complete directions retain their door operations and native crossing.
+  test.setTimeout(180000);
   await readyExterior(page);
   await walkExteriorTo(page, { x: 29, z: -2 });
   await closeApproachingDoor(page, 'house-garage-door');

@@ -19,13 +19,14 @@ privately retained; Git keeps aggregate ranges, medians and comparisons.
 | [Résumé][ph-resume]         | 1,482.2–1,578.3; 1,566.7 |                 114 / 69 |
 | [Entry][ph-entry]           | 1,511.3–1,582.7; 1,516.3 |                 116 / 71 |
 | [Garage][ph-garage]         |   1,787–1,929.1; 1,888.4 |                 103 / 71 |
+| [Street][ph-street]         | 1,736.3–1,767.9; 1,742.2 |             109–122 / 74 |
 
 [Shared profile][ph-profile]. Each linked record retains its baseline and predecessor deltas.
 
-Extended profiles included here have 7, 11, 11, 16, 21 checkpoints in stage order. Each
-completed three routes and three controlled suites. Exterior profiles are version 2,
-with explicit automatic/manual door states; the street version retains only the passive
-sign.
+Extended profiles included here have 7, 11, 11, 16, 21, 25 checkpoints in stage order.
+Each completed three routes and three controlled suites. Exterior profiles are version
+2, with explicit automatic/manual door states; the street version retains only the
+passive sign.
 
 Garage readiness is above the entry range. Its lower spawn draw count has no
 demonstrated camera, floor-visibility, door-state or framing explanation. The sequential
@@ -34,6 +35,22 @@ observations establish neither a causal slowdown nor a speedup.
 Every recorded route has a ≥1-second external rAF interval already present by spawn. The
 probe includes startup, helper work and screenshots. Rolling frame diagnostics omit
 ≥1-second gaps and cannot establish stall-free traversal.
+
+The street extension adds 2/3/3 later intervals, giving totals 3/4/4. Checkpoints
+bracket those gaps; individual event timestamps were not retained. Synchronous helper
+searches precede recorded leg timing, so the retained records alone cannot assign a
+cause.
+
+A separate [one-run diagnostic][ph-street-stalls] records timestamps around the
+unchanged street route. All three later one-second gaps overlap synchronous capture-helper
+path searches, with no recorded screenshot, JSON-write or movement-batch overlap. This
+shows substantial helper blocking in that run; it does not assign every earlier gap or
+establish hardware timing. The diagnostic is excluded from the three-attempt aggregates.
+
+All fourteen profiles completed: 168 software cases passed, 42 hardware cases skipped
+and 42 routes completed, with no failed attempts. The final street extension ends with
+808–811 resident geometries; resource counts after traversal are separate from the
+125-geometry launch ceiling.
 
 These captures use software WebGL, performance quality and a 12 fps safe cap. The
 software-warning panel remains visible. Hardware p95, real-phone performance and the
@@ -48,6 +65,8 @@ measure teardown/re-entry performance or prove complete old-renderer/GPU reclama
 [ph-resume]: 2026-10-03-corrected-software-history/resume.json
 [ph-entry]: 2026-10-03-corrected-software-history/entry.json
 [ph-garage]: 2026-10-03-corrected-software-history/garage.json
+[ph-street]: 2026-10-03-corrected-software-history/street.json
+[ph-street-stalls]: 2026-10-03-corrected-software-history/street-supplemental-stalls.json
 
 Keep only commit hashes, limited comparability metadata, and high-level checkpoint
 metrics in Git. Detailed JSON, stdout/stderr, snapshots, traces, screenshots, and
@@ -333,6 +352,34 @@ and v2 captures keep their original labels and remain supported for their origin
 sources; v1 is skipped with automatic-door source. Unknown versions are explicitly
 skipped.
 
+### Residential-street checkpoint
+
+```bash
+npm run perf:history -- --route-profile street <garage-commit> <street-commit>
+```
+
+The most specific `--street` helper retains earlier route legs and adds the parked
+EV, bus stop, shelter and final spawn. The current
+`house-residential-street-route-v3` validates the passive world sign and text
+alternative, absence of a stop control, and four visible downward lamp pools.
+It does not click a stop button or dismiss a disclosure. Its inherited exterior
+and garage legs use the automatic-door-compatible route contract. Version 3
+inherits garage v3's outside return approach, then adds an inside front-door
+approach at `(29, -15)` before leaving spawn for the street and an outside approach
+at `(35, -15)` before returning from the shelter. Each approach waits for real
+automatic opening before occupancy planning through the aperture. All checkpoint
+positions/order and capture settings remain unchanged; these extra approach/wait
+legs require a distinct profile from v2.
+
+Historical interactive stops retain their actual `house-residential-street-route-v1`
+identity. Unknown route versions or a stale interactive driver paired with the
+passive stop are explicitly skipped, preserving the common route. Common routes,
+interactive-stop v1 results and passive-stop v2/v3 results are not pooled. Both
+passive versions require the passive-stop source; historical v2 remains accepted
+with its original route label. Detailed results remain ignored, with only reviewed
+high-level metrics and
+source/profile/archive identities copied into tracked history.
+
 ## Door departure and shared-wall correction evidence
 
 The [capture profile](2026-10-03-door-wall-corrections/profile.json) and
@@ -370,3 +417,21 @@ the automatic-door return approach. Worst launch counts are 116 calls, 4,892
 triangles, 71 geometries and 7 textures; matched common launch counts are unchanged
 from before the correction. The extension returns with 738–742 geometries and
 17 textures. Its later capture window is separately recorded.
+
+### Residential-street correction
+
+[Street metrics](2026-10-03-door-wall-corrections/street.json) measure `5d55f7ce`.
+Street v3 completes 25 checkpoints and 11,171 movement steps per attempt. Worst
+common launch counts are 122 calls, 5,212 triangles, 74 geometries and 7 textures;
+matched median launch counts are unchanged from before the correction. The
+extension returns with 753–755 geometries and 18 textures.
+
+Across the full correction series, 33 controlled suites and 33 routes completed:
+132 software cases passed, 33 hardware cases were skipped, and all 282 checkpoint
+records retain their actual source and route identities. Three excluded series
+remain preserved: a completed garage run with overlapping artifact I/O, an
+interrupted street run, and a garage run whose third route could not launch after
+its browser-cache directory disappeared. Clean replacement garage/street series
+completed after reinstalling the same official Chromium build. Reported machine
+configuration matches, but physical-host continuity is unknown. Those extensions
+are separate populations; none of the excluded attempts enters the aggregates.

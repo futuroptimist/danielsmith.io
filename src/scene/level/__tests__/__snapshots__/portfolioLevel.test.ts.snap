@@ -8,11 +8,11 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       -18,
     ],
     [
-      29,
+      40,
       -18,
     ],
     [
-      29,
+      40,
       20,
     ],
     [
@@ -189,6 +189,45 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "id": "driveway",
       "ledColor": 6714236,
       "name": "Driveway",
+    },
+    {
+      "bounds": {
+        "maxX": 40,
+        "maxZ": 20,
+        "minX": 29,
+        "minZ": -18,
+      },
+      "category": "exterior",
+      "doorways": undefined,
+      "id": "street",
+      "ledColor": 3424331,
+      "name": "Residential Street",
+    },
+    {
+      "bounds": {
+        "maxX": 26,
+        "maxZ": 20,
+        "minX": 16,
+        "minZ": 8,
+      },
+      "category": "exterior",
+      "doorways": undefined,
+      "id": "verge",
+      "ledColor": 4547658,
+      "name": "Planted Verge",
+    },
+    {
+      "bounds": {
+        "maxX": 26,
+        "maxZ": 19,
+        "minX": 23,
+        "minZ": 13,
+      },
+      "category": "exterior",
+      "doorways": undefined,
+      "id": "busStop",
+      "ledColor": 12763319,
+      "name": "Bus Stop",
     },
     {
       "bounds": {
@@ -590,10 +629,53 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     "orientation": "horizontal",
     "rooms": [
       "garage:north",
+      "verge:south",
     ],
     "start": {
       "x": 32.00000000000001,
       "z": 16,
+    },
+  },
+  {
+    "end": {
+      "x": 52.000000000000014,
+      "z": 40,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "verge:north",
+    ],
+    "start": {
+      "x": 32.00000000000001,
+      "z": 40,
+    },
+  },
+  {
+    "end": {
+      "x": 52.000000000000014,
+      "z": 26,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "busStop:south",
+    ],
+    "start": {
+      "x": 46.00000000000001,
+      "z": 26,
+    },
+  },
+  {
+    "end": {
+      "x": 52.000000000000014,
+      "z": 38,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "busStop:north",
+    ],
+    "start": {
+      "x": 46.00000000000001,
+      "z": 38,
     },
   },
   {
@@ -613,12 +695,13 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
   },
   {
     "end": {
-      "x": 58.000000000000014,
+      "x": 52.000000000000014,
       "z": 16,
     },
     "orientation": "horizontal",
     "rooms": [
       "driveway:north",
+      "verge:south",
     ],
     "start": {
       "x": 50.000000000000014,
@@ -656,6 +739,20 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
   {
     "end": {
       "x": 58.000000000000014,
+      "z": 16,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "driveway:north",
+    ],
+    "start": {
+      "x": 52.000000000000014,
+      "z": 16,
+    },
+  },
+  {
+    "end": {
+      "x": 58.000000000000014,
       "z": 40,
     },
     "orientation": "horizontal",
@@ -664,6 +761,34 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     ],
     "start": {
       "x": 52.000000000000014,
+      "z": 40,
+    },
+  },
+  {
+    "end": {
+      "x": 80.00000000000001,
+      "z": -36,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "street:south",
+    ],
+    "start": {
+      "x": 58.000000000000014,
+      "z": -36,
+    },
+  },
+  {
+    "end": {
+      "x": 80.00000000000001,
+      "z": 40,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "street:north",
+    ],
+    "start": {
+      "x": 58.000000000000014,
       "z": 40,
     },
   },
@@ -821,10 +946,39 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     "orientation": "vertical",
     "rooms": [
       "backyard:east",
+      "verge:west",
     ],
     "start": {
       "x": 32,
       "z": 16.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 32,
+      "z": 40.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "verge:west",
+    ],
+    "start": {
+      "x": 32,
+      "z": 32.00000000000001,
+    },
+  },
+  {
+    "end": {
+      "x": 46,
+      "z": 38.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "busStop:west",
+    ],
+    "start": {
+      "x": 46,
+      "z": 26.000000000000007,
     },
   },
   {
@@ -920,7 +1074,7 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
   {
     "end": {
       "x": 52,
-      "z": 40.00000000000001,
+      "z": 16.000000000000004,
     },
     "orientation": "vertical",
     "rooms": [
@@ -933,12 +1087,59 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
   },
   {
     "end": {
+      "x": 52,
+      "z": 26.000000000000007,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "sidewalk:west",
+      "verge:east",
+    ],
+    "start": {
+      "x": 52,
+      "z": 16.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 52,
+      "z": 38.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "busStop:east",
+      "sidewalk:west",
+      "verge:east",
+    ],
+    "start": {
+      "x": 52,
+      "z": 26.000000000000007,
+    },
+  },
+  {
+    "end": {
+      "x": 52,
+      "z": 40.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "sidewalk:west",
+      "verge:east",
+    ],
+    "start": {
+      "x": 52,
+      "z": 38.00000000000001,
+    },
+  },
+  {
+    "end": {
       "x": 58,
       "z": -8.000000000000002,
     },
     "orientation": "vertical",
     "rooms": [
       "sidewalk:east",
+      "street:west",
     ],
     "start": {
       "x": 58,
@@ -954,6 +1155,7 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     "rooms": [
       "driveway:east",
       "sidewalk:east",
+      "street:west",
     ],
     "start": {
       "x": 58,
@@ -968,10 +1170,25 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     "orientation": "vertical",
     "rooms": [
       "sidewalk:east",
+      "street:west",
     ],
     "start": {
       "x": 58,
       "z": 16.000000000000004,
+    },
+  },
+  {
+    "end": {
+      "x": 80,
+      "z": 40.00000000000001,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "street:east",
+    ],
+    "start": {
+      "x": 80,
+      "z": -36.00000000000001,
     },
   },
 ]
