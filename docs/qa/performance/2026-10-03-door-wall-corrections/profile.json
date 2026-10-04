@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "series": "2026-10-03-door-wall-corrections",
+  "statistics": {
+    "rangeMedian": [
+      "Minimum, maximum and median across three attempts; two decimals.",
+      "Medians of p95 values are descriptive, not pooled percentiles."
+    ],
+    "delta": [
+      "Absolute median difference, reference percent and range relation.",
+      "Unrounded values determine deltas; zero reference gives null percent.",
+      "Near-zero references produce large percentages; inspect absolute ranges.",
+      "Observed deltas do not establish causal effects."
+    ]
+  },
+  "sourceQualification": [
+    "Every authoritative measurement uses its clean detached source SHA.",
+    "Later test/docs-only descendants are not relabeled as measured heads.",
+    "Earlier histories retain their original source and environment records."
+  ],
+  "driver": {
+    "sourceCommit": "5d55f7ce78c11d666a30de41667415c1bc12cbf5",
+    "sourceTree": "52a696c10772499d4d3f35541cb098d6b2c3f9aa",
+    "runnerSha256": "f0d3cbe4e56c3b31bbae1e0efeba2a713ad0416dd17f6f01ca1be64e0c25cdc3",
+    "commonHelperSha256": "c392a56f7801e3b0eac7da4c375ca714e2d38dd79b3c86fbdfc2249b6f4dd912",
+    "originalLauncherSha256": "2310cdc274cb7348b20984d88d7d67988989010c4fe38ef47bcfd2c6299e730c",
+    "finalLauncherSha256": "7945b0a1f857f7e51c149e74820a5ce454e50702ba802e986ff3f43d6c929e0e"
+  },
+  "reproduction": {
+    "common": "npm run perf:history -- --output <new-ignored-dir> <commit...>",
+    "extended": "Add --route-profile exterior, garage or street; one profile per call.",
+    "driver": "Use the recorded driver SHA and its locked dependencies.",
+    "attempts": "Three controlled suites and three fresh-context routes per profile.",
+    "server": "Vite restarts before each route; no smoke override."
+  },
+  "environment": {
+    "scope": "Reported configuration matches across phases; physical host is unknown.",
+    "platform": "linux 6.18.44 x64",
+    "cpuReported": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 9,
+    "ramBytes": 10451464192,
+    "physicalDeviceGpuPowerThermals": "Unknown; software-renderer observations only.",
+    "node": "v24.19.0",
+    "npm": "11.9.0",
+    "tools": {
+      "@playwright/test": "1.55.1",
+      "vite": "5.4.20"
+    },
+    "chromium": "140.0.7339.186",
+    "lockSha256": "eb7625041fbcc671048610d6e505444584fa793fe8979c22d2c884c593b922ef",
+    "server": "Vite development; dev/dev labels are not source identities.",
+    "viewport": [1280, 720],
+    "browserDpr": 1,
+    "rendererDpr": 0.525,
+    "drawingBuffer": [671, 377],
+    "quality": "performance",
+    "sceneDetail": "performance",
+    "bloom": false,
+    "composer": false,
+    "mirror": false,
+    "locale": "en",
+    "reducedMotion": false,
+    "cameraZoom": 12,
+    "renderer": "Software WebGL; dangerous-software policy, safe 12 fps cap.",
+    "navigatorOverrides": {
+      "webdriver": false,
+      "hardwareConcurrency": 8,
+      "deviceMemory": 8
+    },
+    "cacheAndNetwork": [
+      "Fresh contexts/Vite processes; shared OS and dependency caches.",
+      "No configured throttling; external network and host load are unmeasured."
+    ],
+    "concurrentWork": [
+      "No competing local browser, test, build, compression or upload work.",
+      "Light file inspection, report preparation and GitHub checks continued."
+    ]
+  },
+  "windows": {
+    "startedAt": "2026-10-03T22:12:43.417Z",
+    "finishedAt": "2026-10-04T00:38:20.638Z",
+    "qualification": [
+      "Common before/after comparisons all completed in the original phase.",
+      "Final garage/street extensions followed fixture validation and recovery.",
+      "Each profile preserves exact timestamps; phases are not pooled."
+    ]
+  },
+  "outcome": {
+    "authoritativeProfiles": 11,
+    "controlledSuites": 33,
+    "softwareCasesPassed": 132,
+    "hardwareCasesSkipped": 33,
+    "routesCompleted": 33,
+    "checkpointRecords": 282,
+    "failedAuthoritativeAttempts": 0,
+    "sourceTreesCleanAfter": true
+  },
+  "controlledWindow": {
+    "warmupMs": 5000,
+    "readySamplesPerAttempt": 1,
+    "dispatchSamplesPerAttempt": 40
+  },
+  "checkpoints": {
+    "requestedDwellMs": 5000,
+    "rollingWindowWhollyAfterArrival": null,
+    "cameraPositionAvailable": {
+      "baseline": [false],
+      "predecessor-resume": [true],
+      "before-entry": [true],
+      "entry": [true],
+      "before-garage": [true],
+      "garage": [true],
+      "before-street": [true],
+      "street": [true],
+      "entry-extended": [true],
+      "garage-extended": [true],
+      "street-extended": [true]
+    }
+  },
+  "budgets": {
+    "launch": {
+      "calls": 150,
+      "triangles": 50000,
+      "memoryGeometries": 125,
+      "memoryTextures": 32
+    },
+    "hardwareFrameP95Ms": 80
+  },
+  "archives": [
+    {
+      "filename": "door-wall-performance-phase1-20261003.tar.gz",
+      "bytes": 37810792,
+      "sha256": "e82c5a1b26b3e704a15d7300235575285ef45d108023b0fd589b3e8099eaf943",
+      "availability": "durably_saved_private_archive"
+    },
+    {
+      "filename": "door-wall-performance-final-extensions-20261004.tar.gz",
+      "bytes": 34292029,
+      "sha256": "e21ffc5adc6d7506ae67d4764415470a1fb0e01ca091555e336ca3a405186e8d",
+      "availability": "durably_saved_private_archive"
+    }
+  ],
+  "excludedDiagnostics": [
+    {
+      "profile": "garage-extended",
+      "state": "completed; excluded",
+      "reason": [
+        "Hosted artifact materialization overlapped the original extension.",
+        "Potential I/O contention cannot be excluded; raw data is retained."
+      ]
+    },
+    {
+      "profile": "street-extended",
+      "state": "operator-interrupted; excluded",
+      "reason": [
+        "Paused during hosted fixture diagnosis; partial data is retained."
+      ]
+    },
+    {
+      "profile": "garage-extended-clean",
+      "state": "failed-or-unavailable; excluded",
+      "reason": [
+        "Three suites and two routes completed; route three could not launch.",
+        "Its shared-directory Chromium executable disappeared.",
+        "The same official browser build was reinstalled in the workspace.",
+        "A new complete three-attempt extension was captured afterward."
+      ]
+    }
+  ],
+  "limitations": [
+    "Hardware timing is unavailable; all hardware-only cases were skipped.",
+    "Dispatch latency is not input-to-paint latency.",
+    "Rolling diagnostics retain at most 180 intervals and omit gaps >=1000 ms.",
+    "Five-second dwell does not prove a checkpoint-isolated rolling window.",
+    "External RAF/long-task probes include startup, capture and helper work.",
+    "Software-warning UI remains visible; zero dialogs does not mean no overlay.",
+    "Historical extension routes differ; common deltas use the matched driver.",
+    "Garage/street v3 add door re-approaches while retaining checkpoints.",
+    "Route residency differs from the 125-geometry launch ceiling.",
+    "Resource counts are not GPU bytes or proof of complete reclamation.",
+    "Hardware p95, real-phone performance and owner acceptance stay separate."
+  ]
+}

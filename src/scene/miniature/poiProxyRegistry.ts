@@ -69,9 +69,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',
     displayName: 'Futur Optimist TV proxy',
-    syncRevision: 10,
+    syncRevision: 11,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.',
     sourceFiles: [...baseFiles, 'src/scene/structures/mediaWall.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -210,9 +210,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 10,
+    syncRevision: 11,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -306,9 +306,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'tokenplace-studio-cluster',
     id: 'poi:tokenplace-studio-cluster',
     displayName: 'token.place workstation proxy',
-    syncRevision: 10,
+    syncRevision: 11,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/tokenPlaceWorkstation.ts',
@@ -519,9 +519,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 10,
+    syncRevision: 11,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

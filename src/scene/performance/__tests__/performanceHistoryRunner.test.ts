@@ -82,7 +82,7 @@ function put(repo: string, name: string, text: string) {
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, text);
 }
-function fixture(basement = false) {
+function fixture(basement = false, exterior = false) {
   const repo = mkdtempSync(path.join(tmpdir(), 'performance-history-test-'));
   fixtures.push(repo);
   git(repo, 'init');
@@ -115,6 +115,18 @@ function fixture(basement = false) {
       repo,
       'scripts/capture-performance-route.cjs',
       '// versioned --basement route\n'
+    );
+  }
+  if (exterior) {
+    put(
+      repo,
+      'src/scene/level/exteriorLayout.ts',
+      "export const id = 'front-door';\n"
+    );
+    put(
+      repo,
+      'scripts/capture-performance-route.cjs',
+      '// versioned --basement --exterior house-front-entry-route-v1 routes\n'
     );
   }
   git(repo, 'add', '.');
@@ -433,6 +445,95 @@ describe('performance history command', () => {
     expect(result.manifest.entries[0]).toMatchObject({
       routeProfile: 'common',
       skippedRouteCapabilities: [{ capability: 'basement' }],
+    });
+  });
+
+  it('retains common routes and explicit skips for unavailable exterior additions', async () => {
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'exterior', 'HEAD'],
+      { cwd: fixture(true) }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'common',
+      skippedRouteCapabilities: [{ capability: 'exterior' }],
+    });
+  });
+
+  it('recognizes a versioned exterior helper and its actual source definition', async () => {
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'exterior', 'HEAD'],
+      { cwd: fixture(true, true) }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'exterior',
+      skippedRouteCapabilities: [],
+    });
+  });
+
+  it.each(['v1', 'v2', 'v3', 'v10'])(
+    'keeps the exterior profile %s explicit',
+    async (version) => {
+      const repo = fixture(true, true);
+      put(
+        repo,
+        'scripts/capture-performance-route.cjs',
+        `// --exterior house-front-entry-route-${version}\n`
+      );
+      git(repo, 'add', '.');
+      git(
+        repo,
+        '-c',
+        'user.name=Performance Test',
+        '-c',
+        'user.email=test@example.invalid',
+        'commit',
+        '-m',
+        'Set route version'
+      );
+      const result = await runner.run(
+        ['--check-only', '--route-profile', 'exterior', 'HEAD'],
+        { cwd: repo }
+      );
+      expect(result.manifest.entries[0]).toMatchObject(
+        !['v1', 'v2'].includes(version)
+          ? {
+              routeProfile: 'common',
+              skippedRouteCapabilities: [{ capability: 'exterior' }],
+            }
+          : {
+              routeProfile: 'exterior',
+              routeProfileVersion: `house-front-entry-route-${version}`,
+              skippedRouteCapabilities: [],
+            }
+      );
+    }
+  );
+
+  it('skips a stale exterior helper when the source uses automatic doors', async () => {
+    const repo = fixture(true, true);
+    put(
+      repo,
+      'src/scene/level/exteriorLayout.ts',
+      'front-door automatic: true\n'
+    );
+    git(repo, 'add', '.');
+    git(
+      repo,
+      '-c',
+      'user.name=Performance Test',
+      '-c',
+      'user.email=test@example.invalid',
+      'commit',
+      '-m',
+      'Enable automatic doors'
+    );
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'exterior', 'HEAD'],
+      { cwd: repo }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'common',
+      skippedRouteCapabilities: [{ capability: 'exterior' }],
     });
   });
 

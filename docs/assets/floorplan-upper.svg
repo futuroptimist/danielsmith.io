@@ -67,21 +67,21 @@
         <text x="512.00" y="160.00" text-anchor="middle" dominant-baseline="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" fill="#d8deff">Focus Pods</text>
       </g>
 
-    <line x1="742.40" y1="736.00" x2="812.80" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
-<line x1="812.80" y1="736.00" x2="864.00" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="160.00" y1="992.00" x2="544.00" y2="992.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+    <line x1="160.00" y1="992.00" x2="544.00" y2="992.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="544.00" y1="992.00" x2="812.80" y2="992.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="160.00" y1="480.00" x2="544.00" y2="480.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="160.00" y1="288.00" x2="544.00" y2="288.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="672.00" y1="288.00" x2="864.00" y2="288.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="742.40" y1="736.00" x2="812.80" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
+<line x1="812.80" y1="736.00" x2="864.00" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="160.00" y1="32.00" x2="864.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="812.80" y1="992.00" x2="812.80" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="992.00" x2="160.00" y2="480.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="160.00" y1="288.00" x2="160.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="544.00" y1="898.24" x2="544.00" y2="736.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="544.00" y1="736.00" x2="544.00" y2="672.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="544.00" y1="544.00" x2="544.00" y2="480.00" stroke="#91a3d6" stroke-width="8.00" stroke-linecap="round" />
 <line x1="544.00" y1="480.00" x2="544.00" y2="288.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="160.00" y1="992.00" x2="160.00" y2="480.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
-<line x1="160.00" y1="288.00" x2="160.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
+<line x1="812.80" y1="992.00" x2="812.80" y2="736.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="864.00" y1="736.00" x2="864.00" y2="288.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 <line x1="864.00" y1="288.00" x2="864.00" y2="32.00" stroke="#c5d1ff" stroke-width="8.00" stroke-linecap="round" />
 

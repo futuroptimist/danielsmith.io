@@ -883,3 +883,30 @@ describe('createColliderVisualizer', () => {
     expect(labels.every((label) => label.visible === false)).toBe(true);
   });
 });
+
+describe('progress-controlled collider visibility', () => {
+  it('preserves source identity while inactive apertures leave queries and wireframes', () => {
+    const build = createColliderVisualizer({
+      activeFloorId: 'ground',
+      enabled: true,
+    });
+    build.register([
+      {
+        ...metadata,
+        sourceId: 'ground.frontEntry.door',
+        sourceType: 'sceneObject',
+      },
+    ]);
+    const id = build.getColliders()[0].id;
+    expect(build.getState().visibleColliderCount).toBe(1);
+    build.setSourceActive('ground.frontEntry.door', false);
+    expect(build.getColliders()).toEqual([]);
+    expect(build.getColliderById(id)).toBeUndefined();
+    expect(build.getCollidersBySourceId('ground.frontEntry.door')).toEqual([]);
+    expect(build.getState().visibleColliderCount).toBe(0);
+    build.setSourceActive('ground.frontEntry.door', true);
+    expect(build.getColliders()[0].id).toBe(id);
+    expect(build.getState().visibleColliderCount).toBe(1);
+    build.dispose();
+  });
+});

@@ -37,7 +37,7 @@ describe('createDoorwayOpenings', () => {
     });
 
     expect(group.name).toBe('DoorwayOpenings');
-    expect(group.children).toHaveLength(5);
+    expect(group.children).toHaveLength(7);
 
     const livingKitchen = findDoorwayGroup(
       group.children,

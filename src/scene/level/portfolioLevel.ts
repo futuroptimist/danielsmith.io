@@ -1,4 +1,12 @@
 import { CAREER_MUSEUM_OBJECTS } from './careerMuseumLayout';
+import {
+  EXTERIOR_OBJECTS,
+  EXTERIOR_ROOMS,
+  EXTERIOR_SURFACES,
+  EXTERIOR_WALLS,
+  FRONT_ENTRY,
+  FRONT_ENTRY_APPROACH,
+} from './exteriorLayout';
 import { getFloorTopElevation, type FloorId } from './floorElevations';
 import type {
   FloorDefinition,
@@ -155,6 +163,7 @@ type FloorDefinitionInput = Omit<FloorDefinition, 'floorSurfaces'>;
 const buildFloor = (floor: FloorDefinitionInput): FloorDefinition => ({
   ...floor,
   floorSurfaces: [
+    ...(floor.id === 'ground' ? EXTERIOR_SURFACES : []),
     ...floor.rooms.flatMap((room) => {
       const surface = floorSurfaceForRoom(floor.id, room);
       return surface ? [surface] : [];
@@ -241,10 +250,10 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
       id: 'ground',
       name: 'Ground Floor',
       outline: [
-        [-16, -16],
-        [16, -16],
-        [16, 16],
-        [-16, 16],
+        [-16, -18],
+        [29, -18],
+        [29, 20],
+        [-16, 20],
       ],
       rooms: [
         {
@@ -276,8 +285,10 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           ledColor: 0x274f37,
           category: 'exterior',
         },
+        ...EXTERIOR_ROOMS,
       ],
       walls: [
+        ...EXTERIOR_WALLS,
         horizontalWall(
           'living-room-south-wall',
           'ground.living_room.south_wall',
@@ -303,7 +314,14 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           16,
           -16,
           -4,
-          ['livingRoom']
+          ['livingRoom', 'frontYard'],
+          [
+            gap(
+              FRONT_ENTRY.z - FRONT_ENTRY.width / 2 + 16,
+              FRONT_ENTRY.z + FRONT_ENTRY.width / 2 + 16,
+              'living-to-front-yard'
+            ),
+          ]
         ),
         horizontalWall(
           'living-room-north-wall',
@@ -316,6 +334,11 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           [
             centeredGap(-16, livingToKitchenDoorCenter, 'living-to-kitchen'),
             centeredGap(-16, livingToStudioDoorCenter, 'living-to-studio'),
+            gap(
+              FRONT_ENTRY_APPROACH.start + 16,
+              FRONT_ENTRY_APPROACH.end + 16,
+              'studio-to-front-entry'
+            ),
           ]
         ),
         verticalWall(
@@ -398,13 +421,14 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
         ),
       ],
       sceneObjects: [
+        ...EXTERIOR_OBJECTS,
         sceneObject(
           'selfie-mirror-living-room',
           'ground.living_room.selfie_mirror.scene_object',
           'ground',
           'decor.selfie_mirror',
           'livingRoom',
-          { x: 12.8, z: -6.8 },
+          { x: 14.4, z: -11.4 },
           0,
           'Visible SelfieMirror with one manually registered footprint blocker',
           {
@@ -434,6 +458,27 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
         ),
       ],
       roomConnections: [
+        {
+          id: 'studio-to-front-entry',
+          sourceId: sourceId('ground.frontEntry.interiorApproach'),
+          floorId: 'ground',
+          rooms: ['livingRoom', 'studio'],
+          label: 'Studio to front entrance approach',
+        },
+        {
+          id: 'living-to-front-yard',
+          sourceId: sourceId('ground.frontEntry.connection'),
+          floorId: 'ground',
+          rooms: ['livingRoom', 'frontYard'],
+          label: 'Front entrance',
+        },
+        {
+          id: 'yard-to-sidewalk',
+          sourceId: sourceId('ground.frontPath.connection'),
+          floorId: 'ground',
+          rooms: ['frontYard', 'frontPath', 'sidewalk'],
+          label: 'Front path to sidewalk',
+        },
         {
           id: 'living-to-kitchen',
           sourceId: sourceId('ground.living_room_to_kitchen.connection'),

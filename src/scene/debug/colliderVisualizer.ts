@@ -68,6 +68,7 @@ export interface DebugColliderVisualizerState {
 }
 
 interface DebugColliderVisualEntry {
+  active: boolean;
   metadata: DebugColliderMetadata;
   mesh: Mesh<BoxGeometry, MeshBasicMaterial>;
   label: Sprite;
@@ -79,6 +80,7 @@ export interface ColliderVisualizer {
   setEnabled(enabled: boolean): void;
   setIdsEnabled(enabled: boolean): void;
   setActiveFloor(floorId: FloorId): void;
+  setSourceActive(sourceId: string, active: boolean): void;
   getState(): DebugColliderVisualizerState;
   getColliders(): DebugColliderMetadata[];
   getColliderById(id: unknown): DebugColliderMetadata | undefined;
@@ -135,6 +137,11 @@ const cloneBounds = (bounds: RectCollider): RectCollider => ({
   maxX: bounds.maxX,
   minZ: bounds.minZ,
   maxZ: bounds.maxZ,
+  ...(bounds.minY !== undefined ? { minY: bounds.minY } : {}),
+  ...(bounds.maxY !== undefined ? { maxY: bounds.maxY } : {}),
+  ...(bounds.traversableConnectionId !== undefined
+    ? { traversableConnectionId: bounds.traversableConnectionId }
+    : {}),
 });
 
 const isVisibleOnFloor = (
@@ -387,7 +394,9 @@ export function createColliderVisualizer(options: {
     group.visible = enabled;
     for (const entry of entries) {
       const visible =
-        enabled && isVisibleOnFloor(entry.metadata.floor, activeFloorId);
+        enabled &&
+        entry.active &&
+        isVisibleOnFloor(entry.metadata.floor, activeFloorId);
       entry.mesh.visible = visible;
       entry.label.visible = visible && idsEnabled;
     }
@@ -436,7 +445,7 @@ export function createColliderVisualizer(options: {
       const mesh = new Mesh(geometry, material);
       const centerX = (collider.bounds.minX + collider.bounds.maxX) / 2;
       const centerZ = (collider.bounds.minZ + collider.bounds.maxZ) / 2;
-      const baseElevation = collider.elevation ?? 0;
+      const baseElevation = collider.bounds.minY ?? collider.elevation ?? 0;
       mesh.position.set(centerX, baseElevation + height / 2, centerZ);
       mesh.name = getDebugColliderMeshName({ id, ...metadataWithoutId });
       mesh.renderOrder = 20_000;
@@ -460,6 +469,7 @@ export function createColliderVisualizer(options: {
 
       group.add(mesh, label);
       entries.push({
+        active: true,
         metadata: {
           id,
           ...metadataWithoutId,
@@ -473,8 +483,10 @@ export function createColliderVisualizer(options: {
 
   const getVisibleEntryCount = () =>
     enabled
-      ? entries.filter((entry) =>
-          isVisibleOnFloor(entry.metadata.floor, activeFloorId)
+      ? entries.filter(
+          (entry) =>
+            entry.active &&
+            isVisibleOnFloor(entry.metadata.floor, activeFloorId)
         ).length
       : 0;
 
@@ -500,6 +512,12 @@ export function createColliderVisualizer(options: {
       idsEnabled = next;
       applyVisibility();
     },
+    setSourceActive(sourceId: string, active: boolean) {
+      entries.forEach((entry) => {
+        if (entry.metadata.sourceId === sourceId) entry.active = active;
+      });
+      applyVisibility();
+    },
     setActiveFloor(next: FloorId) {
       activeFloorId = next;
       applyVisibility();
@@ -515,21 +533,27 @@ export function createColliderVisualizer(options: {
       };
     },
     getColliders() {
-      return entries.map((entry) => cloneMetadata(entry.metadata));
+      return entries
+        .filter((entry) => entry.active)
+        .map((entry) => cloneMetadata(entry.metadata));
     },
     getColliderById(id: unknown) {
       if (typeof id !== 'string' || id.length === 0) {
         return undefined;
       }
       const normalizedId = id.toUpperCase();
-      const entry = entries.find((next) => next.metadata.id === normalizedId);
+      const entry = entries.find(
+        (next) => next.active && next.metadata.id === normalizedId
+      );
       return entry ? cloneMetadata(entry.metadata) : undefined;
     },
     getColliderBySourceId(sourceId: unknown) {
       if (typeof sourceId !== 'string' || sourceId.length === 0) {
         return undefined;
       }
-      const entry = entries.find((next) => next.metadata.sourceId === sourceId);
+      const entry = entries.find(
+        (next) => next.active && next.metadata.sourceId === sourceId
+      );
       return entry ? cloneMetadata(entry.metadata) : undefined;
     },
     getCollidersBySourceId(sourceId: unknown) {
@@ -537,7 +561,7 @@ export function createColliderVisualizer(options: {
         return [];
       }
       return entries
-        .filter((entry) => entry.metadata.sourceId === sourceId)
+        .filter((entry) => entry.active && entry.metadata.sourceId === sourceId)
         .map((entry) => cloneMetadata(entry.metadata));
     },
     dispose() {

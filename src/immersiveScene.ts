@@ -31,6 +31,7 @@ import type {
   AppReadyMarker,
   ImmersiveFatalErrorHandler,
 } from './app/bootstrap';
+import { createDisposalScope } from './app/disposalScope';
 import {
   clearPortfolioInputKeyBindings,
   clearPortfolioSection,
@@ -73,6 +74,7 @@ import {
   resolveInitialLocale,
   type Locale,
 } from './assets/i18n';
+import { getExteriorStrings } from './assets/i18n/exterior';
 import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
 import {
   createAvatarAccessorySuite,
@@ -154,6 +156,10 @@ import {
 } from './scene/graphics/sceneDetailPolicy';
 import { isBackyardSourceCollider } from './scene/level/backyardCollisionPolicies';
 import {
+  createExteriorDoorDefinitions,
+  HOUSE_CAMERA_OUTLINE,
+} from './scene/level/exteriorLayout';
+import {
   GROUND_FLOOR_TOP_ELEVATION,
   UPPER_FLOOR_TOP_ELEVATION,
 } from './scene/level/floorElevations';
@@ -176,7 +182,6 @@ import {
   type LevelSourceId,
 } from './scene/level/sourceIds';
 import {
-  createGroundStairSafetyColliders,
   createUpperStairSafetyColliders,
   type LevelSafetyCollider,
 } from './scene/level/stairSafetyColliders';
@@ -328,6 +333,7 @@ import {
   createPrReaperInstallation,
   type PrReaperInstallationBuild,
 } from './scene/structures/prReaperConsole';
+import { createResidentialExterior } from './scene/structures/residentialExterior';
 import {
   createSelfieMirror,
   type SelfieMirrorBuild,
@@ -349,6 +355,7 @@ import {
   createUpperLandingFloorCutouts,
   createUpperLandingStairRunApproachFootprint,
 } from './scene/structures/upperLandingFloorCutouts';
+import { createUpperStairGroundPassage } from './scene/structures/upperStairGroundPassage';
 import {
   createUpperStairwellLanding,
   type UpperStairwellLandingCollider,
@@ -418,7 +425,10 @@ import {
   type KeyBindingAction,
   type KeyBindingConfig,
 } from './systems/controls/keyBindings';
-import { KeyboardControls } from './systems/controls/KeyboardControls';
+import {
+  KeyboardControls,
+  isUiOwnedKeyboardEvent,
+} from './systems/controls/KeyboardControls';
 import {
   createLocaleToggleControl,
   type LocaleToggleControlHandle,
@@ -428,6 +438,8 @@ import {
   type MotionBlurControlHandle,
 } from './systems/controls/motionBlurControl';
 import { VirtualJoystick } from './systems/controls/VirtualJoystick';
+import { createDoorController } from './systems/doors/controller';
+import { bindDoorInteraction } from './systems/doors/input';
 import {
   createManualModeToggle,
   type ManualModeToggleHandle,
@@ -490,6 +502,7 @@ import {
   type AccessibilityPresetManager,
 } from './ui/accessibility/presetManager';
 import { CHANGELOG_URL } from './ui/changelog';
+import { createDoorControl } from './ui/exterior/doorControl';
 import {
   createAudioSubtitles,
   type AudioSubtitlesHandle,
@@ -917,10 +930,64 @@ export function initializeImmersiveScene(
   onFatalError: ImmersiveFatalErrorHandler,
   markAppReady: AppReadyMarker
 ) {
+  let handleInitializationFailure: (error: unknown) => void = onFatalError;
+  try {
+    buildImmersiveScene(container, onFatalError, markAppReady, (handler) => {
+      handleInitializationFailure = handler;
+    });
+  } catch (error) {
+    handleInitializationFailure(error);
+  }
+}
+
+function buildImmersiveScene(
+  container: HTMLElement,
+  onFatalError: ImmersiveFatalErrorHandler,
+  markAppReady: AppReadyMarker,
+  registerFailureHandler: (handler: (error: unknown) => void) => void
+) {
   clearPoiVisualAnchors();
   clearPoiModelRoots();
   const immersiveUrl = createImmersiveModeUrl();
   const renderer = new WebGLRenderer({ antialias: true });
+  const crashBreadcrumbs = createCrashBreadcrumbStore({
+    storage: (() => {
+      try {
+        return window.localStorage;
+      } catch {
+        try {
+          return window.sessionStorage;
+        } catch {
+          return undefined;
+        }
+      }
+    })(),
+  });
+  // Each scope drains its own callbacks before rethrowing. Keep that failure
+  // visible without abandoning sibling resources or the lifecycle transition.
+  const disposeOwnedScope = (
+    scope: ReturnType<typeof createDisposalScope>,
+    name: 'initialization' | 'exterior'
+  ) => {
+    try {
+      scope.dispose();
+    } catch (error) {
+      crashBreadcrumbs.record({
+        type: 'cleanup-error',
+        message:
+          `${name} cleanup failed: ` +
+          (error instanceof Error ? error.message : String(error)),
+      });
+    }
+  };
+  const initializationCleanup = createDisposalScope();
+  registerFailureHandler((error) => {
+    try {
+      disposeOwnedScope(initializationCleanup, 'initialization');
+    } finally {
+      onFatalError(error, { renderer });
+    }
+  });
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
@@ -1032,25 +1099,16 @@ export function initializeImmersiveScene(
     rendererInfo.isDangerousSoftwareRenderer
   );
 
-  const crashBreadcrumbs = createCrashBreadcrumbStore({
-    storage: (() => {
-      try {
-        return window.localStorage;
-      } catch {
-        try {
-          return window.sessionStorage;
-        } catch {
-          return undefined;
-        }
-      }
-    })(),
-  });
   const adaptivePixelRatioCap = Number.POSITIVE_INFINITY;
   let basePixelRatio = initialQualityPolicy.basePixelRatioCap;
   renderer.setPixelRatio(basePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(new Color(0x0d121c));
   container.appendChild(renderer.domElement);
+  initializationCleanup.add(() => {
+    if (renderer.domElement.parentElement === container)
+      renderer.domElement.remove();
+  });
 
   ledStripMaterials.length = 0;
   ledFillLightsList.length = 0;
@@ -1065,6 +1123,7 @@ export function initializeImmersiveScene(
   let immersiveLifecycle: 'building' | 'ready' | 'disposing' | 'disposed' =
     'building';
   let immersiveDisposed = false;
+  const exteriorCleanup = createDisposalScope();
   let lowFpsRecoveryPopup: HTMLElement | null = null;
   let lowFpsRecoveryMonitor: LowFpsRecoveryMonitor | null = null;
   let beforeUnloadHandler: (() => void) | null = null;
@@ -1239,6 +1298,10 @@ export function initializeImmersiveScene(
     documentTarget: document,
     budgetMs: INPUT_LATENCY_P95_BUDGET_MS,
   });
+  initializationCleanup.add(() => {
+    inputLatencyTelemetry?.dispose();
+    inputLatencyTelemetry = null;
+  });
 
   const detectedLanguage =
     typeof navigator !== 'undefined' && navigator.language
@@ -1371,6 +1434,7 @@ export function initializeImmersiveScene(
     ? false
     : debugFpsUrlEnabled || debugFpsStoredEnabled;
   const debugPerformanceOverlay = createDebugPerformanceOverlay();
+  initializationCleanup.add(() => debugPerformanceOverlay.dispose());
   debugPerformanceOverlay.setFpsEnabled(debugFpsEnabled);
 
   let debugCoordinatesControl: HTMLButtonElement | null = null;
@@ -1400,6 +1464,7 @@ export function initializeImmersiveScene(
       inputLatencyTelemetry.dispose();
       inputLatencyTelemetry = null;
     }
+    disposeOwnedScope(initializationCleanup, 'initialization');
     softwareSafeRenderEvents.forEach((eventName) => {
       window.removeEventListener(eventName, requestSoftwareSafeRender);
     });
@@ -1419,6 +1484,7 @@ export function initializeImmersiveScene(
       partiallyInitializedTutorialPanel.dispose();
       partiallyInitializedTutorialPanel = null;
     }
+    disposeOwnedScope(exteriorCleanup, 'exterior');
     disposeCareerMuseumBuild();
     disposePortfolioMiniatureTableBuild();
     disposePrReaperInstallationBuild();
@@ -1438,6 +1504,25 @@ export function initializeImmersiveScene(
     }
     disposePartiallyInitializedImmersiveResources();
   }
+
+  const handleFatalError = (error: unknown) => {
+    crashBreadcrumbs.record({
+      type: 'fatal-error',
+      message: error instanceof Error ? error.message : String(error),
+      renderer: rendererInfo,
+      softwareRendererPolicy,
+      snapshot:
+        immersiveLifecycle === 'disposing' || immersiveLifecycle === 'disposed'
+          ? undefined
+          : performanceDiagnostics?.methods.getSnapshot(),
+    });
+    try {
+      disposeInitializedOrPartialImmersiveResources();
+    } finally {
+      onFatalError(error, { renderer });
+    }
+  };
+  registerFailureHandler(handleFatalError);
 
   if (rendererInfo.isDangerousSoftwareRenderer) {
     softwareRendererWarning = createSoftwareRendererWarning({
@@ -1515,18 +1600,6 @@ export function initializeImmersiveScene(
     },
   });
 
-  const handleFatalError = (error: unknown) => {
-    crashBreadcrumbs.record({
-      type: 'fatal-error',
-      message: error instanceof Error ? error.message : String(error),
-      renderer: rendererInfo,
-      softwareRendererPolicy,
-      snapshot: performanceDiagnostics?.methods.getSnapshot(),
-    });
-    disposeInitializedOrPartialImmersiveResources();
-    onFatalError(error, { renderer });
-  };
-
   const scene = new Scene();
   scene.background = createImmersiveGradientTexture();
 
@@ -1547,7 +1620,13 @@ export function initializeImmersiveScene(
     locale,
   });
 
-  const floorBounds = getFloorBounds(FLOOR_PLAN);
+  const floorBounds = getFloorBounds({
+    ...FLOOR_PLAN,
+    outline: HOUSE_CAMERA_OUTLINE.map(([x, z]) => [
+      x * FLOOR_PLAN_SCALE,
+      z * FLOOR_PLAN_SCALE,
+    ]),
+  });
   const floorCenter = new Vector3(
     (floorBounds.minX + floorBounds.maxX) / 2,
     0,
@@ -1784,15 +1863,57 @@ export function initializeImmersiveScene(
     roughness: 0.58,
     metalness: 0.18,
   });
-  const floorTiles = generateFloorSurfaces(getLevelFloor('ground'), {
-    material: floorMaterial,
-    elevation: GROUND_FLOOR_TOP_ELEVATION,
-    groupName: 'GroundFloorTiles',
-    cutoutsBySurfaceId: {
-      'livingRoom-floor-main': basementStaircase.floorCutouts,
+  const floorTiles = generateFloorSurfaces(
+    {
+      ...getLevelFloor('ground'),
+      floorSurfaces: getLevelFloor('ground').floorSurfaces.filter(
+        (surface) => surface.purpose !== 'exterior-surface'
+      ),
     },
-  });
+    {
+      material: floorMaterial,
+      elevation: GROUND_FLOOR_TOP_ELEVATION,
+      groupName: 'GroundFloorTiles',
+      cutoutsBySurfaceId: {
+        'livingRoom-floor-main': basementStaircase.floorCutouts,
+      },
+    }
+  );
   groundFloorGroup.add(floorTiles.group);
+  const exteriorDoors =
+    createExteriorDoorDefinitions(FLOOR_PLAN_SCALE).map(createDoorController);
+  const doorColliders: RectCollider[] = exteriorDoors.map(
+    (door) => door.definition.blockingBounds
+  );
+  exteriorDoors.forEach((door) => {
+    namedColliderDebugNames.set(
+      door.definition.blockingBounds,
+      `Door:${door.definition.id}`
+    );
+    colliderSourceMetadata.set(door.definition.blockingBounds, {
+      sourceId: assertLevelSourceId(door.definition.sourceId),
+      sourceType: 'sceneObject',
+      purpose: 'Progress-controlled door aperture with occupancy protection',
+      intent: 'physical-boundary',
+      role: 'operable-door',
+    });
+  });
+  const residentialExterior = createResidentialExterior(
+    getLevelFloor('ground'),
+    FLOOR_PLAN_SCALE,
+    exteriorDoors
+  );
+  exteriorCleanup.add(() => residentialExterior.dispose());
+  groundEnvironmentGroup.add(residentialExterior.group);
+  residentialExterior.solids.forEach(({ definition, collider }) => {
+    registerSceneObjectColliders(
+      [collider],
+      definition,
+      groundColliders,
+      colliderSourceMetadata
+    );
+    namedColliderDebugNames.set(collider, `Exterior:${definition.id}`);
+  });
 
   const wallMaterial = new MeshStandardMaterial({ color: 0x3d4a63 });
   const fenceMaterial = new MeshStandardMaterial({ color: 0x4a5668 });
@@ -1928,9 +2049,9 @@ export function initializeImmersiveScene(
     const livingRoomCenterZ =
       (livingRoom.bounds.minZ + livingRoom.bounds.maxZ) / 2;
     const selfiePosition = {
-      x: livingRoom.bounds.maxX - 3.2,
+      x: SELFIE_MIRROR_SCENE_OBJECT_DEFINITION.position.x * FLOOR_PLAN_SCALE,
       y: 0,
-      z: livingRoom.bounds.minZ + 9.2,
+      z: SELFIE_MIRROR_SCENE_OBJECT_DEFINITION.position.z * FLOOR_PLAN_SCALE,
     };
     const selfieOrientation = Math.atan2(
       livingRoomCenterX - selfiePosition.x,
@@ -2009,6 +2130,7 @@ export function initializeImmersiveScene(
   const stairConnections: StairConnection[] = [
     {
       id: 'ground-upper',
+      lowerEntranceOnly: true,
       lowerFloorId: 'ground',
       upperFloorId: 'upper',
       lowerFloorElevation: GROUND_FLOOR_TOP_ELEVATION,
@@ -2037,22 +2159,6 @@ export function initializeImmersiveScene(
   ];
   const upperStairNavZones = [stairNavigationZones.upperLanding];
   const stairGuardThickness = toWorldUnits(0.22);
-  const stairGuardMinZ = stairLayout.guardRange.minZ;
-  const stairGuardMaxZ = stairLayout.guardRange.maxZ;
-
-  groundColliders.push({
-    minX: stairCenterX - stairHalfWidth - stairGuardThickness,
-    maxX: stairCenterX - stairHalfWidth,
-    minZ: stairGuardMinZ,
-    maxZ: stairGuardMaxZ,
-  });
-  groundColliders.push({
-    minX: stairCenterX + stairHalfWidth,
-    maxX: stairCenterX + stairHalfWidth + stairGuardThickness,
-    minZ: stairGuardMinZ,
-    maxZ: stairGuardMaxZ,
-  });
-
   const floorBuildColliders = new Map<string, RectCollider[]>([
     ['basement', basementColliders],
     ['ground', groundColliders],
@@ -2081,8 +2187,8 @@ export function initializeImmersiveScene(
     registerSafetyCollider(collider);
   };
 
-  createGroundStairSafetyColliders(stairGeometry, stairBehavior, {
-    playerRadius: PLAYER_RADIUS,
+  createUpperStairGroundPassage(STAIRCASE_CONFIG, {
+    connectionId: 'ground-upper',
     guardThickness: stairGuardThickness,
   }).forEach(registerOriginalStairSafetyCollider);
 
@@ -2439,7 +2545,7 @@ export function initializeImmersiveScene(
       poiGroup: groundPoiGroup,
       structureGroup: groundStructureGroup,
       colliders: groundColliders,
-      additionalColliderCollections: [staticColliders],
+      additionalColliderCollections: [staticColliders, doorColliders],
       navMesh: groundNavMesh,
     },
     {
@@ -3626,7 +3732,7 @@ export function initializeImmersiveScene(
 
   ensureKeyBindingApi();
   const ensureWorldApi = () => {
-    setPortfolioSection('world', {
+    return setPortfolioSection('world', {
       getActiveFloor() {
         return activeFloorId;
       },
@@ -3648,7 +3754,12 @@ export function initializeImmersiveScene(
             `Cannot occupy (${x.toFixed(2)}, ${z.toFixed(2)}) on floor ${predictedFloor}`
           );
         }
-        floorConnections.reset(predictedFloor);
+        const candidate = floorConnections.preview(
+          x,
+          z,
+          floorId ?? activeFloorId
+        );
+        floorConnections.reset(predictedFloor, candidate.activeConnectionId);
         player.position.x = x;
         player.position.z = z;
         setActiveFloorId(predictedFloor);
@@ -3728,6 +3839,12 @@ export function initializeImmersiveScene(
             : [],
         };
       },
+      getDoorSnapshots() {
+        return exteriorDoors.map((door) => door.snapshot());
+      },
+      getExteriorLifecycle() {
+        return residentialExterior.getLifecycle();
+      },
       getFloorRegistrySnapshot() {
         return floorRegistry.getSnapshot();
       },
@@ -3784,7 +3901,10 @@ export function initializeImmersiveScene(
       },
     });
   };
-  ensureWorldApi();
+  const worldApi = ensureWorldApi();
+  exteriorCleanup.add(() => {
+    if (window.portfolio?.world === worldApi) clearPortfolioSection('world');
+  });
   const getAvatarAssetPipeline = () => {
     if (!avatarAssetPipeline) {
       avatarAssetPipeline = createAvatarAssetPipeline({
@@ -4311,6 +4431,16 @@ export function initializeImmersiveScene(
     if (isTextEntryTarget(event.target)) {
       return;
     }
+    // HUD shortcuts still work after a button regains focus. Consume Help here
+    // before generic gameplay input filtering, without walking or opening a door.
+    if (
+      matchesKeyBinding(event, 'help') &&
+      !hasConflictingKeyBinding(event, 'help')
+    ) {
+      event.preventDefault();
+      toggleHelpMenu();
+      return;
+    }
     if (
       matchesKeyBinding(event, 'toggleTutorial') &&
       !hasConflictingKeyBinding(event, 'toggleTutorial')
@@ -4398,12 +4528,108 @@ export function initializeImmersiveScene(
   let cameraPanLimitX = 0;
   let cameraPanLimitZ = 0;
   let interactKeyWasPressed = false;
+  let selectedDoor: (typeof exteriorDoors)[number] | null = null;
+  const doorProjection = new Vector3();
+  const doorBlockerStates = new Map(
+    exteriorDoors.map((door) => [door.definition.id, true])
+  );
+  const reducedMotionQuery = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+  );
+  const doorOccupant = () => ({
+    x: player.position.x,
+    z: player.position.z,
+    radius: PLAYER_RADIUS,
+    floorId: activeFloorId,
+  });
+  const isDoorUiBlocked = () =>
+    Boolean(hudPanelCoordinator?.getActivePanel()) ||
+    currentSelectedPoi !== null;
+  const doorControl = createDoorControl({
+    parent: container,
+    restoreFocus: () => renderer.domElement.focus(),
+    onActivate: () => {
+      if (
+        selectedDoor &&
+        !isDoorUiBlocked() &&
+        selectedDoor.isInRange(doorOccupant())
+      )
+        selectedDoor.toggle(doorOccupant());
+    },
+  });
+  exteriorCleanup.add(() => doorControl.dispose());
+  const disposeDoorInteraction = bindDoorInteraction({
+    target: window,
+    getBindings: () => keyBindings.getBindings('interact'),
+    getDoor: () =>
+      exteriorDoors.find((door) => door.isInRange(doorOccupant())) ?? null,
+    getOccupant: doorOccupant,
+    canInteract: (event) =>
+      !isDoorUiBlocked() &&
+      !isUiOwnedKeyboardEvent(event) &&
+      !hasConflictingKeyBinding(event, 'interact') &&
+      canHandleGameplayShortcut(
+        event,
+        hudPanelCoordinator?.getActivePanel() ?? null
+      ),
+  });
+  exteriorCleanup.add(disposeDoorInteraction);
+  function updateExteriorDoors(delta: number, movement = { x: 0, z: 0 }) {
+    const occupant = doorOccupant();
+    doorColliders.length = 0;
+    for (const door of exteriorDoors) {
+      const state = door.update(
+        delta,
+        occupant,
+        reducedMotionQuery.matches ||
+          document.documentElement.dataset.accessibilityMotion === 'reduced' ||
+          getPulseScale() === 0,
+        { maximumSpeed: PLAYER_SPEED, movement }
+      );
+      if (state.blocked) doorColliders.push(door.definition.blockingBounds);
+      if (doorBlockerStates.get(door.definition.id) !== state.blocked) {
+        doorBlockerStates.set(door.definition.id, state.blocked);
+        colliderVisualizer.setSourceActive(
+          door.definition.sourceId,
+          state.blocked
+        );
+      }
+    }
+    residentialExterior.update();
+    selectedDoor = isDoorUiBlocked()
+      ? null
+      : (exteriorDoors.find((door) => door.isInRange(occupant)) ?? null);
+    if (selectedDoor) {
+      const d = selectedDoor.definition;
+      doorProjection
+        .set(d.center.x, d.height + 0.5, d.center.z)
+        .project(camera);
+      doorControl.update(selectedDoor.snapshot(), getExteriorStrings(locale), {
+        x: ((doorProjection.x + 1) * window.innerWidth) / 2,
+        y: ((1 - doorProjection.y) * window.innerHeight) / 2,
+      });
+    } else doorControl.update(null, getExteriorStrings(locale));
+  }
   const pinchPointers = new Map<number, { x: number; y: number }>();
   let pinchStartDistance: number | null = null;
   let pinchStartZoomTarget = cameraZoomTarget;
   const mouseCameraInput = new Vector2();
   const mouseCameraStart = new Vector2();
   let mouseCameraPointerId: number | null = null;
+
+  const stopMovementOnBlur = () => {
+    // A suspended tab must not keep coasting into a doorway after input clears.
+    targetVelocity.set(0, 0, 0);
+    velocity.set(0, 0, 0);
+    joystick.reset();
+    mouseCameraInput.set(0, 0);
+    mouseCameraPointerId = null;
+    interactKeyWasPressed = false;
+  };
+  window.addEventListener('blur', stopMovementOnBlur);
+  exteriorCleanup.add(() =>
+    window.removeEventListener('blur', stopMovementOnBlur)
+  );
 
   let helpKeyWasPressed = false;
   let helpLabelFallback = controlOverlayStrings.helpButton.shortcutFallback;
@@ -4606,6 +4832,19 @@ export function initializeImmersiveScene(
   const predictFloorId = (x: number, z: number, current: FloorId): FloorId =>
     floorConnections.preview(x, z, current).floorId;
 
+  const getCollisionActor = (x: number, z: number, floorId: FloorId) => {
+    const candidate = floorConnections.preview(x, z, activeFloorId);
+    return {
+      feetY:
+        candidate.floorId === floorId
+          ? floorConnections.sampleHeight(x, z, candidate)
+          : floorRegistry.get(floorId).elevation,
+      height: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
+      activeConnectionId:
+        candidate.floorId === floorId ? candidate.activeConnectionId : null,
+    };
+  };
+
   const canOccupyPosition = (
     x: number,
     z: number,
@@ -4619,7 +4858,13 @@ export function initializeImmersiveScene(
 
     if (
       getFloorCollisionCollections(floor).some((colliders) =>
-        collidesWithColliders(x, z, PLAYER_RADIUS, colliders)
+        collidesWithColliders(
+          x,
+          z,
+          PLAYER_RADIUS,
+          colliders,
+          getCollisionActor(x, z, floorId)
+        )
       )
     ) {
       return false;
@@ -4663,19 +4908,6 @@ export function initializeImmersiveScene(
     );
   };
 
-  const collidesWithCollider = (
-    x: number,
-    z: number,
-    radius: number,
-    collider: RectCollider
-  ): boolean => {
-    const closestX = MathUtils.clamp(x, collider.minX, collider.maxX);
-    const closestZ = MathUtils.clamp(z, collider.minZ, collider.maxZ);
-    const dx = x - closestX;
-    const dz = z - closestZ;
-    return dx * dx + dz * dz < radius * radius;
-  };
-
   const getBlockingNamesAt = (
     x: number,
     z: number,
@@ -4690,7 +4922,15 @@ export function initializeImmersiveScene(
 
     for (const colliders of getFloorCollisionCollections(floor)) {
       for (const collider of colliders) {
-        if (collidesWithCollider(x, z, PLAYER_RADIUS, collider)) {
+        if (
+          collidesWithColliders(
+            x,
+            z,
+            PLAYER_RADIUS,
+            [collider],
+            getCollisionActor(x, z, floorId)
+          )
+        ) {
           blockedBy.add(
             namedColliderDebugNames.get(collider) ?? `${floorId}Collider`
           );
@@ -5357,9 +5597,13 @@ export function initializeImmersiveScene(
       .filter(
         (collider) =>
           (collider.floor === floorId || collider.floor === 'all') &&
-          collidesWithColliders(target.x, target.z, PLAYER_RADIUS, [
-            collider.bounds,
-          ])
+          collidesWithColliders(
+            target.x,
+            target.z,
+            PLAYER_RADIUS,
+            [collider.bounds],
+            getCollisionActor(target.x, target.z, floorId)
+          )
       );
   };
 
@@ -6302,6 +6546,15 @@ export function initializeImmersiveScene(
   onResize();
 
   function updateMovement(delta: number) {
+    if (hudPanelCoordinator?.getActivePanel() === 'settings') {
+      updateExteriorDoors(delta);
+      targetVelocity.set(0, 0, 0);
+      velocity.set(0, 0, 0);
+      joystick.reset();
+      locomotionLinearSpeed = 0;
+      locomotionAngularSpeed = 0;
+      return;
+    }
     const yawBefore = player.rotation.y;
     const rightInput =
       Number(keyBindings.isActionActive('moveRight', keyPressSource)) -
@@ -6353,6 +6606,7 @@ export function initializeImmersiveScene(
 
     const stepX = velocity.x * delta;
     const stepZ = velocity.z * delta;
+    updateExteriorDoors(delta, { x: stepX, z: stepZ });
 
     if (stepX !== 0 || stepZ !== 0) {
       const movementStep = applyPlayerMovementStep(stepX, stepZ);
@@ -6690,8 +6944,13 @@ export function initializeImmersiveScene(
 
   function handleInteractionInput() {
     const pressed = keyBindings.isActionActive('interact', keyPressSource);
-    if (pressed && !interactKeyWasPressed && interactablePoi) {
-      poiInteractionManager?.selectPoiById(interactablePoi.definition.id);
+    if (
+      pressed &&
+      !interactKeyWasPressed &&
+      hudPanelCoordinator?.getActivePanel() !== 'settings'
+    ) {
+      if (!selectedDoor && interactablePoi)
+        poiInteractionManager?.selectPoiById(interactablePoi.definition.id);
     }
     interactKeyWasPressed = pressed;
   }
@@ -6726,6 +6985,7 @@ export function initializeImmersiveScene(
       inputLatencyTelemetry.dispose();
       inputLatencyTelemetry = null;
     }
+    disposeOwnedScope(initializationCleanup, 'initialization');
     softwareSafeRenderEvents.forEach((eventName) => {
       window.removeEventListener(eventName, requestSoftwareSafeRender);
     });
@@ -6974,6 +7234,8 @@ export function initializeImmersiveScene(
       locomotionLinearSpeed = 0;
       locomotionAngularSpeed = 0;
     }
+    disposeOwnedScope(exteriorCleanup, 'exterior');
+    joystick.reset();
     controls.dispose();
     if (livingRoomMediaWall) {
       livingRoomMediaWall.controller.dispose();

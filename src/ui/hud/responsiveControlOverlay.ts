@@ -301,6 +301,11 @@ export function createResponsiveControlOverlay(
     if (popover.contains(target) || button.contains(target)) {
       return;
     }
+    // POI details coexist with Controls. Closing here would move the detail
+    // between pointerdown and click, preventing its own controls from activating.
+    if (target instanceof Element && target.closest('.poi-tooltip-overlay')) {
+      return;
+    }
     close();
   };
 
