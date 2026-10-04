@@ -5,14 +5,22 @@ import {
   DoubleSide,
   Float32BufferAttribute,
   Group,
+  InstancedMesh,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
 } from 'three';
 import { describe, expect, it } from 'vitest';
 
+import { FLOOR_PLAN_SCALE, WALL_THICKNESS } from '../../../assets/floorPlan';
+import { createDoorController } from '../../../systems/doors/controller';
+import { createExteriorDoorDefinitions } from '../../level/exteriorLayout';
 import { generateFloorSurfaces } from '../../level/generateFloorSurfaces';
+import { generateWallSegmentInstances } from '../../level/generateWalls';
 import { PORTFOLIO_LEVEL } from '../../level/portfolioLevel';
 import { createBasementStaircase } from '../basementStaircase';
+import { createResidentialExterior } from '../residentialExterior';
+import { createWallSegmentMeshes } from '../wallSegmentsMesh';
 
 import {
   findMeshSurfaceOverlaps,
@@ -26,6 +34,82 @@ const triangle = (points = [0, 0, 0, 2, 0, 0, 0, 2, 0]) => {
 };
 
 describe('rendered triangle surface audit', () => {
+  it.each([false, true])(
+    'matches renderer facing for a reflected instance, opposite %s',
+    (opposite) => {
+      const root = new Group();
+      const base = triangle();
+      const instances = new InstancedMesh(
+        base.geometry,
+        new MeshBasicMaterial(),
+        1
+      );
+      instances.setMatrixAt(0, new Matrix4().makeScale(-1, 1, 1));
+      const reference = triangle(
+        opposite ? [0, 0, 0, 0, 2, 0, -2, 0, 0] : [0, 0, 0, -2, 0, 0, 0, 2, 0]
+      );
+      root.add(instances, reference);
+      expect(findMeshSurfaceOverlaps(root)).toHaveLength(opposite ? 0 : 1);
+    }
+  );
+
+  it('starts each material-group draw at its effective range for static instances', () => {
+    const root = new Group();
+    const geometry = new BufferGeometry();
+    geometry.setAttribute(
+      'position',
+      new Float32BufferAttribute(
+        [10, 0, 0, 12, 0, 0, 10, 2, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0],
+        3
+      )
+    );
+    geometry.addGroup(0, 3, 0);
+    geometry.addGroup(3, 3, 1);
+    geometry.setDrawRange(1, 5);
+    const instances = new InstancedMesh(
+      geometry,
+      [new MeshBasicMaterial(), new MeshBasicMaterial()],
+      1
+    );
+    instances.setMatrixAt(0, new Matrix4());
+    root.add(instances, triangle());
+    expect(findMeshSurfaceOverlaps(root)).toHaveLength(1);
+  });
+
+  it.each(['x', 'y', 'z'] as const)(
+    'detects static instance overlaps normal to world %s',
+    (axis) => {
+      const root = new Group();
+      const surface = triangle();
+      if (axis === 'x') surface.rotation.y = Math.PI / 2;
+      if (axis === 'y') surface.rotation.x = -Math.PI / 2;
+      surface.updateMatrix();
+      const instances = new InstancedMesh(
+        surface.geometry,
+        new MeshBasicMaterial(),
+        2
+      );
+      instances.name = 'StaticPocket';
+      instances.setMatrixAt(0, surface.matrix);
+      const offset = new Matrix4().makeTranslation(
+        axis === 'x' ? 0.0001 : 0,
+        axis === 'y' ? 0.0001 : 0,
+        axis === 'z' ? 0.0001 : 0
+      );
+      instances.setMatrixAt(1, offset.multiply(surface.matrix));
+      root.add(instances);
+      const findings = findMeshSurfaceOverlaps(root);
+      expect(findings).toHaveLength(1);
+      expect(findings[0].a.instanceIndex).toBe(0);
+      expect(findings[0].b.instanceIndex).toBe(1);
+      expect(findings[0].planeDistance).toBeCloseTo(0.0001, 6);
+      expect(findings[0].overlapArea).toBeCloseTo(2, 6);
+      expect(formatMeshSurfaceOverlaps(findings)).toContain('instance 1');
+      instances.count = 1;
+      expect(findMeshSurfaceOverlaps(root)).toEqual([]);
+    }
+  );
+
   it('detects nearly coplanar transformed faces and reports mesh and source identity', () => {
     const root = new Group();
     const parent = new Group();
@@ -116,6 +200,50 @@ describe('rendered triangle surface audit', () => {
     reversed.material = new MeshBasicMaterial({ side: BackSide });
     root.add(triangle(), reversed);
     expect(findMeshSurfaceOverlaps(root)).toHaveLength(1);
+  });
+});
+
+describe('garage shared-wall screenshot regression', () => {
+  it('keeps the sliding pocket faces clear of the actual shared wall', () => {
+    const floor = PORTFOLIO_LEVEL.floors.find(
+      (entry) => entry.id === 'ground'
+    )!;
+    const material = new MeshBasicMaterial();
+    const walls = createWallSegmentMeshes({
+      instances: generateWallSegmentInstances(floor, {
+        coordinateScale: FLOOR_PLAN_SCALE,
+        baseElevation: 0,
+        wallHeight: 6,
+        wallThickness: WALL_THICKNESS,
+        fenceHeight: 2.4,
+        fenceThickness: 0.28,
+        getRoomCategory: (id) =>
+          floor.rooms.find((room) => room.id === id)!.category,
+      }).filter((wall) => wall.sourceId === 'ground.studio.east_wall'),
+      getMaterial: () => material,
+    });
+    const exterior = createResidentialExterior(
+      floor,
+      FLOOR_PLAN_SCALE,
+      createExteriorDoorDefinitions(FLOOR_PLAN_SCALE).map(createDoorController)
+    );
+    const root = new Group();
+    const pocket = exterior.group.getObjectByName(
+      'Exterior:ground.garage.houseDoor:slate'
+    )!;
+    expect(walls.meshes.length).toBeGreaterThan(0);
+    expect(pocket).toBeInstanceOf(InstancedMesh);
+    root.add(walls.group, pocket);
+    const findings = findMeshSurfaceOverlaps(root).filter(
+      ({ a, b }) =>
+        [a, b].some((face) => face.sourceId === 'ground.studio.east_wall') &&
+        [a, b].some((face) => face.sourceId === 'ground.garage.houseDoor')
+    );
+    expect(formatMeshSurfaceOverlaps(findings)).toBe('');
+    exterior.group.add(pocket);
+    exterior.dispose();
+    walls.meshes.forEach((mesh) => mesh.geometry.dispose());
+    material.dispose();
   });
 });
 

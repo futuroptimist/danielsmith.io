@@ -82,7 +82,7 @@ function put(repo: string, name: string, text: string) {
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, text);
 }
-function fixture(basement = false, exterior = false) {
+function fixture(basement = false, exterior = false, garage = false) {
   const repo = mkdtempSync(path.join(tmpdir(), 'performance-history-test-'));
   fixtures.push(repo);
   git(repo, 'init');
@@ -127,6 +127,18 @@ function fixture(basement = false, exterior = false) {
       repo,
       'scripts/capture-performance-route.cjs',
       '// versioned --basement --exterior house-front-entry-route-v1 routes\n'
+    );
+  }
+  if (garage) {
+    put(
+      repo,
+      'src/scene/level/garageLayout.ts',
+      "export const id = 'house-garage-door';\n"
+    );
+    put(
+      repo,
+      'scripts/capture-performance-route.cjs',
+      '// versioned --basement --exterior --garage house-front-entry-route-v1 house-attached-garage-route-v1 routes\n'
     );
   }
   git(repo, 'add', '.');
@@ -470,6 +482,27 @@ describe('performance history command', () => {
     });
   });
 
+  it('retains common routes when a historical ref has no garage', async () => {
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'garage', 'HEAD'],
+      { cwd: fixture(true, true) }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'common',
+      skippedRouteCapabilities: [{ capability: 'garage' }],
+    });
+  });
+  it('recognizes the versioned garage helper and source definition', async () => {
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'garage', 'HEAD'],
+      { cwd: fixture(true, true, true) }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'garage',
+      skippedRouteCapabilities: [],
+    });
+  });
+
   it.each(['v1', 'v2', 'v3', 'v10'])(
     'keeps the exterior profile %s explicit',
     async (version) => {
@@ -534,6 +567,73 @@ describe('performance history command', () => {
     expect(result.manifest.entries[0]).toMatchObject({
       routeProfile: 'common',
       skippedRouteCapabilities: [{ capability: 'exterior' }],
+    });
+  });
+
+  it.each(['v1', 'v2', 'v3', 'v4', 'v10'])(
+    'keeps the garage profile %s explicit',
+    async (version) => {
+      const repo = fixture(true, true, true);
+      put(
+        repo,
+        'scripts/capture-performance-route.cjs',
+        `// --garage house-attached-garage-route-${version}\n`
+      );
+      git(repo, 'add', '.');
+      git(
+        repo,
+        '-c',
+        'user.name=Performance Test',
+        '-c',
+        'user.email=test@example.invalid',
+        'commit',
+        '-m',
+        'Set garage route version'
+      );
+      const result = await runner.run(
+        ['--check-only', '--route-profile', 'garage', 'HEAD'],
+        { cwd: repo }
+      );
+      expect(result.manifest.entries[0]).toMatchObject(
+        !['v1', 'v2', 'v3'].includes(version)
+          ? {
+              routeProfile: 'common',
+              skippedRouteCapabilities: [{ capability: 'garage' }],
+            }
+          : {
+              routeProfile: 'garage',
+              routeProfileVersion: `house-attached-garage-route-${version}`,
+              skippedRouteCapabilities: [],
+            }
+      );
+    }
+  );
+
+  it('skips a stale garage helper when the source uses automatic doors', async () => {
+    const repo = fixture(true, true, true);
+    put(
+      repo,
+      'src/scene/level/garageLayout.ts',
+      'house-garage-door automatic: true\n'
+    );
+    git(repo, 'add', '.');
+    git(
+      repo,
+      '-c',
+      'user.name=Performance Test',
+      '-c',
+      'user.email=test@example.invalid',
+      'commit',
+      '-m',
+      'Enable automatic garage doors'
+    );
+    const result = await runner.run(
+      ['--check-only', '--route-profile', 'garage', 'HEAD'],
+      { cwd: repo }
+    );
+    expect(result.manifest.entries[0]).toMatchObject({
+      routeProfile: 'common',
+      skippedRouteCapabilities: [{ capability: 'garage' }],
     });
   });
 

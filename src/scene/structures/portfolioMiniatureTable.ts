@@ -242,6 +242,18 @@ export function createPortfolioTableShell(
   return group;
 }
 
+function isWithinHouseEnvelope(
+  room: (typeof FLOOR_PLAN.rooms)[number]
+): boolean {
+  const envelope = floorEnvelope();
+  return (
+    room.bounds.minX >= envelope.minX &&
+    room.bounds.maxX <= envelope.maxX &&
+    room.bounds.minZ >= envelope.minZ &&
+    room.bounds.maxZ <= envelope.maxZ
+  );
+}
+
 function floorEnvelope() {
   const xs = HOUSE_CAMERA_OUTLINE.map(([x]) => x * FLOOR_PLAN_SCALE);
   const zs = HOUSE_CAMERA_OUTLINE.map(([, z]) => z * FLOOR_PLAN_SCALE);
@@ -379,7 +391,7 @@ function createArchitecture() {
   } as const;
 
   const groundSlabs = FLOOR_PLAN.rooms.filter(
-    (room) => room.category !== 'exterior'
+    (room) => room.category !== 'exterior' && isWithinHouseEnvelope(room)
   );
   const basementOpening = getBasementStairLayout().opening;
   for (const room of groundSlabs) {
@@ -486,10 +498,12 @@ function createArchitecture() {
     {
       ...getLevelFloor('ground'),
       walls: getLevelFloor('ground').walls.filter((wall) =>
-        wall.rooms?.some(
-          (roomId) =>
-            getRoomCategory(roomId) !== 'exterior' || roomId === 'backyard'
-        )
+        wall.rooms?.some((roomId) => {
+          const room = FLOOR_PLAN.rooms.find(
+            (candidate) => candidate.id === roomId
+          );
+          return room !== undefined && isWithinHouseEnvelope(room);
+        })
       ),
     },
     {
@@ -517,7 +531,10 @@ function createArchitecture() {
   root.add(wallMeshes.group);
 
   const ledBuild = createRoomLedStrips({
-    plan: FLOOR_PLAN,
+    plan: {
+      ...FLOOR_PLAN,
+      rooms: FLOOR_PLAN.rooms.filter(isWithinHouseEnvelope),
+    },
     getRoomCategory,
     ledHeight: WALL_HEIGHT - CEILING_COVE_OFFSET,
     baseColor: 0x101623,

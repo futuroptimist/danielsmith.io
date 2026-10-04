@@ -56,7 +56,12 @@ export function createDoorControl(options: {
         lastAnnouncement = '';
         return;
       }
-      const name = strings.frontDoor;
+      const name =
+        snapshot.id === 'garage-door'
+          ? strings.garageDoor
+          : snapshot.id === 'house-garage-door'
+            ? strings.houseDoor
+            : strings.frontDoor;
       const state = snapshot.occupied
         ? strings.occupied
         : strings[snapshot.state === 'open' ? 'opened' : snapshot.state];

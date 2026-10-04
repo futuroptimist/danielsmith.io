@@ -1,9 +1,14 @@
 import { BoxGeometry, Color, Group, Mesh, MeshStandardMaterial } from 'three';
 
 import type { FloorPlanDefinition } from '../../assets/floorPlan';
-import { getNormalizedDoorways } from '../../assets/floorPlan/doorways';
+import {
+  getNormalizedDoorways,
+  type NormalizedDoorway,
+} from '../../assets/floorPlan/doorways';
 
 export interface DoorwayOpeningsOptions {
+  /** Openings whose complete frames are owned by another source-backed factory. */
+  factoryFramedOpenings?: readonly NormalizedDoorway[];
   wallHeight: number;
   baseElevation?: number;
   doorHeight?: number;
@@ -43,6 +48,7 @@ export function createDoorwayOpenings(
     lintelThickness = DEFAULT_LINTEL_THICKNESS,
     trimDepth = DEFAULT_TRIM_DEPTH,
     material: providedMaterial,
+    factoryFramedOpenings = [],
   }: DoorwayOpeningsOptions
 ): DoorwayOpeningsBuild {
   const doorHeight =
@@ -51,7 +57,16 @@ export function createDoorwayOpenings(
       : wallHeight * DEFAULT_DOOR_HEIGHT_RATIO;
   const material = providedMaterial ?? createDefaultMaterial();
 
-  const uniqueDoorways = getNormalizedDoorways(plan);
+  const uniqueDoorways = getNormalizedDoorways(plan).filter(
+    (doorway) =>
+      !factoryFramedOpenings.some(
+        (owned) =>
+          owned.axis === doorway.axis &&
+          Math.abs(owned.center.x - doorway.center.x) < 1e-5 &&
+          Math.abs(owned.center.z - doorway.center.z) < 1e-5 &&
+          Math.abs(owned.width - doorway.width) < 1e-5
+      )
+  );
 
   const root = new Group();
   root.name = DOOR_NAME;

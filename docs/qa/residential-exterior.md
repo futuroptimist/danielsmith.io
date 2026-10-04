@@ -1,5 +1,13 @@
 # Front entrance and residential exterior QA
 
+The shared house/garage wall and sliding pocket use separated mesh faces rather
+than depth bias. The rendered-surface audit includes static instance matrices and
+checks overlapping faces in all three world-axis orientations. Its production
+fixture assembles the actual generated shared wall and pocket; adjacent edges and
+opposite-facing solid joins remain valid. Browser captures inspect the wall from
+both rooms with the door open and closed. This geometric check is a focused
+candidate detector, not a universal renderer precision guarantee.
+
 The front entrance is the positive-X living-room facade at plan `(16, -7.5)`.
 This is below the stair core on the bottom-right side of the normal isometric
 view. The original house outline still controls launch framing; the larger
@@ -139,6 +147,56 @@ check are separate gates. Record actual results, served tree/commit, renderer,
 viewport and limitations in the stage handoff/performance record; do not treat
 text fallback or missing render tools as a successful walkthrough.
 
+## Attached garage and driveway
+
+The garage is a ground-floor interior at plan X `[16, 25]`, Z `[-4, 8]`.
+`garageLayout.ts` owns the house door at `(16, -1)` and the vehicle door at `(25, 2)`.
+The studio wall contains the pedestrian opening between the existing monstera
+and dresser, which retain their positions and solid colliders; the garage's east wall contains
+a fourteen-world-unit vehicle aperture. The garage south wall replaces the
+corresponding yard fence run explicitly in source. The remaining fence segment
+continues to the sidewalk. No overlapping obsolete wall or guard is removed at
+runtime. Both garage doors reuse the front-door controller and input binding. Each opens
+automatically on approach from either side, using the same maximum-speed lead
+and same-frame aperture clearance as the front entry. Operable
+apertures explicitly belong to their custom frame factory, so generic interior
+doorway trim is never built through the moving panels or their clear openings.
+
+The driveway spans plan X `[25, 29]`; its paved surface ends where the continuous
+sidewalk starts at X `26`. This keeps the pedestrian lane flat, visible and clear
+without coplanar pavement. A solid workbench and storage cabinet occupy the back
+of the garage, clear of the full-width vehicle threshold and house approach.
+The existing translucent ceiling treatment preserves the interior cutaway. While
+the avatar is inside, the overhead panel stays 80% opaque so the closed door
+remains legible while revealing the avatar. Its progress and solid blocker are
+unchanged. Outside the cutaway it restores full opacity and depth writing; the
+owned cloned panel materials do not alter the frame or other doors.
+The nearby DOM control stays below the measured HUD rectangle, including phone
+portrait and landscape, rather than being covered by the Text or Settings controls.
+
+The overhead shutter retracts into an opaque top housing. Its panel's lower edge
+is `progress × 4.8` world units above the ground; the aperture becomes passable
+only at **3.1 units of headroom**, above the 2.6-unit avatar. Closing checks the
+whole threshold before the collision gate can reactivate. The slat instances,
+shared geometry and materials are explicitly disposed with the exterior.
+
+Run `playwright/immersive-garage-loop.spec.ts` alongside the front-entry suite.
+`playwright/immersive-door-proximity.spec.ts` approaches all three initially closed
+doors from both sides with uninterrupted native movement, at normal and reduced
+motion. The shared controller sweep repeats maximum-speed passage at 60 Hz,
+100 ms, 400 ms and 1.5 s frames, including late entry and closing reversals.
+It covers house → garage → driveway → sidewalk → front entrance → house and the
+reverse, closed blockers, native keyboard vehicle-door crossing, operations from
+both sides, occupancy and reduced-motion touch. The native occupied-closing
+case begins at a verified protected threshold edge before requesting closure;
+it proves protection while crossing, without racing an unoccupied close during
+browser command dispatch. A deterministic overhead-controller regression covers
+an occupant arriving after closing has started and before the headroom gate.
+Keep the fixture's input method
+and actual result in the evidence; opening an animated panel alone does not prove
+passage. The original tabletop model still uses its house/backyard envelope,
+while the shared house wall shows the new pedestrian opening.
+
 The traced Chromium native-movement helper queues trusted CDP key events so
 per-key Playwright snapshots cannot turn a diagonal chord into single-axis
 steering. It preserves focus, requested hold duration, collision goals and
@@ -155,3 +213,10 @@ The browser samples alone do not prove behavior within an unobserved interval.
 Motion evidence is saved in a finally block even when endpoint or closure checks
 fail. Bounded native key pulses release their keys before polled endpoint reads,
 so delayed tracing cannot keep movement pressed throughout the observation.
+The uninterrupted maximum-speed input must first establish a crossing more than
+three units beyond the door. If its measured endpoint remains near the hold zone,
+at most eight released 100 ms pulses continue outward toward a 4.2-unit departure.
+No new pulse starts after a five-second deadline; awaited browser calls remain
+subject to the overall test timeout. The original greater-than-3.8 assertion and
+complete closing checks remain; extra pulses cannot rescue an incomplete crossing.
+Evidence records the initial departure distance and pulse count.

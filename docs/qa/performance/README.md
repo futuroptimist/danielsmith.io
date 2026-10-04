@@ -18,13 +18,18 @@ privately retained; Git keeps aggregate ranges, medians and comparisons.
 | [Museum][ph-museum]         |   1,499.3–1,575.9; 1,508 |                 114 / 69 |
 | [Résumé][ph-resume]         | 1,482.2–1,578.3; 1,566.7 |                 114 / 69 |
 | [Entry][ph-entry]           | 1,511.3–1,582.7; 1,516.3 |                 116 / 71 |
+| [Garage][ph-garage]         |   1,787–1,929.1; 1,888.4 |                 103 / 71 |
 
 [Shared profile][ph-profile]. Each linked record retains its baseline and predecessor deltas.
 
-Extended profiles included here have 7, 11, 11, 16 checkpoints in stage order. Each
+Extended profiles included here have 7, 11, 11, 16, 21 checkpoints in stage order. Each
 completed three routes and three controlled suites. Exterior profiles are version 2,
 with explicit automatic/manual door states; the street version retains only the passive
 sign.
+
+Garage readiness is above the entry range. Its lower spawn draw count has no
+demonstrated camera, floor-visibility, door-state or framing explanation. The sequential
+observations establish neither a causal slowdown nor a speedup.
 
 Every recorded route has a ≥1-second external rAF interval already present by spawn. The
 probe includes startup, helper work and screenshots. Rolling frame diagnostics omit
@@ -42,6 +47,7 @@ measure teardown/re-entry performance or prove complete old-renderer/GPU reclama
 [ph-museum]: 2026-10-03-corrected-software-history/museum.json
 [ph-resume]: 2026-10-03-corrected-software-history/resume.json
 [ph-entry]: 2026-10-03-corrected-software-history/entry.json
+[ph-garage]: 2026-10-03-corrected-software-history/garage.json
 
 Keep only commit hashes, limited comparability metadata, and high-level checkpoint
 metrics in Git. Detailed JSON, stdout/stderr, snapshots, traces, screenshots, and
@@ -290,6 +296,43 @@ quality conditions. Retain all three attempts and the separate native keyboard /
 touch functional traces; a completed software route does not close hardware p95
 or the owner's final manual review.
 
+## Attached garage route addition
+
+`--garage` selects `house-attached-garage-route-v3` and implies the complete
+front-entry/museum route. The prior returned-spawn checkpoints and all existing
+legs are retained, then the route visits the house/garage door, garage interior,
+closed/open vehicle doorway and driveway before returning through the front
+entrance. The museum portion cannot overwrite this more-specific profile label.
+New garage poses remain separately named additions; compare common poses using
+matched predecessor/baseline series. The future street remains unavailable.
+
+### Attached-garage checkpoint
+
+```bash
+npm run perf:history -- --route-profile garage <entry-commit> <garage-commit>
+```
+
+The runner selects the versioned `--garage` helper only when the historical
+commit contains the authored garage door definition. Earlier refs explicitly
+fall back to their common route and record the unavailable capability. The
+`house-attached-garage-route-v3` route retains the common, basement/museum and front-entry
+checkpoints before exercising both garage doors and the driveway. Compare shared
+named checkpoints separately from new route legs; each result retains its actual
+profile and camera state when the historical API exposes it.
+
+The garage v3 profile inherits the front-entry v2 door-state contract. It manually
+closes the overhead door at the stationary interior pose before the closed-door
+checkpoint and records/asserts closed and open states at both ends of each dwell.
+On the return from the driveway, it adds a real outside approach to the front
+entrance at `(35, -15)` and waits for automatic opening before planning the existing
+return leg through the aperture. Doors can close after departure, so an earlier
+opening cannot establish a later passage. The extra approach/wait changes the route
+profile; checkpoint positions/order, dwell, common/interior legs, live occupancy
+planning and runtime movement assertions remain unchanged. Historical garage v1
+and v2 captures keep their original labels and remain supported for their original
+sources; v1 is skipped with automatic-door source. Unknown versions are explicitly
+skipped.
+
 ## Door departure and shared-wall correction evidence
 
 The [capture profile](2026-10-03-door-wall-corrections/profile.json) and
@@ -318,3 +361,12 @@ The common route has 2,147 movement steps; exterior v2 has 16 checkpoints and
 71 geometries and 7 textures, with unchanged median counts against the
 before-correction source. The extension returns with 687–692 resident geometries;
 route residency is distinct from the 125-geometry launch ceiling.
+
+### Attached-garage correction
+
+[Garage metrics](2026-10-03-door-wall-corrections/garage.json) measure `e9814056`.
+Garage v3 completes 21 checkpoints and 8,553 movement steps per attempt, including
+the automatic-door return approach. Worst launch counts are 116 calls, 4,892
+triangles, 71 geometries and 7 textures; matched common launch counts are unchanged
+from before the correction. The extension returns with 738–742 geometries and
+17 textures. Its later capture window is separately recorded.

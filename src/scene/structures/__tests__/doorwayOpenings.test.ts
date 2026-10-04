@@ -37,7 +37,7 @@ describe('createDoorwayOpenings', () => {
     });
 
     expect(group.name).toBe('DoorwayOpenings');
-    expect(group.children).toHaveLength(7);
+    expect(group.children).toHaveLength(9);
 
     const livingKitchen = findDoorwayGroup(
       group.children,
@@ -118,4 +118,22 @@ describe('createDoorwayOpenings', () => {
       expect(lintel.position.y).toBeCloseTo(6 * 0.72 + 0.11, 5);
     }
   });
+});
+
+it('leaves factory-owned operable apertures unframed without changing ordinary doorways', () => {
+  const owned = [
+    { axis: 'vertical' as const, center: { x: 32, z: -15 }, width: 6 },
+    { axis: 'vertical' as const, center: { x: 32, z: -2 }, width: 6 },
+    { axis: 'vertical' as const, center: { x: 50, z: 4 }, width: 14 },
+  ];
+  const { group } = createDoorwayOpenings(FLOOR_PLAN, {
+    wallHeight: 6,
+    factoryFramedOpenings: owned,
+  });
+  expect(group.children).toHaveLength(6);
+  for (const doorway of owned)
+    expect(findDoorwayGroup(group.children, doorway.center)).toBeUndefined();
+  expect(
+    findDoorwayGroup(group.children, HORIZONTAL_DOOR_KEYS.livingToStudio)
+  ).toBeDefined();
 });

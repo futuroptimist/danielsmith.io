@@ -519,9 +519,11 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.',
+      'The miniature filters all rooms, walls and LED fixtures by its ' +
+      'original house envelope while sharing the new house-to-garage ' +
+      'opening.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

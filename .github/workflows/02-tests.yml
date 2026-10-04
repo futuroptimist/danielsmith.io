@@ -61,6 +61,7 @@ jobs:
           playwright/immersive-basement-roundtrip.spec.ts
           playwright/immersive-career-museum.spec.ts
           playwright/immersive-exterior-doors.spec.ts
+          playwright/immersive-garage-loop.spec.ts
           playwright/immersive-door-proximity.spec.ts
           playwright/immersive-under-stair-passage.spec.ts
           playwright/keyboard-traversal.spec.ts playwright/small-screen-hud.spec.ts

@@ -20,6 +20,16 @@ const ROUTE_CAPABILITIES = {
     source: 'src/scene/level/basementStair.ts',
     marker: 'basement-ground',
   },
+  garage: {
+    flag: '--garage',
+    source: 'src/scene/level/garageLayout.ts',
+    marker: 'house-garage-door',
+    profiles: [
+      'house-attached-garage-route-v1',
+      'house-attached-garage-route-v2',
+      'house-attached-garage-route-v3',
+    ],
+  },
   exterior: {
     flag: '--exterior',
     source: 'src/scene/level/exteriorLayout.ts',
@@ -62,7 +72,9 @@ function parseArgs(args) {
         options.output = value;
       } else {
         if (value !== 'common' && !Object.hasOwn(ROUTE_CAPABILITIES, value))
-          throw new Error('Route profile must be common, basement or exterior');
+          throw new Error(
+            'Route profile must be common, basement, exterior or garage'
+          );
         options.routeProfile = value;
       }
     } else if (/^[A-Za-z0-9_./@~^:-]+$/.test(arg) && !arg.startsWith('-'))
