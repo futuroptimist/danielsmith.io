@@ -1,5 +1,13 @@
 /** Keep projected controls clear of the HUD without forcing layout every frame. */
-export function createProjectedControlLayout(element: HTMLElement) {
+export function createProjectedControlLayout(
+  element: HTMLElement,
+  options: {
+    anchor?: 'top' | 'bottom';
+    margin?: number;
+    bottomInset?: number;
+  } = {}
+) {
+  const { anchor = 'bottom', margin = 16, bottomInset = 100 } = options;
   const hud = document.getElementById('control-overlay');
   let dirty = true;
   let width = 0;
@@ -33,14 +41,14 @@ export function createProjectedControlLayout(element: HTMLElement) {
       }
       const halfWidth = width / 2;
       const x = Math.max(
-        halfWidth + 16,
-        Math.min(window.innerWidth - halfWidth - 16, position.x)
+        halfWidth + margin,
+        Math.min(window.innerWidth - halfWidth - margin, position.x)
       );
-      const minimumBottom = Math.max(height + 16, hudBottom + height + 12);
-      const y = Math.max(
-        minimumBottom,
-        Math.min(window.innerHeight - 100, position.y)
-      );
+      const minimumY =
+        Math.max(margin, hudBottom + 12) + (anchor === 'bottom' ? height : 0);
+      const maximumY =
+        window.innerHeight - bottomInset - (anchor === 'top' ? height : 0);
+      const y = Math.max(minimumY, Math.min(maximumY, position.y));
       const left = `${Math.round(x)}px`;
       const top = `${Math.round(y)}px`;
       if (element.style.left !== left) element.style.left = left;

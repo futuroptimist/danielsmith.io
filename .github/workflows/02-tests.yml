@@ -55,13 +55,14 @@ jobs:
         run: npm ci
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium-headless-shell
-      - name: Upstairs, keyboard, and small-screen traversal
+      - name: House, museum, exterior, keyboard, and small-screen traversal
         run: >-
           npm run test:e2e -- playwright/immersive-stairs-roundtrip.spec.ts
           playwright/immersive-basement-roundtrip.spec.ts
           playwright/immersive-career-museum.spec.ts
           playwright/immersive-exterior-doors.spec.ts
           playwright/immersive-garage-loop.spec.ts
+          playwright/immersive-residential-street.spec.ts
           playwright/immersive-door-proximity.spec.ts
           playwright/immersive-under-stair-passage.spec.ts
           playwright/keyboard-traversal.spec.ts playwright/small-screen-hud.spec.ts

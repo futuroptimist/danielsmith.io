@@ -2704,3 +2704,9 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   outline: 3px solid #fff4df;
   outline-offset: 4px;
 }
+
+.text-fallback__bus-stop {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

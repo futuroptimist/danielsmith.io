@@ -197,6 +197,76 @@ and actual result in the evidence; opening an animated panel alone does not prov
 passage. The original tabletop model still uses its house/backyard envelope,
 while the shared house wall shows the new pedestrian opening.
 
+## Residential street and future bus stop
+
+The final ground-floor expansion adds a flat residential road at plan X `[29, 40]`,
+a flush pale curb, and a planted verge with a separate paved shelter pad. The
+existing continuous sidewalk is unchanged. Source-authored outer fences end the
+road and verge; the old sidewalk-edge fence is replaced in source, and the
+backyard's existing fences remain intact. Road, curb, lawn and shelter surfaces
+partition their areas without coplanar overlaps.
+
+The original unbranded 2040 sedan has a closed nose, restrained light bars,
+four-door proportions and simple shared low-poly wheels. Its conservative solid
+footprint is 4.6 by 9.2 world units, centered at `(66, -20)`. It is more than five
+units from the sidewalk and seven from the driveway's turning corridor. It is
+parked scenery; driving and traffic are outside this stage.
+
+Four evenly spaced fixtures have opaque hoods and single-sided emissive
+undersides. Their spotlights target the point directly below each fixture, use a
+36-degree half-angle entirely below horizontal, and cast no shadows. Realtime
+lights are active only near the ground-floor street at compatible quality tiers.
+Shared static downward ground pools stay visible at every quality tier, including
+approach, passing and departure. Realtime light augments those pools instead of
+removing them at the proximity boundary. No omnidirectional lamps or upward
+bulbs are introduced. The street asset pool owns seven geometries, eleven
+materials and one static sign texture. Sign pixels update only when locale copy
+changes. Repeated boxes, wheels, lamp undersides and pools are instanced; all
+instances, textures, lights, materials and geometries are disposed on teardown.
+
+The shelter has four solid posts and a solid bench. Its roof and sign are above
+avatar headroom. The roof becomes translucent when the avatar enters the pad;
+its cutaway source is included in camera diagnostics. Shelter dimensions are
+explicit world units for the current two-to-one plan, not an arbitrary-scale
+factory contract.
+
+`residential-bus-stop` identifies passive scenery with availability `coming-soon`.
+The physical world sign, screen-reader description and text fallback share the
+same nine-locale sign wording. There is no button, tooltip, disclosure, destination
+reference, keyboard/touch handler or travel suggestion. The screen-reader text is
+available on the ground floor and removed with the immersive scene.
+
+An idempotent disposal scope owns street geometry, lighting and the passive
+text description immediately after allocation. Both handled initialization
+failures and synchronous throws release those resources, detach the remaining
+door control and description, and clear only their own published world API.
+Browser fault-injection cases count the real remaining control, its capture key
+listener and projected-layout resize listener separately from the passive text.
+They retain exact geometry/material/texture/light disposal equality, blur cleanup,
+renderer disposal and repeated-failure assertions. Ordinary text transitions and
+re-entry retain their separate lifecycle assertions.
+
+Run `playwright/immersive-residential-street.spec.ts` with the existing entry,
+garage, basement, upstairs, accessibility and launch-budget suites. Inspect the
+named normal/minimum/maximum-zoom screenshots, parked sedan, shelter cutaway and
+localized passive sign text and touch movement. The versioned `--street`
+performance profile preserves
+all common, museum, entry and garage legs before appending the parked EV, bus stop,
+shelter interior and return to spawn. Browser lifecycle assertions separately
+verify disposal and a fresh bounded resource pool after text-mode re-entry.
+
+The native street round trip, camera/lighting inspection and each locale journey
+use separate bounded browser cases. This preserves the full out-and-back route,
+all collision and zoom assertions, and nine native locale choices without sharing
+a cumulative case deadline. Individual native movement deadlines and zero retries
+remain unchanged. The complete scene gives the existing two-direction garage
+loop a three-minute total budget; its individual door and native-input bounds
+remain unchanged.
+
+Record failures and reruns honestly. Automated software-WebGL traversal, local
+structural documentation checks, hosted link checks, hardware frame-time gates
+and the owner's deferred final manual walkthrough are distinct evidence.
+
 The traced Chromium native-movement helper queues trusted CDP key events so
 per-key Playwright snapshots cannot turn a diagonal chord into single-axis
 steering. It preserves focus, requested hold duration, collision goals and

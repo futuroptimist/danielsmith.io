@@ -21,6 +21,7 @@ import type {
   PerformanceDiagnosticsApi,
 } from '../scene/performance/performanceDiagnostics';
 import type { CareerMuseumResourceLifecycle } from '../scene/structures/careerMuseum';
+import type { StreetSnapshot } from '../scene/structures/residentialStreet';
 import type { KeyBindingAction } from '../systems/controls/keyBindings';
 import type { DoorSnapshot } from '../systems/doors/controller';
 import type { GitHubRepoStatsDiagnostics } from '../systems/github/repoStats';
@@ -206,6 +207,7 @@ export interface PortfolioApi {
   };
   world?: {
     getDoorSnapshots(): DoorSnapshot[];
+    getStreetSnapshot(): StreetSnapshot;
     getExteriorLifecycle(): {
       isDisposed: boolean;
       geometries: number;

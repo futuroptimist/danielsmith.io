@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { runInNewContext } from 'node:vm';
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 type Position = { x: number; z: number };
 type DoorState = 'closed' | 'opening' | 'open';
@@ -76,6 +76,25 @@ function runExtension(flag: string, scope: Record<string, unknown>) {
   }) as Promise<void>;
 }
 
+function streetDiagnostics() {
+  return {
+    result: {},
+    page: {
+      evaluate: vi
+        .fn()
+        .mockResolvedValueOnce({
+          busStop: { signText: 'Bus stop · Coming Soon' },
+          lamps: Array.from({ length: 4 }, () => ({ groundPoolVisible: true })),
+        })
+        .mockResolvedValueOnce({
+          description: 'Bus stop: Coming Soon',
+          available: true,
+          interactiveElements: 0,
+        }),
+    },
+  };
+}
+
 describe('performance capture door approaches', () => {
   it('reapproaches and awaits the automatically closed front door on the garage return', async () => {
     const capture = captureHarness();
@@ -116,4 +135,52 @@ describe('performance capture door approaches', () => {
       'garage-returned-spawn'
     );
   });
+
+  it('approaches and awaits automatic opening on both street crossings', async () => {
+    const capture = captureHarness();
+    await runExtension('includeStreet', {
+      ...capture.scope,
+      ...streetDiagnostics(),
+    });
+
+    expect(capture.crossings).toEqual([
+      { from: { x: 29, z: -15 }, to: { x: 61, z: -20 } },
+      { from: { x: 35, z: -15 }, to: { x: 0, z: -20 } },
+    ]);
+    expect(capture.waits).toEqual([
+      { id: 'front-door', position: { x: 29, z: -15 } },
+      { id: 'front-door', position: { x: 35, z: -15 } },
+    ]);
+    expect(capture.manualDoors).toEqual([]);
+    expect(capture.checkpoints).toEqual([
+      { name: 'street-parked-ev', position: { x: 61, z: -20 } },
+      { name: 'street-bus-stop-coming-soon', position: { x: 55, z: 32 } },
+      { name: 'street-shelter-interior', position: { x: 50, z: 32 } },
+      { name: 'street-returned-spawn', position: { x: 0, z: -20 } },
+    ]);
+  });
+
+  it.each([1, 2])(
+    'stops before street crossing %s when automatic opening fails',
+    async (failedOpening) => {
+      const capture = captureHarness();
+      let openings = 0;
+      await expect(
+        runExtension('includeStreet', {
+          ...capture.scope,
+          ...streetDiagnostics(),
+          async waitForDoor(id: string, state: string) {
+            if (++openings === failedOpening)
+              throw new Error('Automatic opening timed out');
+            await capture.scope.waitForDoor(id, state);
+          },
+        })
+      ).rejects.toThrow('Automatic opening timed out');
+
+      expect(capture.crossings).toHaveLength(failedOpening - 1);
+      expect(capture.checkpoints.map(({ name }) => name)).not.toContain(
+        'street-returned-spawn'
+      );
+    }
+  );
 });
