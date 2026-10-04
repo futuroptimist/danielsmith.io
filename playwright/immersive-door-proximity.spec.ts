@@ -104,13 +104,10 @@ for (const door of approaches) {
             }
           | undefined;
         let motion: DoorMotionSample[] = [];
-        try {
-          await pressNativeMovementChord(
-            page,
-            side < 0 ? ['KeyS', 'KeyD'] : ['KeyW', 'KeyA'],
-            1000
-          );
-          state = await page.evaluate(
+        let initialDepartureDistance: number | undefined;
+        let departurePulses = 0;
+        const readState = () =>
+          page.evaluate(
             (id) => ({
               position: window.portfolio!.world!.getPlayerPosition(),
               door: window
@@ -120,8 +117,31 @@ for (const door of approaches) {
             }),
             door.id
           );
-          // Stay at the native endpoint: returning toward a fixed pose would
-          // be a renewed approach and could legitimately reopen the door.
+        const codes =
+          side < 0 ? (['KeyS', 'KeyD'] as const) : (['KeyW', 'KeyA'] as const);
+        try {
+          await pressNativeMovementChord(page, codes, 1000);
+          state = await readState();
+          initialDepartureDistance = (state.position.x - door.x) * -side;
+          // The uninterrupted input must already establish the crossing.
+          // Extra departure pulses cannot rescue a blocked or incomplete pass.
+          expect(initialDepartureDistance).toBeGreaterThan(3);
+          const departureDeadline = Date.now() + 5000;
+          for (
+            let pulse = 0;
+            pulse < 8 &&
+            Date.now() < departureDeadline &&
+            (state.position.x - door.x) * -side <= 4.2;
+            pulse++
+          ) {
+            // Wall-clock key duration does not guarantee simulated distance.
+            // Release every bounded pulse before reading the actual endpoint.
+            await pressNativeMovementChord(page, codes, 100);
+            departurePulses++;
+            state = await readState();
+          }
+          // Continue away from the door; returning toward a fixed pose would
+          // be a renewed approach and could legitimately reopen it.
           expect((state.position.x - door.x) * -side).toBeGreaterThan(3.8);
           await waitDoor(page, door.id, 'closed');
         } finally {
@@ -136,7 +156,19 @@ for (const door of approaches) {
           writeFileSync(
             evidencePath,
             JSON.stringify(
-              { approach: door, side, reducedMotion, ...state, motion },
+              {
+                approach: door,
+                side,
+                reducedMotion,
+                ...state,
+                departure: {
+                  initialDistance: initialDepartureDistance,
+                  additionalPulses: departurePulses,
+                  targetDistance: 4.2,
+                  requiredDistance: 3.8,
+                },
+                motion,
+              },
               null,
               2
             )

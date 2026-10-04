@@ -213,3 +213,10 @@ The browser samples alone do not prove behavior within an unobserved interval.
 Motion evidence is saved in a finally block even when endpoint or closure checks
 fail. Bounded native key pulses release their keys before polled endpoint reads,
 so delayed tracing cannot keep movement pressed throughout the observation.
+The uninterrupted maximum-speed input must first establish a crossing more than
+three units beyond the door. If its measured endpoint remains near the hold zone,
+at most eight released 100 ms pulses continue outward toward a 4.2-unit departure.
+No new pulse starts after a five-second deadline; awaited browser calls remain
+subject to the overall test timeout. The original greater-than-3.8 assertion and
+complete closing checks remain; extra pulses cannot rescue an incomplete crossing.
+Evidence records the initial departure distance and pulse count.
