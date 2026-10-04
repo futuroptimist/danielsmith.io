@@ -3,8 +3,8 @@
 ## Status and approval boundary
 
 This document records the design approved in #1111 and its subsequent owner
-walkthrough refinements. The first pull request changed only this document;
-the seven implementation stages retain the final human-review boundary below.
+walkthrough refinements. Implementation changes retain the final human-review
+boundary and acceptance requirements below.
 
 After approval, deliver small, sequential, stacked draft pull requests with the
 checks and evidence described below. Keep the entire stack available for final

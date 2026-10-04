@@ -273,3 +273,13 @@ steering. It preserves focus, requested hold duration, collision goals and
 movement deadlines. Bounded event/pose diagnostics print on failure as well as
 being attached, so analysis does not depend on downloading a large trace ZIP.
 This Chromium-only harness path is distinct from physical-keyboard validation.
+
+Native motion checks retain every observed threshold snapshot and inspect adjacent
+movement segments when a coarse frame spans the doorway. They verify the sampled
+aperture, floor and clearance. Two distinct ordinary-motion closing observations
+plus monotonic completion establish observed animation; deterministic movement
+and controller suites separately cover swept collision and the full easing curve.
+The browser samples alone do not prove behavior within an unobserved interval.
+Motion evidence is saved in a finally block even when endpoint or closure checks
+fail. Bounded native key pulses release their keys before polled endpoint reads,
+so delayed tracing cannot keep movement pressed throughout the observation.

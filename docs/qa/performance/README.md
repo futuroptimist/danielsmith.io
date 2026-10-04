@@ -379,3 +379,59 @@ passive versions require the passive-stop source; historical v2 remains accepted
 with its original route label. Detailed results remain ignored, with only reviewed
 high-level metrics and
 source/profile/archive identities copied into tracked history.
+
+## Door departure and shared-wall correction evidence
+
+The [capture profile](2026-10-03-door-wall-corrections/profile.json) and
+[reference records](2026-10-03-door-wall-corrections/references.json) retain the
+matched baseline, preceding stage and before-correction identities. Each source
+completed three controlled suites and three common routes; each corrected stage
+also has a separate three-attempt extension. Later test/QA-only descendants are
+not relabeled as measured commits. Detailed originals, screenshots and excluded
+attempts are durably archived; public metadata contains only filenames, sizes
+and checksums. Reproduce with the existing `perf:history` command from the recorded
+driver commit, writing to a new ignored directory.
+
+These are sequential software-WebGL observations. Ready-duration and dispatch
+ranges overlap their matched before-correction ranges; dispatch is not
+input-to-paint latency. Near-zero reference medians make percentage changes
+misleading without the absolute ranges. The rolling frame diagnostic is not an
+arrival-isolated sample and omits intervals of at least one second. Separate
+whole-route probes retain those stalls. No hardware timing or causal performance
+claim follows from these samples, and the launch budgets are unchanged.
+
+### Front-entry correction
+
+[Entry metrics](2026-10-03-door-wall-corrections/entry.json) measure `02fe6cd8`.
+The common route has 2,147 movement steps; exterior v2 has 16 checkpoints and
+6,875 steps per attempt. Worst launch counts are 116 calls, 4,892 triangles,
+71 geometries and 7 textures, with unchanged median counts against the
+before-correction source. The extension returns with 687–692 resident geometries;
+route residency is distinct from the 125-geometry launch ceiling.
+
+### Attached-garage correction
+
+[Garage metrics](2026-10-03-door-wall-corrections/garage.json) measure `e9814056`.
+Garage v3 completes 21 checkpoints and 8,553 movement steps per attempt, including
+the automatic-door return approach. Worst launch counts are 116 calls, 4,892
+triangles, 71 geometries and 7 textures; matched common launch counts are unchanged
+from before the correction. The extension returns with 738–742 geometries and
+17 textures. Its later capture window is separately recorded.
+
+### Residential-street correction
+
+[Street metrics](2026-10-03-door-wall-corrections/street.json) measure `5d55f7ce`.
+Street v3 completes 25 checkpoints and 11,171 movement steps per attempt. Worst
+common launch counts are 122 calls, 5,212 triangles, 74 geometries and 7 textures;
+matched median launch counts are unchanged from before the correction. The
+extension returns with 753–755 geometries and 18 textures.
+
+Across the full correction series, 33 controlled suites and 33 routes completed:
+132 software cases passed, 33 hardware cases were skipped, and all 282 checkpoint
+records retain their actual source and route identities. Three excluded series
+remain preserved: a completed garage run with overlapping artifact I/O, an
+interrupted street run, and a garage run whose third route could not launch after
+its browser-cache directory disappeared. Clean replacement garage/street series
+completed after reinstalling the same official Chromium build. Reported machine
+configuration matches, but physical-host continuity is unknown. Those extensions
+are separate populations; none of the excluded attempts enters the aggregates.
