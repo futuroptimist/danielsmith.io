@@ -137,9 +137,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/lighting/bakedLightmaps.ts',
     ],
     proxyFiles: [SELF_FILE],
-    syncRevision: 1,
+    syncRevision: 2,
     syncNote:
-      'Visible LED strips are represented as simplified fixture strips; invisible light contribution is excluded.',
+      'LED point lights follow scene detail policy; visible emissive strips and their miniature fixture geometry are unchanged.',
   },
   {
     id: 'decor:ceiling-panels',

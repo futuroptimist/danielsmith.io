@@ -13,16 +13,22 @@ import {
 } from 'three';
 
 import type { RectCollider } from '../collision';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
 import { createRequiredTightPoiCollider } from './poiColliderBounds';
 
 export interface GabrielSentryBuild {
   group: Group;
   colliders: RectCollider[];
+  setDynamicPointLightsEnabled(enabled: boolean): void;
   update(context: { elapsed: number; delta: number; emphasis: number }): void;
 }
 
 export interface GabrielSentryOptions {
+  detailPolicy?: SceneDetailPolicy;
   position: { x: number; y?: number; z: number };
   orientationRadians?: number;
 }
@@ -160,10 +166,15 @@ export function createGabrielSentry(
   beacon.position.y = 0.44;
   headGroup.add(beacon);
 
-  const beaconLight = new PointLight(0xff3a3a, 4.5, 6.5, 2.4);
-  beaconLight.name = 'GabrielSentryBeaconLight';
-  beaconLight.position.set(0, 0.64, 0);
-  headGroup.add(beaconLight);
+  const detailPolicy = options.detailPolicy ?? getSceneDetailPolicy('balanced');
+  const beaconLight = detailPolicy.effects.dynamicPointLights
+    ? new PointLight(0xff3a3a, 4.5, 6.5, 2.4)
+    : null;
+  if (beaconLight) {
+    beaconLight.name = 'GabrielSentryBeaconLight';
+    beaconLight.position.set(0, 0.64, 0);
+    headGroup.add(beaconLight);
+  }
 
   const shieldMaterial = new MeshStandardMaterial({
     color: new Color(0x101828),
@@ -237,11 +248,12 @@ export function createGabrielSentry(
     const scaled = MathUtils.lerp(0.4, 1.4, flashIntensity);
     beaconMaterial.emissiveIntensity =
       scaled * MathUtils.lerp(1, 1.8, emphasis);
-    beaconLight.intensity = MathUtils.lerp(
-      2.5,
-      9,
-      flashIntensity * (0.6 + emphasis)
-    );
+    if (beaconLight)
+      beaconLight.intensity = MathUtils.lerp(
+        2.5,
+        9,
+        flashIntensity * (0.6 + emphasis)
+      );
     scannerMaterial.emissiveIntensity = MathUtils.lerp(
       0.4,
       1.1,
@@ -268,5 +280,12 @@ export function createGabrielSentry(
     })
   );
 
-  return { group, colliders, update };
+  return {
+    group,
+    colliders,
+    update,
+    setDynamicPointLightsEnabled(enabled) {
+      if (beaconLight) beaconLight.visible = enabled;
+    },
+  };
 }

@@ -1,3 +1,5 @@
+import { getSceneDetailPolicy } from './sceneDetailPolicy';
+
 export type GraphicsQualityLevel = 'cinematic' | 'balanced' | 'performance';
 
 export interface GraphicsQualityPresetDefinition {
@@ -83,6 +85,7 @@ export interface LedMaterialLike {
 }
 
 export interface LedLightLike {
+  visible?: boolean;
   intensity: number;
 }
 
@@ -239,6 +242,9 @@ export function createGraphicsQualityManager({
     });
 
     ledLightEntries.forEach(({ target, baseIntensity }) => {
+      // Visibility excludes the light from renderer collection even if an animator
+      // or accessibility preset subsequently changes its intensity.
+      target.visible = getSceneDetailPolicy(level).effects.dynamicPointLights;
       target.intensity = baseIntensity * preset.led.lightScale;
     });
   }
