@@ -16,6 +16,10 @@ import {
   type RoomCategory,
 } from '../../assets/floorPlan';
 import { getWallOutwardDirection } from '../../assets/floorPlan/wallSegments';
+import {
+  getSceneDetailPolicy,
+  type SceneDetailPolicy,
+} from '../graphics/sceneDetailPolicy';
 
 import type {
   SeasonalLightingFillLightTarget,
@@ -43,6 +47,7 @@ export interface RoomLedStripBuild {
 }
 
 export interface RoomLedStripOptions {
+  readonly detailPolicy?: SceneDetailPolicy;
   readonly plan: FloorPlanDefinition;
   readonly getRoomCategory: (roomId: string) => RoomCategory;
   readonly ledHeight: number;
@@ -98,6 +103,7 @@ function createCornerOffsets(
 export function createRoomLedStrips(
   options: RoomLedStripOptions
 ): RoomLedStripBuild {
+  const detailPolicy = options.detailPolicy ?? getSceneDetailPolicy('balanced');
   const stripThickness = options.stripThickness ?? LED_STRIP_THICKNESS;
   const stripDepth = options.stripDepth ?? LED_STRIP_DEPTH;
   const edgeBuffer = options.edgeBuffer ?? LED_STRIP_EDGE_BUFFER;
@@ -137,47 +143,51 @@ export function createRoomLedStrips(
     roomGroups.set(room.id, roomGroup);
     stripMeshesByRoom.set(room.id, []);
 
-    const roomCenterX = (room.bounds.minX + room.bounds.maxX) / 2;
-    const roomCenterZ = (room.bounds.minZ + room.bounds.maxZ) / 2;
-    const roomWidth = room.bounds.maxX - room.bounds.minX;
-    const roomDepth = room.bounds.maxZ - room.bounds.minZ;
+    const fillTargets: SeasonalLightingFillLightTarget[] = [];
+    if (detailPolicy.effects.dynamicPointLights) {
+      const roomCenterX = (room.bounds.minX + room.bounds.maxX) / 2;
+      const roomCenterZ = (room.bounds.minZ + room.bounds.maxZ) / 2;
+      const roomWidth = room.bounds.maxX - room.bounds.minX;
+      const roomDepth = room.bounds.maxZ - room.bounds.minZ;
 
-    const centerLight = new PointLight(
-      emissiveColor,
-      options.fillLightIntensity,
-      Math.max(roomWidth, roomDepth) * CENTER_LIGHT_RANGE_SCALE,
-      2
-    );
-    centerLight.position.set(
-      roomCenterX,
-      options.ledHeight - FILL_LIGHT_HEIGHT_OFFSET,
-      roomCenterZ
-    );
-    centerLight.castShadow = false;
-    fillLightGroup.add(centerLight);
-    fillLights.push(centerLight);
-    fillLightsByRoom.set(room.id, centerLight);
-
-    const fillTargets: SeasonalLightingFillLightTarget[] = [
-      { light: centerLight, baseIntensity: centerLight.intensity },
-    ];
-
-    createCornerOffsets(room.bounds, options.ledHeight).forEach((offset) => {
-      const cornerLight = new PointLight(
+      const centerLight = new PointLight(
         emissiveColor,
-        options.fillLightIntensity * CORNER_LIGHT_INTENSITY_SCALE,
-        Math.max(roomWidth, roomDepth) * CORNER_LIGHT_RANGE_SCALE,
+        options.fillLightIntensity,
+        Math.max(roomWidth, roomDepth) * CENTER_LIGHT_RANGE_SCALE,
         2
       );
-      cornerLight.position.copy(offset);
-      cornerLight.castShadow = false;
-      fillLightGroup.add(cornerLight);
-      fillLights.push(cornerLight);
+      centerLight.position.set(
+        roomCenterX,
+        options.ledHeight - FILL_LIGHT_HEIGHT_OFFSET,
+        roomCenterZ
+      );
+      centerLight.castShadow = false;
+      fillLightGroup.add(centerLight);
+      fillLights.push(centerLight);
+      fillLightsByRoom.set(room.id, centerLight);
+
       fillTargets.push({
-        light: cornerLight,
-        baseIntensity: cornerLight.intensity,
+        light: centerLight,
+        baseIntensity: centerLight.intensity,
       });
-    });
+
+      createCornerOffsets(room.bounds, options.ledHeight).forEach((offset) => {
+        const cornerLight = new PointLight(
+          emissiveColor,
+          options.fillLightIntensity * CORNER_LIGHT_INTENSITY_SCALE,
+          Math.max(roomWidth, roomDepth) * CORNER_LIGHT_RANGE_SCALE,
+          2
+        );
+        cornerLight.position.copy(offset);
+        cornerLight.castShadow = false;
+        fillLightGroup.add(cornerLight);
+        fillLights.push(cornerLight);
+        fillTargets.push({
+          light: cornerLight,
+          baseIntensity: cornerLight.intensity,
+        });
+      });
+    }
 
     seasonalTargets.push({
       roomId: room.id,

@@ -108,6 +108,14 @@ export interface PortfolioApi {
     };
   };
   graphics?: {
+    getDecorativeLightingState?(): {
+      ledPointLights: number;
+      visibleLedPointLights: number;
+      emissiveLedMaterials: number;
+      gabrielPointLights: number;
+      visibleGabrielPointLights: number;
+      gabrielBeaconEmissiveIntensity: number;
+    };
     getLevel?(): string;
     setLevel?(level: string): void;
     getMotionBlurIntensity(): number;

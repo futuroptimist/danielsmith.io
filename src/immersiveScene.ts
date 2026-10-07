@@ -22,7 +22,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from 'three';
-import type { Object3D } from 'three';
+import type { Object3D, Mesh, CylinderGeometry } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -2481,6 +2481,7 @@ function buildImmersiveScene(
 
   if (LIGHTING_OPTIONS.enableLedStrips) {
     const ledBuild = createRoomLedStrips({
+      detailPolicy: activeSceneDetailPolicy,
       plan: FLOOR_PLAN,
       getRoomCategory,
       ledHeight: WALL_HEIGHT - CEILING_COVE_OFFSET,
@@ -3162,6 +3163,7 @@ function buildImmersiveScene(
 
     if (gabrielPoi) {
       const sentry = createGabrielSentry({
+        detailPolicy: activeSceneDetailPolicy,
         position: {
           x: gabrielPoi.group.position.x,
           y: gabrielPoi.group.position.y,
@@ -6269,6 +6271,27 @@ function buildImmersiveScene(
 
   const ensureGraphicsApi = () => {
     setPortfolioSection('graphics', {
+      getDecorativeLightingState() {
+        const beaconLight = gabrielSentry?.group.getObjectByName(
+          'GabrielSentryBeaconLight'
+        );
+        const beacon = gabrielSentry?.group.getObjectByName(
+          'GabrielSentryBeacon'
+        ) as Mesh<CylinderGeometry, MeshStandardMaterial> | undefined;
+        return {
+          ledPointLights: ledFillLightsList.length,
+          visibleLedPointLights: ledFillLightsList.filter(
+            (light) => light.visible
+          ).length,
+          emissiveLedMaterials: ledStripMaterials.filter(
+            (material) => material.emissiveIntensity > 0
+          ).length,
+          gabrielPointLights: beaconLight ? 1 : 0,
+          visibleGabrielPointLights: beaconLight?.visible ? 1 : 0,
+          gabrielBeaconEmissiveIntensity:
+            beacon?.material.emissiveIntensity ?? 0,
+        };
+      },
       getLevel() {
         return graphicsQualityManager?.getLevel() ?? 'balanced';
       },
@@ -6443,6 +6466,10 @@ function buildImmersiveScene(
     !softwareRendererPolicy.safeMode && getActivePostprocessingPassCount() > 0;
 
   unsubscribeGraphicsQuality = graphicsQualityManager.onChange((level) => {
+    // Apply before the reload handoff, including the no-reload fallback.
+    gabrielSentry?.setDynamicPointLightsEnabled(
+      getSceneDetailPolicy(level).effects.dynamicPointLights
+    );
     const previousSceneDetailLevel = sceneDetailController.getLevel();
     const reloadScene = previousSceneDetailLevel !== level;
     const adaptivePerformanceRecoveryLocked =

@@ -167,3 +167,18 @@ adaptive quality controller.
   overflow stays within a 1 px tolerance.
 - **Validation notes** – Run `npm run test:e2e -- --grep "text fallback"` alongside the standard
   format, lint, typecheck, Vitest, docs, and smoke checks before promoting the fallback layout.
+
+### Decorative point lights
+
+Room LED fill lights and the Gabriel beacon follow `effects.dynamicPointLights`.
+Performance mode constructs neither; LED strips and the beacon keep their emissive
+materials and animation. Balanced and Cinematic retain their original lights.
+Quality changes rebuild these construction-time details through the existing reload
+handoff. Existing lights are hidden immediately on downgrade so intensity animation
+cannot re-enable them while a reload is pending or unavailable. If the reload handoff
+is unavailable, upgrading a scene built without lights requires a reload to restore them.
+
+`window.portfolio.graphics.getDecorativeLightingState()` reports constructed and visible
+light counts plus emissive-state checks for browser regression tests. These counts are
+not FPS measurements. Device acceptance should compare the same main-house, basement,
+and street route, camera, quality setting, browser, and thermal conditions on the tablet.

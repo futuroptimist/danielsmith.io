@@ -348,9 +348,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Decorative beacon point lighting follows scene detail policy; emissive beacon and miniature geometry are unchanged.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [

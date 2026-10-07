@@ -57,7 +57,7 @@ jobs:
         run: npx playwright install --with-deps chromium-headless-shell
       - name: House, museum, exterior, keyboard, and small-screen traversal
         run: >-
-          npm run test:e2e -- playwright/immersive-stairs-roundtrip.spec.ts
+          npm run test:e2e -- playwright/decorative-lighting.spec.ts playwright/immersive-stairs-roundtrip.spec.ts
           playwright/immersive-basement-roundtrip.spec.ts
           playwright/immersive-career-museum.spec.ts
           playwright/immersive-exterior-doors.spec.ts
