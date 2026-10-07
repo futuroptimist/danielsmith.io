@@ -1,19 +1,19 @@
 import { Mesh, MeshStandardMaterial, PointLight, type Object3D } from 'three';
 import { describe, expect, it } from 'vitest';
 
-import { FLOOR_PLAN } from '../assets/floorPlan';
-import { createGraphicsQualityManager } from '../scene/graphics/qualityManager';
+import { FLOOR_PLAN } from '../../../assets/floorPlan';
+import { createGraphicsQualityManager } from '../../graphics/qualityManager';
 import {
   getSceneDetailPolicy,
   ORDERED_SCENE_DETAIL_LEVELS,
-} from '../scene/graphics/sceneDetailPolicy';
+} from '../../graphics/sceneDetailPolicy';
+import { createGabrielSentry } from '../../structures/gabrielSentry';
 import {
   createLedAnimator,
   ROOM_LED_PULSE_PROGRAMS,
-} from '../scene/lighting/ledPulsePrograms';
-import { createRoomLedStrips } from '../scene/lighting/ledStrips';
-import { applySeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
-import { createGabrielSentry } from '../scene/structures/gabrielSentry';
+} from '../ledPulsePrograms';
+import { createRoomLedStrips } from '../ledStrips';
+import { applySeasonalLightingPreset } from '../seasonalPresets';
 
 const options = {
   plan: FLOOR_PLAN,
