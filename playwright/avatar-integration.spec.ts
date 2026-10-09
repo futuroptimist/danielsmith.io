@@ -71,6 +71,34 @@ test('asset failure keeps the existing mannequin available', async ({
   await expect(page.locator('[data-avatar-chair-control]')).toBeHidden();
 });
 
+test('leaving immersive mode during avatar loading does not attach to a disposed scene', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/daniel-animated-avatar.glb', async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto(url);
+  await page.waitForFunction(() =>
+    Boolean(window.portfolio?.avatar?.getAnimationState)
+  );
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('t');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-app-mode',
+    'fallback'
+  );
+  release();
+  await page.waitForTimeout(250);
+  expect(errors).toEqual([]);
+});
+
 test('reduced motion supports the other lounge and reading chair without trapping movement', async ({
   page,
 }) => {

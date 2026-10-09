@@ -118,6 +118,7 @@ import {
   PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
   createPortfolioMannequin,
 } from './scene/avatar/mannequin';
+import { prepareAvatarRendering } from './scene/avatar/prepareRendering';
 import {
   createAvatarVariantManager,
   type AvatarVariantManager,
@@ -3510,6 +3511,7 @@ function buildImmersiveScene(
   const player = mannequin.group;
   let mannequinHeight = mannequin.height;
   let animatedAvatar: AnimatedAvatar | null = null;
+  const avatarPreparation = new AbortController();
   if (pendingPlayerPosition) {
     player.position.copy(pendingPlayerPosition);
   } else {
@@ -7213,6 +7215,7 @@ function buildImmersiveScene(
     lowFpsRecoveryPopup?.remove();
     lowFpsRecoveryPopup = null;
     immersiveDisposed = true;
+    avatarPreparation.abort();
     animatedAvatar?.dispose();
     animatedAvatar = null;
     ledAnimator = null;
@@ -7510,8 +7513,29 @@ function buildImmersiveScene(
   // Keep the complete placeholder until the approved replacement passes rig/clip/scale validation.
   void getAvatarAssetPipeline()
     .load({ url: DANIEL_AVATAR_URL, requiredAnimations: AVATAR_CLIPS })
-    .then((asset) => {
+    .then(async (asset) => {
       const replacement = createAnimatedAvatar(asset);
+      if (immersiveDisposed) {
+        replacement.dispose();
+        return;
+      }
+      try {
+        if (
+          !(await prepareAvatarRendering(
+            renderer,
+            replacement.model,
+            camera,
+            scene,
+            avatarPreparation.signal
+          ))
+        ) {
+          replacement.dispose();
+          return;
+        }
+      } catch (error) {
+        replacement.dispose();
+        throw error;
+      }
       if (immersiveDisposed) {
         replacement.dispose();
         return;

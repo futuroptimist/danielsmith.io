@@ -250,11 +250,12 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: [
       'src/scene/avatar/animatedAvatar.ts',
       'src/scene/avatar/chairController.ts',
+      'src/scene/avatar/prepareRendering.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     reason:
-      'The moving player, shared gait speeds, and chair interaction states are excluded from static miniature architecture; chair proxy geometry is unchanged.',
+      'The moving player, cancellable GPU preparation, shared gait speeds, and chair states are excluded from static miniature architecture; chair proxies are unchanged.',
   },
   {
     id: 'audit:src:scene:avatar:footIkController',

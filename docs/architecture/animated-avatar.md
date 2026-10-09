@@ -3,6 +3,8 @@
 The immersive player loads `public/assets/avatar/daniel-animated-avatar.glb` after validating its
 skin, required bones, clips, and unit scale. Loading or validation failure retains the existing
 mannequin. The text portfolio remains independent of the model download.
+GPU shaders and the pixel atlas are prepared before the visible swap. Parallel shader polling
+is cancellable on scene teardown and bounded to five seconds, retaining the mannequin on failure.
 
 The approved asset has 2,976 triangles, one skinned mesh/material, 20 bones, an embedded 128 px
 atlas, and a standing height of approximately 1.872 meters. Runtime uses nearest filtering.
