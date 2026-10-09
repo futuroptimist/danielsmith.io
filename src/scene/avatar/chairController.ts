@@ -92,7 +92,11 @@ export function createChairController(options: {
   const rootAtSeat = (target: ChairAnchor) =>
     target.seat
       .clone()
-      .addScaledVector(target.forward, 0.395)
+      // Taller cushions need a forward perch so grounded knees clear the front edge.
+      .addScaledVector(
+        target.forward,
+        0.395 + Math.max(0, target.seat.y - target.floorY - 0.4)
+      )
       .setY(target.floorY);
   const nearest = (floor: FloorId) =>
     options.chairs

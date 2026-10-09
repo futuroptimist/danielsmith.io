@@ -57,7 +57,7 @@ describe('chair transitions', () => {
     expect(f.controller.interact('ground')).toBe(true);
     f.tick();
     expect(f.controller.getSnapshot().phase).toBe('seated');
-    expect(f.player.position.z).toBeCloseTo(-0.395);
+    expect(f.player.position.z).toBeCloseTo(-0.465);
     expect(f.controller.getAnimation()?.offsetY).toBeCloseTo(0.07);
     expect(f.controller.interact('ground')).toBe(true);
     f.tick();

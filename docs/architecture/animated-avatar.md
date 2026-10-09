@@ -37,6 +37,8 @@ The two living-room lounge chairs and the studio reading chair expose seat ancho
 from their actual transforms and cushion heights (0.47 m and 0.62 m). The authored animation's
 0.40 m cushion height and 0.395 m hip retreat are compensated at runtime. Other furniture keeps
 its existing interaction behavior until individual seat and clearance metadata is supplied.
+Taller cushions shift the seated root forward by the extra height so grounded knees clear the
+front edge instead of passing through the cushion.
 
 Near a supported chair, use the displayed **Sit in chair (Interact)** button or the existing
 Interact binding. The controller approaches a clear standing point, enters the seat, holds the

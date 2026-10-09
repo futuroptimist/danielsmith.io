@@ -378,11 +378,11 @@
         "src/systems/movement/avatarGait.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "The moving player, cancellable GPU preparation, shared gait speeds, and chair states are excluded from static miniature architecture; chair proxies are unchanged.",
-      "sourceFingerprint": "8c8882a3626f04f8ffb6d8531fa43bb4f47d75f8f3db82fe5313ac156a9817ed",
+      "syncRevision": 4,
+      "syncNote": "The moving player, GPU preparation, gait speeds, and height-aware seated poses are excluded from static miniature architecture; chair proxies are unchanged.",
+      "sourceFingerprint": "a8c9a5cf0d389df45601812234f8dbea607e06ae2671c23247ba8864fc1d3b84",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "bf63787f4973c8553279268352ee2060714a03433cdf2a629bb7db011b589ccb"
+      "metadataFingerprint": "6a64f78907246e828bb4ccbb6c68aa8d943b4313ad6b6eeaa69d0b30b396afcc"
     },
     {
       "id": "avatar:overworld-player",

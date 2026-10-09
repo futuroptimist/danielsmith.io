@@ -3,6 +3,9 @@ import { readFileSync } from 'node:fs';
 import {
   AnimationClip,
   Bone,
+  Group,
+  Mesh,
+  BoxGeometry,
   NumberKeyframeTrack,
   Vector3,
   Texture,
@@ -18,9 +21,66 @@ import {
   groundSeatedLeg,
   normalizeAvatarClip,
 } from '../scene/avatar/animatedAvatar';
+import {
+  collectChairAnchors,
+  createChairController,
+} from '../scene/avatar/chairController';
 import { createAvatarImporter } from '../scene/avatar/importer';
+import { createLowerFloorFurnishings } from '../scene/structures/lowerFloorFurnishings';
 
 describe('approved animated avatar', () => {
+  it('keeps grounded knees clear of the actual tall reading-chair cushion', async () => {
+    const loader = new GLTFLoader();
+    loader.register(() => ({
+      name: 'TestTexture',
+      loadTexture: async () => new Texture(),
+    }));
+    const bytes = readFileSync(
+      'public/assets/avatar/daniel-animated-avatar.glb'
+    );
+    const importer = createAvatarImporter({
+      createLoader: () => ({
+        loadAsync: () => loader.parseAsync(new Uint8Array(bytes).buffer, ''),
+      }),
+    });
+    const asset = await importer.load({ url: 'fixture' });
+    const avatar = createAnimatedAvatar(asset);
+    const furniture = createLowerFloorFurnishings().group;
+    const chair = collectChairAnchors(furniture).find(
+      (c) => c.id === 'studio-reading-chair'
+    )!;
+    const cushion = furniture.getObjectByName(
+      'FurnishingPart:readingChairCushion'
+    ) as Mesh<BoxGeometry>;
+    const player = new Group();
+    player.add(avatar.model);
+    player.position.copy(chair.approach);
+    const controller = createChairController({
+      player,
+      chairs: [chair],
+      canOccupy: () => true,
+      duration: avatar.duration,
+    });
+    controller.interact('ground');
+    for (let i = 0; i < 100; i++) {
+      controller.update(0.05, false);
+      avatar.update(0.05, 0, 0, false, controller.getAnimation(), chair.floorY);
+    }
+    expect(controller.getSnapshot().phase).toBe('seated');
+    for (const side of ['L', 'R']) {
+      const knee = asset.bones
+        .get(`LowerLeg${side}`)!
+        .getWorldPosition(new Vector3());
+      const localKnee = cushion.worldToLocal(knee);
+      expect(localKnee.z).toBeLessThan(
+        -cushion.geometry.parameters.depth / 2 - 0.06
+      );
+      expect(
+        asset.bones.get(`Foot${side}`)!.getWorldPosition(new Vector3()).y
+      ).toBeCloseTo(chair.floorY + 0.12, 2);
+    }
+    avatar.dispose();
+  });
   it('binds the actual exported tracks and freezes locomotion for reduced motion', async () => {
     const loader = new GLTFLoader();
     loader.register(() => ({
