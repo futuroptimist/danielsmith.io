@@ -1,13 +1,18 @@
 import { expect, test } from '@playwright/test';
 
 import { readyExterior } from './helpers/exteriorJourney';
-import { pressNativeMovementChord } from './helpers/nativeMovementChord';
+import {
+  pressNativeMovementChord,
+  selectNativeRunGait,
+  runHoldForDistance,
+} from './helpers/nativeMovementChord';
 
 test('walks at native full speed both ways below the upper staircase and retains ground height', async ({
   page,
 }) => {
   test.setTimeout(120_000);
   await readyExterior(page);
+  await selectNativeRunGait(page);
   await page.evaluate(() =>
     window.portfolio!.world!.movePlayerTo({ x: 23, z: -23, floorId: 'ground' })
   );
@@ -38,7 +43,11 @@ test('walks at native full speed both ways below the upper staircase and retains
   });
   let samples;
   try {
-    await pressNativeMovementChord(page, ['KeyW', 'KeyA'], 2000);
+    await pressNativeMovementChord(
+      page,
+      ['KeyW', 'KeyA'],
+      runHoldForDistance(24)
+    );
     let west = await page.evaluate(() =>
       window.portfolio!.world!.getPlayerPosition()
     );
@@ -52,7 +61,11 @@ test('walks at native full speed both ways below the upper staircase and retains
     expect(west.x).toBeLessThan(9);
     expect(west.x).toBeGreaterThan(7);
     expect(west.z).toBeCloseTo(-23, 0);
-    await pressNativeMovementChord(page, ['KeyS', 'KeyD'], 2000);
+    await pressNativeMovementChord(
+      page,
+      ['KeyS', 'KeyD'],
+      runHoldForDistance(24)
+    );
     let east = await page.evaluate(() =>
       window.portfolio!.world!.getPlayerPosition()
     );

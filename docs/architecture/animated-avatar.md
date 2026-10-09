@@ -24,6 +24,8 @@ the chosen gait. The controls and help list include the shortcut.
 
 Reduced motion retains movement control but presents a stable idle pose; seating transitions
 snap between validated positions. Camera framing and mirror height use the loaded model height.
+The existing controller collision radius and height remain unchanged so replacing the visual
+asset cannot open unsafe low-headroom routes below stairs.
 Placeholder foot offsets are detached for the skeletal model. Seated foot grounding rotates
 the two-bone leg chains while retaining bone lengths.
 

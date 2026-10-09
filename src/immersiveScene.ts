@@ -4629,7 +4629,7 @@ function buildImmersiveScene(
               : colliders,
             {
               feetY: chair.floorY,
-              height: mannequinHeight,
+              height: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
               activeConnectionId: null,
             }
           )
@@ -5000,7 +5000,8 @@ function buildImmersiveScene(
         candidate.floorId === floorId
           ? floorConnections.sampleHeight(x, z, candidate)
           : floorRegistry.get(floorId).elevation,
-      height: mannequinHeight,
+      // Asset proportions must not widen the authored low-headroom traversal envelope.
+      height: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
       activeConnectionId:
         candidate.floorId === floorId ? candidate.activeConnectionId : null,
     };

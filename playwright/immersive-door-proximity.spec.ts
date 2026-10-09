@@ -13,7 +13,11 @@ import {
   waitDoor,
   walkExteriorTo,
 } from './helpers/exteriorJourney';
-import { pressNativeMovementChord } from './helpers/nativeMovementChord';
+import {
+  pressNativeMovementChord,
+  selectNativeRunGait,
+  runHoldForDistance,
+} from './helpers/nativeMovementChord';
 
 const approaches = createExteriorDoorDefinitions(2).map((definition) => ({
   ...definition,
@@ -95,6 +99,7 @@ for (const door of approaches) {
         await walkExteriorTo(page, { x: door.x + side * 6, z: door.z });
         await waitDoor(page, door.id, 'closed');
         await page.locator('#app canvas').focus();
+        await selectNativeRunGait(page);
         await recordDoorMotion(page, door.id);
         let state:
           | {
@@ -120,7 +125,7 @@ for (const door of approaches) {
         const codes =
           side < 0 ? (['KeyS', 'KeyD'] as const) : (['KeyW', 'KeyA'] as const);
         try {
-          await pressNativeMovementChord(page, codes, 1000);
+          await pressNativeMovementChord(page, codes, runHoldForDistance(12));
           state = await readState();
           initialDepartureDistance = (state.position.x - door.x) * -side;
           // The uninterrupted input must already establish the crossing.

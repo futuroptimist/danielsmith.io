@@ -13,6 +13,8 @@ import {
   type Object3D,
 } from 'three';
 
+import { AVATAR_RUN_SPEED } from '../../systems/movement/avatarGait';
+
 import type { AvatarImportResult } from './importer';
 import { createAvatarLocomotionAnimator } from './locomotionAnimator';
 import type { PortfolioMannequinPalette } from './mannequin';
@@ -26,8 +28,10 @@ export const AVATAR_CLIPS = [
   'Seated',
   'StandUp',
 ] as const;
-export const AVATAR_WALK_SPEED = 1.1;
-export const AVATAR_RUN_SPEED = 2.5;
+export {
+  AVATAR_WALK_SPEED,
+  AVATAR_RUN_SPEED,
+} from '../../systems/movement/avatarGait';
 export type SeatAnimation = 'SitDown' | 'Seated' | 'StandUp';
 
 /** Blender actions start at frame one. Shift every track by the same origin, not individually. */

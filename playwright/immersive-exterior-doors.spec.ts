@@ -11,7 +11,11 @@ import {
   waitDoor,
   walkExteriorTo,
 } from './helpers/exteriorJourney';
-import { pressNativeMovementChord } from './helpers/nativeMovementChord';
+import {
+  pressNativeMovementChord,
+  selectNativeRunGait,
+  runHoldForDistance,
+} from './helpers/nativeMovementChord';
 
 const button = '[data-exterior-door-control]';
 
@@ -321,6 +325,7 @@ for (const key of ['w', 'h'] as const) {
 }
 
 async function crossFrontDoorWithNativeChord(page: Page, label: string) {
+  await selectNativeRunGait(page);
   // Keep the current button/HUD focus: that ownership is part of the regression.
   // Playwright dispatches each chord event sequentially. Record native event
   // delivery and actual poses so slow-renderer failures are readable in CI logs.
@@ -395,7 +400,11 @@ async function crossFrontDoorWithNativeChord(page: Page, label: string) {
   let diagnostics;
   try {
     while (position.x <= 35 && Date.now() < deadline) {
-      await pressNativeMovementChord(page, ['KeyS', 'KeyD'], 160);
+      await pressNativeMovementChord(
+        page,
+        ['KeyS', 'KeyD'],
+        runHoldForDistance(1.92)
+      );
       chords++;
       position = await page.evaluate(() =>
         window.portfolio!.world!.getPlayerPosition()
