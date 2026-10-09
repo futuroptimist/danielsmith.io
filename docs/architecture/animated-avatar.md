@@ -23,6 +23,8 @@ and loop duration (reference stride speeds 0.85446 and 1.57199), reducing foot s
 gait, independent of the operating system's Caps Lock state. Key repeat cannot toggle again.
 Text inputs and settings retain their keys. Losing focus clears the held-key latch and preserves
 the chosen gait. The controls and help list include the shortcut.
+The gait shortcut yields when Caps Lock is assigned to any configurable action. Automatic doors
+use the same maximum run speed as movement when calculating proximity lead and opening motion.
 
 Reduced motion retains movement control but presents a stable idle pose; seating transitions
 snap between validated positions. Camera framing and mirror height use the loaded model height.
@@ -46,6 +48,9 @@ seated pose, and stands on interaction or movement input. Movement cancels an un
 Every transition samples its path against the current floor and colliders. Only the chosen
 chair's collider is excluded during entry/exit; neighboring furniture and doors remain solid.
 Exit candidates are rechecked before standing. An obstructed exit leaves the player seated.
+Graphics reloads persist a checked standing position rather than the seated root; if all nearby
+standing points are blocked, reload uses the default spawn. The accessory owner retains the
+loaded avatar's drone baseline across animation updates.
 
 ## Validation
 

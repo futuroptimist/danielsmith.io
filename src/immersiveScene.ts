@@ -1056,6 +1056,8 @@ function buildImmersiveScene(
     initialSceneDetailLevel
   );
   let activeSceneDetailPolicy = getSceneDetailPolicy(initialSceneDetailLevel);
+  let getReloadPlayerPosition: () => PendingPlayerPosition | undefined = () =>
+    undefined;
   const applySceneDetailLevel = (
     level: GraphicsQualityLevel,
     options: {
@@ -1073,14 +1075,7 @@ function buildImmersiveScene(
         adaptivePerformanceRecoveryLocked:
           options.adaptivePerformanceRecoveryLocked === true,
       } satisfies PendingSceneDetailReload;
-      const playerPosition =
-        typeof player !== 'undefined'
-          ? {
-              x: player.position.x,
-              y: player.position.y,
-              z: player.position.z,
-            }
-          : undefined;
+      const playerPosition = getReloadPlayerPosition();
       const didPersistPlayerPosition = playerPosition
         ? persistPendingPlayerPosition(playerPosition)
         : false;
@@ -4608,7 +4603,9 @@ function buildImmersiveScene(
     document.documentElement.dataset.accessibilityMotion === 'reduced' ||
     getPulseScale() === 0;
   const gaitToggle = createGaitToggle(window, {
-    canToggle: () => hudPanelCoordinator?.getActivePanel() !== 'settings',
+    canToggle: (event) =>
+      hudPanelCoordinator?.getActivePanel() !== 'settings' &&
+      !bindingActions.some((action) => matchesKeyBinding(event, action)),
     onChange: () => refreshAvatarControls(),
   });
   exteriorCleanup.add(() => gaitToggle.dispose());
@@ -4639,6 +4636,8 @@ function buildImmersiveScene(
       );
     },
   });
+  getReloadPlayerPosition = () =>
+    chairController.getReloadPosition() ?? undefined;
   const chairButton = document.createElement('button');
   chairButton.type = 'button';
   chairButton.className = 'avatar-chair-control';
@@ -4740,7 +4739,7 @@ function buildImmersiveScene(
         reducedMotionQuery.matches ||
           document.documentElement.dataset.accessibilityMotion === 'reduced' ||
           getPulseScale() === 0,
-        { maximumSpeed: PLAYER_SPEED, movement }
+        { maximumSpeed: AVATAR_RUN_SPEED, movement }
       );
       if (state.blocked) doorColliders.push(door.definition.blockingBounds);
       if (doorBlockerStates.get(door.definition.id) !== state.blocked) {
@@ -7553,7 +7552,7 @@ function buildImmersiveScene(
       const drone = player.getObjectByName('MannequinAccessoryHoloDrone');
       if (drone) {
         player.add(drone);
-        drone.position.y = 1.6;
+        avatarAccessorySuite?.setBaseHeight('holo-drone', 1.6);
       }
       locomotionAnimator?.dispose();
       locomotionAnimator = null;

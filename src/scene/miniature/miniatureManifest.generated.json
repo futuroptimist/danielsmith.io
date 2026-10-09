@@ -378,11 +378,11 @@
         "src/systems/movement/avatarGait.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 4,
-      "syncNote": "The moving player, GPU preparation, gait speeds, and height-aware seated poses are excluded from static miniature architecture; chair proxies are unchanged.",
-      "sourceFingerprint": "a8c9a5cf0d389df45601812234f8dbea607e06ae2671c23247ba8864fc1d3b84",
+      "syncRevision": 5,
+      "syncNote": "The moving player, GPU preparation, gait speeds, seated poses and safe reload positions are excluded from static miniature architecture; chair proxies are unchanged.",
+      "sourceFingerprint": "3e33a55ee5bc4bbb27b8f937e39a81aecba954a38693ba2622895fa120ae82b4",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "6a64f78907246e828bb4ccbb6c68aa8d943b4313ad6b6eeaa69d0b30b396afcc"
+      "metadataFingerprint": "fc6a801a346006f566d72f4fcdc1f37e208acd9ec01215b0d74732dd0706cf6c"
     },
     {
       "id": "avatar:overworld-player",
@@ -391,11 +391,11 @@
         "src/scene/avatar/mannequin.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 3,
-      "syncNote": "Avatar accessory display labels moved to i18n only; overworld player geometry remains unchanged.",
-      "sourceFingerprint": "fa872088ed6d6536cf96b07f5355ed95cdfcec5d60f9a74cf9917aa4a74a0d36",
+      "syncRevision": 4,
+      "syncNote": "Avatar accessory labels and runtime drone baseline updates do not affect the excluded overworld player geometry.",
+      "sourceFingerprint": "d6ee1d0169c2580291d172c1aa17fa796c916d6fce9ca92861d4466f965a8b79",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "48f4c25e8865df5d61469cda72c60d98122935cdf988007d10025ec337d5d918"
+      "metadataFingerprint": "cb4ae999fe7f6083c16efbe1aaff8828e82691fa48afadfc00e7d2554b6c58d2"
     },
     {
       "id": "career:museum-exhibits",

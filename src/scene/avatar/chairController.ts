@@ -113,16 +113,18 @@ export function createChairController(options: {
           player.position.distanceToSquared(a.approach) -
           player.position.distanceToSquared(b.approach)
       )[0] ?? null;
+  const standingCandidates = (target: ChairAnchor) => {
+    const side = new Vector3(target.forward.z, 0, -target.forward.x);
+    return [
+      target.approach,
+      target.approach.clone().add(side),
+      target.approach.clone().sub(side),
+    ];
+  };
   function requestExit(): boolean {
     if (!chair || phase !== 'seated') return false;
     // Recheck every exit; never teleport through a newly closed door or another solid.
-    const side = new Vector3(chair.forward.z, 0, -chair.forward.x);
-    const candidates = [
-      chair.approach,
-      chair.approach.clone().add(side),
-      chair.approach.clone().sub(side),
-    ];
-    const candidate = candidates.find(
+    const candidate = standingCandidates(chair).find(
       (p) =>
         canOccupy(p, chair!, false) &&
         segmentClear(player.position, p, chair!, true)
@@ -136,6 +138,16 @@ export function createChairController(options: {
   }
   return {
     nearest,
+    getReloadPosition(): Vector3 | null {
+      if (!chair || phase === 'free') return player.position.clone();
+      // Reload starts with normal collisions; never persist a root inside the seat.
+      // If every standing point is blocked, let the scene restore its default spawn.
+      return (
+        standingCandidates(chair)
+          .find((p) => canOccupy(p, chair!, false))
+          ?.clone() ?? null
+      );
+    },
     interact(floor: FloorId) {
       if (phase === 'seated') return requestExit();
       if (phase !== 'free') return false;

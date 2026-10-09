@@ -196,8 +196,19 @@ export const JA_OVERRIDES: LocaleOverrides = {
     },
 
     controlOverlay: {
+      avatar: {
+        walking: '歩行中 - 走る／歩くを切り替え',
+        running: '走行中 - 走る／歩くを切り替え',
+        sit: '椅子に座る（操作）',
+        stand: '立ち上がる（操作または移動）',
+        transition: '所定の位置に移動中。',
+      },
       heading: '操作',
       items: {
+        toggleGait: {
+          keys: 'Caps Lock',
+          description: '走る／歩くを切り替え（初期状態は歩く）',
+        },
         keyboardMove: {
           keys: 'WASD / 矢印キー',
           description: '移動',

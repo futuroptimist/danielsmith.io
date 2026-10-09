@@ -1,4 +1,5 @@
 import type {
+  ControlOverlayStrings,
   HelpModalSectionStrings,
   Locale,
   LocaleOverrides,
@@ -102,6 +103,8 @@ const localizedTemplates: Record<
     projectCategory: string;
     environmentCategory: string;
     roomHeadingTemplate: string;
+    avatar: ControlOverlayStrings['avatar'];
+    toggleGait: ControlOverlayStrings['items']['toggleGait'];
     keyboardMove: string;
     pointerDrag: string;
     keyboardZoom: string;
@@ -146,6 +149,17 @@ const localizedTemplates: Record<
     projectCategory: 'Proyecto',
     environmentCategory: 'Entorno',
     roomHeadingTemplate: 'Exhibiciones de {roomName}',
+    avatar: {
+      walking: 'Caminando - alternar correr / caminar',
+      running: 'Corriendo - alternar correr / caminar',
+      sit: 'Sentarse en la silla (Interactuar)',
+      stand: 'Levantarse (Interactuar o moverse)',
+      transition: 'Colocándose en posición.',
+    },
+    toggleGait: {
+      keys: 'Bloq Mayús',
+      description: 'Alternar correr / caminar (empieza caminando)',
+    },
     keyboardMove: 'Mover',
     pointerDrag: 'Arrastrar para panorámica',
     keyboardZoom: 'Acercar o alejar con el teclado',
@@ -186,6 +200,17 @@ const localizedTemplates: Record<
     dspaceInteractionPrompt: 'Lanzar cuenta atrás de {title}',
   },
   pt: {
+    avatar: {
+      walking: 'Caminhando - alternar corrida / caminhada',
+      running: 'Correndo - alternar corrida / caminhada',
+      sit: 'Sentar na cadeira (Interagir)',
+      stand: 'Levantar (Interagir ou mover-se)',
+      transition: 'Ajustando a posição.',
+    },
+    toggleGait: {
+      keys: 'Caps Lock',
+      description: 'Alternar corrida / caminhada (começa caminhando)',
+    },
     githubStarsTemplate: '{value} estrelas',
     listNameTemplate: 'Exibições de {siteName}',
     textCollectionNameTemplate: 'Portfólio de texto de {siteName}',
@@ -233,6 +258,17 @@ const localizedTemplates: Record<
     dspaceInteractionPrompt: 'Iniciar contagem regressiva de {title}',
   },
   de: {
+    avatar: {
+      walking: 'Gehen - zwischen Laufen und Gehen wechseln',
+      running: 'Laufen - zwischen Laufen und Gehen wechseln',
+      sit: 'Auf den Stuhl setzen (Interagieren)',
+      stand: 'Aufstehen (Interagieren oder bewegen)',
+      transition: 'Position wird eingenommen.',
+    },
+    toggleGait: {
+      keys: 'Feststelltaste',
+      description: 'Laufen / Gehen umschalten (beginnt mit Gehen)',
+    },
     githubStarsTemplate: '{value} Sterne',
     listNameTemplate: '{siteName}-Exponate',
     textCollectionNameTemplate: '{siteName}-Textportfolio',
@@ -279,6 +315,17 @@ const localizedTemplates: Record<
     dspaceInteractionPrompt: '{title}-Countdown starten',
   },
   hu: {
+    avatar: {
+      walking: 'Séta - váltás futás és séta között',
+      running: 'Futás - váltás futás és séta között',
+      sit: 'Leülés a székre (Interakció)',
+      stand: 'Felállás (Interakció vagy mozgás)',
+      transition: 'Pozíció felvétele.',
+    },
+    toggleGait: {
+      keys: 'Caps Lock',
+      description: 'Váltás futás és séta között (kezdetben séta)',
+    },
     githubStarsTemplate: '{value} csillag',
     listNameTemplate: '{siteName} kiállításai',
     textCollectionNameTemplate: '{siteName} szöveges portfóliója',
@@ -865,7 +912,9 @@ export function buildLatinLocaleOverrides(
       ...buildSettingsHud(copy.locale, settingsCopies[copy.locale]),
       controlOverlay: {
         heading: s.controls,
+        avatar: templates.avatar,
         items: {
+          toggleGait: templates.toggleGait,
           keyboardMove: {
             description: templates.keyboardMove,
           },

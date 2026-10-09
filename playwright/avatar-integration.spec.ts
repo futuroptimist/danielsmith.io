@@ -23,6 +23,36 @@ test('approved avatar loads, gait toggles and nearby lounge seating exits safely
     'run'
   );
   await page.keyboard.press('CapsLock');
+  const beforeRemappedMove = await page.evaluate(() => {
+    window.portfolio!.input!.keyBindings!.setBinding('moveForward', [
+      'CapsLock',
+    ]);
+    return window.portfolio!.world!.getPlayerPosition();
+  });
+  await page.keyboard.down('CapsLock');
+  try {
+    expect(
+      await page.evaluate(() => window.portfolio?.avatar?.getGait?.())
+    ).toBe('walk');
+    await expect
+      .poll(() =>
+        page.evaluate((before) => {
+          const p = window.portfolio!.world!.getPlayerPosition();
+          return Math.hypot(p.x - before.x, p.z - before.z);
+        }, beforeRemappedMove)
+      )
+      .toBeGreaterThan(0.05);
+  } finally {
+    await page.keyboard.up('CapsLock');
+  }
+  await page.evaluate(() =>
+    window.portfolio!.input!.keyBindings!.resetBinding('moveForward')
+  );
+  await page.keyboard.press('CapsLock');
+  expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
+    'run'
+  );
+  await page.keyboard.press('CapsLock');
   await page.evaluate(() =>
     window.portfolio?.world?.movePlayerTo({
       x: -30.13,
@@ -55,6 +85,75 @@ test('approved avatar loads, gait toggles and nearby lounge seating exits safely
     .toBe('free');
   await page.screenshot({ path: 'test-results/avatar-standing.png' });
   expect(errors).toEqual([]);
+});
+
+test('changing quality while seated reloads at a clear standing position', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(url);
+  await page.waitForFunction(
+    () =>
+      (window.portfolio?.avatar?.getAnimationState?.() as { loaded?: boolean })
+        ?.loaded,
+    null,
+    { timeout: 60_000 }
+  );
+  await page.keyboard.press('Escape');
+  await page.evaluate(() =>
+    window.portfolio!.world!.movePlayerTo({
+      x: -30.13,
+      z: -22.8,
+      floorId: 'ground',
+    })
+  );
+  await page.locator('[data-avatar-chair-control]').click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.portfolio?.avatar?.getSeatingState?.().phase)
+    )
+    .toBe('seated');
+  await Promise.all([
+    page.waitForEvent('load'),
+    page.evaluate(() => {
+      const graphics = window.portfolio!.graphics as {
+        getLevel(): string;
+        setLevel(level: string): void;
+      };
+      graphics.setLevel(
+        graphics.getLevel() === 'performance' ? 'balanced' : 'performance'
+      );
+    }),
+  ]);
+  await page.waitForFunction(
+    () =>
+      (window.portfolio?.avatar?.getAnimationState?.() as { loaded?: boolean })
+        ?.loaded,
+    null,
+    { timeout: 60_000 }
+  );
+  expect(
+    await page.evaluate(
+      () => window.portfolio?.avatar?.getSeatingState?.().phase
+    )
+  ).toBe('free');
+  await page.keyboard.press('Escape');
+  const before = await page.evaluate(() =>
+    window.portfolio!.world!.getPlayerPosition()
+  );
+  await page.keyboard.down('w');
+  try {
+    await expect
+      .poll(() =>
+        page.evaluate((start) => {
+          const p = window.portfolio!.world!.getPlayerPosition();
+          return Math.hypot(p.x - start.x, p.z - start.z);
+        }, before)
+      )
+      .toBeGreaterThan(0.1);
+  } finally {
+    await page.keyboard.up('w');
+  }
 });
 
 test('asset failure keeps the existing mannequin available', async ({

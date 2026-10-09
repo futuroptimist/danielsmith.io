@@ -39,6 +39,7 @@ export interface AvatarAccessorySuite {
   setEnabled(id: AvatarAccessoryId, enabled: boolean): void;
   toggle(id: AvatarAccessoryId): void;
   applyPalette(palette: PortfolioMannequinPalette): void;
+  setBaseHeight(id: AvatarAccessoryId, height: number): void;
   update(context: AvatarAccessoryUpdateContext): void;
   dispose(): void;
 }
@@ -49,6 +50,7 @@ interface AvatarAccessoryInternal {
   enabled: boolean;
   readonly updatePalette: (palette: PortfolioMannequinPalette) => void;
   readonly update: (context: AvatarAccessoryUpdateContext) => void;
+  readonly setBaseHeight?: (height: number) => void;
   readonly dispose: () => void;
 }
 
@@ -234,7 +236,7 @@ function createHoloDrone(
   lens.position.z = 0.16;
   body.add(lens);
 
-  const baseY = droneAnchor.position.y;
+  let baseY = droneAnchor.position.y;
 
   const updatePalette = (palette: PortfolioMannequinPalette) => {
     const accent = new Color(palette.accent);
@@ -264,6 +266,10 @@ function createHoloDrone(
     definition: DEFINITIONS.find((def) => def.id === 'holo-drone')!,
     group: droneAnchor,
     enabled: false,
+    setBaseHeight(height) {
+      baseY = height;
+      droneAnchor.position.y = height;
+    },
     updatePalette,
     update,
     dispose: () => disposeGroup(droneAnchor),
@@ -332,6 +338,13 @@ export function createAvatarAccessorySuite({
     },
     applyPalette(nextPalette) {
       accessories.forEach((accessory) => accessory.updatePalette(nextPalette));
+    },
+    setBaseHeight(id, height) {
+      if (!Number.isFinite(height))
+        throw new RangeError('Accessory height must be finite.');
+      const accessory = getAccessory(id);
+      if (accessory.setBaseHeight) accessory.setBaseHeight(height);
+      else accessory.group.position.y = height;
     },
     update(context) {
       accessories.forEach((accessory) => {

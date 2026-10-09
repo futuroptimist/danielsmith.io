@@ -16,6 +16,35 @@ describe.each(createExteriorDoorDefinitions(2))(
       floorId: 'ground',
     });
     for (const side of [-1, 1]) {
+      it.each([1.1, 2.5])(
+        `clears the safety zone at gait speed %s from ${side}`,
+        (gaitSpeed) => {
+          const door = createDoorController(definition);
+          const person = occupant(definition.center.x + side * 6);
+          const delta = 1 / 60;
+          let reached = false;
+          for (let frame = 0; frame < 600; frame++) {
+            const movement = { x: -side * gaitSpeed * delta, z: 0 };
+            const state = door.update(delta, person, false, {
+              maximumSpeed: gaitSpeed,
+              movement,
+            });
+            person.x += movement.x;
+            if (
+              person.x + person.radius >= definition.threshold.minX &&
+              person.x - person.radius <= definition.threshold.maxX
+            ) {
+              expect(state.progress).toBeGreaterThanOrEqual(
+                definition.clearanceProgress
+              );
+              expect(state.blocked).toBe(false);
+              reached = true;
+              break;
+            }
+          }
+          expect(reached).toBe(true);
+        }
+      );
       for (const delta of [1 / 60, 0.1, 0.4, 1.5]) {
         it(`clears an uninterrupted maximum-speed approach from ${side} at ${delta}s`, () => {
           const door = createDoorController(definition);

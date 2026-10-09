@@ -193,8 +193,19 @@ export const AR_OVERRIDES: LocaleOverrides = {
     },
 
     controlOverlay: {
+      avatar: {
+        walking: 'مشي - التبديل بين الركض والمشي',
+        running: 'ركض - التبديل بين الركض والمشي',
+        sit: 'الجلوس على الكرسي (تفاعل)',
+        stand: 'الوقوف (تفاعل أو تحرك)',
+        transition: 'الانتقال إلى الموضع.',
+      },
       heading: 'عناصر التحكم',
       items: {
+        toggleGait: {
+          keys: 'قفل الأحرف الكبيرة',
+          description: 'التبديل بين الركض والمشي (يبدأ بالمشي)',
+        },
         keyboardMove: {
           keys: 'WASD / الأسهم',
           description: 'التحرك',

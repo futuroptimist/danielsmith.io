@@ -75,6 +75,16 @@ describe('chair transitions', () => {
     expect(f.player.position.equals(before)).toBe(true);
     expect(f.controller.getSnapshot().phase).toBe('seated');
   });
+  it('persists a clear standing position for seated reloads or falls back to spawn', () => {
+    const f = fixture();
+    f.controller.interact('ground');
+    f.tick();
+    const seated = f.player.position.clone();
+    expect(f.controller.getReloadPosition()?.z).toBeCloseTo(-1.55);
+    expect(f.player.position.equals(seated)).toBe(true);
+    f.block();
+    expect(f.controller.getReloadPosition()).toBeNull();
+  });
   it('cancels approach on movement, supports movement to stand, and skips transitions for reduced motion', () => {
     const f = fixture();
     f.controller.interact('ground');

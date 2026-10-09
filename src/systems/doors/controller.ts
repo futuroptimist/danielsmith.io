@@ -175,7 +175,15 @@ export function createDoorController(definition: DoorDefinition) {
                     (definition.width / 2 - occupant.radius)
                 )
               );
-        const clearanceDistance = definition.depth / 2 + occupant.radius;
+        // Clear before entering the authored safety zone, not only the thin panel collider.
+        const clearanceDistance =
+          Math.max(
+            definition.depth / 2,
+            Math.abs(definition.threshold.minX - definition.center.x),
+            Math.abs(definition.threshold.maxX - definition.center.x),
+            Math.abs(definition.sweep.minX - definition.center.x),
+            Math.abs(definition.sweep.maxX - definition.center.x)
+          ) + occupant.radius;
         const leadDistance =
           clearanceDistance +
           approach.maximumSpeed * definition.duration * clearancePhase;

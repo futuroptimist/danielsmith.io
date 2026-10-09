@@ -4,7 +4,7 @@ import { isUiOwnedKeyboardEvent } from './KeyboardControls';
 export function createGaitToggle(
   target: Window,
   options: {
-    canToggle?: () => boolean;
+    canToggle?: (event: KeyboardEvent) => boolean;
     onChange?: (running: boolean) => void;
   } = {}
 ) {
@@ -20,7 +20,7 @@ export function createGaitToggle(
       event.altKey ||
       event.metaKey ||
       isUiOwnedKeyboardEvent(event) ||
-      options.canToggle?.() === false
+      options.canToggle?.(event) === false
     )
       return;
     event.preventDefault();
