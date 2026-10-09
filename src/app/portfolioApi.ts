@@ -64,6 +64,13 @@ export interface PortfolioApi {
     setAccessoryEnabled(id: AvatarAccessoryId, enabled: boolean): void;
     toggleAccessory(id: AvatarAccessoryId): void;
     loadAsset?(options: AvatarAssetPipelineLoadOptions): Promise<unknown>;
+    getAnimationState?(): unknown;
+    getGait?(): 'walk' | 'run';
+    getSeatingState?(): {
+      phase: string;
+      chairId: string | null;
+      progress: number;
+    };
   };
   performance?: PerformanceDiagnosticsApi | PerformanceCrashBreadcrumbApi;
   githubMetrics?: {

@@ -2,6 +2,7 @@ import type { ControlOverlayItemStrings, ControlOverlayStrings } from './types';
 
 export const CONTROL_ITEM_IDS = [
   'keyboardMove',
+  'toggleGait',
   'pointerDrag',
   'pointerZoom',
   'keyboardZoom',

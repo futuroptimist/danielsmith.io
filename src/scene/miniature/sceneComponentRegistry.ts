@@ -245,6 +245,17 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },
   {
+    id: 'avatar:animated-player',
+    kind: 'excluded',
+    sourceFiles: [
+      'src/scene/avatar/animatedAvatar.ts',
+      'src/scene/avatar/chairController.ts',
+    ],
+    syncRevision: 1,
+    reason:
+      'The moving player and chair interaction states are not static miniature architecture; existing chair proxy geometry is unchanged.',
+  },
+  {
     id: 'audit:src:scene:avatar:footIkController',
     kind: 'excluded',
     sourceFiles: ['src/scene/avatar/footIkController.ts'],

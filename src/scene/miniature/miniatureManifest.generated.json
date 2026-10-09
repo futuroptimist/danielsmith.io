@@ -370,6 +370,19 @@
       "metadataFingerprint": "ed03775f7767039cc7e46e90167540c16679b8f724e2e8661724ffbb697c0761"
     },
     {
+      "id": "avatar:animated-player",
+      "sourceFiles": [
+        "src/scene/avatar/animatedAvatar.ts",
+        "src/scene/avatar/chairController.ts"
+      ],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "The moving player and chair interaction states are not static miniature architecture; existing chair proxy geometry is unchanged.",
+      "sourceFingerprint": "e7ac30dd89689b2b0ec721e958c9a37920faa138ea48144d2f9072453d790df1",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "6740bc4da14ff0dd2ecd90bf5b35ed786fd611e632beb02bb76726392f670605"
+    },
+    {
       "id": "avatar:overworld-player",
       "sourceFiles": [
         "src/scene/avatar/accessories.ts",

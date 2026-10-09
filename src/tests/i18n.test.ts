@@ -761,7 +761,7 @@ describe('i18n utilities', () => {
 
     const spanishHelp = getHelpModalStrings('es');
     expect(spanishHelp.sections[0]?.title).toBe('Controles');
-    expect(spanishHelp.sections[0]?.items[3]?.description).toBe(
+    expect(spanishHelp.sections[0]?.items[4]?.description).toBe(
       'Acercar o alejar con el teclado'
     );
     const germanHelp = getHelpModalStrings('de');
