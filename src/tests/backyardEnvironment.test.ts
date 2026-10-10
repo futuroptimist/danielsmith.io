@@ -33,6 +33,9 @@ import { createBackyardEnvironment } from '../scene/environments/backyard';
 import { validateSourceCollisionRecords } from '../scene/level/sourceCollisionValidation';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
 
+import { collidesWithColliders } from '../systems/collision';
+import { isBackyardSourceCollider } from '../scene/level/backyardCollisionPolicies';
+
 import { getProductionRoomBounds } from './helpers/productionLevelFixtures';
 
 const BACKYARD_BOUNDS = {
@@ -114,6 +117,48 @@ describe('createBackyardEnvironment', () => {
     getContextSpy.mockRestore();
     delete document.documentElement.dataset.accessibilityPulseScale;
     delete document.documentElement.dataset.accessibilityFlickerScale;
+  });
+
+  it('blocks walking and running into the east corner shrub without blocking its approach', () => {
+    const environment = createBackyardEnvironment(
+      getProductionRoomBounds('ground', 'backyard')
+    );
+    const shrub = environment.group.getObjectByName('BackyardShrub-2') as Mesh;
+    const collider = environment.colliders.find(
+      (c) => isBackyardSourceCollider(c) && c.role === 'eastShrub'
+    );
+    expect(collider).toBeDefined();
+    const radius = 1.05 * shrub.scale.x;
+    expect(collider!.minX).toBeCloseTo(shrub.position.x - radius);
+    expect(collider!.maxZ).toBeCloseTo(shrub.position.z + radius);
+    // Exercise both movement sampling speeds, from the open yard side.
+    for (const stride of [0.08, 0.18]) {
+      let x = shrub.position.x - radius - 2;
+      for (let step = 0; step < 100; step++) {
+        if (
+          !collidesWithColliders(x + stride, shrub.position.z, 0.55, [
+            collider!,
+          ])
+        )
+          x += stride;
+      }
+      expect(x).toBeLessThanOrEqual(collider!.minX - 0.55);
+      expect(x).toBeGreaterThan(collider!.minX - 0.55 - stride);
+    }
+    expect(
+      collidesWithColliders(
+        shrub.position.x - radius - 0.6,
+        shrub.position.z,
+        0.55,
+        [collider!]
+      )
+    ).toBe(false);
+    for (const name of ['BackyardGreenhouse', 'BackyardModelRocket']) {
+      const poi = environment.group.getObjectByName(name)!;
+      expect(
+        collidesWithColliders(poi.position.x, poi.position.z, 0.55, [collider!])
+      ).toBe(false);
+    }
   });
 
   it('adds the model rocket installation and collider to the backyard', () => {

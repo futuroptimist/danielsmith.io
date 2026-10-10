@@ -48,6 +48,7 @@ import {
   createBackyardFenceColliders,
   createBackyardFenceSegments,
   createBackyardHologramBarrierCollider,
+  createBackyardEastShrubCollider,
 } from '../level/backyardCollisionPolicies';
 import {
   applySeasonalLightingPreset,
@@ -1799,10 +1800,17 @@ export function createBackyardEnvironment(
   ];
   shrubPositions.forEach((position, index) => {
     const shrub = new Mesh(shrubGeometry, shrubMaterial);
+    shrub.name = `BackyardShrub-${index}`;
     shrub.position.set(position.x, 0.9, position.z);
     const scale = 0.9 + (index % 3) * 0.12;
     shrub.scale.setScalar(scale);
     group.add(shrub);
+    // This corner shrub is a solid planting beside the greenhouse approach.
+    // Match its visible crown without extending the collider into the POI path.
+    if (index === 2) {
+      const radius = shrubGeometry.parameters.radius * scale;
+      colliders.push(createBackyardEastShrubCollider(position, radius));
+    }
   });
 
   const fireflyCount = 18;
