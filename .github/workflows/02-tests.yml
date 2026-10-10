@@ -67,6 +67,7 @@ jobs:
           playwright/immersive-under-stair-passage.spec.ts
           playwright/keyboard-traversal.spec.ts playwright/small-screen-hud.spec.ts
           playwright/avatar-integration.spec.ts
+          playwright/miniature-property.spec.ts
           --workers=1 --retries=0 --trace=retain-on-failure
       - name: Retain traversal evidence
         if: always()

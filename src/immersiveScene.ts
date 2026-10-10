@@ -3395,6 +3395,36 @@ function buildImmersiveScene(
       ),
       poiDefinitions,
       poiPlacements: placementResolution.placements,
+      sourceVisuals: [
+        {
+          floor: 'ground',
+          roots: [
+            groundFloorGroup,
+            groundStructureGroup,
+            groundEnvironmentGroup,
+            groundPoiGroup,
+            ...(ledStripGroup ? [ledStripGroup] : []),
+          ],
+        },
+        {
+          floor: 'upper',
+          roots: [upperFloorGroup, upperStructureGroup, upperPoiGroup],
+        },
+        {
+          floor: 'basement',
+          roots: [basementFloorGroup, basementStructureGroup, basementPoiGroup],
+        },
+        {
+          floor: 'ground',
+          roots: [staircase.group],
+          visibleOnFloors: ['ground', 'upper'],
+        },
+        {
+          floor: 'basement',
+          roots: [basementStaircase.group],
+          visibleOnFloors: ['ground', 'basement'],
+        },
+      ],
     });
     addPoiStructure(portfolioTablePoi, table.group);
     getPoiColliderTarget(portfolioTablePoi).push(table.collider);
@@ -3910,6 +3940,23 @@ function buildImmersiveScene(
       // Test helpers – expose current mannequin yaw in radians.
       getPlayerYaw() {
         return normalizeRadians(mannequinRelativeYaw);
+      },
+      getMiniatureSnapshot() {
+        const table = portfolioMiniatureTable;
+        if (!table) return null;
+        const snapshot = table.sourceSnapshot;
+        return {
+          triangles: table.triangleStats.total,
+          drawCalls: snapshot.group.getObjectsByProperty('type', 'Mesh').length,
+          sourceMeshes: snapshot.records.length,
+          sourceNames: snapshot.records.map((record) => record.name),
+          bounds: {
+            min: snapshot.bounds.min.toArray(),
+            max: snapshot.bounds.max.toArray(),
+          },
+          player: table.miniaturePlayer.position.toArray(),
+          scale: table.transform.uniformScale,
+        };
       },
       getCeilingOpacities(): number[] {
         return ceilings.panels.map((p) => {

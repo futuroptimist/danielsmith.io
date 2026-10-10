@@ -17,7 +17,7 @@ const SELF_FILE = 'src/scene/miniature/sceneComponentRegistry.ts';
 export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
   {
     id: 'exterior:front-entry',
-    kind: 'excluded',
+    kind: 'shared-source',
     sourceFiles: [
       'src/scene/level/exteriorLayout.ts',
       'src/scene/level/garageLayout.ts',
@@ -25,34 +25,28 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialStreet.ts',
       'src/scene/structures/residentialExterior.ts',
     ],
-    syncRevision: 8,
+    proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
+    syncRevision: 9,
     syncNote:
-      'Sliding-door pockets stay clear of shared walls; automatic doors, the 80% ' +
-      'garage cutaway, lamp pools and passive bus sign remain outside the tabletop.',
-    reason:
-      'The tabletop keeps its existing house/backyard envelope. The source-backed ' +
-      'front opening is shared, while external landscaping and dynamic door controls ' +
-      'stay outside the miniature.',
+      'The source snapshot includes the garage, front yard, sidewalk and street within one property envelope.',
   },
   {
     id: 'level:career-museum-layout',
-    kind: 'excluded',
+    kind: 'shared-source',
     sourceFiles: ['src/scene/level/careerMuseumLayout.ts'],
-    syncRevision: 1,
-    reason:
-      'Source-backed basement museum placement is outside the existing ground-floor miniature.',
+    proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
+    syncRevision: 2,
+    syncNote:
+      'The basement layout is included in the source snapshot and follows the active-floor cutaway.',
   },
   {
     id: 'career:museum-exhibits',
-    kind: 'excluded',
+    kind: 'shared-source',
     sourceFiles: ['src/scene/structures/careerMuseum.ts'],
-    syncRevision: 2,
+    proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
+    syncRevision: 3,
     syncNote:
-      'Static title plaques and shared gallery furnishings are included; the ' +
-      'ground-floor miniature remains unchanged.',
-    reason:
-      'The basement career museum is outside the ground-floor miniature; its ' +
-      'original exhibit geometry has explicit source coverage here.',
+      'The source snapshot reuses built museum geometry without duplicating textures or exhibit controllers.',
   },
   {
     id: 'career:reviewed-content',
@@ -74,11 +68,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
-    syncRevision: 8,
+    proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
+    syncRevision: 9,
     syncNote:
-      'The source adds flat street, verge and bus-stop zones plus ' +
-      'explicit outer boundaries; the miniature retains its original ' +
-      'house/backyard envelope and shared house connections.',
+      'All production floor layouts participate in the fixed miniature property envelope.',
   },
   {
     id: 'level:floors-walls',
@@ -125,9 +118,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'environment:backyard',
     kind: 'shared-source',
     sourceFiles: ['src/scene/environments/backyard.ts'],
-    syncRevision: 2,
+    proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
+    syncRevision: 3,
     syncNote:
-      'Backyard now exposes the actual DSPACE rocket group as the visual anchor; miniature DSPACE placement is covered by the POI proxy.',
+      'The full source backyard is projected and its east corner shrub has a separate physical collider.',
   },
   {
     id: 'lighting:visible-fixtures',
@@ -160,14 +154,12 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
   },
   {
     id: 'decor:lower-floor-furnishings',
-    kind: 'excluded',
+    kind: 'shared-source',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
-    syncRevision: 36,
+    proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
+    syncRevision: 37,
     syncNote:
-      'The solid entry console moves west to clear the basement landing; furnishings ' +
-      'remain excluded from the ground-only tabletop.',
-    reason:
-      'Lower- and upper-floor furnishings remain source-only while furnishing proxy work stays deferred until the full furnishing set lands.',
+      'Both floor furnishing sets are projected from their existing production geometry and colors.',
   },
   {
     id: 'avatar:overworld-player',
@@ -309,9 +301,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:level:backyardCollisionPolicies',
     kind: 'excluded',
     sourceFiles: ['src/scene/level/backyardCollisionPolicies.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'The east corner shrub collider matches its visible crown; collision helpers do not render geometry.',
   },
   {
     id: 'audit:src:scene:level:compileLegacyFloorPlan',
@@ -541,12 +533,12 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
   },
   {
     id: 'structure:greenhouse',
-    kind: 'proxy',
+    kind: 'shared-source',
     sourceFiles: ['src/scene/structures/greenhouse.ts'],
-    proxyFiles: [SELF_FILE],
-    syncRevision: 1,
+    proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
+    syncRevision: 2,
     syncNote:
-      'Greenhouse shell and visible planters are represented by simplified proxy geometry.',
+      'The open aluminum solar frame, leaning panels and containers are projected from the same production build.',
   },
   {
     id: 'structure:media-wall-star-bridge',
