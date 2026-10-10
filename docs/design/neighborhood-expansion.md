@@ -169,17 +169,22 @@ them. Use the stricter of the additive allocation and whole-scene limit. If the 
 base leaves less room, reduce optional decoration or obtain a separately reviewed
 optimization; do not silently raise the existing launch budget.
 
-| Metric                                  | Proposed incremental neighborhood limit                                     | Whole-scene acceptance                                                                                                    |
-| --------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Visible submitted triangles             | Performance 12,000; balanced/cinematic 24,000                               | Existing launch <=50,000; outdoor route <=50,000 performance, <=75,000 balanced/cinematic                                 |
-| Draw calls                              | Performance +24; balanced/cinematic +40, including any transition overlap   | Launch <=150 unchanged; outdoor <=150 performance, <=200 balanced/cinematic                                               |
-| Resident resources after complete route | <=24 shared geometries, <=8 materials, <=2 textures                         | Same-profile base plus those limits; retain separate launch 125/32 gates                                                  |
-| Geometry/instance buffer bytes          | <=4 MiB performance; <=8 MiB balanced/cinematic including all resident LODs | Deduplicated typed-array/instance buffers; total reported alongside baseline                                              |
-| New texture allocation                  | <=2 MiB performance; <=4 MiB balanced/cinematic including mipmaps           | No full-size per-lot textures; unchanged press-kit budget is not a runtime measurement                                    |
-| New render targets                      | 0                                                                           | No new mirrors, shadow maps or offscreen passes for neighbors                                                             |
-| JS heap retained delta                  | <=8 MiB after warm complete route and comparable collection                 | No monotonic growth across 10 return/re-entry cycles; <=1 MiB drift after cycle 2                                         |
-| Hardware frame p95                      | <=10% regression at matched existing checkpoints                            | Desktop target <=16.7 ms; low-end tablet qualification <=33.3 ms; existing launch <=80 ms remains a separate coarse guard |
-| Hardware frame p99 / stalls             | Report full distribution, not only rolling diagnostics                      | Tablet <=50 ms steady-state p99; no neighborhood-attributed >100 ms stall after warmup                                    |
+| Metric                                  | Proposed incremental neighborhood limit                                     | Whole-scene acceptance                                                                                                                |
+| --------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Visible submitted triangles             | Performance 12,000; balanced/cinematic 24,000                               | Existing launch <=50,000; outdoor route <=50,000 performance, <=75,000 balanced/cinematic                                             |
+| Draw calls                              | Performance +24; balanced/cinematic +40, including any transition overlap   | Launch <=150 unchanged; outdoor <=150 performance, <=200 balanced/cinematic                                                           |
+| Resident resources after complete route | <=24 shared geometries, <=8 materials, <=2 textures                         | Same-profile base plus those limits; retain separate launch 125/32 gates                                                              |
+| Geometry/instance buffer bytes          | <=4 MiB performance; <=8 MiB balanced/cinematic including all resident LODs | Deduplicated typed-array/instance buffers; total reported alongside baseline                                                          |
+| New texture allocation                  | <=2 MiB performance; <=4 MiB balanced/cinematic including mipmaps           | No full-size per-lot textures; unchanged press-kit budget is not a runtime measurement                                                |
+| New render targets                      | 0                                                                           | No new mirrors, shadow maps or offscreen passes for neighbors                                                                         |
+| JS heap retained delta                  | <=8 MiB after warm complete route and comparable collection                 | No monotonic growth across 10 return/re-entry cycles; <=1 MiB drift after cycle 2                                                     |
+| Hardware frame p95                      | <=10% regression at matched existing checkpoints                            | Desktop <=11.1 ms; mid-range mobile <=16.7 ms; additional low-end tablet profile <=33.3 ms; launch <=80 ms is a separate coarse guard |
+| Hardware frame p99 / stalls             | Report full distribution, not only rolling diagnostics                      | Tablet <=50 ms steady-state p99; no neighborhood-attributed >100 ms stall after warmup                                                |
+
+Desktop and mid-range mobile targets preserve the roadmap's 90/60 FPS goals. The
+30 FPS low-end tablet profile is an additional minimum qualification for constrained
+hardware, not a replacement for those global targets or permission to downgrade the
+desktop/mobile acceptance criteria. Record which hardware profile each result qualifies.
 
 The +24 call allocation is intentionally below the historical spawn's 28-call minimum
 headroom; the 12k triangle allocation leaves ample room below 50k even though house/POI
@@ -249,9 +254,33 @@ mark unavailable metrics explicitly. Never label `renderer.info.memory` as GPU b
 ## Collision, accessibility and regression acceptance
 
 Author simple source-owned solid footprints for closed houses, trunks, mailboxes and
-fences. Shrub canopies can be decorative; intentional planters remain solid. Use
-segment/convex proxies appropriate to curved streets rather than long axis-aligned
-blockers that cut across turns. Share semantic placement data with render instances,
+fences. Shrub canopies can be decorative; intentional planters remain solid. The current
+[collision system](../../src/systems/collision/index.ts),
+[source-backed colliders](../../src/scene/level/sourceCollision.ts) and
+[walking-area NavMesh](../../src/systems/navigation/navMesh.ts) use axis-aligned
+`RectCollider` bounds; segment/convex collision shapes are not currently supported.
+
+Before finalizing curved lot or fence placement, the source-layout foundation must
+prototype a bounded rectangular decomposition using those existing interfaces. Represent
+curved walkable areas as overlapping short axis-aligned walkable rectangles, with overlap
+at seams so `NavMesh.contains` has no gaps. Fit them conservatively inside the authored
+walking surface, accounting for avatar radius at its outer edges. Represent rotated solid
+house/fence footprints as a union of short solid rectangles that covers the physical
+obstacle without projecting a single long AABB across the clear walking lane. The visual
+curve is not a new collision primitive. Preserve source identity on every generated piece.
+
+Gate this prototype on measured inner-curve width, narrowest corner/stop approach,
+maximum visible-to-collider deviation and generated collider/zone counts. Subdivide only
+until the required clear lane is preserved; profile collision CPU time at the maximum
+candidate count and include it in the frame regression limit. Test the complete union,
+including seams, diagonals, corners and maximum-speed movement, against the avatar's
+existing radius and substeps. If rectangular approximation either blocks the required
+route, leaves a passable gap through a solid, or exceeds the measured CPU allocation,
+stop before placing final lots. A separately reviewed collision/walkable-area extension
+with equivalent house regressions then becomes a prerequisite; do not silently assume
+polygon support, move the fixed stop, or narrow paths to bypass that gate.
+
+Share semantic placement data with render instances,
 but keep stable colliders at all LODs and while cells are culled. Preserve current
 avatar radius/height, stair substeps, door clearance and floor selection.
 
@@ -311,8 +340,9 @@ no traversal blocker, no unbounded resource growth, and the tablet frame targets
 Keep the existing startup safety/text mode and user-selected low-FPS recovery behavior;
 diagnostic overrides are not evidence that normal failover is correct.
 
-Review sequence: approve this design and measurable envelope; approve a fixed-anchor
-graybox plan; capture hardware base and resolve any existing tablet failure; only then
+Review sequence: approve this design and measurable envelope; validate the rectangular
+collision/walking-area prototype before finalizing a fixed-anchor graybox plan; capture
+hardware base and resolve any existing tablet failure; only then
 authorize separate implementation slices for source layout/collisions, reusable assets,
 and measured rendering integration. Each slice needs functional regression and exact-head
 CI; final completion requires the owner walkthrough and hardware qualification. This
