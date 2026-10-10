@@ -1,5 +1,6 @@
 import {
   Box3,
+  CylinderGeometry,
   Group,
   Mesh,
   MeshStandardMaterial,
@@ -42,6 +43,22 @@ describe('backyard solar growing frame', () => {
         build.group.getObjectByName('BackyardGreenhouseGlassFront')
       ).toBeUndefined();
       expect(countObjectTriangles(build.group)).toBeLessThan(1800);
+      const containers = [
+        ...Array.from({ length: 5 }, (_, i) => `BackyardGrowBag-${i}`),
+        'BackyardGalvanizedTub',
+      ].map(
+        (name) => build.group.getObjectByName(name) as Mesh<CylinderGeometry>
+      );
+      for (let i = 0; i < containers.length; i++)
+        for (let j = i + 1; j < containers.length; j++) {
+          const a = containers[i];
+          const b = containers[j];
+          expect(
+            Math.hypot(a.position.x - b.position.x, a.position.z - b.position.z)
+          ).toBeGreaterThan(
+            a.geometry.parameters.radiusTop + b.geometry.parameters.radiusTop
+          );
+        }
       const bounds = new Box3().setFromObject(build.group);
       expect(bounds.getSize(new Vector3()).x).toBeLessThan(4.76);
       expect(bounds.getSize(new Vector3()).z).toBeLessThan(3.44);

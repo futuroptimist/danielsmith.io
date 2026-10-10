@@ -17,7 +17,7 @@ yaw, including stair elevations, without clamping to the original house bounds.
 Furniture, stairs, the solar growing frame and wall colors come from their
 actual rendered resources. Box geometry is preserved; curved primitives have
 bounded tessellation and dense custom decorations use their source bounds.
-Textures and dynamic effects are not duplicated. Emissive fixtures are baked
+Textures and shader-driven effects are omitted. Emissive fixtures are baked
 into unlit colored batches. Camera distance never removes the miniature, so
 zooming does not introduce new pop-in. Quality controls only its tessellation.
 

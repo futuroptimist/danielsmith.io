@@ -5,6 +5,40 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     page,
   }, testInfo) => {
     await page.emulateMedia({ reducedMotion });
+    // Instrument only the test response: compare identical renders, changing only
+    // the snapshot visibility. No public debug mutation API or golden binary.
+    await page.route(
+      '**/src/scene/miniature/sourceSnapshot.ts*',
+      async (route) => {
+        const response = await route.fetch();
+        const code = await response.text();
+        const instrumented = code.replace(
+          'floor.add(mesh);',
+          `
+        mesh.onAfterRender = (renderer, scene, camera) => {
+          window.__captureMiniature = () => {
+            const target = renderer.getRenderTarget();
+            const visible = group.visible;
+            renderer.setRenderTarget(null);
+            renderer.clear();
+            renderer.render(scene, camera);
+            const withModel = renderer.domElement.toDataURL();
+            group.visible = false;
+            renderer.clear();
+            renderer.render(scene, camera);
+            const withoutModel = renderer.domElement.toDataURL();
+            group.visible = visible;
+            renderer.setRenderTarget(target);
+            return { withModel, withoutModel };
+          };
+        };
+        floor.add(mesh);
+      `
+        );
+        expect(instrumented).not.toBe(code);
+        await route.fulfill({ response, body: instrumented });
+      }
+    );
     await page.goto('/?mode=immersive&disablePerformanceFailover=1');
     await page.waitForFunction(
       () => !!window.portfolio?.world?.getMiniatureSnapshot?.(),
@@ -37,32 +71,44 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     expect(
       snapshot.sourceNames.filter((name) => name === 'StaircaseStep-9')
     ).toHaveLength(2);
-    const tableImage = await page.screenshot({
-      path: testInfo.outputPath('property-table.png'),
-    });
-    const visibleModelPixels = await page.evaluate(async (encoded) => {
-      const image = new Image();
-      image.src = `data:image/png;base64,${encoded}`;
-      await image.decode();
-      const canvas = document.createElement('canvas');
-      canvas.width = image.width;
-      canvas.height = image.height;
-      const context = canvas.getContext('2d')!;
-      context.drawImage(image, 0, 0);
-      const pixels = context.getImageData(180, 60, 500, 280).data;
-      let colored = 0;
-      for (let i = 0; i < pixels.length; i += 4) {
-        const channels = [pixels[i], pixels[i + 1], pixels[i + 2]];
+    await page.screenshot({ path: testInfo.outputPath('property-table.png') });
+    const miniaturePixels = await page.evaluate(async () => {
+      const capture = (
+        window as unknown as {
+          __captureMiniature?: () => {
+            withModel: string;
+            withoutModel: string;
+          };
+        }
+      ).__captureMiniature;
+      if (!capture) throw new Error('No miniature batch reached the renderer');
+      const { withModel, withoutModel } = capture();
+      const images = await Promise.all(
+        [withModel, withoutModel].map(async (url) => {
+          const image = new Image();
+          image.src = url;
+          await image.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = image.width;
+          canvas.height = image.height;
+          const context = canvas.getContext('2d')!;
+          context.drawImage(image, 0, 0);
+          return context.getImageData(0, 0, canvas.width, canvas.height).data;
+        })
+      );
+      let changed = 0;
+      for (let i = 0; i < images[0].length; i += 4)
         if (
-          Math.max(...channels) - Math.min(...channels) > 12 &&
-          Math.max(...channels) > 25 &&
-          Math.max(...channels) < 180
+          Math.max(
+            ...[0, 1, 2].map((c) =>
+              Math.abs(images[0][i + c] - images[1][i + c])
+            )
+          ) > 12
         )
-          colored++;
-      }
-      return colored;
-    }, tableImage.toString('base64'));
-    expect(visibleModelPixels).toBeGreaterThan(300);
+          changed++;
+      return changed;
+    });
+    expect(miniaturePixels).toBeGreaterThan(300);
     // The table remains keyboard discoverable, with a normal accessible tooltip.
     for (let i = 0; i < 25; i++) {
       await page.keyboard.press('KeyE');
@@ -100,7 +146,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     );
     await page.waitForTimeout(1500);
     await page.screenshot({
-      path: testInfo.outputPath('solar-frame-and-shrub.png'),
+      path: testInfo.outputPath('post-collision-state.png'),
     });
   });
 }

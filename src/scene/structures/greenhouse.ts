@@ -147,11 +147,11 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
   }
   const segments = Math.min(12, policy.geometry.cylinderSegments);
   const containers = [
-    [-0.65, -0.85, 0.52, 0.75],
-    [0.8, -0.8, 0.57, 0.78],
-    [-0.65, 0.65, 0.6, 0.72],
-    [0.85, 0.75, 0.43, 0.5],
-    [0.1, -0.25, 0.42, 0.65],
+    [-1.05, -0.75, 0.46, 0.75],
+    [0, -0.75, 0.48, 0.78],
+    [1.05, -0.75, 0.43, 0.72],
+    [-1.05, 0.75, 0.48, 0.5],
+    [0, 0.75, 0.4, 0.65],
   ];
   const bagMaterial = fabric.clone();
   bagMaterial.side = DoubleSide;
@@ -192,7 +192,11 @@ export function createGreenhouse(config: GreenhouseConfig): GreenhouseBuild {
     tubMaterial
   );
   tub.name = 'BackyardGalvanizedTub';
-  tub.position.set(centerX + 0.15, 0.275, depth * 0.24);
+  tub.position.set(
+    centerX + (1.05 * frameWidth) / 3.6,
+    0.275,
+    depth * 0.234375
+  );
   group.add(tub);
   const tubSoil = new Mesh(
     new CylinderGeometry(0.47, 0.47, 0.04, segments),

@@ -4,6 +4,7 @@ import {
   Group,
   Mesh,
   MeshStandardMaterial,
+  ShaderMaterial,
   Vector3,
 } from 'three';
 import { describe, expect, it, vi } from 'vitest';
@@ -84,6 +85,34 @@ function build() {
 }
 
 describe('source-backed recursive property table', () => {
+  it('omits uniform-driven shader surfaces without losing standard surfaces on the same mesh', () => {
+    const geometry = new BoxGeometry(2, 1, 2);
+    const shader = new ShaderMaterial({
+      uniforms: { opacity: { value: 0.1 } },
+    });
+    const solid = new MeshStandardMaterial({ color: 0x716759 });
+    const root = new Group();
+    const mist = new Mesh(new BoxGeometry(100, 1, 100), shader);
+    mist.position.y = 20;
+    root.add(
+      mist,
+      new Mesh(geometry, [solid, shader, shader, shader, shader, shader])
+    );
+    const snapshot = createSourceSnapshot([{ floor: 'ground', roots: [root] }]);
+    const meshes = snapshot.group.getObjectsByProperty(
+      'type',
+      'Mesh'
+    ) as Mesh[];
+    expect(meshes).toHaveLength(1);
+    expect(snapshot.records).toHaveLength(1);
+    expect(snapshot.records[0].triangles).toBe(2);
+    expect(meshes[0].geometry.getAttribute('position').count).toBe(6);
+    expect(snapshot.bounds.max.y).toBe(0.5);
+    expect(meshes[0].geometry.getAttribute('color').getX(0)).toBeCloseTo(
+      solid.color.r
+    );
+    snapshot.dispose();
+  });
   it('includes the complete property and every floor with production furnishings, stairs and solar frame', () => {
     const table = build();
     const records = table.sourceSnapshot.records;

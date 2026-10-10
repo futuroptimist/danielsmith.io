@@ -13,6 +13,7 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
+  ShaderMaterial,
   SphereGeometry,
   Vector3,
   type Side,
@@ -123,6 +124,7 @@ export function createSourceSnapshot(
         if (position && normals) {
           const count = geometry.index?.count ?? position.count;
           const instances = object instanceof InstancedMesh ? object.count : 1;
+          let triangles = 0;
           for (let instance = 0; instance < instances; instance++) {
             local.copy(object.matrixWorld);
             if (object instanceof InstancedMesh) {
@@ -141,9 +143,16 @@ export function createSourceSnapshot(
                   ? object.material[materialIndex]
                   : object.material
               ) as MeshStandardMaterial;
-              if (!material || !material.visible || material.opacity === 0)
+              // Shader uniforms/effects have no faithful static color fallback.
+              if (
+                !material ||
+                material instanceof ShaderMaterial ||
+                !material.visible ||
+                material.opacity === 0
+              )
                 continue;
               const opacity = material.transparent ? material.opacity : 1;
+              triangles++;
               const emissive =
                 material instanceof MeshBasicMaterial ||
                 (!!material.emissive &&
@@ -194,11 +203,8 @@ export function createSourceSnapshot(
               }
             }
           }
-          records.push({
-            name: object.name,
-            floor: source.floor,
-            triangles: (count / 3) * instances,
-          });
+          if (triangles > 0)
+            records.push({ name: object.name, floor: source.floor, triangles });
         }
         if (geometry !== original) geometry.dispose();
       }
