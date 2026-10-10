@@ -20,7 +20,7 @@ import {
   getSceneDetailPolicy,
   type SceneDetailPolicy,
 } from '../graphics/sceneDetailPolicy';
-import type { FloorId } from '../level/floorElevations';
+import { FLOOR_TOP_ELEVATIONS, type FloorId } from '../level/floorElevations';
 import {
   createSourceSnapshot,
   type MiniatureSource,
@@ -28,6 +28,7 @@ import {
 import type { PoiDefinition, PoiFootprint, PoiId } from '../poi/types';
 
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from './portfolioMiniatureTableContract';
+import { WALL_HEIGHT } from './portfolioSceneLayout';
 import { countObjectTriangles } from './triangleCount';
 
 export interface MiniatureWorldTransform {
@@ -235,8 +236,8 @@ function floorEnvelope() {
     maxX: Math.max(...points.map(([x]) => x)),
     minZ: Math.min(...points.map(([, z]) => z)),
     maxZ: Math.max(...points.map(([, z]) => z)),
-    minY: -5,
-    maxY: 11,
+    minY: FLOOR_TOP_ELEVATIONS.basement,
+    maxY: FLOOR_TOP_ELEVATIONS.upper + WALL_HEIGHT,
   };
 }
 
