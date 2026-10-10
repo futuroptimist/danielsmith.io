@@ -328,11 +328,12 @@ test('checks street lighting and shelter at normal, minimum and maximum zoom', a
   });
   await page.locator('#app canvas').focus();
   for (let i = 0; i < 30; i++) await page.keyboard.press('Shift+Minus');
-  await page.waitForTimeout(700);
-  const minimumZoom = await page.evaluate(
-    () => window.portfolio!.world!.getCameraState().zoom
-  );
-  expect(minimumZoom).toBeCloseTo(0.65, 2);
+  // Camera zoom is damped; wait for convergence instead of sampling a fixed frame.
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.portfolio!.world!.getCameraState().zoom)
+    )
+    .toBeCloseTo(0.65, 2);
   writeFileSync(
     test.info().outputPath('street-minimum-camera.json'),
     JSON.stringify(
@@ -345,10 +346,11 @@ test('checks street lighting and shelter at normal, minimum and maximum zoom', a
     path: test.info().outputPath('street-minimum-zoom.png'),
   });
   for (let i = 0; i < 30; i++) await page.keyboard.press('Shift+Equal');
-  await page.waitForTimeout(700);
-  expect(
-    await page.evaluate(() => window.portfolio!.world!.getCameraState().zoom)
-  ).toBeCloseTo(12, 1);
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.portfolio!.world!.getCameraState().zoom)
+    )
+    .toBeCloseTo(12, 1);
   writeFileSync(
     test.info().outputPath('street-maximum-camera.json'),
     JSON.stringify(

@@ -87,10 +87,22 @@ import {
   type AvatarAccessoryManager,
 } from './scene/avatar/accessoryManager';
 import {
+  createAnimatedAvatar,
+  DANIEL_AVATAR_URL,
+  AVATAR_CLIPS,
+  AVATAR_WALK_SPEED,
+  AVATAR_RUN_SPEED,
+  type AnimatedAvatar,
+} from './scene/avatar/animatedAvatar';
+import {
   createAvatarAssetPipeline,
   type AvatarAssetPipeline,
   type AvatarAssetPipelineLoadOptions,
 } from './scene/avatar/assetPipeline';
+import {
+  collectChairAnchors,
+  createChairController,
+} from './scene/avatar/chairController';
 import {
   createAvatarFootIkController,
   type AvatarFootIkControllerHandle,
@@ -106,6 +118,7 @@ import {
   PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
   createPortfolioMannequin,
 } from './scene/avatar/mannequin';
+import { prepareAvatarRendering } from './scene/avatar/prepareRendering';
 import {
   createAvatarVariantManager,
   type AvatarVariantManager,
@@ -415,6 +428,7 @@ import {
 } from './systems/controls/audioHudControl';
 import { createAvatarAccessoryControl } from './systems/controls/avatarAccessoryControl';
 import { createAvatarVariantControl } from './systems/controls/avatarVariantControl';
+import { createGaitToggle } from './systems/controls/gaitToggle';
 import {
   createGraphicsQualityControl,
   type GraphicsQualityControlHandle,
@@ -1042,6 +1056,8 @@ function buildImmersiveScene(
     initialSceneDetailLevel
   );
   let activeSceneDetailPolicy = getSceneDetailPolicy(initialSceneDetailLevel);
+  let getReloadPlayerPosition: () => PendingPlayerPosition | undefined = () =>
+    undefined;
   const applySceneDetailLevel = (
     level: GraphicsQualityLevel,
     options: {
@@ -1059,14 +1075,7 @@ function buildImmersiveScene(
         adaptivePerformanceRecoveryLocked:
           options.adaptivePerformanceRecoveryLocked === true,
       } satisfies PendingSceneDetailReload;
-      const playerPosition =
-        typeof player !== 'undefined'
-          ? {
-              x: player.position.x,
-              y: player.position.y,
-              z: player.position.z,
-            }
-          : undefined;
+      const playerPosition = getReloadPlayerPosition();
       const didPersistPlayerPosition = playerPosition
         ? persistPendingPlayerPosition(playerPosition)
         : false;
@@ -3495,7 +3504,9 @@ function buildImmersiveScene(
     detailPolicy: activeSceneDetailPolicy,
   });
   const player = mannequin.group;
-  const mannequinHeight = mannequin.height;
+  let mannequinHeight = mannequin.height;
+  let animatedAvatar: AnimatedAvatar | null = null;
+  const avatarPreparation = new AbortController();
   if (pendingPlayerPosition) {
     player.position.copy(pendingPlayerPosition);
   } else {
@@ -3546,8 +3557,8 @@ function buildImmersiveScene(
       stop: stopFootstepAudio,
     },
     initialEnabled: ambientAudioPreference?.isEnabled() ?? false,
-    maxLinearSpeed: PLAYER_SPEED,
-    minActivationSpeed: PLAYER_SPEED * 0.12,
+    maxLinearSpeed: AVATAR_RUN_SPEED,
+    minActivationSpeed: AVATAR_WALK_SPEED * 0.12,
     intervalRange: { min: 0.26, max: 0.58 },
     volumeRange: { min: 0.32, max: 0.7 },
     pitchRange: { min: 0.88, max: 1.18 },
@@ -3672,6 +3683,7 @@ function buildImmersiveScene(
     target: {
       applyPalette: (palette) => {
         mannequin.applyPalette(palette);
+        animatedAvatar?.applyPalette(palette);
         avatarAccessoryManager?.applyPalette(palette);
         portfolioMiniatureTable?.setPlayerPalette(palette);
       },
@@ -3997,6 +4009,15 @@ function buildImmersiveScene(
       },
       loadAsset(options: AvatarAssetPipelineLoadOptions) {
         return getAvatarAssetPipeline().load(options);
+      },
+      getAnimationState() {
+        return animatedAvatar?.getSnapshot() ?? { loaded: false };
+      },
+      getGait() {
+        return gaitToggle.isRunning() ? 'run' : 'walk';
+      },
+      getSeatingState() {
+        return chairController.getSnapshot();
       },
     });
   }
@@ -4577,6 +4598,97 @@ function buildImmersiveScene(
   const reducedMotionQuery = window.matchMedia(
     '(prefers-reduced-motion: reduce)'
   );
+  const prefersReducedAvatarMotion = () =>
+    reducedMotionQuery.matches ||
+    document.documentElement.dataset.accessibilityMotion === 'reduced' ||
+    getPulseScale() === 0;
+  const gaitToggle = createGaitToggle(window, {
+    canToggle: (event) =>
+      hudPanelCoordinator?.getActivePanel() !== 'settings' &&
+      !bindingActions.some((action) => matchesKeyBinding(event, action)),
+    onChange: () => refreshAvatarControls(),
+  });
+  exteriorCleanup.add(() => gaitToggle.dispose());
+  const chairController = createChairController({
+    player,
+    chairs: collectChairAnchors(lowerFloorFurnishings.group),
+    duration: (clip) => animatedAvatar?.duration(clip) ?? 1.5,
+    canOccupy: (position, chair, ignoreChair) => {
+      const floor = floorRegistry.get(chair.floorId);
+      return (
+        activeFloorId === chair.floorId &&
+        floor.navMesh.contains(position.x, position.z) &&
+        !getFloorCollisionCollections(floor).some((colliders) =>
+          collidesWithColliders(
+            position.x,
+            position.z,
+            PLAYER_RADIUS,
+            ignoreChair
+              ? colliders.filter((c) => c.debugName !== chair.colliderName)
+              : colliders,
+            {
+              feetY: chair.floorY,
+              height: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
+              activeConnectionId: null,
+            }
+          )
+        )
+      );
+    },
+  });
+  getReloadPlayerPosition = () =>
+    chairController.getReloadPosition() ?? undefined;
+  const chairButton = document.createElement('button');
+  chairButton.type = 'button';
+  chairButton.className = 'avatar-chair-control';
+  chairButton.dataset.avatarChairControl = '';
+  chairButton.hidden = true;
+  container.appendChild(chairButton);
+  const activateChair = () => {
+    if (
+      animatedAvatar &&
+      !hudPanelCoordinator?.getActivePanel() &&
+      !selectedDoor
+    ) {
+      chairController.interact(activeFloorId);
+      velocity.set(0, 0, 0);
+      targetVelocity.set(0, 0, 0);
+      renderer.domElement.focus();
+    }
+  };
+  chairButton.addEventListener('click', activateChair);
+  exteriorCleanup.add(() => {
+    chairButton.removeEventListener('click', activateChair);
+    chairButton.remove();
+  });
+  function refreshAvatarControls() {
+    const copy = controlOverlayStrings.avatar;
+    const gaitDescription = controlOverlay?.querySelector(
+      '[data-control-item="toggleGait"] .overlay__description'
+    );
+    const gaitText = gaitToggle.isRunning() ? copy.running : copy.walking;
+    if (gaitDescription && gaitDescription.textContent !== gaitText)
+      gaitDescription.textContent = gaitText;
+    const seating = chairController.getSnapshot();
+    const available =
+      animatedAvatar &&
+      !hudPanelCoordinator?.getActivePanel() &&
+      !selectedDoor &&
+      (seating.phase !== 'free' || chairController.nearest(activeFloorId));
+    if (chairButton.hidden !== !available) chairButton.hidden = !available;
+    const disabled =
+      seating.phase === 'approach' ||
+      seating.phase === 'entering' ||
+      seating.phase === 'exiting';
+    if (chairButton.disabled !== disabled) chairButton.disabled = disabled;
+    const label =
+      seating.phase === 'seated'
+        ? copy.stand
+        : seating.phase === 'free'
+          ? copy.sit
+          : copy.transition;
+    if (chairButton.textContent !== label) chairButton.textContent = label;
+  }
   const doorOccupant = () => ({
     x: player.position.x,
     z: player.position.z,
@@ -4627,7 +4739,7 @@ function buildImmersiveScene(
         reducedMotionQuery.matches ||
           document.documentElement.dataset.accessibilityMotion === 'reduced' ||
           getPulseScale() === 0,
-        { maximumSpeed: PLAYER_SPEED, movement }
+        { maximumSpeed: AVATAR_RUN_SPEED, movement }
       );
       if (state.blocked) doorColliders.push(door.definition.blockingBounds);
       if (doorBlockerStates.get(door.definition.id) !== state.blocked) {
@@ -4889,6 +5001,7 @@ function buildImmersiveScene(
         candidate.floorId === floorId
           ? floorConnections.sampleHeight(x, z, candidate)
           : floorRegistry.get(floorId).elevation,
+      // Asset proportions must not widen the authored low-headroom traversal envelope.
       height: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
       activeConnectionId:
         candidate.floorId === floorId ? candidate.activeConnectionId : null,
@@ -6645,6 +6758,27 @@ function buildImmersiveScene(
     const planarInputLengthSq =
       combinedRight * combinedRight + combinedForward * combinedForward;
 
+    if (chairController.isActive()) {
+      const before = player.position.clone();
+      chairController.update(
+        delta,
+        prefersReducedAvatarMotion(),
+        planarInputLengthSq > 1e-6
+      );
+      velocity.set(0, 0, 0);
+      targetVelocity.set(0, 0, 0);
+      locomotionLinearSpeed =
+        delta > 0 ? before.distanceTo(player.position) / delta : 0;
+      locomotionAngularSpeed = 0;
+      mannequinRelativeYaw = computeCameraRelativeYaw(
+        camera,
+        new Vector3(Math.sin(player.rotation.y), 0, Math.cos(player.rotation.y))
+      );
+      mannequinRelativeYawTarget = mannequinRelativeYaw;
+      updateExteriorDoors(delta);
+      return;
+    }
+
     getCameraRelativeMovementVector(
       camera,
       combinedRight,
@@ -6657,7 +6791,11 @@ function buildImmersiveScene(
       moveDirection.multiplyScalar(1 / Math.sqrt(lengthSq));
     }
 
-    targetVelocity.copy(moveDirection).multiplyScalar(PLAYER_SPEED);
+    targetVelocity
+      .copy(moveDirection)
+      .multiplyScalar(
+        gaitToggle.isRunning() ? AVATAR_RUN_SPEED : AVATAR_WALK_SPEED
+      );
 
     velocity.set(
       MathUtils.damp(velocity.x, targetVelocity.x, MOVEMENT_SMOOTHING, delta),
@@ -7024,7 +7162,13 @@ function buildImmersiveScene(
       !interactKeyWasPressed &&
       hudPanelCoordinator?.getActivePanel() !== 'settings'
     ) {
-      if (!selectedDoor && interactablePoi)
+      if (
+        !selectedDoor &&
+        animatedAvatar &&
+        (chairController.isActive() || chairController.nearest(activeFloorId))
+      ) {
+        activateChair();
+      } else if (!selectedDoor && interactablePoi)
         poiInteractionManager?.selectPoiById(interactablePoi.definition.id);
     }
     interactKeyWasPressed = pressed;
@@ -7070,6 +7214,9 @@ function buildImmersiveScene(
     lowFpsRecoveryPopup?.remove();
     lowFpsRecoveryPopup = null;
     immersiveDisposed = true;
+    avatarPreparation.abort();
+    animatedAvatar?.dispose();
+    animatedAvatar = null;
     ledAnimator = null;
     lightmapAnimator = null;
     environmentLightAnimator = null;
@@ -7362,6 +7509,83 @@ function buildImmersiveScene(
   });
   immersiveLifecycle = 'ready';
 
+  // Keep the complete placeholder until the approved replacement passes rig/clip/scale validation.
+  void getAvatarAssetPipeline()
+    .load({ url: DANIEL_AVATAR_URL, requiredAnimations: AVATAR_CLIPS })
+    .then(async (asset) => {
+      const replacement = createAnimatedAvatar(asset);
+      if (immersiveDisposed) {
+        replacement.dispose();
+        return;
+      }
+      try {
+        if (
+          !(await prepareAvatarRendering(
+            renderer,
+            replacement.model,
+            camera,
+            scene,
+            avatarPreparation.signal
+          ))
+        ) {
+          replacement.dispose();
+          return;
+        }
+      } catch (error) {
+        replacement.dispose();
+        throw error;
+      }
+      if (immersiveDisposed) {
+        replacement.dispose();
+        return;
+      }
+      player.add(replacement.model);
+      const visual = player.getObjectByName('PortfolioMannequinVisual');
+      if (visual) visual.visible = false;
+      const wrist = player.getObjectByName('MannequinAccessoryWristConsole');
+      const hand = asset.bones.get('HandL');
+      if (wrist && hand) {
+        hand.add(wrist);
+        wrist.position.set(0, 0.03, 0);
+        wrist.scale.setScalar(0.45);
+      }
+      const drone = player.getObjectByName('MannequinAccessoryHoloDrone');
+      if (drone) {
+        player.add(drone);
+        avatarAccessorySuite?.setBaseHeight('holo-drone', 1.6);
+      }
+      locomotionAnimator?.dispose();
+      locomotionAnimator = null;
+      avatarFootIkController?.dispose();
+      avatarFootIkController = null;
+      avatarInteractionAnimator?.dispose();
+      avatarInteractionAnimator = null;
+      removePoiInteractionAnimation?.();
+      removePoiInteractionAnimation = null;
+      animatedAvatar = replacement;
+      replacement.applyPalette(mannequin.getPalette());
+      mannequinHeight = replacement.height;
+      const previousInitialZoom = initialCameraFraming?.zoom;
+      initialCameraFraming = resolveInitialAvatarCameraFraming({
+        avatarHeight: mannequinHeight,
+        baseCameraSize,
+        cameraWorldUpY: cameraWorldUp
+          .set(0, 1, 0)
+          .applyQuaternion(camera.quaternion).y,
+        minZoom: MIN_CAMERA_ZOOM,
+        maxZoom: MAX_CAMERA_ZOOM,
+      });
+      if (
+        previousInitialZoom !== undefined &&
+        Math.abs(cameraZoomTarget - previousInitialZoom) < 0.001
+      ) {
+        cameraZoomTarget = initialCameraFraming.zoom;
+      }
+    })
+    .catch((error) =>
+      console.warn('Animated avatar unavailable; retaining mannequin.', error)
+    );
+
   renderer.setAnimationLoop(() => {
     try {
       const frameStartMs = performance.now();
@@ -7399,6 +7623,15 @@ function buildImmersiveScene(
       }
       let phaseStart = performance.now();
       updateMovement(delta);
+      animatedAvatar?.update(
+        delta,
+        locomotionLinearSpeed,
+        locomotionAngularSpeed,
+        prefersReducedAvatarMotion(),
+        chairController.getAnimation(),
+        player.position.y
+      );
+      refreshAvatarControls();
       if (locomotionAnimator) {
         locomotionAnimator.update({
           delta,

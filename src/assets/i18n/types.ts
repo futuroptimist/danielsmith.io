@@ -85,8 +85,16 @@ export interface TutorialPanelStrings {
 
 export interface ControlOverlayStrings {
   heading: string;
+  avatar: {
+    walking: string;
+    running: string;
+    sit: string;
+    stand: string;
+    transition: string;
+  };
   items: {
     keyboardMove: ControlOverlayItemStrings;
+    toggleGait: ControlOverlayItemStrings;
     pointerDrag: ControlOverlayItemStrings;
     pointerZoom: ControlOverlayItemStrings;
     keyboardZoom: ControlOverlayItemStrings;

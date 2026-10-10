@@ -144,7 +144,18 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
   hud: {
     controlOverlay: {
       heading: 'Controls',
+      avatar: {
+        walking: 'Walking — toggle run / walk',
+        running: 'Running — toggle run / walk',
+        sit: 'Sit in chair (Interact)',
+        stand: 'Stand up (Interact or move)',
+        transition: 'Moving into position…',
+      },
       items: {
+        toggleGait: {
+          keys: 'Caps Lock',
+          description: 'Toggle run / walk (starts walking)',
+        },
         keyboardMove: {
           keys: 'WASD / Arrow keys',
           description: 'Move',

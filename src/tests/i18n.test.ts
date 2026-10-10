@@ -187,6 +187,28 @@ it('pseudo-localizes POI debug detail labels', () => {
 });
 
 describe('i18n utilities', () => {
+  it.each(Object.entries(PUBLIC_LOCALE_OVERRIDES))(
+    'owns translated gait and chair copy for %s',
+    (_locale, overrides) => {
+      const overlay = overrides.hud?.controlOverlay;
+      const english = getControlOverlayStrings('en');
+      expect(overlay?.items?.toggleGait?.keys?.trim()).toBeTruthy();
+      expect(overlay?.items?.toggleGait?.description?.trim()).toBeTruthy();
+      expect(overlay?.items?.toggleGait?.description).not.toBe(
+        english.items.toggleGait.description
+      );
+      for (const key of [
+        'walking',
+        'running',
+        'sit',
+        'stand',
+        'transition',
+      ] as const) {
+        expect(overlay?.avatar?.[key]?.trim()).toBeTruthy();
+        expect(overlay?.avatar?.[key]).not.toBe(english.avatar[key]);
+      }
+    }
+  );
   it('exposes available locales including pseudo locale scaffolding', () => {
     expect(AVAILABLE_LOCALES).toContain('en');
     expect(AVAILABLE_LOCALES).toContain('en-x-pseudo');
@@ -761,7 +783,7 @@ describe('i18n utilities', () => {
 
     const spanishHelp = getHelpModalStrings('es');
     expect(spanishHelp.sections[0]?.title).toBe('Controles');
-    expect(spanishHelp.sections[0]?.items[3]?.description).toBe(
+    expect(spanishHelp.sections[0]?.items[4]?.description).toBe(
       'Acercar o alejar con el teclado'
     );
     const germanHelp = getHelpModalStrings('de');

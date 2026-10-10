@@ -176,9 +176,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/avatar/mannequin.ts',
       'src/scene/avatar/accessories.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
     reason:
-      'Avatar accessory display labels moved to i18n only; overworld player geometry remains unchanged.',
+      'Avatar accessory labels and runtime drone baseline updates do not affect the excluded overworld player geometry.',
   },
   {
     id: 'poi:markers-labels',
@@ -243,6 +243,19 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     syncRevision: 1,
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+  },
+  {
+    id: 'avatar:animated-player',
+    kind: 'excluded',
+    sourceFiles: [
+      'src/scene/avatar/animatedAvatar.ts',
+      'src/scene/avatar/chairController.ts',
+      'src/scene/avatar/prepareRendering.ts',
+      'src/systems/movement/avatarGait.ts',
+    ],
+    syncRevision: 5,
+    reason:
+      'The moving player, GPU preparation, gait speeds, seated poses and safe reload positions are excluded from static miniature architecture; chair proxies are unchanged.',
   },
   {
     id: 'audit:src:scene:avatar:footIkController',

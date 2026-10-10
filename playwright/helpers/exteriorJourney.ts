@@ -11,6 +11,12 @@ export async function readyExterior(page: Page) {
   );
   const safe = page.locator('[data-action="continue-safe-immersive"]');
   if (await safe.isVisible()) await safe.click();
+  // Hardware browsers show the startup tutorial; traversal starts after its normal dismissal.
+  const dismissTutorial = page.getByRole('button', {
+    name: 'Close the tutorial for now',
+    exact: true,
+  });
+  if (await dismissTutorial.isVisible()) await dismissTutorial.click();
   await page.locator('#app canvas').focus();
 }
 

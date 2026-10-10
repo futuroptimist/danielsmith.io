@@ -1,4 +1,21 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+
+import { AVATAR_RUN_SPEED } from '../../src/systems/movement/avatarGait';
+
+/** Select the real maximum gait without changing focus or bypassing controls. */
+export async function selectNativeRunGait(page: Page) {
+  if (
+    await page.evaluate(() => window.portfolio?.avatar?.getGait?.() === 'walk')
+  )
+    await page.keyboard.press('CapsLock');
+  await expect
+    .poll(() => page.evaluate(() => window.portfolio?.avatar?.getGait?.()))
+    .toBe('run');
+}
+
+/** Preserve the intended world distance when the authored locomotion speed changes. */
+export const runHoldForDistance = (distance: number) =>
+  Math.ceil((distance / AVATAR_RUN_SPEED) * 1000);
 
 type MovementCode = 'KeyW' | 'KeyA' | 'KeyS' | 'KeyD';
 

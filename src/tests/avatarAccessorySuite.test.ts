@@ -14,6 +14,21 @@ const ALT_PALETTE = {
 };
 
 describe('createAvatarAccessorySuite', () => {
+  it('keeps the adjusted drone baseline across subsequent animation updates', () => {
+    const mannequin = createPortfolioMannequin();
+    const suite = createAvatarAccessorySuite({ mannequin });
+    suite.setEnabled('holo-drone', true);
+    suite.update({ elapsed: 1.2, delta: 0.016 });
+    suite.setBaseHeight('holo-drone', 1.6);
+    const drone = mannequin.group.getObjectByName(
+      'MannequinAccessoryHoloDrone'
+    )!;
+    suite.update({ elapsed: 0, delta: 0.016 });
+    expect(drone.position.y).toBeCloseTo(1.6);
+    suite.update({ elapsed: Math.PI / 3.2, delta: 0.016 });
+    expect(drone.position.y).toBeCloseTo(1.66);
+    suite.dispose();
+  });
   it('attaches accessories and toggles their visibility state', () => {
     const mannequin = createPortfolioMannequin();
     const suite = createAvatarAccessorySuite({ mannequin });

@@ -117,8 +117,19 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
   },
   hud: {
     controlOverlay: {
+      avatar: {
+        walking: '正在行走 - 切换奔跑／行走',
+        running: '正在奔跑 - 切换奔跑／行走',
+        sit: '坐到椅子上（交互）',
+        stand: '站起来（交互或移动）',
+        transition: '正在移动到位。',
+      },
       heading: '控制',
       items: {
+        toggleGait: {
+          keys: '大写锁定键',
+          description: '切换奔跑／行走（默认行走）',
+        },
         keyboardMove: { keys: 'WASD / 方向键', description: '移动' },
         pointerDrag: { keys: '鼠标左键', description: '拖动平移' },
         pointerZoom: { keys: '滚轮', description: '缩放' },

@@ -2710,3 +2710,29 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
   flex-direction: column;
   gap: 0.5rem;
 }
+/* A reachable touch/keyboard affordance for supported nearby chairs. */
+.avatar-chair-control {
+  position: fixed;
+  left: 50%;
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 0.8rem 1.1rem;
+  border: 1px solid #84d9de;
+  border-radius: 0.7rem;
+  background: #16242eef;
+  color: #f3fcff;
+  font: inherit;
+  cursor: pointer;
+}
+.avatar-chair-control[hidden] {
+  display: none;
+}
+.avatar-chair-control:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+.avatar-chair-control:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
