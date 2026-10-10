@@ -15,6 +15,11 @@ fences, and mixed faceted broadleaf/conifer canopies with shrubs. Adopt that com
 foliage language, varied setbacks and muted roof colors. The yellow highlighted house
 is a location placeholder, not an architectural replacement. The reference remains
 outside Git; including the image in the repository requires separate owner review.
+The durable source is ChatGPT Library file `libfile_2db2396b6808819197d1b3a9fa8c750b`,
+named `neighborhood-concept-a.png`; the baseline note records its SHA-256. Reviewers
+with Library access should materialize that file through the current Library workflow
+and verify the hash. If access is unavailable, obtain an owner-approved review copy
+before visual sign-off; an executor-local path or expiring download URL is not the source.
 
 Preserve the actual [level](../../src/scene/level/portfolioLevel.ts), not the
 reference image's generic bungalow: living room, kitchen, studio, backyard, upstairs
@@ -335,8 +340,13 @@ at least 5 seconds after assets/shaders settle; do not discard route stalls as w
 
 Compare equivalent poses on the same browser/hardware and same capture method; archive
 three attempts separately before reruns. The new-area route has no old counterpart, so
-compare it to the absolute cap and label it separately. Require input p95 <200 ms,
-no traversal blocker, no unbounded resource growth, and the tablet frame targets above.
+compare it to the absolute cap and label it separately. Require p95 INP <200 ms, matching
+the roadmap: capture event-to-next-paint duration, including input delay, processing and
+presentation delay, on representative keyboard/touch interactions. Retain dispatch delay
+only as a diagnostic; it cannot satisfy this gate. Where browser Event Timing support is
+unavailable, record an explicitly end-to-end input-to-next-paint substitute and its method,
+or mark qualification incomplete. Require no traversal blocker, no unbounded resource
+growth, and the tablet frame targets above.
 Keep the existing startup safety/text mode and user-selected low-FPS recovery behavior;
 diagnostic overrides are not evidence that normal failover is correct.
 
