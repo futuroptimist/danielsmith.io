@@ -12,6 +12,73 @@ colliders, scene objects, semantic connections, room-specific cutouts, and
 other generated runtime geometry should be extracted from imperative assembly
 into those files over the migration.
 
+## Neighborhood and exploration dependencies
+
+The current approved visual direction is neighborhood concept A and its foliage.
+The [neighborhood design](design/neighborhood-expansion.md) is the review contract for
+two connected curved residential streets, homes on both sides, varied yards and reusable
+low-poly planting. Only the existing house remains enterable. Preserve its architecture,
+garage, interiors and the bus stop immediately beside it at their actual source positions.
+Design approval does not authorize implementation; graybox, baseline performance,
+collision, accessibility and low-end tablet gates precede completion. No dates are promised.
+
+The avatar foundation is already merged, not pending: [PR #1127](https://github.com/futuroptimist/danielsmith.io/pull/1127)
+merged on October 10, 2026, with merge commit `9eb61239b3e17d3b43d3d8a13adcaf08158039b5`.
+The inspected source includes Idle, Walk, Run, SitDown, Seated and StandUp clips, a
+Caps Lock gait toggle and three supported chairs. Its recorded PR checks, including
+avatar/traversal CI, succeeded. See the [animation contract](architecture/animated-avatar.md)
+and [integration suite](../playwright/avatar-integration.spec.ts). This verifies merged
+code and recorded CI, not deployment or new hardware qualification. Jump/landing clips
+and a collision-safe airborne movement state are not supplied by that foundation.
+
+Future work has an explicit dependency order:
+
+1. **Retain and revalidate the merged avatar foundation.** Preserve camera-relative
+   walk/run, seating/standing clearance, model fallback, reduced motion, quality reload
+   and remapped-input behavior while the neighborhood is developed.
+2. **Design, implement and validate collision-safe jumping in a separately approved
+   change before either fast travel or hiking begins.** Add jump/takeoff and landing
+   animations with a defined grounded, rising, falling and landing state machine.
+   Specify transitions to/from idle/walk/run and seating; reject airborne seating and
+   repeated airborne jump activation unless separately designed. Animation must follow
+   controller position; clips must not translate the avatar through solids. Define
+   grounded tolerances, head impact, falling from an edge, landing recovery, slope
+   limits and safe recovery from invalid positions without inventing new destinations.
+   Validate swept/substepped movement at maximum run speed and variable frame times
+   against stairs and lips, underside/ceilings, chair arms and occupied seats, moving
+   doors/doorways, fences, sidewalk edges and representative slope fixtures. Test
+   jumping beneath stairs without snapping to another floor, low ceilings cancelling
+   upward motion, closed doors remaining solid, fence tops/edges and landing beside
+   geometry without tunneling, snagging or penetration. Include both existing home
+   floors/garage and the neighborhood, with stable collision across visual LODs.
+   Preserve ordinary walkable routes; jumping must not become mandatory for the
+   portfolio or bus-stop approach. Define remappable keyboard and reachable touch
+   controls, key-repeat/focus-loss behavior, conflicts with Interact/gait bindings,
+   accessible help and reduced-motion presentation without suppressing physical
+   grounding. Require automated transition/collision tests, full existing avatar and
+   house traversal regressions, visual front/side takeoff/landing review, real input
+   journeys, low-end performance evidence and owner sign-off on the exact build.
+3. **Proposed bus fast travel, after the jumping gate.** The existing stop is intended
+   as the main hub. A separate design must define destination identity, safe arrival
+   anchors, loading/failure/recovery, movement/animation resets and keyboard/touch/text
+   equivalents. Preserve the current `residential-bus-stop` and
+   `ground.busStop.shelter` identities and approach; keep the sign passive until that
+   design and implementation are approved. Validate round trips, interrupted travel,
+   inaccessible destinations and safe standing arrivals before enabling it.
+4. **Proposed mountain hiking and second stop, after the jumping gate.** A hikeable
+   mountain at the town edge and a second bus stop are candidate future destinations,
+   not neighborhood requirements. A separate terrain/trail design must review slope
+   and edge safety, route accessibility, camera behavior, streaming/LOD, return paths,
+   landing collisions and sustained tablet performance. A bus connection to it also
+   depends on the reviewed fast-travel system. Neither destination layout nor a second
+   stop is allocated or implemented in the current neighborhood expansion.
+
+The dependency graph is: merged avatar foundation -> validated collision-safe jumping
+-> fast-travel work and hiking work; connecting the proposed mountain stop additionally
+requires both destination and travel validation. Neighborhood design is current work
+and does not depend on implementing jumping, hiking or fast travel. Preserve its
+walkable network and fixed bus-stop seam so those later reviews can build on it.
+
 ## Delivery scoreboard
 
 | Phase | Status         | Demo                | Key metrics                                               |
