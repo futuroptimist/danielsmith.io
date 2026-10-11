@@ -69,6 +69,14 @@ describe('Aquiloop visual cycle', () => {
 
 describe('Aquiloop exhibit integration', () => {
   const position = { ...AQUILOOP_POSITION, y: 0 };
+  it('does not count loading or text-mode time before its first running frame', () => {
+    const build = createAquiloopAquarium(position);
+    expect(build.update(10000).tankGallons).toBe(150);
+    expect(build.update(10299).phase).toBe('idle');
+    expect(build.update(10300).phase).toBe('drain');
+    expect(build.update(10330).tankGallons).toBe(120);
+    build.dispose();
+  });
   it('registers the repository for immersive and text routing, preserving the NRL POI', () => {
     const definitions = getPoiDefinitions();
     const aquarium = definitions.find(
