@@ -226,6 +226,7 @@ describe('source-backed recursive property table', () => {
           table.transform.inverseMapPosition(mapped).distanceTo(point)
         ).toBeLessThan(1e-5);
         expect(table.miniaturePlayer.rotation.y).toBe(1.2);
+        expect(table.selfProxy.visible).toBe(floor === 'ground');
         expect(
           table.sourceSnapshot.group.getObjectByName(
             `MiniatureSource:${floor}`

@@ -463,6 +463,7 @@ export function createPortfolioMiniatureTable(
       player.root.position.copy(playerWorldPosition);
       player.root.rotation.y = transform.mapWorldYaw(playerYaw);
       sourceSnapshot.setFloor(activeFloor);
+      selfProxy.visible = activeFloor === 'ground';
     },
     setPlayerPalette(palette) {
       if (!disposed) player.setPalette(palette);
