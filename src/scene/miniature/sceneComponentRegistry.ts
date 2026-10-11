@@ -16,6 +16,18 @@ const SELF_FILE = 'src/scene/miniature/sceneComponentRegistry.ts';
 
 export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
   {
+    id: 'basement:woodworking',
+    kind: 'shared-source',
+    sourceFiles: [
+      'src/scene/level/woodworkingLayout.ts',
+      'src/scene/structures/woodworkingWorkshop.ts',
+    ],
+    syncRevision: 1,
+    proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
+    syncNote:
+      'The basement snapshot includes static workshop geometry before the table is built.',
+  },
+  {
     id: 'exterior:front-entry',
     kind: 'shared-source',
     sourceFiles: [
@@ -69,9 +81,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/assets/floorPlan/index.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'All production floor layouts participate in the fixed miniature property envelope.',
+      'All production floors and the basement woodworking stations participate in the fixed property envelope.',
   },
   {
     id: 'level:floors-walls',

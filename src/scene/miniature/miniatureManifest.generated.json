@@ -398,6 +398,19 @@
       "metadataFingerprint": "cb4ae999fe7f6083c16efbe1aaff8828e82691fa48afadfc00e7d2554b6c58d2"
     },
     {
+      "id": "basement:woodworking",
+      "sourceFiles": [
+        "src/scene/level/woodworkingLayout.ts",
+        "src/scene/structures/woodworkingWorkshop.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
+      "syncRevision": 1,
+      "syncNote": "The basement snapshot includes static workshop geometry before the table is built.",
+      "sourceFingerprint": "bf842115ab43c85cc20e3fab8fe89fb6e62759b004756049f864210c25da3292",
+      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "metadataFingerprint": "d23d1319bcdeac0333ef2b5bf5485e2ae1dea3336dae10a7eca7dbf71b471fcb"
+    },
+    {
       "id": "career:museum-exhibits",
       "sourceFiles": ["src/scene/structures/careerMuseum.ts"],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
@@ -543,11 +556,11 @@
         "src/scene/level/schema.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 9,
-      "syncNote": "All production floor layouts participate in the fixed miniature property envelope.",
-      "sourceFingerprint": "35793fd6990cf3b88da1fb18a5d160ebea4a0d814ebbe685cc6a6b56abd6a10d",
+      "syncRevision": 10,
+      "syncNote": "All production floors and the basement woodworking stations participate in the fixed property envelope.",
+      "sourceFingerprint": "1fbe9b3c52197d6e165c9912d6ff149aaf73f15264ad456ddb4c73d499fbe6e9",
       "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "1e65558a96d1c79a80cf699c3d040b72318a0a225faf14a7c66070630100cb62"
+      "metadataFingerprint": "e0d4f3330268c3213218a4ad4ed4700d2407eeaaf17b03590e5d423c97afbebf"
     },
     {
       "id": "level:stairs-landing",

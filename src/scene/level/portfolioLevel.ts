@@ -16,6 +16,7 @@ import type {
   WallDefinition,
 } from './schema';
 import { assertLevelSourceId } from './sourceIds';
+import { WORKSHOP_OBJECTS } from './woodworkingLayout';
 
 const sourceId = (value: string) => assertLevelSourceId(value);
 
@@ -192,7 +193,7 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
   floors: [
     buildFloor({
       id: 'basement',
-      sceneObjects: CAREER_MUSEUM_OBJECTS,
+      sceneObjects: [...CAREER_MUSEUM_OBJECTS, ...WORKSHOP_OBJECTS],
       name: 'Career Museum',
       outline: [
         [-16, -18],

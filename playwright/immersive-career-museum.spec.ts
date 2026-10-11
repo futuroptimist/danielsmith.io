@@ -6,6 +6,7 @@ import type { AxeResults } from 'axe-core';
 
 import { CAREER_HISTORY } from '../src/assets/careers';
 import { AVAILABLE_LOCALES, getCareerCopy } from '../src/assets/i18n';
+import { getWorkshopDescription } from '../src/assets/i18n/woodworking';
 import { IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET } from '../src/assets/performance';
 
 const URL = '/?mode=immersive&disablePerformanceFailover=1';
@@ -16,8 +17,8 @@ const APPROACHES = [
     id: 'career-southern-mississippi',
     title: 'The University of Southern Mississippi',
     path: [
-      { x: -24, z: -32.5 },
-      { x: -24, z: -15.5 },
+      { x: -29, z: -32.5 },
+      { x: -29, z: -15.5 },
       { x: -18, z: -15.5 },
     ],
   },
@@ -25,8 +26,8 @@ const APPROACHES = [
     id: 'career-naval-research',
     title: 'Naval Research Laboratory',
     path: [
-      { x: -24, z: -15.5 },
-      { x: -24, z: 4.5 },
+      { x: -29, z: -15.5 },
+      { x: -29, z: 4.5 },
       { x: -18, z: 4.5 },
     ],
   },
@@ -90,6 +91,53 @@ async function enterMuseum(page: Page) {
     await page.evaluate(() => window.portfolio!.world!.getActiveFloor())
   ).toBe('basement');
 }
+
+test('workshop description and perimeter stay floor-aware', async ({
+  page,
+}) => {
+  await ready(page);
+  const description = page.locator('[data-workshop-description]');
+  await expect(description).toBeHidden();
+  await enterMuseum(page);
+  await expect(description).not.toHaveAttribute('hidden', '');
+  await expect(description).toContainText('birdhouse awaiting its roof');
+  const redundantVisibilityWrites = await description.evaluate(
+    (element) =>
+      new Promise<number>((resolve) => {
+        let writes = 0;
+        const observer = new MutationObserver((records) => {
+          writes += records.length;
+        });
+        observer.observe(element, {
+          attributes: true,
+          attributeFilter: ['hidden'],
+        });
+        setTimeout(() => {
+          observer.disconnect();
+          resolve(writes);
+        }, 250);
+      })
+  );
+  expect(redundantVisibilityWrites).toBe(0);
+  await walk(page, [
+    { x: -29, z: -32.5 },
+    { x: -29, z: -22 },
+    { x: -22, z: -22 },
+  ]);
+  await page.mouse.move(500, 400);
+  await page.mouse.wheel(0, 500);
+  await page.waitForTimeout(600);
+  await page.screenshot({
+    path: test.info().outputPath('woodworking-corner.png'),
+  });
+  await walk(page, [
+    { x: -29, z: -22 },
+    { x: -29, z: -32.5 },
+    { x: 3.8, z: -32.5 },
+    { x: 3.8, z: -11 },
+  ]);
+  await expect(description).toBeHidden();
+});
 
 for (const width of [1280, 901]) {
   for (const panel of ['tutorial', 'controls'] as const) {
@@ -437,6 +485,9 @@ for (const locale of AVAILABLE_LOCALES) {
     await page.keyboard.press('Escape');
     await page.locator('#app canvas').click({ position: { x: 20, y: 200 } });
     await enterMuseum(page);
+    await expect(page.locator('[data-workshop-description]')).toHaveText(
+      getWorkshopDescription(locale)
+    );
     await selectByKeyboard(page, 'career-muon-space');
     const expected = getCareerCopy(locale)['muon-space'];
     await expect(
