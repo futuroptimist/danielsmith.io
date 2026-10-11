@@ -31,18 +31,18 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": undefined,
       "doorways": [
         {
-          "end": -6.9,
-          "start": -8.1,
+          "end": -6.651471862576,
+          "start": -8.348528137424,
           "wall": "east",
         },
         {
-          "end": -8.4,
-          "start": -9.6,
+          "end": -8.151471862576,
+          "start": -9.848528137424,
           "wall": "north",
         },
         {
-          "end": 8.1,
-          "start": 6.9,
+          "end": 8.348528137424,
+          "start": 6.651471862576,
           "wall": "north",
         },
         {
@@ -65,8 +65,8 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": undefined,
       "doorways": [
         {
-          "end": 8.1,
-          "start": 6.9,
+          "end": 8.348528137424,
+          "start": 6.651471862576,
           "wall": "south",
         },
         {
@@ -75,18 +75,18 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
           "wall": "south",
         },
         {
-          "end": 2.6,
-          "start": 1.4,
+          "end": 2.848528137424,
+          "start": 1.151471862576,
           "wall": "west",
         },
         {
-          "end": -0.4,
-          "start": -1.6,
+          "end": -0.151471862576,
+          "start": -1.848528137424,
           "wall": "east",
         },
         {
-          "end": 8.1,
-          "start": 6.9,
+          "end": 8.348528137424,
+          "start": 6.651471862576,
           "wall": "north",
         },
       ],
@@ -104,18 +104,18 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": undefined,
       "doorways": [
         {
-          "end": -8.4,
-          "start": -9.6,
+          "end": -8.151471862576,
+          "start": -9.848528137424,
           "wall": "south",
         },
         {
-          "end": 2.6,
-          "start": 1.4,
+          "end": 2.848528137424,
+          "start": 1.151471862576,
           "wall": "east",
         },
         {
-          "end": -8.4,
-          "start": -9.6,
+          "end": -8.151471862576,
+          "start": -9.848528137424,
           "wall": "north",
         },
       ],
@@ -133,13 +133,13 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": "exterior",
       "doorways": [
         {
-          "end": -8.4,
-          "start": -9.6,
+          "end": -8.151471862576,
+          "start": -9.848528137424,
           "wall": "south",
         },
         {
-          "end": 8.1,
-          "start": 6.9,
+          "end": 8.348528137424,
+          "start": 6.651471862576,
           "wall": "south",
         },
       ],
@@ -157,13 +157,13 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": "interior",
       "doorways": [
         {
-          "end": 3.25,
-          "start": 0.75,
+          "end": 3.767766952966,
+          "start": 0.232233047034,
           "wall": "east",
         },
         {
-          "end": -0.4,
-          "start": -1.6,
+          "end": -0.151471862576,
+          "start": -1.848528137424,
           "wall": "west",
         },
       ],
@@ -181,8 +181,8 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": "exterior",
       "doorways": [
         {
-          "end": 3.25,
-          "start": 0.75,
+          "end": 3.767766952966,
+          "start": 0.232233047034,
           "wall": "west",
         },
       ],
@@ -239,8 +239,8 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": "exterior",
       "doorways": [
         {
-          "end": -6.9,
-          "start": -8.1,
+          "end": -6.651471862576,
+          "start": -8.348528137424,
           "wall": "west",
         },
       ],
@@ -309,13 +309,13 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": undefined,
       "doorways": [
         {
-          "end": -13.935,
-          "start": -15.135,
+          "end": -13.686471862576,
+          "start": -15.383528137424,
           "wall": "west",
         },
         {
-          "end": 5.4,
-          "start": 4.2,
+          "end": 5.048528137424,
+          "start": 3.351471862576,
           "wall": "north",
         },
       ],
@@ -333,13 +333,13 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": undefined,
       "doorways": [
         {
-          "end": -13.935,
-          "start": -15.135,
+          "end": -13.686471862576,
+          "start": -15.383528137424,
           "wall": "east",
         },
         {
-          "end": -3.4,
-          "start": -4.6,
+          "end": -3.151471862576,
+          "start": -4.848528137424,
           "wall": "east",
         },
       ],
@@ -357,18 +357,18 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": undefined,
       "doorways": [
         {
-          "end": -3.4,
-          "start": -4.6,
+          "end": -3.151471862576,
+          "start": -4.848528137424,
           "wall": "west",
         },
         {
-          "end": 5.4,
-          "start": 4.2,
+          "end": 5.048528137424,
+          "start": 3.351471862576,
           "wall": "south",
         },
         {
-          "end": 4.6,
-          "start": 3.4,
+          "end": 4.848528137424,
+          "start": 3.151471862576,
           "wall": "north",
         },
       ],
@@ -386,8 +386,8 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": undefined,
       "doorways": [
         {
-          "end": 4.6,
-          "start": 3.4,
+          "end": 4.848528137424,
+          "start": 3.151471862576,
           "wall": "south",
         },
       ],
@@ -403,8 +403,8 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
 [
   {
     "end": {
-      "x": -4.000000000000001,
-      "z": -8,
+      "x": -2.8284271247461903,
+      "z": -5.657,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -412,14 +412,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "livingRoom:north",
     ],
     "start": {
-      "x": -16.800000000000004,
-      "z": -8,
+      "x": -11.527922061357655,
+      "z": -5.657,
     },
   },
   {
     "end": {
-      "x": -4.000000000000001,
-      "z": 16,
+      "x": -2.8284271247461903,
+      "z": 11.314,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -427,28 +427,58 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "kitchen:north",
     ],
     "start": {
-      "x": -16.800000000000004,
-      "z": 16,
+      "x": -11.527922061357655,
+      "z": 11.314,
     },
   },
   {
     "end": {
-      "x": 32.00000000000001,
-      "z": -32,
+      "x": 9.406601717798011,
+      "z": -5.657,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "livingRoom:north",
+      "studio:south",
+    ],
+    "start": {
+      "x": -2.8284271247461903,
+      "z": -5.657,
+    },
+  },
+  {
+    "end": {
+      "x": 9.406601717798011,
+      "z": 11.314,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "backyard:south",
+      "studio:north",
+    ],
+    "start": {
+      "x": -2.8284271247461903,
+      "z": 11.314,
+    },
+  },
+  {
+    "end": {
+      "x": 22.627416997969522,
+      "z": -22.627,
     },
     "orientation": "horizontal",
     "rooms": [
       "livingRoom:south",
     ],
     "start": {
-      "x": -32.00000000000001,
-      "z": -32,
+      "x": -22.627416997969522,
+      "z": -22.627,
     },
   },
   {
     "end": {
-      "x": -19.200000000000003,
-      "z": -8,
+      "x": -13.927922061358057,
+      "z": -5.657,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -456,14 +486,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "livingRoom:north",
     ],
     "start": {
-      "x": -32.00000000000001,
-      "z": -8,
+      "x": -22.627416997969522,
+      "z": -5.657,
     },
   },
   {
     "end": {
-      "x": -19.200000000000003,
-      "z": 16,
+      "x": -13.927922061358057,
+      "z": 11.314,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -471,28 +501,28 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "kitchen:north",
     ],
     "start": {
-      "x": -32.00000000000001,
-      "z": 16,
+      "x": -22.627416997969522,
+      "z": 11.314,
     },
   },
   {
     "end": {
-      "x": 32.00000000000001,
-      "z": 32,
+      "x": 22.627416997969522,
+      "z": 22.627,
     },
     "orientation": "horizontal",
     "rooms": [
       "backyard:north",
     ],
     "start": {
-      "x": -32.00000000000001,
-      "z": 32,
+      "x": -22.627416997969522,
+      "z": 22.627,
     },
   },
   {
     "end": {
-      "x": 13.800000000000004,
-      "z": -8,
+      "x": 16.61700935788387,
+      "z": -5.657,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -500,14 +530,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "studio:south",
     ],
     "start": {
-      "x": -4.000000000000001,
-      "z": -8,
+      "x": 11.806601717798415,
+      "z": -5.657,
     },
   },
   {
     "end": {
-      "x": 13.800000000000004,
-      "z": 16,
+      "x": 22.627416997969522,
+      "z": 11.314,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -515,14 +545,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "studio:north",
     ],
     "start": {
-      "x": -4.000000000000001,
-      "z": 16,
+      "x": 11.806601717798415,
+      "z": 11.314,
     },
   },
   {
     "end": {
-      "x": 23.500000000000004,
-      "z": -8,
+      "x": 22.627416997969522,
+      "z": -5.657,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -530,86 +560,42 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "studio:south",
     ],
     "start": {
-      "x": 16.200000000000003,
-      "z": -8,
+      "x": 20.859650045003153,
+      "z": -5.657,
     },
   },
   {
     "end": {
-      "x": 32.00000000000001,
-      "z": 16,
-    },
-    "orientation": "horizontal",
-    "rooms": [
-      "backyard:south",
-      "studio:north",
-    ],
-    "start": {
-      "x": 16.200000000000003,
-      "z": 16,
-    },
-  },
-  {
-    "end": {
-      "x": 32.00000000000001,
-      "z": -8,
-    },
-    "orientation": "horizontal",
-    "rooms": [
-      "livingRoom:north",
-      "studio:south",
-    ],
-    "start": {
-      "x": 29.500000000000007,
-      "z": -8,
-    },
-  },
-  {
-    "end": {
-      "x": 52.000000000000014,
-      "z": -12,
-    },
-    "orientation": "horizontal",
-    "rooms": [
-      "frontPath:north",
-    ],
-    "start": {
-      "x": 32.00000000000001,
-      "z": -12,
-    },
-  },
-  {
-    "end": {
-      "x": 52.000000000000014,
-      "z": -18,
+      "x": 36.76955262170048,
+      "z": -12.728,
     },
     "orientation": "horizontal",
     "rooms": [
       "frontPath:south",
     ],
     "start": {
-      "x": 32.00000000000001,
-      "z": -18,
+      "x": 22.627416997969522,
+      "z": -12.728,
     },
   },
   {
     "end": {
-      "x": 52.000000000000014,
-      "z": -32,
+      "x": 36.76955262170048,
+      "z": -22.627,
     },
     "orientation": "horizontal",
     "rooms": [
       "frontYard:south",
     ],
     "start": {
-      "x": 32.00000000000001,
-      "z": -32,
+      "x": 22.627416997969522,
+      "z": -22.627,
     },
   },
   {
     "end": {
-      "x": 50.000000000000014,
-      "z": -8,
+      "x": 35.35533905932738,
+      "z": -5.657,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -617,14 +603,28 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "garage:south",
     ],
     "start": {
-      "x": 32.00000000000001,
-      "z": -8,
+      "x": 22.627416997969522,
+      "z": -5.657,
     },
   },
   {
     "end": {
-      "x": 50.000000000000014,
-      "z": 16,
+      "x": 36.76955262170048,
+      "z": -8.485,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "frontPath:north",
+    ],
+    "start": {
+      "x": 22.627416997969522,
+      "z": -8.485,
+    },
+  },
+  {
+    "end": {
+      "x": 35.35533905932738,
+      "z": 11.314,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -632,56 +632,56 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "verge:south",
     ],
     "start": {
-      "x": 32.00000000000001,
-      "z": 16,
+      "x": 22.627416997969522,
+      "z": 11.314,
     },
   },
   {
     "end": {
-      "x": 52.000000000000014,
-      "z": 40,
+      "x": 36.76955262170048,
+      "z": 28.284,
     },
     "orientation": "horizontal",
     "rooms": [
       "verge:north",
     ],
     "start": {
-      "x": 32.00000000000001,
-      "z": 40,
+      "x": 22.627416997969522,
+      "z": 28.284,
     },
   },
   {
     "end": {
-      "x": 52.000000000000014,
-      "z": 26,
+      "x": 36.76955262170048,
+      "z": 18.385,
     },
     "orientation": "horizontal",
     "rooms": [
       "busStop:south",
     ],
     "start": {
-      "x": 46.00000000000001,
-      "z": 26,
+      "x": 32.526911934581186,
+      "z": 18.385,
     },
   },
   {
     "end": {
-      "x": 52.000000000000014,
-      "z": 38,
+      "x": 36.76955262170048,
+      "z": 26.87,
     },
     "orientation": "horizontal",
     "rooms": [
       "busStop:north",
     ],
     "start": {
-      "x": 46.00000000000001,
-      "z": 38,
+      "x": 32.526911934581186,
+      "z": 26.87,
     },
   },
   {
     "end": {
-      "x": 52.000000000000014,
-      "z": -8,
+      "x": 36.76955262170048,
+      "z": -5.657,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -689,14 +689,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "frontYard:north",
     ],
     "start": {
-      "x": 50.000000000000014,
-      "z": -8,
+      "x": 35.35533905932738,
+      "z": -5.657,
     },
   },
   {
     "end": {
-      "x": 52.000000000000014,
-      "z": 16,
+      "x": 36.76955262170048,
+      "z": 11.314,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -704,170 +704,170 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "verge:south",
     ],
     "start": {
-      "x": 50.000000000000014,
-      "z": 16,
+      "x": 35.35533905932738,
+      "z": 11.314,
     },
   },
   {
     "end": {
-      "x": 58.000000000000014,
-      "z": -36,
+      "x": 41.01219330881976,
+      "z": -25.456,
     },
     "orientation": "horizontal",
     "rooms": [
       "sidewalk:south",
     ],
     "start": {
-      "x": 52.000000000000014,
-      "z": -36,
+      "x": 36.76955262170048,
+      "z": -25.456,
     },
   },
   {
     "end": {
-      "x": 58.000000000000014,
-      "z": -8,
+      "x": 41.01219330881976,
+      "z": -5.657,
     },
     "orientation": "horizontal",
     "rooms": [
       "driveway:south",
     ],
     "start": {
-      "x": 52.000000000000014,
-      "z": -8,
+      "x": 36.76955262170048,
+      "z": -5.657,
     },
   },
   {
     "end": {
-      "x": 58.000000000000014,
-      "z": 16,
+      "x": 41.01219330881976,
+      "z": 11.314,
     },
     "orientation": "horizontal",
     "rooms": [
       "driveway:north",
     ],
     "start": {
-      "x": 52.000000000000014,
-      "z": 16,
+      "x": 36.76955262170048,
+      "z": 11.314,
     },
   },
   {
     "end": {
-      "x": 58.000000000000014,
-      "z": 40,
+      "x": 41.01219330881976,
+      "z": 28.284,
     },
     "orientation": "horizontal",
     "rooms": [
       "sidewalk:north",
     ],
     "start": {
-      "x": 52.000000000000014,
-      "z": 40,
+      "x": 36.76955262170048,
+      "z": 28.284,
     },
   },
   {
     "end": {
-      "x": 80.00000000000001,
-      "z": -36,
+      "x": 56.568542494923804,
+      "z": -25.456,
     },
     "orientation": "horizontal",
     "rooms": [
       "street:south",
     ],
     "start": {
-      "x": 58.000000000000014,
-      "z": -36,
+      "x": 41.01219330881976,
+      "z": -25.456,
     },
   },
   {
     "end": {
-      "x": 80.00000000000001,
-      "z": 40,
+      "x": 56.568542494923804,
+      "z": 28.284,
     },
     "orientation": "horizontal",
     "rooms": [
       "street:north",
     ],
     "start": {
-      "x": 58.000000000000014,
-      "z": 40,
+      "x": 41.01219330881976,
+      "z": 28.284,
     },
   },
   {
     "end": {
-      "x": -32,
-      "z": -8.000000000000002,
+      "x": -2.828,
+      "z": 1.628427124745988,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "kitchen:east",
+      "studio:west",
+    ],
+    "start": {
+      "x": -2.828,
+      "z": -5.656854249492381,
+    },
+  },
+  {
+    "end": {
+      "x": -2.828,
+      "z": 11.313708498984761,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "kitchen:east",
+      "studio:west",
+    ],
+    "start": {
+      "x": -2.828,
+      "z": 4.0284271247463925,
+    },
+  },
+  {
+    "end": {
+      "x": -22.627,
+      "z": -5.656854249492381,
     },
     "orientation": "vertical",
     "rooms": [
       "livingRoom:west",
     ],
     "start": {
-      "x": -32,
-      "z": -32.00000000000001,
+      "x": -22.627,
+      "z": -22.627416997969522,
     },
   },
   {
     "end": {
-      "x": -32,
-      "z": 16.000000000000004,
+      "x": -22.627,
+      "z": 11.313708498984761,
     },
     "orientation": "vertical",
     "rooms": [
       "kitchen:west",
     ],
     "start": {
-      "x": -32,
-      "z": -8.000000000000002,
+      "x": -22.627,
+      "z": -5.656854249492381,
     },
   },
   {
     "end": {
-      "x": -32,
-      "z": 32.00000000000001,
+      "x": -22.627,
+      "z": 22.627416997969522,
     },
     "orientation": "vertical",
     "rooms": [
       "backyard:west",
     ],
     "start": {
-      "x": -32,
-      "z": 16.000000000000004,
+      "x": -22.627,
+      "z": 11.313708498984761,
     },
   },
   {
     "end": {
-      "x": -4,
-      "z": 2.8000000000000003,
-    },
-    "orientation": "vertical",
-    "rooms": [
-      "kitchen:east",
-      "studio:west",
-    ],
-    "start": {
-      "x": -4,
-      "z": -8.000000000000002,
-    },
-  },
-  {
-    "end": {
-      "x": -4,
-      "z": 16.000000000000004,
-    },
-    "orientation": "vertical",
-    "rooms": [
-      "kitchen:east",
-      "studio:west",
-    ],
-    "start": {
-      "x": -4,
-      "z": 5.200000000000001,
-    },
-  },
-  {
-    "end": {
-      "x": 32,
-      "z": 16.000000000000004,
+      "x": 22.627,
+      "z": 11.313708498984761,
     },
     "orientation": "vertical",
     "rooms": [
@@ -875,29 +875,28 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "studio:east",
     ],
     "start": {
-      "x": 32,
-      "z": -0.8000000000000003,
+      "x": 22.627,
+      "z": -0.21421356237289288,
     },
   },
   {
     "end": {
-      "x": 32,
-      "z": -8.000000000000002,
+      "x": 22.627,
+      "z": -9.406601717798011,
     },
     "orientation": "vertical",
     "rooms": [
-      "frontYard:west",
-      "livingRoom:east",
+      "frontPath:west",
     ],
     "start": {
-      "x": 32,
-      "z": -12.000000000000004,
+      "x": 22.627,
+      "z": -11.806601717798415,
     },
   },
   {
     "end": {
-      "x": 32,
-      "z": -12.000000000000004,
+      "x": 22.627,
+      "z": -11.806601717798415,
     },
     "orientation": "vertical",
     "rooms": [
@@ -906,44 +905,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "livingRoom:east",
     ],
     "start": {
-      "x": 32,
-      "z": -13.800000000000004,
+      "x": 22.627,
+      "z": -12.727922061357857,
     },
   },
   {
     "end": {
-      "x": 32,
-      "z": -13.800000000000004,
-    },
-    "orientation": "vertical",
-    "rooms": [
-      "frontPath:west",
-    ],
-    "start": {
-      "x": 32,
-      "z": -16.200000000000003,
-    },
-  },
-  {
-    "end": {
-      "x": 32,
-      "z": -16.200000000000003,
-    },
-    "orientation": "vertical",
-    "rooms": [
-      "frontPath:west",
-      "frontYard:west",
-      "livingRoom:east",
-    ],
-    "start": {
-      "x": 32,
-      "z": -18.000000000000004,
-    },
-  },
-  {
-    "end": {
-      "x": 32,
-      "z": -18.000000000000004,
+      "x": 22.627,
+      "z": -12.727922061357857,
     },
     "orientation": "vertical",
     "rooms": [
@@ -951,14 +920,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "livingRoom:east",
     ],
     "start": {
-      "x": 32,
-      "z": -32.00000000000001,
+      "x": 22.627,
+      "z": -22.627416997969522,
     },
   },
   {
     "end": {
-      "x": 32,
-      "z": -3.200000000000001,
+      "x": 22.627,
+      "z": -2.614213562373297,
     },
     "orientation": "vertical",
     "rooms": [
@@ -966,14 +935,45 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "studio:east",
     ],
     "start": {
-      "x": 32,
-      "z": -8.000000000000002,
+      "x": 22.627,
+      "z": -5.656854249492381,
     },
   },
   {
     "end": {
-      "x": 32,
-      "z": 32.00000000000001,
+      "x": 22.627,
+      "z": -5.656854249492381,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "frontYard:west",
+      "livingRoom:east",
+    ],
+    "start": {
+      "x": 22.627,
+      "z": -8.485281374238571,
+    },
+  },
+  {
+    "end": {
+      "x": 22.627,
+      "z": -8.485281374238571,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "frontPath:west",
+      "frontYard:west",
+      "livingRoom:east",
+    ],
+    "start": {
+      "x": 22.627,
+      "z": -9.406601717798011,
+    },
+  },
+  {
+    "end": {
+      "x": 22.627,
+      "z": 22.627416997969522,
     },
     "orientation": "vertical",
     "rooms": [
@@ -981,42 +981,42 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "verge:west",
     ],
     "start": {
-      "x": 32,
-      "z": 16.000000000000004,
+      "x": 22.627,
+      "z": 11.313708498984761,
     },
   },
   {
     "end": {
-      "x": 32,
-      "z": 40.00000000000001,
+      "x": 22.627,
+      "z": 28.284271247461902,
     },
     "orientation": "vertical",
     "rooms": [
       "verge:west",
     ],
     "start": {
-      "x": 32,
-      "z": 32.00000000000001,
+      "x": 22.627,
+      "z": 22.627416997969522,
     },
   },
   {
     "end": {
-      "x": 46,
-      "z": 38.00000000000001,
+      "x": 32.527,
+      "z": 26.870057685088806,
     },
     "orientation": "vertical",
     "rooms": [
       "busStop:west",
     ],
     "start": {
-      "x": 46,
-      "z": 26.000000000000007,
+      "x": 32.527,
+      "z": 18.38477631085024,
     },
   },
   {
     "end": {
-      "x": 50,
-      "z": 1.5000000000000004,
+      "x": 35.355,
+      "z": 0.3284271247467117,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1024,14 +1024,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "garage:east",
     ],
     "start": {
-      "x": 50,
-      "z": -8.000000000000002,
+      "x": 35.355,
+      "z": -5.656854249492381,
     },
   },
   {
     "end": {
-      "x": 50,
-      "z": 16.000000000000004,
+      "x": 35.355,
+      "z": 11.313708498984761,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1039,29 +1039,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "garage:east",
     ],
     "start": {
-      "x": 50,
-      "z": 6.500000000000002,
+      "x": 35.355,
+      "z": 5.3284271247456685,
     },
   },
   {
     "end": {
-      "x": 52,
-      "z": -8.000000000000002,
-    },
-    "orientation": "vertical",
-    "rooms": [
-      "frontYard:east",
-      "sidewalk:west",
-    ],
-    "start": {
-      "x": 52,
-      "z": -12.000000000000004,
-    },
-  },
-  {
-    "end": {
-      "x": 52,
-      "z": -12.000000000000004,
+      "x": 36.77,
+      "z": -8.485281374238571,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1070,14 +1055,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "sidewalk:west",
     ],
     "start": {
-      "x": 52,
-      "z": -18.000000000000004,
+      "x": 36.77,
+      "z": -12.727922061357857,
     },
   },
   {
     "end": {
-      "x": 52,
-      "z": -18.000000000000004,
+      "x": 36.77,
+      "z": -12.727922061357857,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1085,42 +1070,57 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "sidewalk:west",
     ],
     "start": {
-      "x": 52,
-      "z": -32.00000000000001,
+      "x": 36.77,
+      "z": -22.627416997969522,
     },
   },
   {
     "end": {
-      "x": 52,
-      "z": -32.00000000000001,
+      "x": 36.77,
+      "z": -22.627416997969522,
     },
     "orientation": "vertical",
     "rooms": [
       "sidewalk:west",
     ],
     "start": {
-      "x": 52,
-      "z": -36.00000000000001,
+      "x": 36.77,
+      "z": -25.455844122715714,
     },
   },
   {
     "end": {
-      "x": 52,
-      "z": 16.000000000000004,
+      "x": 36.77,
+      "z": 11.313708498984761,
     },
     "orientation": "vertical",
     "rooms": [
       "sidewalk:west",
     ],
     "start": {
-      "x": 52,
-      "z": -8.000000000000002,
+      "x": 36.77,
+      "z": -5.656854249492381,
     },
   },
   {
     "end": {
-      "x": 52,
-      "z": 26.000000000000007,
+      "x": 36.77,
+      "z": -5.656854249492381,
+    },
+    "orientation": "vertical",
+    "rooms": [
+      "frontYard:east",
+      "sidewalk:west",
+    ],
+    "start": {
+      "x": 36.77,
+      "z": -8.485281374238571,
+    },
+  },
+  {
+    "end": {
+      "x": 36.77,
+      "z": 18.38477631085024,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1128,14 +1128,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "verge:east",
     ],
     "start": {
-      "x": 52,
-      "z": 16.000000000000004,
+      "x": 36.77,
+      "z": 11.313708498984761,
     },
   },
   {
     "end": {
-      "x": 52,
-      "z": 38.00000000000001,
+      "x": 36.77,
+      "z": 26.870057685088806,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1144,14 +1144,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "verge:east",
     ],
     "start": {
-      "x": 52,
-      "z": 26.000000000000007,
+      "x": 36.77,
+      "z": 18.38477631085024,
     },
   },
   {
     "end": {
-      "x": 52,
-      "z": 40.00000000000001,
+      "x": 36.77,
+      "z": 28.284271247461902,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1159,14 +1159,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "verge:east",
     ],
     "start": {
-      "x": 52,
-      "z": 38.00000000000001,
+      "x": 36.77,
+      "z": 26.870057685088806,
     },
   },
   {
     "end": {
-      "x": 58,
-      "z": -8.000000000000002,
+      "x": 41.012,
+      "z": -5.656854249492381,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1174,14 +1174,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "street:west",
     ],
     "start": {
-      "x": 58,
-      "z": -36.00000000000001,
+      "x": 41.012,
+      "z": -25.455844122715714,
     },
   },
   {
     "end": {
-      "x": 58,
-      "z": 16.000000000000004,
+      "x": 41.012,
+      "z": 11.313708498984761,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1190,14 +1190,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "street:west",
     ],
     "start": {
-      "x": 58,
-      "z": -8.000000000000002,
+      "x": 41.012,
+      "z": -5.656854249492381,
     },
   },
   {
     "end": {
-      "x": 58,
-      "z": 40.00000000000001,
+      "x": 41.012,
+      "z": 28.284271247461902,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1205,22 +1205,22 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "street:west",
     ],
     "start": {
-      "x": 58,
-      "z": 16.000000000000004,
+      "x": 41.012,
+      "z": 11.313708498984761,
     },
   },
   {
     "end": {
-      "x": 80,
-      "z": 40.00000000000001,
+      "x": 56.569,
+      "z": 28.284271247461902,
     },
     "orientation": "vertical",
     "rooms": [
       "street:east",
     ],
     "start": {
-      "x": 80,
-      "z": -36.00000000000001,
+      "x": 56.569,
+      "z": -25.455844122715714,
     },
   },
 ]
@@ -1230,21 +1230,21 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
 [
   {
     "end": {
-      "x": 4.000000000000001,
-      "z": -32,
+      "x": 2.8284271247461903,
+      "z": -22.627,
     },
     "orientation": "horizontal",
     "rooms": [
       "creatorsStudio:south",
     ],
     "start": {
-      "x": -20.000000000000004,
-      "z": -32,
+      "x": -14.142135623730951,
+      "z": -22.627,
     },
   },
   {
     "end": {
-      "x": 4.000000000000001,
+      "x": 2.8284271247461903,
       "z": 0,
     },
     "orientation": "horizontal",
@@ -1252,42 +1252,56 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "creatorsStudio:north",
     ],
     "start": {
-      "x": -20.000000000000004,
+      "x": -14.142135623730951,
       "z": 0,
     },
   },
   {
     "end": {
-      "x": 4.000000000000001,
-      "z": 12,
-    },
-    "orientation": "horizontal",
-    "rooms": [
-      "focusPods:south",
-    ],
-    "start": {
-      "x": -20.000000000000004,
-      "z": 12,
-    },
-  },
-  {
-    "end": {
-      "x": 24.000000000000007,
-      "z": 28,
+      "x": 16.970562748477143,
+      "z": 19.799,
     },
     "orientation": "horizontal",
     "rooms": [
       "focusPods:north",
     ],
     "start": {
-      "x": -20.000000000000004,
-      "z": 28,
+      "x": -14.142135623730951,
+      "z": 19.799,
     },
   },
   {
     "end": {
-      "x": 20.800000000000004,
-      "z": -16,
+      "x": 2.8284271247461903,
+      "z": 8.485,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "focusPods:south",
+    ],
+    "start": {
+      "x": -14.142135623730951,
+      "z": 8.485,
+    },
+  },
+  {
+    "end": {
+      "x": 16.970562748477143,
+      "z": -11.314,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "loftLibrary:south",
+    ],
+    "start": {
+      "x": 14.70782104868019,
+      "z": -11.314,
+    },
+  },
+  {
+    "end": {
+      "x": 4.739696961966797,
+      "z": -11.314,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -1295,57 +1309,28 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "upperLanding:north",
     ],
     "start": {
-      "x": 10.800000000000002,
-      "z": -16,
+      "x": 2.8284271247461903,
+      "z": -11.314,
     },
   },
   {
     "end": {
-      "x": 24.000000000000007,
-      "z": -16,
-    },
-    "orientation": "horizontal",
-    "rooms": [
-      "loftLibrary:south",
-    ],
-    "start": {
-      "x": 20.800000000000004,
-      "z": -16,
-    },
-  },
-  {
-    "end": {
-      "x": 8.400000000000002,
-      "z": -16,
-    },
-    "orientation": "horizontal",
-    "rooms": [
-      "loftLibrary:south",
-      "upperLanding:north",
-    ],
-    "start": {
-      "x": 4.000000000000001,
-      "z": -16,
-    },
-  },
-  {
-    "end": {
-      "x": 20.800000000000004,
-      "z": -32,
+      "x": 14.70782104868019,
+      "z": -22.627,
     },
     "orientation": "horizontal",
     "rooms": [
       "upperLanding:south",
     ],
     "start": {
-      "x": 4.000000000000001,
-      "z": -32,
+      "x": 2.8284271247461903,
+      "z": -22.627,
     },
   },
   {
     "end": {
-      "x": 6.800000000000002,
-      "z": 12,
+      "x": 4.456854249492178,
+      "z": 8.485,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -1353,14 +1338,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "loftLibrary:north",
     ],
     "start": {
-      "x": 4.000000000000001,
-      "z": 12,
+      "x": 2.8284271247461903,
+      "z": 8.485,
     },
   },
   {
     "end": {
-      "x": 24.000000000000007,
-      "z": 12,
+      "x": 16.970562748477143,
+      "z": 8.485,
     },
     "orientation": "horizontal",
     "rooms": [
@@ -1368,13 +1353,28 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "loftLibrary:north",
     ],
     "start": {
-      "x": 9.200000000000001,
-      "z": 12,
+      "x": 6.856854249492583,
+      "z": 8.485,
     },
   },
   {
     "end": {
-      "x": -20,
+      "x": 14.70782104868019,
+      "z": -11.314,
+    },
+    "orientation": "horizontal",
+    "rooms": [
+      "loftLibrary:south",
+      "upperLanding:north",
+    ],
+    "start": {
+      "x": 7.139696961967203,
+      "z": -11.314,
+    },
+  },
+  {
+    "end": {
+      "x": -14.142,
       "z": 0,
     },
     "orientation": "vertical",
@@ -1382,70 +1382,70 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "creatorsStudio:west",
     ],
     "start": {
-      "x": -20,
-      "z": -32.00000000000001,
+      "x": -14.142,
+      "z": -22.627416997969522,
     },
   },
   {
     "end": {
-      "x": -20,
-      "z": 28.000000000000007,
+      "x": -14.142,
+      "z": 19.79898987322333,
     },
     "orientation": "vertical",
     "rooms": [
       "focusPods:west",
     ],
     "start": {
-      "x": -20,
-      "z": 12.000000000000004,
+      "x": -14.142,
+      "z": 8.485281374238571,
     },
   },
   {
     "end": {
-      "x": 20.8,
-      "z": -16.000000000000004,
+      "x": 14.708,
+      "z": -11.313708498984761,
     },
     "orientation": "vertical",
     "rooms": [
       "upperLanding:east",
     ],
     "start": {
-      "x": 20.8,
-      "z": -32.00000000000001,
+      "x": 14.708,
+      "z": -22.627416997969522,
     },
   },
   {
     "end": {
-      "x": 24,
-      "z": 12.000000000000004,
+      "x": 16.971,
+      "z": 8.485281374238571,
     },
     "orientation": "vertical",
     "rooms": [
       "loftLibrary:east",
     ],
     "start": {
-      "x": 24,
-      "z": -16.000000000000004,
+      "x": 16.971,
+      "z": -11.313708498984761,
     },
   },
   {
     "end": {
-      "x": 24,
-      "z": 28.000000000000007,
+      "x": 16.971,
+      "z": 19.79898987322333,
     },
     "orientation": "vertical",
     "rooms": [
       "focusPods:east",
     ],
     "start": {
-      "x": 24,
-      "z": 12.000000000000004,
+      "x": 16.971,
+      "z": 8.485281374238571,
     },
   },
   {
     "end": {
-      "x": 4,
-      "z": -9.200000000000001,
+      "x": 2.828,
+      "z": -6.856854249492583,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1453,14 +1453,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "loftLibrary:west",
     ],
     "start": {
-      "x": 4,
-      "z": -16.000000000000004,
+      "x": 2.828,
+      "z": -11.313708498984761,
     },
   },
   {
     "end": {
-      "x": 4,
-      "z": -16.000000000000004,
+      "x": 2.828,
+      "z": -11.313708498984761,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1468,14 +1468,14 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "upperLanding:west",
     ],
     "start": {
-      "x": 4,
-      "z": -27.870000000000008,
+      "x": 2.828,
+      "z": -19.355594129092733,
     },
   },
   {
     "end": {
-      "x": 4,
-      "z": -30.270000000000007,
+      "x": 2.828,
+      "z": -21.75559412909314,
     },
     "orientation": "vertical",
     "rooms": [
@@ -1483,13 +1483,13 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "upperLanding:west",
     ],
     "start": {
-      "x": 4,
-      "z": -32.00000000000001,
+      "x": 2.828,
+      "z": -22.627416997969522,
     },
   },
   {
     "end": {
-      "x": 4,
+      "x": 2.828,
       "z": 0,
     },
     "orientation": "vertical",
@@ -1498,21 +1498,21 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
       "loftLibrary:west",
     ],
     "start": {
-      "x": 4,
-      "z": -6.800000000000002,
+      "x": 2.828,
+      "z": -4.456854249492178,
     },
   },
   {
     "end": {
-      "x": 4,
-      "z": 12.000000000000004,
+      "x": 2.828,
+      "z": 8.485281374238571,
     },
     "orientation": "vertical",
     "rooms": [
       "loftLibrary:west",
     ],
     "start": {
-      "x": 4,
+      "x": 2.828,
       "z": 0,
     },
   },

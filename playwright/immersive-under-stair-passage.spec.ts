@@ -14,7 +14,11 @@ test('walks at native full speed both ways below the upper staircase and retains
   await readyExterior(page);
   await selectNativeRunGait(page);
   await page.evaluate(() =>
-    window.portfolio!.world!.movePlayerTo({ x: 23, z: -23, floorId: 'ground' })
+    window.portfolio!.world!.movePlayerTo({
+      x: 23 * Math.SQRT1_2,
+      z: -23 * Math.SQRT1_2,
+      floorId: 'ground',
+    })
   );
   const observer = await page.evaluateHandle(() => {
     const samples: Array<{
@@ -46,38 +50,38 @@ test('walks at native full speed both ways below the upper staircase and retains
     await pressNativeMovementChord(
       page,
       ['KeyW', 'KeyA'],
-      runHoldForDistance(15)
+      runHoldForDistance(15 * Math.SQRT1_2)
     );
     let west = await page.evaluate(() =>
       window.portfolio!.world!.getPlayerPosition()
     );
     const westDeadline = Date.now() + 15_000;
-    while (west.x >= 9 && Date.now() < westDeadline) {
+    while (west.x >= 9 * Math.SQRT1_2 && Date.now() < westDeadline) {
       await pressNativeMovementChord(page, ['KeyW', 'KeyA'], 300);
       west = await page.evaluate(() =>
         window.portfolio!.world!.getPlayerPosition()
       );
     }
-    expect(west.x).toBeLessThan(9);
-    expect(west.x).toBeGreaterThan(7);
-    expect(west.z).toBeCloseTo(-23, 0);
+    expect(west.x).toBeLessThan(9 * Math.SQRT1_2);
+    expect(west.x).toBeGreaterThan(7 * Math.SQRT1_2);
+    expect(west.z).toBeCloseTo(-23 * Math.SQRT1_2, 0);
     await pressNativeMovementChord(
       page,
       ['KeyS', 'KeyD'],
-      runHoldForDistance(15)
+      runHoldForDistance(15 * Math.SQRT1_2)
     );
     let east = await page.evaluate(() =>
       window.portfolio!.world!.getPlayerPosition()
     );
     const eastDeadline = Date.now() + 15_000;
-    while (east.x <= 22.9 && Date.now() < eastDeadline) {
+    while (east.x <= 22.9 * Math.SQRT1_2 && Date.now() < eastDeadline) {
       await pressNativeMovementChord(page, ['KeyS', 'KeyD'], 300);
       east = await page.evaluate(() =>
         window.portfolio!.world!.getPlayerPosition()
       );
     }
-    expect(east.x).toBeGreaterThan(22.9);
-    expect(east.z).toBeCloseTo(-23, 0);
+    expect(east.x).toBeGreaterThan(22.9 * Math.SQRT1_2);
+    expect(east.z).toBeCloseTo(-23 * Math.SQRT1_2, 0);
   } finally {
     samples = await observer.evaluate((handle) => handle.stop());
     await observer.dispose();
@@ -87,7 +91,9 @@ test('walks at native full speed both ways below the upper staircase and retains
     });
   }
   expect(samples.length).toBeGreaterThan(3);
-  expect(samples.some(({ x }) => x > 10 && x < 15)).toBe(true);
+  expect(
+    samples.some(({ x }) => x > 10 * Math.SQRT1_2 && x < 15 * Math.SQRT1_2)
+  ).toBe(true);
   expect(
     samples.every(
       ({ y, floor, connection }) =>
@@ -96,10 +102,14 @@ test('walks at native full speed both ways below the upper staircase and retains
   ).toBe(true);
   await page.evaluate(() => {
     const w = window.portfolio!.world!;
-    w.movePlayerTo({ x: 12.4, z: -23, floorId: 'ground' });
+    w.movePlayerTo({
+      x: 12.4 * Math.SQRT1_2,
+      z: -23 * Math.SQRT1_2,
+      floorId: 'ground',
+    });
     const s = w.stepPlayerForTest({ dx: 0, dz: 8 });
     if (
-      s.position.z > -21.5 ||
+      s.position.z > -15.7 ||
       s.position.y !== 0 ||
       s.activeConnectionId !== null
     )
@@ -107,8 +117,8 @@ test('walks at native full speed both ways below the upper staircase and retains
   });
   await page.evaluate(() =>
     window.portfolio!.world!.movePlayerTo({
-      x: 12.4,
-      z: -23,
+      x: 12.4 * Math.SQRT1_2,
+      z: -23 * Math.SQRT1_2,
       floorId: 'ground',
     })
   );

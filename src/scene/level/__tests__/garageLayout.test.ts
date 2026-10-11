@@ -57,7 +57,12 @@ describe('attached garage topology and safety', () => {
       GARAGE_DOOR.minimumHeadroom
     );
     const door = createDoorController(definition);
-    const outside = { x: 46, z: 4, radius: 0.75, floorId: 'ground' };
+    const outside = {
+      x: definition.center.x - 4,
+      z: definition.center.z,
+      radius: 0.75,
+      floorId: 'ground',
+    };
     door.request(1, outside);
     expect(door.update(definition.duration * 0.5, outside)).toMatchObject({
       blocked: true,
@@ -69,7 +74,7 @@ describe('attached garage topology and safety', () => {
     });
     door.request(0, outside);
     expect(
-      door.update(definition.duration, { ...outside, x: 50 })
+      door.update(definition.duration, { ...outside, x: definition.center.x })
     ).toMatchObject({ blocked: false, target: 1, occupied: true });
   });
   it('reopens a moving overhead panel before its headroom collision gate', () => {
@@ -77,7 +82,12 @@ describe('attached garage topology and safety', () => {
       (door) => door.kind === 'overhead'
     )!;
     const door = createDoorController(definition);
-    const outside = { x: 53, z: 4, radius: 0.75, floorId: 'ground' };
+    const outside = {
+      x: definition.center.x + 3,
+      z: definition.center.z,
+      radius: 0.75,
+      floorId: 'ground',
+    };
     door.request(1, outside);
     door.update(definition.duration, outside);
     door.request(0, outside);
@@ -88,7 +98,10 @@ describe('attached garage topology and safety', () => {
       occupied: false,
     });
     expect(
-      door.update(definition.duration, { ...outside, x: 51.25 })
+      door.update(definition.duration, {
+        ...outside,
+        x: definition.center.x + 1.25,
+      })
     ).toMatchObject({ progress: 1, target: 1, occupied: true, blocked: false });
   });
   it('protects both sides of all three doors and never crosses floors', () => {
@@ -129,10 +142,16 @@ it(clearGarageApproachTitle, async () => {
   const plant = DEFAULT_LOWER_FLOOR_FURNISHINGS.find(
     (item) => item.id === 'studio-monstera'
   )!;
-  expect(dresser.position).toEqual({ x: 31, z: 4.1 });
-  expect(plant.position).toEqual({ x: 30.6, z: -5.4 });
+  expect(dresser.position).toEqual({
+    x: 31 * Math.SQRT1_2,
+    z: 4.1 * Math.SQRT1_2,
+  });
+  expect(plant.position).toEqual({
+    x: 30.6 * Math.SQRT1_2,
+    z: -5.4 * Math.SQRT1_2,
+  });
   const centerZ = createGarageDoorDefinitions(FLOOR_PLAN_SCALE)[0].center.z;
-  expect(centerZ).toBeCloseTo(-2);
+  expect(centerZ).toBeCloseTo(-2 * Math.SQRT1_2);
   for (let x = 29; x <= 35; x += 0.25)
     for (let z = -3.5; z <= -0.5; z += 0.25) {
       for (const bounds of [dresser.solidBounds!, plant.solidBounds!]) {

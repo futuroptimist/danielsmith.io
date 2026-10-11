@@ -240,7 +240,10 @@ for (const cleanupScope of ['exterior', 'initialization'] as const) {
       ]);
       if (phase === 'ready') {
         expect(snapshot.movementPressed).toBe(false);
-        expect(snapshot.joystickMovement).toEqual({ x: 0, y: 0 });
+        expect(snapshot.joystickMovement).toEqual({
+          x: 0 * Math.SQRT1_2,
+          y: 0,
+        });
         await expect(page.locator('.joystick')).toHaveCount(0);
         await page.keyboard.up('KeyW');
       }
@@ -294,7 +297,10 @@ for (const key of ['w', 'h'] as const) {
     `when Interact shares ${key} near a door`;
   test(title, async ({ page }) => {
     await readyExterior(page);
-    await walkExteriorTo(page, { x: 29, z: -15 });
+    await walkExteriorTo(page, {
+      x: 32 * Math.SQRT1_2 - 3,
+      z: -15 * Math.SQRT1_2,
+    });
     await closeFrontDoorForManualTest(page);
     await expect(page.locator(button)).toBeVisible();
     await page.locator(button).focus();
@@ -399,7 +405,7 @@ async function crossFrontDoorWithNativeChord(page: Page, label: string) {
   let chords = 0;
   let diagnostics;
   try {
-    while (position.x <= 35 && Date.now() < deadline) {
+    while (position.x <= 32 * Math.SQRT1_2 + 3 && Date.now() < deadline) {
       await pressNativeMovementChord(
         page,
         ['KeyS', 'KeyD'],
@@ -439,7 +445,10 @@ async function crossFrontDoorWithNativeChord(page: Page, label: string) {
     chords,
     elapsedMs: Date.now() - startedAt,
   };
-  if (diagnostics.position.x <= 35 || diagnostics.floor !== 'ground')
+  if (
+    diagnostics.position.x <= 32 * Math.SQRT1_2 + 3 ||
+    diagnostics.floor !== 'ground'
+  )
     console.error(
       'Native front crossing failed:',
       JSON.stringify(crossingDiagnostics)
@@ -448,7 +457,7 @@ async function crossFrontDoorWithNativeChord(page: Page, label: string) {
     body: JSON.stringify(crossingDiagnostics, null, 2),
     contentType: 'application/json',
   });
-  expect(diagnostics.position.x).toBeGreaterThan(35);
+  expect(diagnostics.position.x).toBeGreaterThan(32 * Math.SQRT1_2 + 3);
   expect(diagnostics.floor).toBe('ground');
 }
 
@@ -457,12 +466,18 @@ test('routes from a valid fractional pose beside a solid planter without snappin
 }) => {
   test.setTimeout(120_000);
   await readyExterior(page);
-  await walkExteriorTo(page, { x: 29, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await closeFrontDoorForManualTest(page);
   await page.locator(button).click();
   await waitDoor(page, 'front-door', 'open');
-  const edge = { x: 41.72, z: -9.2 };
-  const rounded = { x: 41.8, z: -9.2 };
+  const edge = { x: 45 * Math.SQRT1_2 - 3.28, z: -10 * Math.SQRT1_2 - 0.4 };
+  const rounded = {
+    x: Math.round(edge.x / 0.2) * 0.2,
+    z: Math.round(edge.z / 0.2) * 0.2,
+  };
   const occupancy = await page.evaluate(
     ({ edge, rounded }) => ({
       edge: window.portfolio!.world!.canOccupyPosition({
@@ -491,10 +506,13 @@ test('routes from a valid fractional pose beside a solid planter without snappin
   );
   expect(edgePosition.x).toBeCloseTo(edge.x, 6);
   expect(edgePosition.z).toBeCloseTo(edge.z, 6);
-  const onward = await walkExteriorTo(page, { x: 55, z: -15 });
-  expect(onward.position.x).toBeCloseTo(55, 6);
+  const onward = await walkExteriorTo(page, {
+    x: 55 * Math.SQRT1_2,
+    z: -15 * Math.SQRT1_2,
+  });
+  expect(onward.position.x).toBeCloseTo(55 * Math.SQRT1_2, 6);
   expect(onward.position.y).toBe(0);
-  expect(onward.position.z).toBeCloseTo(-15, 6);
+  expect(onward.position.z).toBeCloseTo(-15 * Math.SQRT1_2, 6);
   expect(onward.floor).toBe('ground');
 });
 
@@ -505,8 +523,11 @@ test('walks from fresh spawn through the front door to the sidewalk and back', a
   await readyExterior(page);
   expect(
     await page.evaluate(() => window.portfolio!.world!.getPlayerPosition())
-  ).toMatchObject({ x: 0, y: 0 });
-  await walkExteriorTo(page, { x: 29, z: -15 });
+  ).toMatchObject({ x: 0 * Math.SQRT1_2, y: 0 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await closeFrontDoorForManualTest(page);
   await expect(page.locator(button)).toHaveAccessibleName('Open Front door');
   const closed = await page.evaluate(() => {
@@ -515,11 +536,15 @@ test('walks from fresh spawn through the front door to the sidewalk and back', a
     return {
       before,
       after: w.getPlayerPosition(),
-      canCross: w.canOccupyPosition({ x: 32, z: -15, floorId: 'ground' }),
+      canCross: w.canOccupyPosition({
+        x: 32 * Math.SQRT1_2,
+        z: -15 * Math.SQRT1_2,
+        floorId: 'ground',
+      }),
       door: w.getDoorSnapshots()[0],
     };
   });
-  expect(closed.after.x).toBeLessThan(32);
+  expect(closed.after.x).toBeLessThan(32 * Math.SQRT1_2);
   expect(closed.door.blocked).toBe(true);
   expect(closed.canCross).toBe(false);
   // Native remappable Interact, followed by native camera-relative movement across the aperture.
@@ -529,15 +554,15 @@ test('walks from fresh spawn through the front door to the sidewalk and back', a
   expect(
     await page.evaluate(() =>
       window.portfolio!.debugColliders!.getBlockingCollidersAt({
-        x: 32,
-        z: -15,
+        x: 32 * Math.SQRT1_2,
+        z: -15 * Math.SQRT1_2,
         floorId: 'ground',
       })
     )
   ).toEqual([]);
   await crossFrontDoorWithNativeChord(page, 'fresh-spawn');
   await page.waitForTimeout(700);
-  await walkExteriorTo(page, { x: 55, z: -15 });
+  await walkExteriorTo(page, { x: 55 * Math.SQRT1_2, z: -15 * Math.SQRT1_2 });
   await expect(page.locator(button)).toBeHidden();
   await page.screenshot({
     path: test.info().outputPath('front-entry-sidewalk.png'),
@@ -548,22 +573,25 @@ test('walks from fresh spawn through the front door to the sidewalk and back', a
   await page.screenshot({
     path: test.info().outputPath('front-entry-standard-orientation.png'),
   });
-  await walkExteriorTo(page, { x: 35, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 + 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await expect(page.locator(button)).toHaveAccessibleName('Close Front door');
   await page.locator(button).click();
   await waitDoor(page, 'front-door', 'closed');
   expect(
     await page.evaluate(() =>
       window.portfolio!.world!.canOccupyPosition({
-        x: 32,
-        z: -15,
+        x: 32 * Math.SQRT1_2,
+        z: -15 * Math.SQRT1_2,
         floorId: 'ground',
       })
     )
   ).toBe(false);
   await page.locator(button).click();
   await waitDoor(page, 'front-door', 'open');
-  await walkExteriorTo(page, { x: 0, z: -20 });
+  await walkExteriorTo(page, { x: 0 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 });
   expect(
     await page.evaluate(() => window.portfolio!.world!.getActiveFloor())
   ).toBe('ground');
@@ -577,7 +605,10 @@ test(interruptedActivationTitle, async ({ page }) => {
   // Individual action/assertion limits and the zero-retry policy remain intact.
   test.setTimeout(120_000);
   await readyExterior(page);
-  await walkExteriorTo(page, { x: 29, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await closeFrontDoorForManualTest(page);
   await page.locator(button).click();
   await expect
@@ -592,7 +623,7 @@ test(interruptedActivationTitle, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.locator(button).click();
   await waitDoor(page, 'front-door', 'open');
-  await walkExteriorTo(page, { x: 32, z: -15 });
+  await walkExteriorTo(page, { x: 32 * Math.SQRT1_2, z: -15 * Math.SQRT1_2 });
   for (let i = 0; i < 4; i++) await page.locator(button).click();
   expect(
     await page.evaluate(() => window.portfolio!.world!.getDoorSnapshots()[0])
@@ -611,9 +642,12 @@ test(interruptedActivationTitle, async ({ page }) => {
   expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(0.5);
   // The held-key/blur test may have legitimately moved beyond interaction range.
   // Re-approach the automatically closed entrance before planning through it.
-  await walkExteriorTo(page, { x: 35, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 + 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await waitDoor(page, 'front-door', 'open');
-  await walkExteriorTo(page, { x: 32, z: -15 });
+  await walkExteriorTo(page, { x: 32 * Math.SQRT1_2, z: -15 * Math.SQRT1_2 });
   await page
     .getByRole('button', { name: 'Open settings and help (H)' })
     .click();
@@ -646,7 +680,10 @@ test('continues native controls from focused door and dismissed settings buttons
 }) => {
   test.setTimeout(120_000);
   await readyExterior(page);
-  await walkExteriorTo(page, { x: 29, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await closeFrontDoorForManualTest(page);
   await page.locator(button).click();
   await waitDoor(page, 'front-door', 'open');
@@ -680,9 +717,15 @@ test('continues native controls from focused door and dismissed settings buttons
     }
     if (fromDoorButton) {
       // Departure can close the door; approach it before planning through it.
-      await walkExteriorTo(page, { x: 35, z: -15 });
+      await walkExteriorTo(page, {
+        x: 32 * Math.SQRT1_2 + 3,
+        z: -15 * Math.SQRT1_2,
+      });
       await waitDoor(page, 'front-door', 'open');
-      await walkExteriorTo(page, { x: 29, z: -15 });
+      await walkExteriorTo(page, {
+        x: 32 * Math.SQRT1_2 - 3,
+        z: -15 * Math.SQRT1_2,
+      });
       await page.locator(button).focus();
       await page.evaluate(() =>
         window.portfolio!.input!.keyBindings!.setBinding('interact', ['k'])
@@ -698,9 +741,15 @@ test('continues native controls from focused door and dismissed settings buttons
     );
     await page.waitForTimeout(300);
   }
-  await walkExteriorTo(page, { x: 35, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 + 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await waitDoor(page, 'front-door', 'open');
-  await walkExteriorTo(page, { x: 29, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await expect(page.locator(button)).toBeVisible();
   await page.locator(button).focus();
   await expect(page.locator(button)).toBeFocused();
@@ -740,7 +789,10 @@ test(pseudoLocaleTitle, async ({ page }) => {
     .locator('.locale-toggle__option[data-locale="en-x-pseudo"]')
     .click();
   await page.keyboard.press('Escape');
-  await walkExteriorTo(page, { x: 29, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await closeFrontDoorForManualTest(page);
   const control = page.locator(button);
   await expect(control).toBeVisible();
@@ -800,7 +852,10 @@ for (const viewport of [
     test.setTimeout(120_000);
     await page.setViewportSize(viewport);
     await readyExterior(page);
-    await walkExteriorTo(page, { x: 29, z: -15 });
+    await walkExteriorTo(page, {
+      x: 32 * Math.SQRT1_2 - 3,
+      z: -15 * Math.SQRT1_2,
+    });
     await closeFrontDoorForManualTest(page);
     await expect(page.locator(button)).toBeVisible();
     const bounds = (await page.locator(button).boundingBox())!;
@@ -814,7 +869,7 @@ for (const viewport of [
     ).toMatchObject({ state: 'closed', progress: 0 });
     expect(
       await page.evaluate(() => window.portfolio!.world!.getPlayerPosition())
-    ).toMatchObject({ x: 0, y: 0 });
+    ).toMatchObject({ x: 0 * Math.SQRT1_2, y: 0 });
   });
 }
 
@@ -829,7 +884,10 @@ test('opens once by touch and crosses both ways using the phone joystick', async
   });
   const page = await context.newPage();
   await readyExterior(page);
-  await walkExteriorTo(page, { x: 29, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await closeFrontDoorForManualTest(page);
   await page.locator(button).tap();
   await waitDoor(page, 'front-door', 'open');
@@ -856,7 +914,9 @@ test('opens once by touch and crosses both ways using the phone joystick', async
       await page.waitForFunction(
         ({ direction }) => {
           const x = window.portfolio!.world!.getPlayerPosition().x;
-          return direction > 0 ? x >= 35 : x <= 29;
+          return direction > 0
+            ? x >= 32 * Math.SQRT1_2 + 3
+            : x <= 32 * Math.SQRT1_2 - 3;
         },
         { direction },
         { timeout: 15000, polling: 'raf' }

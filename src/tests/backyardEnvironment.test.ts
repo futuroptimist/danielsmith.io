@@ -1358,7 +1358,10 @@ describe('createBackyardEnvironment', () => {
       { x: -5, z: productionBackFenceSampleZ },
     ];
     expect(productionBackFenceSamples[1].x).toBe(5);
-    expect(productionBackFenceSamples[1].z).toBeCloseTo(30.2, 5);
+    expect(productionBackFenceSamples[1].z).toBeCloseTo(
+      32 * Math.SQRT1_2 - 1.8,
+      5
+    );
 
     expect(
       productionBackFenceSamples.every(

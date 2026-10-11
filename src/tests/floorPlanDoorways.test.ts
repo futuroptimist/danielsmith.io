@@ -166,7 +166,9 @@ describe('getDoorwayPassageZones', () => {
 });
 
 describe('upper landing west egress doorway', () => {
-  const desiredWorldZSamples = [-30.27, -29.8, -29.07, -28.4, -27.87];
+  const desiredWorldZSamples = [-1.2, -0.73, 0, 0.67, 1.2].map(
+    (offset) => -14.535 * Math.SQRT2 + offset
+  );
   const upperLanding = UPPER_FLOOR_PLAN.rooms.find(
     (room) => room.id === 'upperLanding'
   );
@@ -283,16 +285,16 @@ describe('upper landing west egress doorway', () => {
     });
     expect(
       collidesWithColliders(
-        6.2,
-        -16,
+        3.5,
+        -16 * Math.SQRT1_2,
         PLAYER_RADIUS,
         wallInstances.map((instance) => instance.collider)
       )
     ).toBe(true);
     expect(
       collidesWithColliders(
-        9.6,
-        -16,
+        4.2 * Math.SQRT2,
+        -16 * Math.SQRT1_2,
         PLAYER_RADIUS,
         wallInstances.map((instance) => instance.collider)
       )

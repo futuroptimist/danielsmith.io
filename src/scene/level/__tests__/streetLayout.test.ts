@@ -17,8 +17,10 @@ describe('residential street source topology', () => {
   it('retains a flat continuous sidewalk, flush curb, road and accessible shelter pad', () => {
     expect(validateLevelDefinition(PORTFOLIO_LEVEL).errors).toEqual([]);
     const nav = createNavMesh(FLOOR_PLAN);
-    for (let z = -34; z <= 38; z += 0.2) expect(nav.contains(55, z)).toBe(true);
-    for (let x = 51; x <= 78; x += 0.2) expect(nav.contains(x, 32)).toBe(true);
+    for (let z = -34; z <= 38; z += 0.2)
+      expect(nav.contains(55 * Math.SQRT1_2, z * Math.SQRT1_2)).toBe(true);
+    for (let x = 51; x <= 78; x += 0.2)
+      expect(nav.contains(x * Math.SQRT1_2, 32 * Math.SQRT1_2)).toBe(true);
     expect(
       ground.walls.some((wall) => wall.id === 'sidewalk-east-boundary')
     ).toBe(false);

@@ -164,7 +164,7 @@ describe('WALL_PAINTING_CONFIGS', () => {
     expect(pose.position.x - backingDepth / 2).toBeGreaterThan(
       wallPositiveFaceX
     );
-    expect(pose.position.z).toBeCloseTo(-2);
+    expect(pose.position.z).toBeCloseTo(-2 * Math.SQRT1_2);
     expect(pose.rotationY).toBeCloseTo(Math.PI / 2);
   });
 });

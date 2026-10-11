@@ -9,6 +9,7 @@ import {
 } from './exteriorLayout';
 import { getFloorTopElevation, type FloorId } from './floorElevations';
 import { HOUSE_GARAGE_DOOR } from './garageLayout';
+import { HOUSE_HORIZONTAL_SCALE } from './horizontalFootprint';
 import type {
   FloorDefinition,
   LevelDefinition,
@@ -20,7 +21,7 @@ import { WORKSHOP_OBJECTS } from './woodworkingLayout';
 
 const sourceId = (value: string) => assertLevelSourceId(value);
 
-const DOOR_WIDTH = 1.2;
+const DOOR_WIDTH = 1.2 / HOUSE_HORIZONTAL_SCALE;
 const DOOR_HALF_WIDTH = DOOR_WIDTH / 2;
 
 const doorwayRange = (center: number) => ({
@@ -87,9 +88,9 @@ const livingToStudioDoorCenter = 7.5;
 const kitchenToBackyardDoorCenter = -9;
 const studioToBackyardDoorCenter = 7.5;
 const kitchenToStudioDoorCenterZ = 2;
-const upperLandingToCreatorsStudioDoorway = { start: -15.135, end: -13.935 };
+const upperLandingToCreatorsStudioDoorway = doorwayRange(-14.535);
 // Leave a full player-radius approach beside the stair's west physical rail.
-const upperLandingToLoftLibraryDoorway = { start: 4.2, end: 5.4 };
+const upperLandingToLoftLibraryDoorway = doorwayRange(4.2);
 
 const centeredGap = (runStart: number, center: number, label: string) => {
   const range = doorwayRange(center);

@@ -19,7 +19,7 @@ import {
   runHoldForDistance,
 } from './helpers/nativeMovementChord';
 
-const approaches = createExteriorDoorDefinitions(2).map((definition) => ({
+const approaches = createExteriorDoorDefinitions().map((definition) => ({
   ...definition,
   x: definition.center.x,
   z: definition.center.z,
@@ -80,7 +80,10 @@ for (const door of approaches) {
         });
         await readyExterior(page);
         if (door.id === 'garage-door') {
-          await walkExteriorTo(page, { x: 29, z: -2 });
+          await walkExteriorTo(page, {
+            x: 32 * Math.SQRT1_2 - 3,
+            z: -2 * Math.SQRT1_2,
+          });
           await waitForApproachOpen(page, 'house-garage-door');
         }
         await walkExteriorTo(page, { x: door.x - 3, z: door.z });

@@ -74,9 +74,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'aquiloop-living-room-aquarium',
     id: 'poi:aquiloop-living-room-aquarium',
     displayName: 'Aquiloop aquarium',
-    syncRevision: 4,
+    syncRevision: 5,
     syncNote:
-      'Static aquarium instance bounds are initialized explicitly; the shared production snapshot remains controller-free.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/aquiloopAquarium.ts',
@@ -116,9 +116,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',
     displayName: 'Futur Optimist TV proxy',
-    syncRevision: 12,
+    syncRevision: 13,
     syncNote:
-      'Metre-scaled installations share their production bounds and transforms with the source snapshot.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/mediaWall.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -137,9 +137,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 33,
+    syncRevision: 34,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
@@ -219,9 +219,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'jobbot-studio-terminal',
     id: 'poi:jobbot-studio-terminal',
     displayName: 'Jobbot terminal proxy',
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/jobbotTerminal.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -240,9 +240,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'dspace-backyard-rocket',
     id: 'poi:dspace-backyard-rocket',
     displayName: 'dSpace rocket proxy',
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/modelRocket.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -257,9 +257,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -353,9 +353,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'tokenplace-studio-cluster',
     id: 'poi:tokenplace-studio-cluster',
     displayName: 'token.place workstation proxy',
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/tokenPlaceWorkstation.ts',
@@ -395,9 +395,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gabriel-studio-sentry',
     id: 'poi:gabriel-studio-sentry',
     displayName: 'Gabriel sentry proxy',
-    syncRevision: 14,
+    syncRevision: 15,
     syncNote:
-      'Decorative beacon point lighting follows scene detail policy; emissive beacon and miniature geometry are unchanged.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gabrielSentry.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -411,9 +411,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'f2clipboard-kitchen-console',
     id: 'poi:f2clipboard-kitchen-console',
     displayName: 'f2clipboard console proxy',
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/f2ClipboardConsole.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -426,9 +426,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'axel-studio-tracker',
     id: 'poi:axel-studio-tracker',
     displayName: 'Axel tracker proxy',
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/axelNavigator.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -449,9 +449,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sigma-kitchen-workbench',
     id: 'poi:sigma-kitchen-workbench',
     displayName: 'Sigma workbench proxy',
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/sigmaWorkbench.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -464,9 +464,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 14,
+    syncRevision: 15,
     syncNote:
-      'Metre-scaled installations share their production bounds and transforms with the source snapshot.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -480,9 +480,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'wove-kitchen-loom',
     id: 'poi:wove-kitchen-loom',
     displayName: 'Wove loom proxy',
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [...baseFiles, 'src/scene/structures/woveLoom.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -495,9 +495,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 26,
+    syncRevision: 27,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
@@ -566,9 +566,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 16,
+    syncRevision: 17,
     syncNote:
-      'The shared snapshot includes the metric mirror, and recursion-boundary supports derive from the resized tabletop footprint and underside.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

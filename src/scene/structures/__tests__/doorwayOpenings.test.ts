@@ -21,8 +21,8 @@ const findDoorwayGroup = (
 ) => {
   return children.find(
     (child) =>
-      Math.abs(child.position.x - position.x) < EPSILON &&
-      Math.abs(child.position.z - position.z) < EPSILON
+      Math.abs(child.position.x - position.x * Math.SQRT1_2) < EPSILON &&
+      Math.abs(child.position.z - position.z * Math.SQRT1_2) < EPSILON
   );
 };
 
@@ -128,7 +128,10 @@ it('leaves factory-owned operable apertures unframed without changing ordinary d
   ];
   const { group } = createDoorwayOpenings(FLOOR_PLAN, {
     wallHeight: 6,
-    factoryFramedOpenings: owned,
+    factoryFramedOpenings: owned.map((d) => ({
+      ...d,
+      center: { x: d.center.x * Math.SQRT1_2, z: d.center.z * Math.SQRT1_2 },
+    })),
   });
   expect(group.children).toHaveLength(6);
   for (const doorway of owned)

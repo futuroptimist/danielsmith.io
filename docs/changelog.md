@@ -4,6 +4,13 @@ Release notes for the immersive danielsmith.io portfolio. The in-app link curren
 this repository Markdown page as a temporary wiki/documentation surface; a native changelog view
 may replace it in a future release.
 
+## Unreleased
+
+- Reduced horizontal room area by 50% on all three floors while preserving room
+  proportions, 2.74 m ceiling clearance, avatar height and furniture sizes.
+  Repositioned furnishings and adjusted door approaches so the smaller house
+  retains its stair connections and accessible exhibits.
+
 ## v0.1.3 — tagged release
 
 Tag [`v0.1.3`](https://github.com/futuroptimist/danielsmith.io/releases/tag/v0.1.3) points to

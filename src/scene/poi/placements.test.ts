@@ -125,7 +125,21 @@ describe('applyManualPoiPlacements', () => {
     );
 
     for (const [index, poi] of placed.entries()) {
-      const nextExpected = expected[index];
+      const authored = expected[index];
+      const dz =
+        authored.id === 'tokenplace-studio-cluster'
+          ? 1
+          : authored.id === 'sugarkube-backyard-greenhouse'
+            ? 3.5
+            : 0;
+      const nextExpected = {
+        ...authored,
+        position: {
+          ...authored.position,
+          x: authored.position.x * Math.SQRT1_2,
+          z: authored.position.z * Math.SQRT1_2 + dz,
+        },
+      };
       expect(poi.id).toBe(nextExpected.id);
       expect(poi.roomId).toBe(nextExpected.roomId);
       expect(getPoiFloorId(poi)).toBe(nextExpected.floorId);
@@ -139,7 +153,7 @@ describe('applyManualPoiPlacements', () => {
     }
   });
 
-  it('keeps DSPACE placement, floor, and orientation unchanged', () => {
+  it('repositions DSPACE horizontally while preserving floor and orientation', () => {
     const dspace = definition('dspace-backyard-rocket');
     dspace.roomId = 'backyard';
     dspace.position = { x: -12, y: 0, z: 24 };
@@ -148,7 +162,11 @@ describe('applyManualPoiPlacements', () => {
 
     expect(placed.roomId).toBe('backyard');
     expect(getPoiFloorId(placed)).toBe('ground');
-    expect(placed.position).toEqual({ x: -12, y: 0, z: 24 });
+    expect(placed.position).toEqual({
+      x: -12 * Math.SQRT1_2,
+      y: 0,
+      z: 24 * Math.SQRT1_2,
+    });
     expect(placed.headingRadians).toBe(-Math.PI / 10);
   });
 
@@ -158,12 +176,12 @@ describe('applyManualPoiPlacements', () => {
       definition('pr-reaper-backyard-console'),
     ]);
 
-    expect(portfolio.position.x).toBeCloseTo(-21.6, 2);
+    expect(portfolio.position.x).toBeCloseTo(-21.6 * Math.SQRT1_2, 2);
     expect(portfolio.position.y).toBeCloseTo(0, 2);
-    expect(portfolio.position.z).toBeCloseTo(1.63, 2);
-    expect(reaper.position.x).toBeCloseTo(3, 2);
+    expect(portfolio.position.z).toBeCloseTo(1.63 * Math.SQRT1_2, 2);
+    expect(reaper.position.x).toBeCloseTo(3 * Math.SQRT1_2, 2);
     expect(reaper.position.y).toBeCloseTo(0, 2);
-    expect(reaper.position.z).toBeCloseTo(1.05, 2);
+    expect(reaper.position.z).toBeCloseTo(1.05 * Math.SQRT1_2, 2);
     expect(portfolio.position).not.toEqual(reaper.position);
   });
 });

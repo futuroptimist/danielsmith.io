@@ -27,7 +27,12 @@ const PRODUCTION_Z_FIGHT_ALLOWLIST = [
       'upper.upperLanding.floor.main',
       'upper.upperLanding.floor.stairEdgePiece',
     ],
-    expectedOverlap: { minX: 9.3, maxX: 15.5, minZ: -32, maxZ: -31.8 },
+    expectedOverlap: {
+      minX: 9.3 * Math.SQRT1_2,
+      maxX: 15.5 * Math.SQRT1_2,
+      minZ: -32 * Math.SQRT1_2,
+      maxZ: -31.8 * Math.SQRT1_2,
+    },
     overlapTolerance: 0.001,
     expectedYDelta: 0,
     yDeltaTolerance: 0.001,

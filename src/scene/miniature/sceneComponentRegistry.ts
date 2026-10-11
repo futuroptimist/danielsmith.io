@@ -38,9 +38,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 10,
+    syncRevision: 11,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
   },
   {
     id: 'level:career-museum-layout',
@@ -77,13 +77,14 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'shared-source',
     sourceFiles: [
       'src/scene/level/portfolioLevel.ts',
+      'src/scene/level/horizontalFootprint.ts',
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
   },
   {
     id: 'level:floors-walls',
@@ -119,9 +120,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/basementStaircase.ts',
       'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 5,
+    syncRevision: 6,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
   },
   {
     id: 'environment:backyard',
@@ -158,18 +159,18 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 12,
+    syncRevision: 13,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
   },
   {
     id: 'decor:lower-floor-furnishings',
     kind: 'shared-source',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 37,
+    syncRevision: 38,
     syncNote:
-      'Both floor furnishing sets are projected from their existing production geometry and colors.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
   },
   {
     id: 'avatar:overworld-player',
