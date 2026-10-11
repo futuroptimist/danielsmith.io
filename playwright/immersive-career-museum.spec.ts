@@ -101,6 +101,24 @@ test('workshop description and perimeter stay floor-aware', async ({
   await enterMuseum(page);
   await expect(description).not.toHaveAttribute('hidden', '');
   await expect(description).toContainText('birdhouse awaiting its roof');
+  const redundantVisibilityWrites = await description.evaluate(
+    (element) =>
+      new Promise<number>((resolve) => {
+        let writes = 0;
+        const observer = new MutationObserver((records) => {
+          writes += records.length;
+        });
+        observer.observe(element, {
+          attributes: true,
+          attributeFilter: ['hidden'],
+        });
+        setTimeout(() => {
+          observer.disconnect();
+          resolve(writes);
+        }, 250);
+      })
+  );
+  expect(redundantVisibilityWrites).toBe(0);
   await walk(page, [
     { x: -29, z: -32.5 },
     { x: -29, z: -22 },

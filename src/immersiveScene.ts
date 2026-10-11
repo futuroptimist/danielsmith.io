@@ -4833,8 +4833,9 @@ function buildImmersiveScene(
     residentialExterior.update(occupant);
     residentialStreet.update(activeSceneDetailPolicy, occupant);
     residentialStreet.setStrings(getExteriorStrings(locale));
-    if (workshopDescription)
-      workshopDescription.hidden = activeFloorId !== 'basement';
+    const workshopHidden = activeFloorId !== 'basement';
+    if (workshopDescription && workshopDescription.hidden !== workshopHidden)
+      workshopDescription.hidden = workshopHidden;
     busStopDescription.update(
       activeFloorId === 'ground',
       getExteriorStrings(locale)
