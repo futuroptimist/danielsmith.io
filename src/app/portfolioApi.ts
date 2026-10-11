@@ -299,6 +299,15 @@ export interface PortfolioApi {
       backyardEnvironmentVisible: boolean | null;
     };
     getPlayerYaw?(): number;
+    getMiniatureSnapshot?(): {
+      triangles: number;
+      drawCalls: number;
+      sourceMeshes: number;
+      sourceNames: string[];
+      bounds: { min: number[]; max: number[] };
+      player: number[];
+      scale: number;
+    } | null;
   };
 }
 

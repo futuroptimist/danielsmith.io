@@ -1,4 +1,11 @@
-import { Box3, Mesh, Object3D, PlaneGeometry, Vector3 } from 'three';
+import {
+  Box3,
+  Mesh,
+  MeshStandardMaterial,
+  Object3D,
+  PlaneGeometry,
+  Vector3,
+} from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -165,6 +172,17 @@ describe('POI physical metadata', () => {
   it('keeps danielsmith.io miniature table within bounds in public graphics modes', () => {
     for (const level of ['cinematic', 'balanced', 'performance'] as const) {
       const build = createPortfolioMiniatureTable({
+        sourceVisuals: [
+          {
+            floor: 'ground',
+            roots: [
+              new Mesh(
+                new PlaneGeometry(100, 70).rotateX(-Math.PI / 2),
+                new MeshStandardMaterial()
+              ),
+            ],
+          },
+        ],
         position: { x: -21.6, y: 0, z: 1.63 },
         orientationRadians: 0,
         tableDetailPolicy: getSceneDetailPolicy(level),

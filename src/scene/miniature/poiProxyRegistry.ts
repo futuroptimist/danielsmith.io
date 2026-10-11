@@ -519,18 +519,20 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 12,
+    syncRevision: 13,
     syncNote:
-      'The miniature filters all rooms, walls and LED fixtures by its ' +
-      'original house envelope while sharing the new house-to-garage ' +
-      'opening.',
+      'The full property is projected from production visuals, terminating at the shared table shell.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',
       'src/scene/structures/portfolioMiniatureTableContract.ts',
       'src/scene/structures/portfolioSceneLayout.ts',
     ],
-    proxyFiles: [SELF_FILE, 'src/scene/structures/portfolioMiniatureTable.ts'],
+    proxyFiles: [
+      SELF_FILE,
+      'src/scene/structures/portfolioMiniatureTable.ts',
+      'src/scene/miniature/sourceSnapshot.ts',
+    ],
     primitives: [
       box(
         'danielsmith-white-tabletop',
