@@ -78,22 +78,26 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
         );
         try {
           const speed = caps ? 1.116452991 : 2.537393162;
-          await expect
-            .poll(async () => (await snapshot()).locomotion.linearSpeed, {
-              timeout: 30_000,
-            })
-            .toBeGreaterThan(speed * 0.95);
-          expect((await snapshot()).locomotion.linearSpeed).toBeLessThan(
-            speed * 1.01
-          );
-          await expect
-            .poll(async () => (await snapshot()).locomotion.linearState, {
-              timeout: 30_000,
-            })
-            .toBe(caps ? 'walk' : 'run');
-          expect(
-            await page.evaluate(() => window.portfolio!.avatar!.getGait!())
-          ).toBe(caps ? 'walk' : 'run');
+          // Read speed, animation and selected gait in one browser task. Slow
+          // software WebGL can reach the corridor wall between separate calls.
+          await expect(async () => {
+            const sample = await page.evaluate(() => ({
+              state: window.portfolio!.avatar!.getAnimationState!() as {
+                locomotion: { linearState: string; linearSpeed: number };
+              },
+              gait: window.portfolio!.avatar!.getGait!(),
+            }));
+            expect(sample.state.locomotion.linearSpeed).toBeGreaterThan(
+              speed * 0.95
+            );
+            expect(sample.state.locomotion.linearSpeed).toBeLessThan(
+              speed * 1.01
+            );
+            expect(sample.state.locomotion.linearState).toBe(
+              caps ? 'walk' : 'run'
+            );
+            expect(sample.gait).toBe(caps ? 'walk' : 'run');
+          }).toPass({ timeout: 30_000 });
         } finally {
           await page.evaluate(
             (caps) =>
