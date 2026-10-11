@@ -1,11 +1,14 @@
 # Animated portfolio avatar
 
 The immersive player loads `public/assets/avatar/daniel-animated-avatar.glb` after validating its
-skin, required bones, clips, and unit scale. A static cyan ground ring and direction pointer mark the controllable player while loading;
-the procedural body stays hidden until a failure or a 15-second loading timeout. The marker
-does not animate, including with reduced motion. Failure reveals the usable mannequin fallback.
-A late successful download still replaces that fallback; re-entering immersive mode or reloading
-retries the asset with a fresh marker and timeout. The text portfolio remains independent of the model download.
+skin, required bones, clips, and unit scale. A muted, static ground ring and direction pointer mark the controllable player while loading;
+the procedural body stays hidden until a failure or a 15-second loading timeout. Once GPU preparation
+finishes, the approved avatar fades in over 450 ms as the cue fades out, at the player's current
+position and facing. A late successful download crossfades from the usable mannequin fallback.
+The handoff changes opacity only and preserves movement and Caps Lock gait state. Reduced motion
+skips the fade (including when enabled mid-transition), retaining a stable idle pose.
+Re-entering immersive mode or reloading retries the asset with a fresh marker and timeout.
+The text portfolio remains independent of the model download.
 GPU shaders and the pixel atlas are prepared before the visible swap. Parallel shader polling
 is cancellable on scene teardown and bounded to five seconds, revealing the mannequin on failure.
 

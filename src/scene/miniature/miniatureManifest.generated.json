@@ -389,11 +389,11 @@
       "id": "avatar:loading-presentation",
       "sourceFiles": ["src/scene/avatar/loadingPresentation.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "The temporary controllable player position marker is excluded from static miniature architecture; its geometry is removed when the rig or fallback becomes visible.",
-      "sourceFingerprint": "e3a90cefe83b9b8c9fb6c610e8587b4e60bc27f8045cf97d38474c0e86b25b1f",
+      "syncRevision": 2,
+      "syncNote": "The muted player cue and opacity-only avatar handoff are transient presentation, excluded from static miniature architecture; building geometry is unchanged.",
+      "sourceFingerprint": "e949f7132944dac45a6e5f3b21ed8e035c0b2695350baced1592a5a959d73535",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "bc3eaef3ad20bd3bc18550b8c008368e41185882a530cb3c578e9c6b8ca6f2d8"
+      "metadataFingerprint": "909c28a230527b50e0a657e8b14cf19ba2690c67a3a96c16e87a9e6ef4314355"
     },
     {
       "id": "avatar:overworld-player",

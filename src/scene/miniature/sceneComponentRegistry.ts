@@ -316,9 +316,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'avatar:loading-presentation',
     kind: 'excluded',
     sourceFiles: ['src/scene/avatar/loadingPresentation.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'The temporary controllable player position marker is excluded from static miniature architecture; its geometry is removed when the rig or fallback becomes visible.',
+      'The muted player cue and opacity-only avatar handoff are transient presentation, excluded from static miniature architecture; building geometry is unchanged.',
   },
   {
     id: 'audit:src:scene:level:backyardCollisionPolicies',

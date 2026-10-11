@@ -1,8 +1,9 @@
-import { Group, Mesh } from 'three';
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   AVATAR_LOADING_TIMEOUT_MS,
+  AVATAR_REVEAL_SECONDS,
   createAvatarLoadingPresentation,
 } from '../scene/avatar/loadingPresentation';
 
@@ -31,6 +32,7 @@ describe('avatar loading presentation', () => {
     vi.advanceTimersByTime(AVATAR_LOADING_TIMEOUT_MS - 1);
     expect(presentation.getSnapshot()).toEqual({
       presentation: 'pending',
+      revealProgress: 0,
       fallbackVisible: false,
       loadingMarkerVisible: true,
     });
@@ -39,11 +41,12 @@ describe('avatar loading presentation', () => {
 
   it('removes the marker on success without ever revealing the old body', () => {
     const { presentation } = setup();
-    presentation.ready();
+    presentation.ready(new Group(), true);
     vi.advanceTimersByTime(AVATAR_LOADING_TIMEOUT_MS * 2);
     presentation.fail();
     expect(presentation.getSnapshot()).toEqual({
       presentation: 'ready',
+      revealProgress: 1,
       fallbackVisible: false,
       loadingMarkerVisible: false,
     });
@@ -59,10 +62,11 @@ describe('avatar loading presentation', () => {
       expect(player.visible).toBe(true);
       expect(presentation.getSnapshot()).toEqual({
         presentation: 'fallback',
+        revealProgress: 0,
         fallbackVisible: true,
         loadingMarkerVisible: false,
       });
-      presentation.ready();
+      presentation.ready(new Group(), true);
       expect(presentation.getSnapshot().fallbackVisible).toBe(false);
       presentation.dispose();
     }
@@ -80,6 +84,76 @@ describe('avatar loading presentation', () => {
     presentation.dispose();
   });
 
+  it.each([false, true])(
+    'crossfades at the moving player, fallback=%s',
+    (failed) => {
+      const { player, fallback, presentation } = setup();
+      const original = new MeshBasicMaterial({ opacity: 0.8 });
+      const model = new Mesh(new BoxGeometry(), original);
+      const fallbackMaterial = new MeshBasicMaterial();
+      fallback.add(new Mesh(new BoxGeometry(), fallbackMaterial));
+      player.add(model);
+      if (failed) presentation.fail();
+      presentation.ready(model);
+      expect(original.opacity).toBe(0);
+      expect(presentation.getSnapshot().presentation).toBe('revealing');
+      player.position.set(3, 0, 5);
+      player.rotation.y = Math.PI / 2;
+      presentation.update(AVATAR_REVEAL_SECONDS / 2);
+      expect(model.getWorldPosition(new Vector3()).toArray()).toEqual([
+        3, 0, 5,
+      ]);
+      expect(original.opacity).toBeCloseTo(0.4);
+      expect(original.depthWrite).toBe(false);
+      if (failed) expect(fallbackMaterial.opacity).toBeCloseTo(0.5);
+      expect(fallback.visible).toBe(failed);
+      presentation.fail();
+      presentation.begin();
+      expect(presentation.getSnapshot().presentation).toBe('revealing');
+      presentation.update(AVATAR_REVEAL_SECONDS / 2);
+      expect(presentation.getSnapshot().presentation).toBe('ready');
+      expect(original.opacity).toBe(0.8);
+      expect(original.transparent).toBe(false);
+      expect(original.depthWrite).toBe(true);
+      expect(fallbackMaterial.opacity).toBe(1);
+      expect(fallback.visible).toBe(false);
+      presentation.dispose();
+    }
+  );
+
+  it('does not collapse the reveal into one frame after a long GPU preparation stall', () => {
+    const { presentation } = setup();
+    presentation.ready(new Group());
+    presentation.update(3);
+    expect(presentation.getSnapshot().presentation).toBe('revealing');
+    expect(presentation.getSnapshot().revealProgress).toBe(0.5);
+    presentation.dispose();
+  });
+
+  it.each(['reduce', 'dispose'])(
+    'restores materials when interrupted by %s',
+    (action) => {
+      const { player, presentation } = setup();
+      const material = new MeshBasicMaterial({
+        opacity: 0.7,
+        transparent: true,
+        depthWrite: false,
+      });
+      const model = new Mesh(new BoxGeometry(), [material, material]);
+      player.add(model);
+      presentation.ready(model);
+      presentation.update(0.1);
+      expect(material.opacity).toBeLessThan(0.7);
+      if (action === 'reduce') presentation.update(0, true);
+      else presentation.dispose();
+      expect(material.opacity).toBe(0.7);
+      expect(material.transparent).toBe(true);
+      expect(material.depthWrite).toBe(false);
+      presentation.dispose();
+      expect(vi.getTimerCount()).toBe(0);
+    }
+  );
+
   it('disposes marker resources once and ignores late events', () => {
     const { player, presentation, changed } = setup();
     const marker = player.getObjectByName('AvatarLoadingMarker')!;
@@ -89,7 +163,7 @@ describe('avatar loading presentation', () => {
     const calls = changed.mock.calls.length;
     presentation.dispose();
     presentation.begin();
-    presentation.ready();
+    presentation.ready(new Group(), true);
     presentation.fail();
     vi.advanceTimersByTime(AVATAR_LOADING_TIMEOUT_MS * 2);
     expect(changed).toHaveBeenCalledTimes(calls);
