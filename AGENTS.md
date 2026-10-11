@@ -59,6 +59,14 @@ the related assets. `npm run launch:screenshot` is review-only because
 
 ## Documentation & assets
 
+- Follow [the release policy](docs/ops/versioning.md) for every site change: update
+  `docs/changelog.md`, advance Chart.yaml `appVersion`, and advance chart `version`
+  whenever chart content changes, including an appVersion-only edit. The private npm
+  package version is independent. Documentation/test-only exclusions and parallel-PR
+  coordination are defined in that policy.
+- Run `npm run release:check -- --base origin/main` before the PR handoff. Keep new
+  entries unreleased and obtain separate human staging and production approvals.
+
 - Update the relevant files in `docs/` whenever behavior, prompts, or workflows change.
 - Keep documentation and comments generic and evergreen; do not reference ephemeral
   Codex prompt identifiers (for example, P1, P2, P6c, or P6.1), task labels,
