@@ -5,6 +5,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   ShaderMaterial,
+  Texture,
   Vector3,
 } from 'three';
 import { describe, expect, it, vi } from 'vitest';
@@ -85,6 +86,29 @@ function build() {
 }
 
 describe('source-backed recursive property table', () => {
+  it('omits texture-dependent label and cutout surfaces instead of creating opaque rectangles', () => {
+    const root = new Group();
+    const texture = new Texture();
+    for (const options of [
+      { map: texture, transparent: true },
+      { map: texture, alphaTest: 0.5 },
+      { alphaMap: texture },
+    ]) {
+      const cutout = new Mesh(
+        new BoxGeometry(100, 100, 100),
+        new MeshStandardMaterial(options)
+      );
+      root.add(cutout);
+    }
+    root.add(new Mesh(new BoxGeometry(2, 1, 2), new MeshStandardMaterial()));
+    const textureDispose = vi.spyOn(texture, 'dispose');
+    const snapshot = createSourceSnapshot([{ floor: 'ground', roots: [root] }]);
+    expect(snapshot.records).toHaveLength(1);
+    expect(snapshot.records[0].triangles).toBe(12);
+    expect(snapshot.bounds.getSize(new Vector3()).toArray()).toEqual([2, 1, 2]);
+    snapshot.dispose();
+    expect(textureDispose).not.toHaveBeenCalled();
+  });
   it('omits uniform-driven shader surfaces without losing standard surfaces on the same mesh', () => {
     const geometry = new BoxGeometry(2, 1, 2);
     const shader = new ShaderMaterial({

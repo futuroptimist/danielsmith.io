@@ -143,10 +143,13 @@ export function createSourceSnapshot(
                   ? object.material[materialIndex]
                   : object.material
               ) as MeshStandardMaterial;
-              // Shader uniforms/effects have no faithful static color fallback.
+              // Shader uniforms and texture cutouts have no static color fallback.
               if (
                 !material ||
                 material instanceof ShaderMaterial ||
+                material.alphaMap ||
+                (material.map &&
+                  (material.transparent || material.alphaTest > 0)) ||
                 !material.visible ||
                 material.opacity === 0
               )

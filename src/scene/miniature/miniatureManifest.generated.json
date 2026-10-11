@@ -404,7 +404,7 @@
       "syncRevision": 3,
       "syncNote": "The source snapshot reuses built museum geometry without duplicating textures or exhibit controllers.",
       "sourceFingerprint": "bfe3929a51475301aaf52bbd423e95d1c205d27664b63978cca385a251020d2f",
-      "proxyFingerprint": "1dc7bce7cdb332edf0fb5d195f12d03f37823294500280af59236d9bbdddcd97",
+      "proxyFingerprint": "47e36d64fc190f039f78c0ec13ed28d528e1012615944067c42531001fc5e51f",
       "metadataFingerprint": "7dd1ae53aace9b2150667db3fb9a16f5e42d23512d45db5b96588a4a70bba5dc"
     },
     {
@@ -457,7 +457,7 @@
       "syncRevision": 37,
       "syncNote": "Both floor furnishing sets are projected from their existing production geometry and colors.",
       "sourceFingerprint": "a4f53b8a0ad048ad2ddc39b5cfe4f3731faf81f5b64967302660239fa5d65ad9",
-      "proxyFingerprint": "1dc7bce7cdb332edf0fb5d195f12d03f37823294500280af59236d9bbdddcd97",
+      "proxyFingerprint": "47e36d64fc190f039f78c0ec13ed28d528e1012615944067c42531001fc5e51f",
       "metadataFingerprint": "151aff44774f3cfd6ea6547f11af1eb2e1daa027da24e00d0904c97ffcee0529"
     },
     {
@@ -477,7 +477,7 @@
       "syncRevision": 3,
       "syncNote": "The full source backyard is projected and its east corner shrub has a separate physical collider.",
       "sourceFingerprint": "2ea41cc8da0c93a48c6c00080c346409f9146543a7dbe4c72084de1ad954e3e6",
-      "proxyFingerprint": "1dc7bce7cdb332edf0fb5d195f12d03f37823294500280af59236d9bbdddcd97",
+      "proxyFingerprint": "47e36d64fc190f039f78c0ec13ed28d528e1012615944067c42531001fc5e51f",
       "metadataFingerprint": "35900627be08724a733d460ae9c7c196aeeff3f1165a9c1f6c0b0ddcb2362f0d"
     },
     {
@@ -493,7 +493,7 @@
       "syncRevision": 9,
       "syncNote": "The source snapshot includes the garage, front yard, sidewalk and street within one property envelope.",
       "sourceFingerprint": "f2141170247919658432db7b5d7ce2cbe360bf18fcf5de5cea353f3d1c818197",
-      "proxyFingerprint": "1dc7bce7cdb332edf0fb5d195f12d03f37823294500280af59236d9bbdddcd97",
+      "proxyFingerprint": "47e36d64fc190f039f78c0ec13ed28d528e1012615944067c42531001fc5e51f",
       "metadataFingerprint": "76876069a79f7cf2fee4c61699ff3927d63e3f5e931f132bba8e20e41ce5d5fe"
     },
     {
@@ -517,7 +517,7 @@
       "syncRevision": 2,
       "syncNote": "The basement layout is included in the source snapshot and follows the active-floor cutaway.",
       "sourceFingerprint": "321da641adc722b357741b64fd8e7a1e40bdbc91ad7463a33d0be41150da67f3",
-      "proxyFingerprint": "1dc7bce7cdb332edf0fb5d195f12d03f37823294500280af59236d9bbdddcd97",
+      "proxyFingerprint": "47e36d64fc190f039f78c0ec13ed28d528e1012615944067c42531001fc5e51f",
       "metadataFingerprint": "42cb6085a35b87f61ddd3b48ce49be1fc51aa695b258105885c1ed3540cb59dc"
     },
     {
@@ -546,7 +546,7 @@
       "syncRevision": 9,
       "syncNote": "All production floor layouts participate in the fixed miniature property envelope.",
       "sourceFingerprint": "35793fd6990cf3b88da1fb18a5d160ebea4a0d814ebbe685cc6a6b56abd6a10d",
-      "proxyFingerprint": "1dc7bce7cdb332edf0fb5d195f12d03f37823294500280af59236d9bbdddcd97",
+      "proxyFingerprint": "47e36d64fc190f039f78c0ec13ed28d528e1012615944067c42531001fc5e51f",
       "metadataFingerprint": "1e65558a96d1c79a80cf699c3d040b72318a0a225faf14a7c66070630100cb62"
     },
     {
@@ -610,7 +610,7 @@
       "syncRevision": 13,
       "syncNote": "The full property is projected from production visuals, terminating at the shared table shell.",
       "sourceFingerprint": "e3a748a3cac4331f25b40d9bee240a43a31374ee1f7bbaf9fc44963d8fc52238",
-      "proxyFingerprint": "4bbbfe65e5977f7b122c50109676c2365d256f9724d7d4ca087ee8bde2664951",
+      "proxyFingerprint": "ed16a3328a383d392d16c4e30bac2971b432e9e8253a7f61d43db99f68816f31",
       "metadataFingerprint": "35b1bfc30027c66279b9117322ac4272a84c0fe70f298472356d9d292af53705"
     },
     {
@@ -833,7 +833,7 @@
       "syncRevision": 2,
       "syncNote": "The open aluminum solar frame, leaning panels and containers are projected from the same production build.",
       "sourceFingerprint": "605d14901ca0e2c3ac9d91cf27701232350e5ab725a31e8957b692cf02cc0d96",
-      "proxyFingerprint": "1dc7bce7cdb332edf0fb5d195f12d03f37823294500280af59236d9bbdddcd97",
+      "proxyFingerprint": "47e36d64fc190f039f78c0ec13ed28d528e1012615944067c42531001fc5e51f",
       "metadataFingerprint": "dc56ad49bf76678620c322c0cea2d9942ec6a43d9a3975c9fdb3dab80699acde"
     },
     {
