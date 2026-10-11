@@ -27,6 +27,13 @@ jobs:
         env:
           RELEASE_BASE: ${{ github.event.pull_request.base.sha }}
         run: npm run release:check -- --base "$RELEASE_BASE"
+      - name: Release metadata against previous main commit
+        if: >-
+          github.event_name == 'push' &&
+          github.event.before != '0000000000000000000000000000000000000000'
+        env:
+          RELEASE_BASE: ${{ github.event.before }}
+        run: npm run release:check -- --base "$RELEASE_BASE"
       - name: Lint
         run: npm run lint
       - name: Format check

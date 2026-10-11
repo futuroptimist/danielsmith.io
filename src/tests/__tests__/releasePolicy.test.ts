@@ -7,7 +7,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 
 const require = createRequire(import.meta.url);
-const { validate, runtimePath } = require('../../scripts/check-release.cjs');
+const { validate, runtimePath } = require('../../../scripts/check-release.cjs');
 const chartPath = 'charts/danielsmith/Chart.yaml';
 const changelogPath = 'docs/changelog.md';
 const chart = (app = '0.2.0', version = '0.2.9') =>

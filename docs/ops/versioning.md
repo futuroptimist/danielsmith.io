@@ -71,7 +71,9 @@ changes without an application bump, rejects any chart-content change without a 
 bump, and requires changes to the current version's notes. New application sections must
 be labeled `unreleased`; later evidence-only documentation edits may update that status.
 Missing Git bases fail closed.
-CI runs the comparison against the PR event's base SHA with full history. Synthetic
+CI compares against the PR event's base SHA or the previous SHA on pushes to main,
+with full history. An initial push with an all-zero previous SHA has no predecessor
+and receives the static metadata check only; missing nonzero bases fail closed. Synthetic
 snapshot tests cover drift, version ordering, exclusions, and independent package identity.
 Helm CI also renders build-info for synthetic staging/production inputs and checks that
 production displays the actual chart appVersion while staging retains the image identity.
