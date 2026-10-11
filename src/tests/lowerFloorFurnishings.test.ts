@@ -278,8 +278,8 @@ describe('lower floor furnishings foundation', () => {
       'living-room-tv-pothos-left': {
         minX: -21.42178207935912,
         maxX: -20.721782079359116,
-        minZ: -18.68624817342638,
-        maxZ: -17.986248173426378,
+        minZ: -24.8 * Math.SQRT1_2 - 0.35 - 0.8,
+        maxZ: -24.8 * Math.SQRT1_2 + 0.35 - 0.8,
       },
       'living-room-corner-fig': {
         minX: 20.854624791833736,
