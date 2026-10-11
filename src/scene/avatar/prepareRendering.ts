@@ -8,7 +8,7 @@ import {
   type WebGLRenderer,
 } from 'three';
 
-/** Prepare the skin's GPU resources while the usable placeholder remains visible. */
+/** Prepare the skin's GPU resources before replacing the loading presentation. */
 export async function prepareAvatarRendering(
   renderer: WebGLRenderer,
   model: Object3D,

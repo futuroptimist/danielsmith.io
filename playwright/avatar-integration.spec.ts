@@ -164,10 +164,136 @@ test('asset failure keeps the existing mannequin available', async ({
   await page.waitForFunction(() =>
     Boolean(window.portfolio?.avatar?.getAnimationState)
   );
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.())
+    )
+    .toMatchObject({
+      loaded: false,
+      presentation: 'fallback',
+      fallbackVisible: true,
+      loadingMarkerVisible: false,
+    });
+  await page.keyboard.press('Escape');
+  const before = await page.evaluate(() =>
+    window.portfolio!.world!.getPlayerPosition()
+  );
+  await page.keyboard.down('w');
+  try {
+    await expect
+      .poll(() =>
+        page.evaluate((start) => {
+          const p = window.portfolio!.world!.getPlayerPosition();
+          return Math.hypot(p.x - start.x, p.z - start.z);
+        }, before)
+      )
+      .toBeGreaterThan(0.1);
+  } finally {
+    await page.keyboard.up('w');
+  }
+  await expect(page.locator('[data-avatar-chair-control]')).toBeHidden();
+});
+
+test('cold slow load shows only a marker, times out safely, and accepts a late rig', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/daniel-animated-avatar.glb', async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto(url);
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.())
+    )
+    .toMatchObject({
+      loaded: false,
+      presentation: 'pending',
+      fallbackVisible: false,
+      loadingMarkerVisible: true,
+    });
+  await page.screenshot({ path: 'test-results/avatar-loading-marker.png' });
+  await page.waitForTimeout(1500);
   expect(
     await page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.())
-  ).toEqual({ loaded: false });
-  await expect(page.locator('[data-avatar-chair-control]')).toBeHidden();
+  ).toMatchObject({
+    presentation: 'pending',
+    fallbackVisible: false,
+    loadingMarkerVisible: true,
+  });
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.()),
+      { timeout: 20_000 }
+    )
+    .toMatchObject({
+      presentation: 'fallback',
+      fallbackVisible: true,
+      loadingMarkerVisible: false,
+    });
+  release();
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.()),
+      { timeout: 30_000 }
+    )
+    .toMatchObject({
+      loaded: true,
+      presentation: 'ready',
+      fallbackVisible: false,
+      loadingMarkerVisible: false,
+    });
+});
+
+test('reload retries a failed rig with a fresh loading presentation', async ({
+  page,
+}) => {
+  await page.route('**/daniel-animated-avatar.glb', (route) => route.abort());
+  await page.goto(url);
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.())
+    )
+    .toMatchObject({ presentation: 'fallback', fallbackVisible: true });
+  await page.unroute('**/daniel-animated-avatar.glb');
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/daniel-animated-avatar.glb', async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.reload();
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.())
+    )
+    .toMatchObject({
+      presentation: 'pending',
+      fallbackVisible: false,
+      loadingMarkerVisible: true,
+    });
+  release();
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.()),
+      { timeout: 30_000 }
+    )
+    .toMatchObject({
+      loaded: true,
+      presentation: 'ready',
+      fallbackVisible: false,
+      loadingMarkerVisible: false,
+    });
 });
 
 test('leaving immersive mode during avatar loading does not attach to a disposed scene', async ({

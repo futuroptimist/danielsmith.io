@@ -385,6 +385,16 @@
       "metadataFingerprint": "fc6a801a346006f566d72f4fcdc1f37e208acd9ec01215b0d74732dd0706cf6c"
     },
     {
+      "id": "avatar:loading-presentation",
+      "sourceFiles": ["src/scene/avatar/loadingPresentation.ts"],
+      "proxyFiles": [],
+      "syncRevision": 1,
+      "syncNote": "The temporary controllable player position marker is excluded from static miniature architecture; its geometry is removed when the rig or fallback becomes visible.",
+      "sourceFingerprint": "e3a90cefe83b9b8c9fb6c610e8587b4e60bc27f8045cf97d38474c0e86b25b1f",
+      "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "metadataFingerprint": "bc3eaef3ad20bd3bc18550b8c008368e41185882a530cb3c578e9c6b8ca6f2d8"
+    },
+    {
       "id": "avatar:overworld-player",
       "sourceFiles": [
         "src/scene/avatar/accessories.ts",
