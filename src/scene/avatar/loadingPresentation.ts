@@ -12,27 +12,29 @@ export const AVATAR_LOADING_TIMEOUT_MS = 15_000;
 export const AVATAR_REVEAL_SECONDS = 0.45;
 
 /** These materials belong to the player. Restore every flag when the handoff ends. */
-function fadeBody(body: Object3D) {
+function fadeBody(bodies: Object3D[]) {
   const materials = new Map<
     Material,
     { opacity: number; transparent: boolean; depthWrite: boolean }
   >();
-  body.traverse((object) => {
-    if (!(object instanceof Mesh)) return;
-    for (const material of Array.isArray(object.material)
-      ? object.material
-      : [object.material]) {
-      if (materials.has(material)) continue;
-      materials.set(material, {
-        opacity: material.opacity,
-        transparent: material.transparent,
-        depthWrite: material.depthWrite,
-      });
-      material.transparent = true;
-      material.depthWrite = false;
-      material.needsUpdate = true;
-    }
-  });
+  bodies.forEach((body) =>
+    body.traverse((object) => {
+      if (!(object instanceof Mesh)) return;
+      for (const material of Array.isArray(object.material)
+        ? object.material
+        : [object.material]) {
+        if (materials.has(material)) continue;
+        materials.set(material, {
+          opacity: material.opacity,
+          transparent: material.transparent,
+          depthWrite: material.depthWrite,
+        });
+        material.transparent = true;
+        material.depthWrite = false;
+        material.needsUpdate = true;
+      }
+    })
+  );
   return {
     set(progress: number) {
       materials.forEach((original, material) => {
@@ -109,7 +111,7 @@ export function createAvatarLoadingPresentation(
   return {
     begin,
     fail,
-    ready(model: Object3D, reducedMotion = false) {
+    ready(model: Object3D, reducedMotion = false, companions: Object3D[] = []) {
       if (state === 'disposed' || state === 'ready' || state === 'revealing')
         return;
       clearTimeout(timer);
@@ -118,9 +120,9 @@ export function createAvatarLoadingPresentation(
         setState('ready');
         return;
       }
-      incoming = fadeBody(model);
+      incoming = fadeBody([model, ...companions]);
       incoming.set(0);
-      if (fallback.visible) outgoing = fadeBody(fallback);
+      if (fallback.visible) outgoing = fadeBody([fallback]);
       state = 'revealing';
       onChange();
     },

@@ -403,6 +403,9 @@ test('delayed avatar fades in while movement and Caps Lock gait survive the hand
   await page.keyboard.press('Escape');
   const notice = page.locator('[data-action="continue-safe-immersive"]');
   if (await notice.isVisible()) await notice.click();
+  await page.evaluate(() =>
+    window.portfolio?.avatar?.setAccessoryEnabled('holo-drone', true)
+  );
   const before = await page.evaluate(() =>
     window.portfolio!.world!.getPlayerPosition()
   );
@@ -436,17 +439,22 @@ test('delayed avatar fades in while movement and Caps Lock gait survive the hand
           presentation: string;
           revealProgress: number;
           fallbackVisible: boolean;
+          position: { x: number; z: number };
         }>
       >((resolve) => {
         const frames: Array<{
           presentation: string;
           revealProgress: number;
           fallbackVisible: boolean;
+          position: { x: number; z: number };
         }> = [];
         const sample = () => {
           const state = window.portfolio!.avatar!
             .getAnimationState!() as (typeof frames)[number];
-          frames.push(state);
+          frames.push({
+            ...state,
+            position: window.portfolio!.world!.getPlayerPosition(),
+          });
           if (state.presentation === 'ready') resolve(frames);
           else requestAnimationFrame(sample);
         };
@@ -464,6 +472,21 @@ test('delayed avatar fades in while movement and Caps Lock gait survive the hand
     )
   ).toBe(true);
   expect(frames.every((s) => !s.fallbackVisible)).toBe(true);
+  const duringReveal = frames.find(
+    (s) => s.presentation === 'revealing'
+  )!.position;
+  const afterReveal = frames[frames.length - 1].position;
+  expect(
+    Math.hypot(afterReveal.x - duringReveal.x, afterReveal.z - duringReveal.z)
+  ).toBeGreaterThan(0.01);
+  await expect
+    .poll(() =>
+      page.evaluate((start) => {
+        const p = window.portfolio!.world!.getPlayerPosition();
+        return Math.hypot(p.x - start.x, p.z - start.z);
+      }, afterReveal)
+    )
+    .toBeGreaterThan(0.1);
   expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
     'walk'
   );

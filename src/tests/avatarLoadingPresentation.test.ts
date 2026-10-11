@@ -121,6 +121,28 @@ describe('avatar loading presentation', () => {
     }
   );
 
+  it('fades a reparented companion with the avatar and preserves its visibility and alpha', () => {
+    const { player, presentation } = setup();
+    const model = new Group();
+    const material = new MeshBasicMaterial({
+      opacity: 0.86,
+      transparent: true,
+    });
+    const drone = new Mesh(new BoxGeometry(), material);
+    player.add(model, drone);
+    presentation.ready(model, false, [drone]);
+    expect(material.opacity).toBe(0);
+    presentation.update(AVATAR_REVEAL_SECONDS / 2);
+    expect(material.opacity).toBeCloseTo(0.43);
+    drone.visible = false;
+    presentation.update(AVATAR_REVEAL_SECONDS / 2);
+    expect(material.opacity).toBe(0.86);
+    expect(material.transparent).toBe(true);
+    expect(drone.visible).toBe(false);
+    expect(drone.parent).toBe(player);
+    presentation.dispose();
+  });
+
   it('does not collapse the reveal into one frame after a long GPU preparation stall', () => {
     const { presentation } = setup();
     presentation.ready(new Group());

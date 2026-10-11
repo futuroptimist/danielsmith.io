@@ -7770,7 +7770,8 @@ function buildImmersiveScene(
       }
       avatarLoadingPresentation.ready(
         replacement.model,
-        prefersReducedAvatarMotion()
+        prefersReducedAvatarMotion(),
+        drone ? [drone] : []
       );
     })
     .catch((error) => {
