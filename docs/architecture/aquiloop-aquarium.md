@@ -43,7 +43,7 @@ time without catching up on return. Reduced motion fixes animal and roller poses
 while retaining the slow volume display. Hidden floors/distant viewpoints skip
 visual updates; lower tiers update at most four times per second.
 
-Shared low-poly geometry and materials, static instancing and merged animal parts
+Shared low-poly geometry and materials, static instancing and five shared animal batches
 limit rendering cost. There are no dynamic lights, shadows, glass transmission,
 reflection probes, textured foliage or new GI systems. Guppies have bright fan
 tails, Kuhli loaches have alternating bands, shrimp have red legs and antennae,

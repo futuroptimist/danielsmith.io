@@ -69,9 +69,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'aquiloop-living-room-aquarium',
     id: 'poi:aquiloop-living-room-aquarium',
     displayName: 'Aquiloop aquarium',
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Production snapshot includes open buckets, water surfaces and the display hit area; controllers stay overworld-only.',
+      'Aquarium animals share five instanced color batches; the production snapshot preserves their initial poses without controllers.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/aquiloopAquarium.ts',

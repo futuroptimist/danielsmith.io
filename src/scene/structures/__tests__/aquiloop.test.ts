@@ -114,7 +114,7 @@ describe('Aquiloop exhibit integration', () => {
     build.group.traverse((o) => {
       if (o instanceof Mesh) meshes.push(o);
     });
-    expect(meshes.length).toBeLessThan(65);
+    expect(meshes.length).toBeLessThan(35);
     expect(countObjectTriangles(build.group)).toBeLessThan(11000);
     const bounds = new Box3().setFromObject(build.group).getSize(new Vector3());
     expect(bounds.x).toBeLessThan(6.4);

@@ -5,11 +5,11 @@ import {
   InstancedMesh,
   Mesh,
   MeshBasicMaterial,
+  Matrix4,
   Object3D,
   SphereGeometry,
   TorusGeometry,
 } from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 import type { RectCollider } from '../collision';
 import type { PoiInstanceOverride } from '../poi/markers';
@@ -265,6 +265,10 @@ export function createAquiloopAquarium(position: {
           [0, sign * 0.6, sign * 0.2]
         );
   }
+  const animalParts = new Map<
+    MeshBasicMaterial,
+    { root: Group; local: Matrix4 }[]
+  >();
   const animals: { root: Group; kind: string; phase: number }[] = [];
   for (const [kind, count] of [
     ['guppy', 6],
@@ -306,30 +310,26 @@ export function createAquiloopAquarium(position: {
         part('black', [0.012, 0.012, 0.018], [0, 0.016, 0]);
         part('sand', [0.035, 0.009, 0.016], [0.008, -0.004, 0]);
       }
-      const pieces = root.children.map((child) => {
+      for (const child of root.children) {
         child.updateMatrix();
-        const mesh = child as Mesh;
-        const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrix);
-        return { geometry, material: mesh.material as MeshBasicMaterial };
-      });
-      // Collapse animal parts by material: tiny legs/bands do not each cost a draw call.
-      root.clear();
-      for (const material of new Set(pieces.map((piece) => piece.material))) {
-        const merged = mergeGeometries(
-          pieces
-            .filter((piece) => piece.material === material)
-            .map((piece) => piece.geometry)
-        );
-        if (merged) {
-          geometries.push(merged as typeof sphere);
-          root.add(new Mesh(merged, material));
-        }
+        const material = (child as Mesh).material as MeshBasicMaterial;
+        const parts = animalParts.get(material) ?? [];
+        parts.push({ root, local: child.matrix.clone() });
+        animalParts.set(material, parts);
       }
-      pieces.forEach((piece) => piece.geometry.dispose());
+      root.clear();
       animals.push({ root, kind, phase: i * 1.7 });
       group.add(root);
     }
   }
+  // All animals share five material batches, including their legs, bands and tails.
+  const animalBatches = [...animalParts].map(([material, parts]) => {
+    const mesh = new InstancedMesh(sphere, material, parts.length);
+    mesh.name = 'aquiloop-animals-' + material.color.getHexString();
+    group.add(mesh);
+    return { mesh, parts };
+  });
+  const animalMatrix = new Matrix4();
   for (const batch of batches.values()) {
     const mesh = new InstancedMesh(
       batch.geometry,
@@ -413,12 +413,21 @@ export function createAquiloopAquarium(position: {
         Math.cos(t) * 0.19
       );
       root.rotation.y = Math.atan2(Math.cos(t) * 0.62, -Math.sin(t) * 0.19);
+      root.updateMatrix();
     });
+    for (const { mesh, parts } of animalBatches) {
+      parts.forEach(({ root, local }, i) =>
+        mesh.setMatrixAt(i, animalMatrix.multiplyMatrices(root.matrix, local))
+      );
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
+    }
     if (!options.reducedMotion && state.phase === 'refill')
       pump.rotation.z = time * 3;
     return state;
   };
   update(0);
+  clock.suspend();
   let disposed = false;
   return {
     group,
