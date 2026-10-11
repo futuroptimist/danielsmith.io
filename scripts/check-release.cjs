@@ -47,6 +47,8 @@ function releaseEntry(changelog, version) {
 
 function runtimePath(file) {
   // Unknown paths fail closed. These exclusions are review/test/documentation tooling only.
+  if (file === 'docs/resume/README.md' || file === 'docs/resume/ats-smoke.json')
+    return false;
   if (file.startsWith('docs/resume/')) return true;
   if (
     /^\.github\/workflows\/(ci-image|resume|resume-gcs|05-favicon)\.yml$/.test(
@@ -74,6 +76,12 @@ function runtimePath(file) {
     return false;
   if (/^scripts\/generate-(floorplan-diagram|press-kit)\.ts$/.test(file))
     return false;
+  if (
+    /^scripts\/(assert-dist\.cjs|static-asset-expectations\.cjs|resume-ats-smoke\.py)$/.test(
+      file
+    )
+  )
+    return false;
   return true;
 }
 
@@ -96,6 +104,19 @@ function validate({ read, changed = [], before }) {
         return JSON.stringify(rest);
       };
       return runtimePackage(read(file)) !== runtimePackage(before(file));
+    }
+    if (file === 'package-lock.json') {
+      const runtimeLock = (text) => {
+        const { version, ...lock } = JSON.parse(text);
+        // npm version updates both root version fields; dependency versions,
+        // integrity, resolved URLs, and all other lock data remain significant.
+        if (lock.packages?.['']) {
+          const { version: rootVersion, ...rootPackage } = lock.packages[''];
+          lock.packages[''] = rootPackage;
+        }
+        return JSON.stringify(lock);
+      };
+      return runtimeLock(read(file)) !== runtimeLock(before(file));
     }
     return runtimePath(file);
   });

@@ -25,12 +25,15 @@ Documentation, agent instructions, tests, review tooling, and CI-owned launch sc
 do not themselves require application or chart bumps. The floor-plan diagram and press-kit
 generator entry points are also excluded because they only write documentation assets.
 These exclusions do not cover
-shipped content: `docs/resume/`, public assets, runtime source, and build inputs count as
+shipped content: resume sources in `docs/resume/`, public assets, runtime source, and build inputs count as
 site changes. Changes to generators or workflows that alter shipped output also need
 release metadata even where automated path classification cannot infer the effect.
-All package-script edits and lockfile changes are conservatively treated as runtime
-inputs: build/lifecycle scripts can invoke arbitrary helper scripts. A private package
-version-only edit is independent of appVersion; it does not itself trigger an app bump.
+All package-script edits are conservatively treated as runtime inputs: build/lifecycle
+scripts can invoke arbitrary helper scripts. Lockfile dependency-resolution changes are
+runtime inputs too. A private package version-only edit, including the corresponding
+root version fields in `package-lock.json`, is independent of appVersion and does not
+itself trigger an app bump. Read-only smoke/ATS checks, their fixture configuration,
+and the resume README remain test/documentation tooling.
 
 ## Parallel PRs and release preparation
 

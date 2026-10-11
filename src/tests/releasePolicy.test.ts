@@ -131,8 +131,13 @@ describe('release metadata policy with synthetic snapshots', () => {
   it.each([
     'scripts/generate-floorplan-diagram.ts',
     'scripts/generate-press-kit.ts',
+    'scripts/assert-dist.cjs',
+    'scripts/static-asset-expectations.cjs',
+    'scripts/resume-ats-smoke.py',
+    'docs/resume/README.md',
+    'docs/resume/ats-smoke.json',
   ])(
-    'allows maintenance of documentation-only generator %s without version churn',
+    'allows maintenance of documentation/test helper %s without version churn',
     (file) => {
       expect(() =>
         validate(fixture([file], '0.2.0', '0.2.9', notes()))
@@ -203,6 +208,59 @@ describe('release metadata policy with synthetic snapshots', () => {
           )
         )
       ).toThrow('must be marked unreleased');
+    }
+  });
+  it('ignores only root package-version metadata in npm lockfiles', () => {
+    const check = fixture(
+      ['package.json', 'package-lock.json'],
+      '0.2.0',
+      '0.2.9',
+      notes()
+    );
+    const pkg = (version: string) =>
+      JSON.stringify({ name: 'synthetic', version, private: true });
+    const dependency = {
+      version: '1.0.0',
+      resolved: 'https://example.invalid/library.tgz',
+      integrity: 'synthetic-integrity',
+    };
+    const lock = (version: string, overrides = {}) =>
+      JSON.stringify({
+        name: 'synthetic',
+        version,
+        lockfileVersion: 3,
+        packages: {
+          '': { name: 'synthetic', version },
+          'node_modules/synthetic': { ...dependency, ...overrides },
+        },
+      });
+    const read = check.read;
+    const before = check.before;
+    check.before = (file) =>
+      file === 'package.json'
+        ? pkg('1.0.0')
+        : file === 'package-lock.json'
+          ? lock('1.0.0')
+          : before(file);
+    check.read = (file) =>
+      file === 'package.json'
+        ? pkg('2.0.0')
+        : file === 'package-lock.json'
+          ? lock('2.0.0')
+          : read(file);
+    expect(() => validate(check)).not.toThrow();
+    for (const overrides of [
+      { version: '1.0.1' },
+      { resolved: 'https://example.invalid/changed.tgz' },
+      { integrity: 'changed-integrity' },
+    ]) {
+      check.read = (file) =>
+        file === 'package.json'
+          ? pkg('2.0.0')
+          : file === 'package-lock.json'
+            ? lock('2.0.0', overrides)
+            : read(file);
+      expect(() => validate(check)).toThrow('appVersion increase');
     }
   });
   it('allows later evidence-only documentation updates without a new application version', () => {
