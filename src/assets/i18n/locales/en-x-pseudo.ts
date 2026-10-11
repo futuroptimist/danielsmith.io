@@ -154,7 +154,11 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
       heading: wrap('Controls'),
       items: {
         keyboardMove: { description: wrap('Move') },
-        toggleGait: { description: wrap('Toggle run / walk (starts walking)') },
+        toggleGait: {
+          description: wrap(
+            'Caps Lock on: walk; off: run (default). Button switches gait for touch.'
+          ),
+        },
         pointerDrag: { description: wrap('Drag to pan') },
         pointerZoom: { description: wrap('Zoom') },
         keyboardZoom: { description: wrap('Zoom in or out') },

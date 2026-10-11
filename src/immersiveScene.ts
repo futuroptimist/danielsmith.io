@@ -388,6 +388,11 @@ import {
   type WoveLoomBuild,
 } from './scene/structures/woveLoom';
 import {
+  AVATAR_COLLISION_RADIUS,
+  AVATAR_TRAVERSAL_HEIGHT,
+  TARGET_AVATAR_HEIGHT,
+} from './scene/units';
+import {
   AmbientAudioController,
   type AmbientAudioBedDefinition,
   type AmbientAudioSource,
@@ -624,8 +629,7 @@ const AVATAR_ASSET_REQUIRED_BONES = ['Hips', 'Spine'] as const;
 const AVATAR_ASSET_REQUIRED_ANIMATIONS = ['Idle', 'Walk', 'Run'] as const;
 const AVATAR_ASSET_EXPECTED_UNIT_SCALE = 1;
 const AVATAR_ASSET_SCALE_TOLERANCE = 0.02;
-const PLAYER_RADIUS = 0.75;
-const PLAYER_SPEED = 12;
+const PLAYER_RADIUS = AVATAR_COLLISION_RADIUS;
 const MOVEMENT_SMOOTHING = 8;
 const CAMERA_PAN_SMOOTHING = 6;
 const CAMERA_ZOOM_SMOOTHING = 6;
@@ -1697,7 +1701,7 @@ function buildImmersiveScene(
   const cameraForwardPlanar = new Vector3();
   const cameraWorldUp = new Vector3();
 
-  const cameraFocusOffsetY = PLAYER_RADIUS;
+  const cameraFocusOffsetY = TARGET_AVATAR_HEIGHT / 2;
   const cameraCenter = initialPlayerPosition
     .clone()
     .add(new Vector3(0, cameraFocusOffsetY, 0));
@@ -3675,10 +3679,10 @@ function buildImmersiveScene(
       turnLeft: createStaticClip('MannequinTurnLeft'),
       turnRight: createStaticClip('MannequinTurnRight'),
     },
-    maxLinearSpeed: PLAYER_SPEED,
+    maxLinearSpeed: AVATAR_RUN_SPEED,
     thresholds: {
-      idleToWalk: PLAYER_SPEED * 0.18,
-      walkToRun: PLAYER_SPEED * 0.62,
+      idleToWalk: AVATAR_WALK_SPEED * 0.18,
+      walkToRun: AVATAR_RUN_SPEED * 0.55,
     },
     smoothing: {
       linear: 6,
@@ -3687,14 +3691,14 @@ function buildImmersiveScene(
     timeScale: {
       min: 0.4,
       max: 2.2,
-      walkReferenceSpeed: PLAYER_SPEED * 0.3,
-      runReferenceSpeed: PLAYER_SPEED * 0.82,
+      walkReferenceSpeed: AVATAR_WALK_SPEED,
+      runReferenceSpeed: AVATAR_RUN_SPEED,
       turnReferenceSpeed: Math.PI,
     },
     turn: {
       threshold: 0.9,
       max: 2.6,
-      linearSpeedLimit: PLAYER_SPEED * 0.24,
+      linearSpeedLimit: AVATAR_WALK_SPEED * 0.24,
     },
   });
 
@@ -4728,6 +4732,20 @@ function buildImmersiveScene(
     onChange: () => refreshAvatarControls(),
   });
   exteriorCleanup.add(() => gaitToggle.dispose());
+  const gaitButton = document.createElement('button');
+  gaitButton.type = 'button';
+  gaitButton.className = 'avatar-chair-control avatar-gait-control';
+  gaitButton.dataset.avatarGaitControl = '';
+  const activateGait = () => {
+    gaitToggle.toggle();
+    renderer.domElement.focus();
+  };
+  gaitButton.addEventListener('click', activateGait);
+  container.appendChild(gaitButton);
+  exteriorCleanup.add(() => {
+    gaitButton.removeEventListener('click', activateGait);
+    gaitButton.remove();
+  });
   const chairController = createChairController({
     player,
     chairs: collectChairAnchors(lowerFloorFurnishings.group),
@@ -4747,7 +4765,7 @@ function buildImmersiveScene(
               : colliders,
             {
               feetY: chair.floorY,
-              height: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
+              height: AVATAR_TRAVERSAL_HEIGHT,
               activeConnectionId: null,
             }
           )
@@ -4786,6 +4804,9 @@ function buildImmersiveScene(
       '[data-control-item="toggleGait"] .overlay__description'
     );
     const gaitText = gaitToggle.isRunning() ? copy.running : copy.walking;
+    if (gaitButton.textContent !== gaitText) gaitButton.textContent = gaitText;
+    gaitButton.hidden = Boolean(hudPanelCoordinator?.getActivePanel());
+    gaitButton.title = controlOverlayStrings.items.toggleGait.description;
     if (gaitDescription && gaitDescription.textContent !== gaitText)
       gaitDescription.textContent = gaitText;
     const seating = chairController.getSnapshot();
@@ -5126,7 +5147,7 @@ function buildImmersiveScene(
           ? floorConnections.sampleHeight(x, z, candidate)
           : floorRegistry.get(floorId).elevation,
       // Asset proportions must not widen the authored low-headroom traversal envelope.
-      height: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
+      height: AVATAR_TRAVERSAL_HEIGHT,
       activeConnectionId:
         candidate.floorId === floorId ? candidate.activeConnectionId : null,
     };
@@ -7759,7 +7780,12 @@ function buildImmersiveScene(
         locomotionAngularSpeed,
         prefersReducedAvatarMotion(),
         chairController.getAnimation(),
-        player.position.y
+        player.position.y,
+        chairController.isActive()
+          ? 'walk'
+          : gaitToggle.isRunning()
+            ? 'run'
+            : 'walk'
       );
       refreshAvatarControls();
       if (locomotionAnimator) {
@@ -7767,6 +7793,7 @@ function buildImmersiveScene(
           delta,
           linearSpeed: locomotionLinearSpeed,
           angularSpeed: locomotionAngularSpeed,
+          gait: gaitToggle.isRunning() ? 'run' : 'walk',
         });
       }
       if (avatarFootIkController) {

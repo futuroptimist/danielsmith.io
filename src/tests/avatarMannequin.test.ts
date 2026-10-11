@@ -1,4 +1,5 @@
 import {
+  Box3,
   Color,
   DoubleSide,
   Group,
@@ -42,7 +43,9 @@ describe('createPortfolioMannequin', () => {
     if (!(visualRoot instanceof Group)) {
       throw new Error('Visual root missing.');
     }
-    expect(visualRoot.position.y).toBeCloseTo(0);
+    const bounds = new Box3().setFromObject(visualRoot, true);
+    expect(bounds.min.y).toBeCloseTo(0, 6);
+    expect(bounds.max.y).toBeCloseTo(1.9, 6);
 
     const crest = build.group.getObjectByName('PortfolioMannequinCrest');
     expect(crest).toBeInstanceOf(Mesh);
@@ -120,7 +123,7 @@ describe('createPortfolioMannequin', () => {
     if (!(visualRoot instanceof Group)) {
       throw new Error('Visual root missing.');
     }
-    expect(visualRoot.position.y).toBeCloseTo(0);
+    expect(new Box3().setFromObject(visualRoot, true).min.y).toBeCloseTo(0, 6);
 
     const visor = build.group.getObjectByName('PortfolioMannequinVisor');
     expect(visor).toBeInstanceOf(Mesh);

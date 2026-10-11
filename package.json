@@ -29,6 +29,7 @@
     "collider:audit:geometry": "tsx scripts/colliderGeometryAudit.ts",
     "collider:audit:reachability": "tsx scripts/colliderReachabilityAudit.ts",
     "collider:audit:redundancy": "tsx scripts/colliderRedundancyGate.ts",
+    "scale:audit": "tsx scripts/sceneScaleAudit.ts",
     "miniature:check": "tsx scripts/miniatureManifest.ts",
     "miniature:manifest:update": "tsx scripts/miniatureManifest.ts --update",
     "smoke:promotion": "node scripts/run-promotion-smoke.cjs",

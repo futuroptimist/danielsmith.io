@@ -204,7 +204,8 @@ export const AR_OVERRIDES: LocaleOverrides = {
       items: {
         toggleGait: {
           keys: 'قفل الأحرف الكبيرة',
-          description: 'التبديل بين الركض والمشي (يبدأ بالمشي)',
+          description:
+            'قفل الأحرف الكبيرة مفعّل: المشي؛ معطّل: الركض (الافتراضي). الزر يبدّل نمط الحركة.',
         },
         keyboardMove: {
           keys: 'WASD / الأسهم',

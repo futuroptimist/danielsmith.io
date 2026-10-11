@@ -63,11 +63,11 @@
       "id": "audit:src:scene:avatar:locomotionAnimator",
       "sourceFiles": ["src/scene/avatar/locomotionAnimator.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "c41707ac76d93aed532b4529d0f89256ddf40f2aea522b8ff77a4914e2f9515a",
+      "syncRevision": 2,
+      "syncNote": "The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.",
+      "sourceFingerprint": "b4af031f2d3425e6c4afb3ffff385742c722a286bba33f39a57442e767b76169",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "f7a67e44d9e48a8b36dc8d3b985145eeddec2de328b224a95cac9180455c1d33"
+      "metadataFingerprint": "b53518352f800a2413f3d4d383cf948d8cbc6951fa3427263d371a265ec09a3c"
     },
     {
       "id": "audit:src:scene:avatar:variantManager",
@@ -375,14 +375,15 @@
         "src/scene/avatar/animatedAvatar.ts",
         "src/scene/avatar/chairController.ts",
         "src/scene/avatar/prepareRendering.ts",
+        "src/scene/units.ts",
         "src/systems/movement/avatarGait.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 5,
-      "syncNote": "The moving player, GPU preparation, gait speeds, seated poses and safe reload positions are excluded from static miniature architecture; chair proxies are unchanged.",
-      "sourceFingerprint": "3e33a55ee5bc4bbb27b8f937e39a81aecba954a38693ba2622895fa120ae82b4",
+      "syncRevision": 6,
+      "syncNote": "The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.",
+      "sourceFingerprint": "1e705439628b85b15c077a1ec5a0be37045c3029bf7df193f1bd07fe4949b34a",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "fc6a801a346006f566d72f4fcdc1f37e208acd9ec01215b0d74732dd0706cf6c"
+      "metadataFingerprint": "415eeeadcd6b474d1a2d75bcba37b27deb7e81ffbe55fac8070b2cf543ade111"
     },
     {
       "id": "avatar:loading-presentation",
@@ -401,11 +402,11 @@
         "src/scene/avatar/mannequin.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 4,
-      "syncNote": "Avatar accessory labels and runtime drone baseline updates do not affect the excluded overworld player geometry.",
-      "sourceFingerprint": "d6ee1d0169c2580291d172c1aa17fa796c916d6fce9ca92861d4466f965a8b79",
+      "syncRevision": 5,
+      "syncNote": "The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.",
+      "sourceFingerprint": "191069383e355a3ea7b076387a8876bc71777d9d3849be28843555f9eeada0fb",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "cb4ae999fe7f6083c16efbe1aaff8828e82691fa48afadfc00e7d2554b6c58d2"
+      "metadataFingerprint": "c1dda30583464ac6be134f0703ca9da791d610a14b989bb24752267a2043c4c0"
     },
     {
       "id": "basement:woodworking",
@@ -649,7 +650,7 @@
       "syncRevision": 13,
       "syncNote": "The full property is projected from production visuals, terminating at the shared table shell.",
       "sourceFingerprint": "83e451205018946b2968f01ac1f56eaf40b5690cc6332bf390cb10cbff58c380",
-      "proxyFingerprint": "e7652c40391fa55d03c4381f1fbc01380348fa4c30f99b5cab1369370eeba37a",
+      "proxyFingerprint": "709021c654a5b1d04eed196564b9d07c4906c56ef7d68b410786b48f0d076373",
       "metadataFingerprint": "35b1bfc30027c66279b9117322ac4272a84c0fe70f298472356d9d292af53705"
     },
     {

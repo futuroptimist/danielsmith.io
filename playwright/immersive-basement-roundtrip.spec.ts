@@ -233,7 +233,8 @@ async function checkpoint(page: Page, name: string) {
     contentType: 'application/json',
   });
   await page.screenshot({ path: test.info().outputPath(`${name}.png`) });
-  expect(snapshot.camera.focus.y).toBeCloseTo(snapshot.position.y + 0.75, 1);
+  // Focus follows half the 1.90 m body, independently of the collision radius.
+  expect(snapshot.camera.focus.y).toBeCloseTo(snapshot.position.y + 0.95, 1);
   return snapshot;
 }
 

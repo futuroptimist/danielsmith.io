@@ -2728,6 +2728,9 @@ html[data-hud-layout='mobile'] .performance-recovery-popup {
 .avatar-chair-control[hidden] {
   display: none;
 }
+.avatar-gait-control {
+  bottom: max(5rem, calc(env(safe-area-inset-bottom) + 3.5rem));
+}
 .avatar-chair-control:focus-visible {
   outline: 3px solid #ffffff;
   outline-offset: 3px;

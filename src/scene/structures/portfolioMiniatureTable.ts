@@ -341,6 +341,11 @@ function createTinyPlayer(detailPolicy: SceneDetailPolicy) {
     0,
     accent
   );
+  // Normalize the marker before the enclosing miniature's explicit world-to-table transform.
+  body.updateWorldMatrix(true, true);
+  const bounds = new Box3().setFromObject(body, true);
+  body.scale.setScalar(height / bounds.getSize(new Vector3()).y);
+  body.position.y = -bounds.min.y * body.scale.y;
   return {
     root,
     setPalette: (p: PortfolioMannequinPalette) => {

@@ -1,5 +1,6 @@
 import {
   BoxGeometry,
+  Box3,
   Color,
   ConeGeometry,
   CylinderGeometry,
@@ -10,13 +11,15 @@ import {
   MeshStandardMaterial,
   SphereGeometry,
   TorusGeometry,
+  Vector3,
 } from 'three';
 
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { TARGET_AVATAR_HEIGHT } from '../units';
 
 // Deterministic floor-to-crest height used by initial camera framing before assets load.
-export const PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT = 2.6;
+export const PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT = TARGET_AVATAR_HEIGHT;
 
 export interface PortfolioMannequinOptions {
   /**
@@ -373,6 +376,12 @@ export function createPortfolioMannequin(
   mannequinRoot.add(crest);
 
   const totalHeight = PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT;
+  mannequinRoot.updateWorldMatrix(true, true);
+  const visualBounds = new Box3().setFromObject(mannequinRoot, true);
+  mannequinRoot.scale.setScalar(
+    totalHeight / visualBounds.getSize(new Vector3()).y
+  );
+  mannequinRoot.position.y = -visualBounds.min.y * mannequinRoot.scale.y;
 
   group.userData.boundingRadius = collisionRadius;
   group.userData.visualHeight = totalHeight;

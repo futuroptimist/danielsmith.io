@@ -128,7 +128,8 @@ export const ZH_HANS_OVERRIDES: LocaleOverrides = {
       items: {
         toggleGait: {
           keys: '大写锁定键',
-          description: '切换奔跑／行走（默认行走）',
+          description:
+            '大写锁定开启：行走；关闭：奔跑（默认）。按钮可切换步态。',
         },
         keyboardMove: { keys: 'WASD / 方向键', description: '移动' },
         pointerDrag: { keys: '鼠标左键', description: '拖动平移' },

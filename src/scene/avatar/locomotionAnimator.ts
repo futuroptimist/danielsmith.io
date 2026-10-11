@@ -13,6 +13,8 @@ export type AvatarLocomotionAnimatorUpdate = {
   delta: number;
   linearSpeed: number;
   angularSpeed: number;
+  /** Explicit controller gait; speed still controls idle blending and stride playback. */
+  gait?: 'walk' | 'run';
 };
 
 export type AvatarLocomotionBlendSnapshot = {
@@ -287,6 +289,7 @@ export function createAvatarLocomotionAnimator(
     delta,
     linearSpeed,
     angularSpeed,
+    gait,
   }: AvatarLocomotionAnimatorUpdate) => {
     const clampedDelta = Math.max(0, delta);
     const rawPlanarSpeed = Math.max(0, Math.min(linearSpeed, maxLinearSpeed));
@@ -333,6 +336,7 @@ export function createAvatarLocomotionAnimator(
       walkToRun,
       maxLinearSpeed
     );
+    if (gait) runContribution = gait === 'run' ? 1 - idleContribution : 0;
     let walkContribution = 1 - idleContribution - runContribution;
     walkContribution = MathUtils.clamp(walkContribution, 0, 1);
 

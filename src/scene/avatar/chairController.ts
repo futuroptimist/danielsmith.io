@@ -1,6 +1,11 @@
 import { MathUtils, Vector3, type Object3D } from 'three';
 
 import type { FloorId } from '../../systems/movement/stairs';
+import {
+  AVATAR_COLLISION_RADIUS,
+  AVATAR_SEAT_HEIGHT,
+  AVATAR_SEAT_RETREAT,
+} from '../units';
 
 import { AVATAR_WALK_SPEED, type SeatAnimation } from './animatedAvatar';
 
@@ -44,7 +49,9 @@ export function collectChairAnchors(root: Object3D): ChairAnchor[] {
     );
     // Clear the axis-aligned collision bounds even when the chair is diagonal.
     const approachDistance =
-      0.85 + 0.7 * (Math.abs(forward.x) + Math.abs(forward.z));
+      AVATAR_COLLISION_RADIUS +
+      0.1 +
+      0.7 * (Math.abs(forward.x) + Math.abs(forward.z));
     result.push({
       id,
       floorId: 'ground',
@@ -95,7 +102,8 @@ export function createChairController(options: {
       // Taller cushions need a forward perch so grounded knees clear the front edge.
       .addScaledVector(
         target.forward,
-        0.395 + Math.max(0, target.seat.y - target.floorY - 0.4)
+        AVATAR_SEAT_RETREAT +
+          Math.max(0, target.seat.y - target.floorY - AVATAR_SEAT_HEIGHT)
       )
       .setY(target.floorY);
   const nearest = (floor: FloorId) =>
@@ -227,7 +235,7 @@ export function createChairController(options: {
               ? 'SitDown'
               : 'StandUp',
         progress: phase === 'seated' ? 0 : progress,
-        offsetY: (chair.seat.y - chair.floorY - 0.4) * amount,
+        offsetY: (chair.seat.y - chair.floorY - AVATAR_SEAT_HEIGHT) * amount,
       };
     },
     getSnapshot: () => ({ phase, chairId: chair?.id ?? null, progress }),

@@ -145,8 +145,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
     controlOverlay: {
       heading: 'Controls',
       avatar: {
-        walking: 'Walking — toggle run / walk',
-        running: 'Running — toggle run / walk',
+        walking: 'Walking - switch to run',
+        running: 'Running - switch to walk',
         sit: 'Sit in chair (Interact)',
         stand: 'Stand up (Interact or move)',
         transition: 'Moving into position…',
@@ -154,7 +154,8 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
       items: {
         toggleGait: {
           keys: 'Caps Lock',
-          description: 'Toggle run / walk (starts walking)',
+          description:
+            'Caps Lock on: walk; off: run (default). Button switches gait for touch.',
         },
         keyboardMove: {
           keys: 'WASD / Arrow keys',

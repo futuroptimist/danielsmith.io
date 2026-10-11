@@ -207,7 +207,8 @@ export const JA_OVERRIDES: LocaleOverrides = {
       items: {
         toggleGait: {
           keys: 'Caps Lock',
-          description: '走る／歩くを切り替え（初期状態は歩く）',
+          description:
+            'Caps Lock オン: 歩く、オフ: 走る（初期設定）。ボタンで切替。',
         },
         keyboardMove: {
           keys: 'WASD / 矢印キー',

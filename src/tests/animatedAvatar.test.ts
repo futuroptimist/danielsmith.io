@@ -6,6 +6,7 @@ import {
   Group,
   Mesh,
   BoxGeometry,
+  Box3,
   NumberKeyframeTrack,
   Vector3,
   Texture,
@@ -45,6 +46,12 @@ describe('approved animated avatar', () => {
     });
     const asset = await importer.load({ url: 'fixture' });
     const avatar = createAnimatedAvatar(asset);
+    const normalizedBounds = new Box3().setFromObject(avatar.model, true);
+    expect(normalizedBounds.min.y).toBeCloseTo(0, 6);
+    expect(normalizedBounds.max.y).toBeCloseTo(1.9, 6);
+    expect(normalizedBounds.getSize(new Vector3()).x).toBeCloseTo(0.95203, 4);
+    expect(AVATAR_WALK_SPEED / 1.1).toBeCloseTo(1.9 / 1.872, 8);
+    expect(AVATAR_RUN_SPEED / 2.5).toBeCloseTo(1.9 / 1.872, 8);
     const furniture = createLowerFloorFurnishings().group;
     const chair = collectChairAnchors(furniture).find(
       (c) => c.id === 'studio-reading-chair'
@@ -183,6 +190,6 @@ describe('approved animated avatar', () => {
     groundSeatedLeg(hip, knee, foot, 0);
     expect(knee.position.length()).toBeCloseTo(0.4);
     expect(foot.position.length()).toBeCloseTo(0.42);
-    expect(foot.getWorldPosition(new Vector3()).y).toBeCloseTo(0.12, 3);
+    expect(foot.getWorldPosition(new Vector3()).y).toBeCloseTo(0.121794872, 6);
   });
 });
