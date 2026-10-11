@@ -245,7 +245,9 @@ occlusion query is justified at this scale.
 Use opaque foliage with no stacked alpha leaf cards, transmissive neighbor windows or
 new shadow-casting lamps. Prefer vertex/baked shading or shared nonoverlapping ground
 contact accents. Performance trees/shrubs cast no dynamic shadows; balanced may enable
-only measured nearby casters within the existing shadow setup. Record shadow-pass calls
+only measured nearby casters after a bounded shadow setup is implemented and qualified.
+The current renderer does not enable shadow maps; see the
+[lighting design](lighting-fidelity.md). Record shadow-pass calls
 and canopy screen coverage separately; do not assume fewer triangles solve overdraw.
 Require foliage-only GPU/whole-frame timing comparisons at the densest corner, with
 foliage hidden as a diagnostic, without shipping a stripped visual target.

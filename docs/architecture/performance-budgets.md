@@ -127,21 +127,24 @@ adaptive quality controller.
 | Asset                                                      | Size            | Strategy                                                                                                                                          |
 | ---------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Avatar GLTF variants (`src/scene/avatar/`)                 | ~4.5 MB decoded | Load once on boot; swap materials in place to avoid duplicate buffers. Future variants should stream textures via Basis or KTX2 before attaching. |
-| Lightmap textures (`src/scene/lighting/bakedLightmaps.ts`) | 2048² RGBA      | Keep baked into a single atlas, lazy-attach only after renderer reports WebGL2 support. Fallback to gradient shader when unavailable.             |
+| Lightmap textures (`src/scene/lighting/bakedLightmaps.ts`) | 464 KiB RGBA8   | Three generated gradients (256 x 256, 128 x 128, 192 x 192), no mipmaps; no offline atlas is currently loaded.                                    |
 | POI hologram textures (`public/textures/poi/*.png`)        | 512²            | Preload via `<link rel="preload">` once the POI registry resolves; defer animation clips until the player enters a POI radius.                    |
 
 ## Lightmap generation & validation
 
-1. Author UV2 unwraps in Blender and bake a new lightmap at 2048² using the dusk
-   HDRI rig.
-2. Export the atlas to `public/lightmaps/interior.png` and update the reference
-   in `createInteriorLightmapTextures`.
-3. Run `npm run test:ci` to execute
-   [`src/tests/bakedLightmaps.test.ts`](../../src/tests/bakedLightmaps.test.ts)
-   which validates the gradient falloff.
-4. Verify in the immersive build by launching
-   `http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` and
-   toggling `Shift+L` to compare debug vs. cinematic passes.
+The current implementation generates small artistic color gradients at runtime; it does not
+load a 2048-square atlas, perform geometry-aware GI, or require WebGL2 for these textures.
+`applyLightmapUv2` copies UVs and is not a bake unwrap. The existing
+[`bakedLightmaps.test.ts`](../../src/tests/bakedLightmaps.test.ts) validates gradient
+relationships and attribute copying, not physical occlusion or selected renderer UV channels.
+
+See the [lighting fidelity design](../design/lighting-fidelity.md) for a staged proposal,
+explicit r161 color/UV audit, reproducible indirect-only bake pilot, dynamic-shadow limits,
+and proposed low-tier budgets. These are future implementation gates, not shipped features.
+
+For visual comparison, launch
+`http://localhost:5173/?mode=immersive&disablePerformanceFailover=1` and use the existing
+`Shift+L` lighting debug toggle. Compare identical poses, quality and animation state.
 
 ## Outage notes
 
