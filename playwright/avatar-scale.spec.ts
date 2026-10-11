@@ -39,6 +39,19 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
           }
       );
     expect((await snapshot()).height).toBeCloseTo(1.9, 6);
+    const gaitButton = page.locator('[data-avatar-gait-control]');
+    // Use native browser activation: Enter clicks on keydown, Space on keyup.
+    for (const activation of ['Enter', 'Space']) {
+      await gaitButton.focus();
+      await page.keyboard.press(activation);
+      expect(
+        await page.evaluate(() => window.portfolio!.avatar!.getGait!())
+      ).toBe('walk');
+      await page.keyboard.press('Shift');
+      expect(
+        await page.evaluate(() => window.portfolio!.avatar!.getGait!())
+      ).toBe('run');
+    }
     for (const caps of [false, true]) {
       for (const shifted of [false, true]) {
         await page.evaluate(

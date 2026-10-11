@@ -99,6 +99,20 @@ describe('authoritative gait', () => {
     expect(gait.isRunning()).toBe(false);
     gait.dispose();
   });
+  it.each([false, true])(
+    'preserves an Enter activation through release (Caps Lock %s)',
+    (caps) => {
+      const gait = createGaitToggle(window);
+      key(caps, { key: 'Enter' });
+      gait.toggle();
+      expect(gait.isRunning()).toBe(caps);
+      key(caps, { key: 'Enter' }, 'keyup');
+      expect(gait.isRunning()).toBe(caps);
+      key(caps, { key: 'ArrowUp' });
+      expect(gait.isRunning()).toBe(!caps);
+      gait.dispose();
+    }
+  );
   it('falls back to one toggle per press only when modifier reporting is absent', () => {
     const gait = createGaitToggle(window);
     const send = (type: string, repeat = false) => {

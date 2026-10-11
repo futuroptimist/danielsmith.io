@@ -41,8 +41,9 @@ the first key after focus returns. Shift, letter case and keyboard layout do not
 create additional modes. Browsers have no general API for querying the lock at
 startup or focus alone: the first keyboard event supplies it. If modifier reporting
 is absent, a guarded one-toggle-per-press fallback is used. The visible gait button
-writes the same state for touch and accessibility; the next keyboard event restores
-the physical lock state. Locomotion blends toward that selected clip; actual speed
+writes the same state for touch and accessibility. The keyup completing an Enter
+button activation preserves that choice; subsequent keyboard input restores the
+physical lock state. Locomotion blends toward that selected clip; actual speed
 controls idle and stride playback, including analog input and collisions.
 
 ## Measured legacy conflicts

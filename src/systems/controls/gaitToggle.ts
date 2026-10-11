@@ -10,6 +10,8 @@ export function createGaitToggle(
 ) {
   let running = true;
   let held = false;
+  let enterHeld = false;
+  let preserveEnterRelease = false;
   const setRunning = (next: boolean) => {
     if (running === next) return;
     running = next;
@@ -21,6 +23,7 @@ export function createGaitToggle(
     return true;
   };
   const down = (event: KeyboardEvent) => {
+    if (event.key === 'Enter') enterHeld = true;
     // Read even UI-owned/repeated events: observing the lock never consumes a key.
     // This also repairs lock changes made while the page was unfocused.
     if (sync(event)) return;
@@ -40,11 +43,20 @@ export function createGaitToggle(
     setRunning(!running);
   };
   const up = (event: KeyboardEvent) => {
-    sync(event);
+    // Native Enter clicks run during keydown. Completing that activation must
+    // not undo the control's choice, even if the click moved focus to the canvas.
+    const completingActivation = event.key === 'Enter' && preserveEnterRelease;
+    if (event.key === 'Enter') {
+      enterHeld = false;
+      preserveEnterRelease = false;
+    }
+    if (!completingActivation) sync(event);
     if (event.key === 'CapsLock' || event.code === 'CapsLock') held = false;
   };
   const blur = () => {
     held = false;
+    enterHeld = false;
+    preserveEnterRelease = false;
   };
   target.addEventListener('keydown', down);
   target.addEventListener('keyup', up);
@@ -52,7 +64,10 @@ export function createGaitToggle(
   return {
     isRunning: () => running,
     setRunning,
-    toggle: () => setRunning(!running),
+    toggle: () => {
+      preserveEnterRelease = enterHeld;
+      setRunning(!running);
+    },
     dispose() {
       target.removeEventListener('keydown', down);
       target.removeEventListener('keyup', up);
