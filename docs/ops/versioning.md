@@ -22,7 +22,9 @@ current application changelog section; they need not advance the app unless they
 the site experience. Production displays **appVersion**, not chart `version`.
 
 Documentation, agent instructions, tests, review tooling, and CI-owned launch screenshots
-do not themselves require application or chart bumps. These exclusions do not cover
+do not themselves require application or chart bumps. The floor-plan diagram and press-kit
+generator entry points are also excluded because they only write documentation assets.
+These exclusions do not cover
 shipped content: `docs/resume/`, public assets, runtime source, and build inputs count as
 site changes. Changes to generators or workflows that alter shipped output also need
 release metadata even where automated path classification cannot infer the effect.

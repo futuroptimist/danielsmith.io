@@ -128,6 +128,17 @@ describe('release metadata policy with synthetic snapshots', () => {
       )
     ).toThrow('current version entry');
   });
+  it.each([
+    'scripts/generate-floorplan-diagram.ts',
+    'scripts/generate-press-kit.ts',
+  ])(
+    'allows maintenance of documentation-only generator %s without version churn',
+    (file) => {
+      expect(() =>
+        validate(fixture([file], '0.2.0', '0.2.9', notes()))
+      ).not.toThrow();
+    }
+  );
   it('compares multi-digit SemVer components numerically', () => {
     expect(() => validate(fixture(releaseFiles, '0.2.10'))).not.toThrow();
   });
@@ -140,6 +151,8 @@ describe('release metadata policy with synthetic snapshots', () => {
     'package-lock.json',
     'docs/resume/active.tex',
     'scripts/resume-docx.py',
+    'scripts/generate-favicon.ts',
+    'scripts/generate_showcase_gltf.py',
     '.github/workflows/ci-image.yml',
     '.github/workflows/resume.yml',
     'new-build-config.json',

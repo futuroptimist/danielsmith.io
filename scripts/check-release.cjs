@@ -72,6 +72,8 @@ function runtimePath(file) {
     )
   )
     return false;
+  if (/^scripts\/generate-(floorplan-diagram|press-kit)\.ts$/.test(file))
+    return false;
   return true;
 }
 
