@@ -86,6 +86,39 @@ function build() {
 }
 
 describe('source-backed recursive property table', () => {
+  it('captures hidden floor-controlled POI roots while preserving authored child visibility', () => {
+    const parent = new Group();
+    parent.position.y = 5;
+    parent.visible = false;
+    const poi = new Group();
+    poi.visible = false;
+    const pedestal = new Mesh(
+      new BoxGeometry(1, 2, 1),
+      new MeshStandardMaterial()
+    );
+    pedestal.name = 'UpperPoiPedestal';
+    const effect = new Mesh(
+      new BoxGeometry(100, 100, 100),
+      new MeshStandardMaterial()
+    );
+    effect.visible = false;
+    poi.add(pedestal, effect);
+    parent.add(poi);
+    const snapshot = createSourceSnapshot([
+      { floor: 'upper', roots: [parent, ...parent.children] },
+    ]);
+    expect(snapshot.records.map((record) => record.name)).toEqual([
+      'UpperPoiPedestal',
+    ]);
+    expect(snapshot.bounds.min.y).toBe(4);
+    expect(snapshot.bounds.max.y).toBe(6);
+    snapshot.setFloor('ground');
+    expect(snapshot.group.children[0].visible).toBe(false);
+    snapshot.setFloor('upper');
+    expect(snapshot.group.children[0].visible).toBe(true);
+    expect(poi.visible).toBe(false);
+    snapshot.dispose();
+  });
   it('omits texture-dependent label and cutout surfaces instead of creating opaque rectangles', () => {
     const root = new Group();
     const texture = new Texture();

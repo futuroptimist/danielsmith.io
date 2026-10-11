@@ -66,7 +66,6 @@ export function createSourceSnapshot(
     >();
     const visit = (object: Object3D, root = false) => {
       if (visited.has(object)) return;
-      visited.add(object);
       if (
         object.name === 'MiniatureWorldRoot' ||
         object.name === 'PortfolioMiniatureTable'
@@ -74,6 +73,7 @@ export function createSourceSnapshot(
         return;
       // Floor visibility is camera state, not authored absence. Nested hidden effects stay hidden.
       if (!root && !object.visible) return;
+      visited.add(object);
       if (
         object instanceof Mesh &&
         !object.name.toLowerCase().includes('ceiling')

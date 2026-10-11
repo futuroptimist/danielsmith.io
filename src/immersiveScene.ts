@@ -3382,6 +3382,10 @@ function buildImmersiveScene(
         softwareRendererPolicy,
       });
     }
+    const miniaturePoiRoots = (floor: FloorId) =>
+      poiInstances
+        .filter((poi) => getPoiFloorId(poi.definition) === floor)
+        .map((poi) => poi.group);
     const table = createPortfolioMiniatureTable({
       position: {
         x: portfolioTablePoi.group.position.x,
@@ -3402,17 +3406,26 @@ function buildImmersiveScene(
             groundFloorGroup,
             groundStructureGroup,
             groundEnvironmentGroup,
-            groundPoiGroup,
+            // Individual POIs also have floor-controlled visibility at startup.
+            ...miniaturePoiRoots('ground'),
             ...(ledStripGroup ? [ledStripGroup] : []),
           ],
         },
         {
           floor: 'upper',
-          roots: [upperFloorGroup, upperStructureGroup, upperPoiGroup],
+          roots: [
+            upperFloorGroup,
+            upperStructureGroup,
+            ...miniaturePoiRoots('upper'),
+          ],
         },
         {
           floor: 'basement',
-          roots: [basementFloorGroup, basementStructureGroup, basementPoiGroup],
+          roots: [
+            basementFloorGroup,
+            basementStructureGroup,
+            ...miniaturePoiRoots('basement'),
+          ],
         },
         {
           floor: 'ground',
