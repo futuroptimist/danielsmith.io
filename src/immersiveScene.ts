@@ -113,6 +113,7 @@ import {
   createAvatarInteractionAnimator,
   type AvatarInteractionAnimatorHandle,
 } from './scene/avatar/interactionAnimator';
+import { createAvatarLoadingPresentation } from './scene/avatar/loadingPresentation';
 import { createAvatarLocomotionAnimator } from './scene/avatar/locomotionAnimator';
 import type { AvatarLocomotionAnimatorHandle } from './scene/avatar/locomotionAnimator';
 import {
@@ -3597,6 +3598,11 @@ function buildImmersiveScene(
     detailPolicy: activeSceneDetailPolicy,
   });
   const player = mannequin.group;
+  const avatarLoadingPresentation = createAvatarLoadingPresentation(
+    player,
+    player.getObjectByName('PortfolioMannequinVisual')!,
+    requestSoftwareSafeRender
+  );
   let mannequinHeight = mannequin.height;
   let animatedAvatar: AnimatedAvatar | null = null;
   const avatarPreparation = new AbortController();
@@ -4121,7 +4127,10 @@ function buildImmersiveScene(
         return getAvatarAssetPipeline().load(options);
       },
       getAnimationState() {
-        return animatedAvatar?.getSnapshot() ?? { loaded: false };
+        return {
+          ...(animatedAvatar?.getSnapshot() ?? { loaded: false }),
+          ...avatarLoadingPresentation.getSnapshot(),
+        };
       },
       getGait() {
         return gaitToggle.isRunning() ? 'run' : 'walk';
@@ -7330,6 +7339,7 @@ function buildImmersiveScene(
     lowFpsRecoveryPopup = null;
     immersiveDisposed = true;
     avatarPreparation.abort();
+    avatarLoadingPresentation.dispose();
     animatedAvatar?.dispose();
     animatedAvatar = null;
     ledAnimator = null;
@@ -7626,7 +7636,7 @@ function buildImmersiveScene(
   });
   immersiveLifecycle = 'ready';
 
-  // Keep the complete placeholder until the approved replacement passes rig/clip/scale validation.
+  // Show a position marker until the approved replacement passes validation and GPU preparation.
   void getAvatarAssetPipeline()
     .load({ url: DANIEL_AVATAR_URL, requiredAnimations: AVATAR_CLIPS })
     .then(async (asset) => {
@@ -7657,8 +7667,7 @@ function buildImmersiveScene(
         return;
       }
       player.add(replacement.model);
-      const visual = player.getObjectByName('PortfolioMannequinVisual');
-      if (visual) visual.visible = false;
+      avatarLoadingPresentation.ready();
       const wrist = player.getObjectByName('MannequinAccessoryWristConsole');
       const hand = asset.bones.get('HandL');
       if (wrist && hand) {
@@ -7699,9 +7708,13 @@ function buildImmersiveScene(
         cameraZoomTarget = initialCameraFraming.zoom;
       }
     })
-    .catch((error) =>
-      console.warn('Animated avatar unavailable; retaining mannequin.', error)
-    );
+    .catch((error) => {
+      avatarLoadingPresentation.fail();
+      console.warn(
+        'Animated avatar unavailable; using fallback mannequin.',
+        error
+      );
+    });
 
   renderer.setAnimationLoop(() => {
     try {

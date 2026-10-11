@@ -1,10 +1,13 @@
 # Animated portfolio avatar
 
 The immersive player loads `public/assets/avatar/daniel-animated-avatar.glb` after validating its
-skin, required bones, clips, and unit scale. Loading or validation failure retains the existing
-mannequin. The text portfolio remains independent of the model download.
+skin, required bones, clips, and unit scale. A static cyan ground ring and direction pointer mark the controllable player while loading;
+the procedural body stays hidden until a failure or a 15-second loading timeout. The marker
+does not animate, including with reduced motion. Failure reveals the usable mannequin fallback.
+A late successful download still replaces that fallback; re-entering immersive mode or reloading
+retries the asset with a fresh marker and timeout. The text portfolio remains independent of the model download.
 GPU shaders and the pixel atlas are prepared before the visible swap. Parallel shader polling
-is cancellable on scene teardown and bounded to five seconds, retaining the mannequin on failure.
+is cancellable on scene teardown and bounded to five seconds, revealing the mannequin on failure.
 
 The approved asset has 2,976 triangles, one skinned mesh/material, 20 bones, an embedded 128 px
 atlas, and a standing height of approximately 1.872 meters. Runtime uses nearest filtering.
