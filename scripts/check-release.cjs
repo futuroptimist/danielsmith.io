@@ -45,6 +45,28 @@ function releaseEntry(changelog, version) {
   return matching[0].trim();
 }
 
+function changeBullets(section) {
+  const bullets = [];
+  let current = '';
+  const finish = () => {
+    if (current) bullets.push(current.replace(/\s+/g, ' ').trim());
+    current = '';
+  };
+  for (const line of section.split(/\r?\n/)) {
+    const start = line.match(/^[ \t]*- +(.+)$/);
+    if (start) {
+      finish();
+      current = start[1];
+    } else if (current && /^[ \t]{2,}\S/.test(line)) {
+      current += ` ${line.trim()}`;
+    } else {
+      finish();
+    }
+  }
+  finish();
+  return bullets;
+}
+
 function runtimePath(file) {
   // Unknown paths fail closed. These exclusions are review/test/documentation tooling only.
   if (file === 'docs/resume/README.md' || file === 'docs/resume/ats-smoke.json')
@@ -150,9 +172,13 @@ function validate({ read, changed = [], before }) {
       throw new Error('Release changes require docs/changelog.md in the diff.');
     const previousText = before(CHANGELOG);
     const previousSections = previousText.split(/^## /m).slice(1);
-    if (previousSections.some((section) => section.trim() === entry)) {
+    const previousEntry = previousSections.find((section) =>
+      section.startsWith(`v${current.app} - `)
+    );
+    const previousBullets = new Set(changeBullets(previousEntry || ''));
+    if (!changeBullets(entry).some((bullet) => !previousBullets.has(bullet))) {
       throw new Error(
-        'Update the current version entry, not only historical changelog text.'
+        'Add or change a current version change bullet, not only formatting or historical text.'
       );
     }
   }

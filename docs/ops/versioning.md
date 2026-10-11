@@ -70,7 +70,9 @@ npm run release:check -- --base origin/main
 The first command checks the current appVersion has exactly one populated changelog
 section. The second also compares the working tree to the given base, rejects runtime
 changes without an application bump, rejects any chart-content change without a chart
-bump, and requires changes to the current version's notes. New application sections must
+bump, and requires a new or changed bullet in the current version's notes, ignoring
+whitespace/reflow. Reviewers still verify that the bullet explains the actual change.
+New application sections must
 be labeled `unreleased`; later evidence-only documentation edits may update that status.
 Missing Git bases fail closed.
 CI compares against the PR event's base SHA or the previous SHA on pushes to main,

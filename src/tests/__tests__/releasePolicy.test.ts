@@ -116,7 +116,7 @@ describe('release metadata policy with synthetic snapshots', () => {
       validate(
         fixture(paths, '0.2.0', '0.2.10', notes() + '\nHistorical correction.')
       )
-    ).not.toThrow();
+    ).toThrow('current version change bullet');
     expect(() =>
       validate(
         fixture(
@@ -126,7 +126,25 @@ describe('release metadata policy with synthetic snapshots', () => {
           notes() + '\n## v0.1.0 - historical\n- Correction.'
         )
       )
-    ).toThrow('current version entry');
+    ).toThrow('current version change bullet');
+    for (const text of [
+      'Synthetic  site change.',
+      'Synthetic\n  site change.',
+    ]) {
+      expect(() =>
+        validate(fixture(paths, '0.2.0', '0.2.10', notes('0.2.0', text)))
+      ).toThrow('current version change bullet');
+    }
+    expect(() =>
+      validate(
+        fixture(
+          paths,
+          '0.2.0',
+          '0.2.10',
+          notes() + '\n- Synthetic chart packaging change.'
+        )
+      )
+    ).not.toThrow();
   });
   it.each([
     'scripts/generate-floorplan-diagram.ts',
