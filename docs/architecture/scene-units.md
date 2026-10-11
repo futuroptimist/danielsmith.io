@@ -158,3 +158,9 @@ portfolio tabletop plus a 0.75 m approach envelope is reserved in the kitchen;
 its separate size change keeps the stand at its existing height while enlarging
 the tabletop and miniature. Recursive miniature
 geometry is rebuilt from the transformed world through its existing fitting path.
+
+The denser launch view exposes more of the unchanged Sugarkube installation.
+Its static opaque parts are batched by shared material without changing vertices,
+materials, LED updates, physical dimensions or collider ownership. Authored nodes
+remain available for debug inspection; the miniature copies the visible batches.
+This keeps the existing draw-call budget without removing visual detail.

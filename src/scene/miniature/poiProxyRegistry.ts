@@ -257,10 +257,14 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'sugarkube-backyard-greenhouse',
     id: 'poi:sugarkube-backyard-greenhouse',
     displayName: 'Sugarkube deployment proxy',
-    syncRevision: 12,
+    syncRevision: 13,
     syncNote:
-      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
-    sourceFiles: [...baseFiles, 'src/scene/structures/sugarkubeDeployment.ts'],
+      'Static same-material Sugarkube parts are batched without changing visible vertices, physical size or pulsing LEDs; the shared snapshot reads the visible batches.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/sugarkubeDeployment.ts',
+      'src/scene/structures/batchStaticMeshes.ts',
+    ],
     proxyFiles: [SELF_FILE],
     primitives: [
       box('sugarkube-table', [1.55, 0.14, 1.0], [0, 0.42, 0], 0x92400e),

@@ -293,6 +293,7 @@ import {
 } from './scene/structures/axelNavigator';
 import { createBasementLandingCutaway } from './scene/structures/basementLandingCutaway';
 import { createBasementStaircase } from './scene/structures/basementStaircase';
+import { batchStaticMeshes } from './scene/structures/batchStaticMeshes';
 import {
   createCareerMuseum,
   type CareerMuseumBuild,
@@ -3303,6 +3304,7 @@ function buildImmersiveScene(
     deployment.colliders.forEach((collider) =>
       getPoiColliderTarget(sugarkubePoi).push(collider)
     );
+    batchStaticMeshes(deployment.group);
     sugarkubeDeployment = deployment;
   }
 
