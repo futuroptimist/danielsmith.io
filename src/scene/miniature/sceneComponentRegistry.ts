@@ -258,9 +258,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/units.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Run speed and stride cadence increased by 20%; player dimensions and the miniature marker geometry are unchanged.',
     reason:
       'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
