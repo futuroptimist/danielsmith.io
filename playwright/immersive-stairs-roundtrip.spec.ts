@@ -1272,7 +1272,11 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   await expectNoBlockingCollidersAt(page, landingHandoffSamples);
 
   const westDescentLaneClearanceX =
-    stairCenterX - stairHalfWidth + PLAYER_RADIUS + 1.05;
+    stairCenterX - (stairHalfWidth - PLAYER_RADIUS) * 0.4;
+  expect(westDescentLaneClearanceX).toBeGreaterThan(
+    stairCenterX - stairHalfWidth + PLAYER_RADIUS
+  );
+  expect(westDescentLaneClearanceX).toBeLessThan(stairCenterX);
   for (const descentOffset of [0.1, 0.45, 0.85]) {
     for (const x of [stairCenterX, westDescentLaneClearanceX]) {
       const descentCorridorSample = {

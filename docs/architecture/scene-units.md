@@ -67,7 +67,7 @@ underside was 5.69 m (the old factory default of 0.30 was not the runtime overri
 | Workshop bench surface          | about 1.71 m                                      | about 0.855 m                                       |
 | Workshop band saw / drill press | 3.50 / 3.20 m                                     | 1.75 / 1.60 m                                       |
 | Miniature table top             | 4.35 x 3.90 m; centre 1.32 m                      | 1.40 x 0.90 m; finished surface 1.25 m              |
-| Selfie mirror                   | 3.40 x 4.10 m                                     | 1.70 x 2.05 m                                       |
+| Selfie mirror frame             | 3.40 x 4.10 m                                     | 1.70 x 2.05 m                                       |
 
 The upper flight ends at z=-21.8. Its 9.3 m level corridor connects the existing
 west rooms while retaining the ground crossing at z=-23 with 2.74 m underside
@@ -83,7 +83,8 @@ must distinguish player-centre corridors from physical edges and add the radius
 only once. Door pockets, trim, wall apertures and moving panels share definitions.
 
 Wall art is resized and remounted below the new ceiling, with the rocket frame
-above its 1.43 m dresser. The Reaper display follows available wall clearance; its
+above its 1.43 m dresser. The mirror frame is 2.05 m high above its 0.32 m base,
+so its measured top is 2.37 m. The Reaper display follows available wall clearance; its
 arm finishes fine aim at firing so the closer display does not amplify tracking
 lag. Workshop local geometry and colliders use the same named 0.5 conversion.
 Table dimensions are authored directly because the former width/depth ratios did

@@ -561,9 +561,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 14,
+    syncRevision: 15,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'The shared source snapshot includes the measured 2.05 m mirror frame and its unchanged physical base.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

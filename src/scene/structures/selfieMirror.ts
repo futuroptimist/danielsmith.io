@@ -111,7 +111,7 @@ export function createSelfieMirror(
   options: SelfieMirrorOptions
 ): SelfieMirrorBuild {
   const width = Math.max(1.6, options.width ?? DEFAULT_WIDTH);
-  const height = Math.max(2.4, options.height ?? DEFAULT_HEIGHT);
+  const height = Math.max(2, options.height ?? DEFAULT_HEIGHT);
   const depth = Math.max(0.2, options.depth ?? DEFAULT_DEPTH);
   const cameraDistance = Math.max(
     1.4,

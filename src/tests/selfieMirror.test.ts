@@ -1,4 +1,5 @@
 import {
+  Box3,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -33,6 +34,33 @@ describe('SelfieMirror structure', () => {
 
     expect(mirror.collider.minX).toBeLessThan(mirror.collider.maxX);
     expect(mirror.collider.minZ).toBeLessThan(mirror.collider.maxZ);
+    mirror.dispose();
+  });
+
+  it('honours the metric frame height and leaves ceiling clearance above its base', () => {
+    const mirror = createSelfieMirror({
+      position: { x: 0, z: 0 },
+      width: 1.7,
+      height: 2.05,
+    });
+    const frame = new Box3().setFromObject(
+      mirror.group.getObjectByName('SelfieMirrorFrame')!
+    );
+    expect(frame.getSize(new Vector3()).toArray()).toEqual(
+      expect.arrayContaining([
+        expect.closeTo(1.7, 5),
+        expect.closeTo(2.05, 5),
+        expect.closeTo(0.42, 5),
+      ])
+    );
+    const body = new Box3().setFromObject(mirror.group);
+    expect(body.min.y).toBeCloseTo(0);
+    expect(body.max.y).toBeCloseTo(2.37);
+    expect(body.max.y).toBeLessThan(2.74);
+    expect(mirror.collider.minX).toBeCloseTo(body.min.x);
+    expect(mirror.collider.maxX).toBeCloseTo(body.max.x);
+    expect(mirror.collider.minZ).toBeCloseTo(body.min.z);
+    expect(mirror.collider.maxZ).toBeCloseTo(body.max.z);
     mirror.dispose();
   });
 
