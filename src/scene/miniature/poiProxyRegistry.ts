@@ -65,6 +65,48 @@ const baseFiles = [
 ];
 
 export const MINIATURE_POI_PROXY_REGISTRY = {
+  'aquiloop-living-room-aquarium': {
+    poiId: 'aquiloop-living-room-aquarium',
+    id: 'poi:aquiloop-living-room-aquarium',
+    displayName: 'Aquiloop aquarium',
+    syncRevision: 2,
+    syncNote:
+      'Production snapshot includes open buckets, water surfaces and the display hit area; controllers stay overworld-only.',
+    sourceFiles: [
+      ...baseFiles,
+      'src/scene/structures/aquiloopAquarium.ts',
+      'src/scene/structures/aquiloopCycle.ts',
+    ],
+    proxyFiles: [SELF_FILE],
+    primitives: [
+      box('aquiloop-stand', [2.03, 0.84, 0.82], [0, 0.42, 0], 0x35454f),
+      box('aquiloop-water', [1.83, 0.509, 0.61], [0, 1.175, 0], 0x46bcc7),
+      ...Array.from({ length: 8 }, (_, i) =>
+        cyl(
+          'aquiloop-receiver',
+          0.17,
+          0.37,
+          [
+            -1.6 + (i % 2 ? 0.2 : -0.2),
+            0.265,
+            -0.65 + Math.floor(i / 2) * 0.42,
+          ],
+          0xc68a32
+        )
+      ),
+      ...Array.from({ length: 8 }, (_, i) =>
+        cyl(
+          'aquiloop-supply',
+          0.17,
+          0.37,
+          [1.6 + (i % 2 ? 0.2 : -0.2), 1.805, -0.65 + Math.floor(i / 2) * 0.42],
+          0x326bbc
+        )
+      ),
+      cyl('aquiloop-plant-pot', 0.33, 0.48, [2.65, 0.24, 0], 0x997655),
+      sphere('aquiloop-monstera', 0.48, [2.65, 1.55, 0], 0x318255),
+    ],
+  },
   'futuroptimist-living-room-tv': {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',

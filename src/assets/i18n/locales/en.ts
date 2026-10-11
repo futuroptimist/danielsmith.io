@@ -889,6 +889,30 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         },
       ],
     },
+    'aquiloop-living-room-aquarium': {
+      title: 'Aquiloop',
+      summary:
+        'A 150-gallon planted aquarium with guppies, Kuhli loaches, cherry shrimp and snails. Every five active minutes, a visual cycle transfers 30 gallons into eight amber 5-gallon buckets, then refills from eight blue treated-water buckets through a peristaltic pump. Each bucket exchanges 3.75 gallons. A fictional replenishment service smoothly empties receivers and restores supplies. Game simulation only; no hardware control or real-world operating guidance.',
+      outcome: {
+        label: 'Exhibit',
+        value:
+          'Braced stand, giant monstera, distinct drain and fresh-water banks.',
+      },
+      metrics: [
+        { label: 'Cycle', value: '150 → 120 → 150 gallons; 20% height change' },
+        {
+          label: 'Controls',
+          value:
+            'Inspect with the standard interact control; reduced motion stops animal and pump motion. Background tabs freeze cycle time.',
+        },
+      ],
+      links: [
+        {
+          label: 'GitHub repository',
+          href: 'https://github.com/futuroptimist/aquiloop',
+        },
+      ],
+    },
     'danielsmith-portfolio-table': {
       title: 'danielsmith.io',
       summary:

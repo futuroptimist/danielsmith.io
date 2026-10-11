@@ -39,6 +39,17 @@ type PoiStaticDefinition = Omit<
 
 const baseDefinitions: PoiStaticDefinition[] = [
   {
+    id: 'aquiloop-living-room-aquarium',
+    category: 'project',
+    interaction: 'inspect',
+    roomId: 'livingRoom',
+    position: { x: 0, y: 0, z: -28 },
+    interactionAnchorPosition: { x: 0, y: 0.75, z: -26.4 },
+    interactionRadius: 2.4,
+    footprint: { width: 1.02, depth: 0.42 },
+    status: 'prototype',
+  },
+  {
     id: 'futuroptimist-living-room-tv',
     category: 'project',
     interaction: 'inspect',

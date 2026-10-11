@@ -293,11 +293,11 @@
       "id": "audit:src:scene:poi:physicalMetadata",
       "sourceFiles": ["src/scene/poi/physicalMetadata.ts"],
       "proxyFiles": [],
-      "syncRevision": 6,
-      "syncNote": "Audited support source; Flywheel physical metadata now describes the simplified rotor body while tabletop geometry remains covered by the POI proxy.",
-      "sourceFingerprint": "855d72c4718413e445bc1f249cf3e3374a093e68df062160d089865d4759a4b3",
+      "syncRevision": 7,
+      "syncNote": "Aquiloop dimensions accompany the production aquarium snapshot and reachable approach.",
+      "sourceFingerprint": "36eadbfa02b8359a038c9cade36fe491ddb5472205d141a2a8b1a45a03d77c13",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "d59e1ab5a5b8dcf058dce4141650825d0506249b9d64aa2d77c0112268e855a6"
+      "metadataFingerprint": "4a9bf11066ed7a52596817c859db722d188f40adcac5df868b049be597e868ab"
     },
     {
       "id": "audit:src:scene:poi:structuredData",
@@ -404,7 +404,7 @@
       "syncRevision": 3,
       "syncNote": "The source snapshot reuses built museum geometry without duplicating textures or exhibit controllers.",
       "sourceFingerprint": "bfe3929a51475301aaf52bbd423e95d1c205d27664b63978cca385a251020d2f",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "a2265912855b7129b779be6c0cc352c4cb9d20266933d794483b7c8852a53d4f",
       "metadataFingerprint": "7dd1ae53aace9b2150667db3fb9a16f5e42d23512d45db5b96588a4a70bba5dc"
     },
     {
@@ -457,7 +457,7 @@
       "syncRevision": 37,
       "syncNote": "Both floor furnishing sets are projected from their existing production geometry and colors.",
       "sourceFingerprint": "a4f53b8a0ad048ad2ddc39b5cfe4f3731faf81f5b64967302660239fa5d65ad9",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "a2265912855b7129b779be6c0cc352c4cb9d20266933d794483b7c8852a53d4f",
       "metadataFingerprint": "151aff44774f3cfd6ea6547f11af1eb2e1daa027da24e00d0904c97ffcee0529"
     },
     {
@@ -476,8 +476,8 @@
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
       "syncRevision": 3,
       "syncNote": "The full source backyard is projected and its east corner shrub has a separate physical collider.",
-      "sourceFingerprint": "2ea41cc8da0c93a48c6c00080c346409f9146543a7dbe4c72084de1ad954e3e6",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "sourceFingerprint": "0e8e0745e1fea79b5c341b771a1a622f502836cd0c159d638ab23bfb336391ea",
+      "proxyFingerprint": "a2265912855b7129b779be6c0cc352c4cb9d20266933d794483b7c8852a53d4f",
       "metadataFingerprint": "35900627be08724a733d460ae9c7c196aeeff3f1165a9c1f6c0b0ddcb2362f0d"
     },
     {
@@ -493,7 +493,7 @@
       "syncRevision": 9,
       "syncNote": "The source snapshot includes the garage, front yard, sidewalk and street within one property envelope.",
       "sourceFingerprint": "f2141170247919658432db7b5d7ce2cbe360bf18fcf5de5cea353f3d1c818197",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "a2265912855b7129b779be6c0cc352c4cb9d20266933d794483b7c8852a53d4f",
       "metadataFingerprint": "76876069a79f7cf2fee4c61699ff3927d63e3f5e931f132bba8e20e41ce5d5fe"
     },
     {
@@ -517,7 +517,7 @@
       "syncRevision": 2,
       "syncNote": "The basement layout is included in the source snapshot and follows the active-floor cutaway.",
       "sourceFingerprint": "321da641adc722b357741b64fd8e7a1e40bdbc91ad7463a33d0be41150da67f3",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "a2265912855b7129b779be6c0cc352c4cb9d20266933d794483b7c8852a53d4f",
       "metadataFingerprint": "42cb6085a35b87f61ddd3b48ce49be1fc51aa695b258105885c1ed3540cb59dc"
     },
     {
@@ -546,7 +546,7 @@
       "syncRevision": 9,
       "syncNote": "All production floor layouts participate in the fixed miniature property envelope.",
       "sourceFingerprint": "35793fd6990cf3b88da1fb18a5d160ebea4a0d814ebbe685cc6a6b56abd6a10d",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "a2265912855b7129b779be6c0cc352c4cb9d20266933d794483b7c8852a53d4f",
       "metadataFingerprint": "1e65558a96d1c79a80cf699c3d040b72318a0a225faf14a7c66070630100cb62"
     },
     {
@@ -578,6 +578,22 @@
       "metadataFingerprint": "eb972e2d517789b31dbb42cba86575d33419ce2a3958130574d7f5b70326b741"
     },
     {
+      "id": "poi:aquiloop-living-room-aquarium",
+      "sourceFiles": [
+        "src/scene/poi/constants.ts",
+        "src/scene/poi/placements.ts",
+        "src/scene/poi/registry.ts",
+        "src/scene/structures/aquiloopAquarium.ts",
+        "src/scene/structures/aquiloopCycle.ts"
+      ],
+      "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
+      "syncRevision": 2,
+      "syncNote": "Production snapshot includes open buckets, water surfaces and the display hit area; controllers stay overworld-only.",
+      "sourceFingerprint": "464b85cb0d42cc70a758746dbc63dd2d0ed90146a0f3c1d9cc1721be2d1fcdf2",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
+      "metadataFingerprint": "4af220358b6b455ac2b5f7e0d12c58e3ed04840663ffbb8f5f0dc7df4eb0f212"
+    },
+    {
       "id": "poi:axel-studio-tracker",
       "sourceFiles": [
         "src/scene/poi/constants.ts",
@@ -588,8 +604,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 11,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "f62b51538562b58e042fd687304619041111e929cd7213c493dd2c968d29f9b1",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "522b5b7d20b12c7b269c908ae71c7f8d3a9358fd55a4bd727a1575f49ce427d5",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "136eb09e474c1747a905e77abc94b010525bac293a29621b1dc26a2cbf5bf792"
     },
     {
@@ -609,8 +625,8 @@
       ],
       "syncRevision": 13,
       "syncNote": "The full property is projected from production visuals, terminating at the shared table shell.",
-      "sourceFingerprint": "e3a748a3cac4331f25b40d9bee240a43a31374ee1f7bbaf9fc44963d8fc52238",
-      "proxyFingerprint": "a78ba21f80f9560074ab092e5ded1125b54e6298231ed167d69e57ad7c775f9f",
+      "sourceFingerprint": "e2762e63781772bef6ae00080b05cf5f9953aac1a0e5dcb61d22b12372fd8bd0",
+      "proxyFingerprint": "2de479e067ab2f6e9a6e5a786a59e849b31c649520f68780563510ebec695005",
       "metadataFingerprint": "35b1bfc30027c66279b9117322ac4272a84c0fe70f298472356d9d292af53705"
     },
     {
@@ -624,8 +640,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "864a23af8036cb5aeb0ed8425164ee65d079621f1db4dc3f75ac1ad12f6e4605",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "29aa5f96932af7d3e21558d96d6a62807f45ca76b5afae41d502bb84e84fe86a",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "648068649e4910e20bd1a888de59adec5dac209221caffc162584ea6c9a0f962"
     },
     {
@@ -639,8 +655,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "96c88186da4a1ab5d954bc82560be2568fba912670ab3b78e9be5675228dc723",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "096c71a4888438470f6c762e4c401ef147fc35a0759bc15a725ccca94b6493bd",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "374f1c43bc12155eccbecfbb13f64728105171a61b62a8ea49952588f01c4578"
     },
     {
@@ -656,8 +672,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 33,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "776f5863764128cb634ea5b1aeb6bd860eb4c208240a0cbe253683d8fe7536fa",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "0c14cd71b692be185ba57ab2aca084a4c7e7096e5083e49283f5b5f87897adef",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "9ab72cf220178d2194864823379f6edfa24e399dbc4ded5d46d41102e3a6ea6f"
     },
     {
@@ -671,8 +687,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 11,
       "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
-      "sourceFingerprint": "bcdfe8a6315ab4a775bb9e2ad3f31612c6a5c9ac24264c2ef016357afe1ba089",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "4b7e5f9f187220676032e2bed87301a02482ecc20d36bda47be30c76d6393d07",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "f6b7064ad7524ba70d1ff6843062d773aa871f1f57b5d1ec3e283a851fea60b2"
     },
     {
@@ -686,8 +702,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 14,
       "syncNote": "Decorative beacon point lighting follows scene detail policy; emissive beacon and miniature geometry are unchanged.",
-      "sourceFingerprint": "ef30284a24b80f038a2e3fb3e8df62761ff41e3595893744e44eaf217c3d1b97",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "02a653e15a10bc67b7c402e3662ef130387978d922ee649c7ae9a4c94fde58a8",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "de90242a4d0b2f7ae716343c715df8769e57d38b5a8659637e6fc245d7726110"
     },
     {
@@ -701,8 +717,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "73194c0d1cbdcf52de27dc315173152f5a97e3833bdf343889564fb9984cdecc",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "10ccb34149035f71443d6f8351029b028dd5007c1c37021c5932c1a873d22da3",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "12fb891bfaeefdbc5ab3fac36f014e6a2361cede659a6be4bf970acb51c44651"
     },
     {
@@ -716,8 +732,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 11,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "7c5777c9152121b155faf4df4659fdf4b9c548a63ee6e97ffa167e6a8183aeb2",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "4f748375d0611b78f75e2fb7ea6b203aa74bb93897b428ab03bc095b324b5e5b",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "d693522a75866ce43b1ef486ad54b15a4b24c769ba867334dc7b29b2571a07b1"
     },
     {
@@ -752,8 +768,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 25,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "93a0ef92b9c768ba4dae83f3b84525ee9a7ae9edc215f1c885a34c3257db9337",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "9201a03360921e6f9770d2d71172fb2111a74d5c48193e166c78ec20560350fb",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "75c5d1b70a57adaca75034b2c45a5cb00d60fa6780c906da0a50171bdcc90333"
     },
     {
@@ -767,8 +783,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "ee89fb1c6c2800eff46847ed0804a1dd6fa187a9fb5552e3bf39f54fc4f23085",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "c7f8c0076912feabc2ac803f9da6fcd33678edda5a324927e4ec2693aaa4da7e",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "8a6e1413278abf4faf2787139ea2aa81968d8564f4f291d8a3e6dec69b6f1541"
     },
     {
@@ -782,8 +798,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 11,
       "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
-      "sourceFingerprint": "0d26ed811ff9a8019f7aa72ccf8c9e3941ec953bfb34f9761e3ae1b6d6b3e3b5",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "6d92e3d88144be292c8eca27477bb4392952e56fdb2d59e3021e66197dae990b",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "00bf5781cc0332f855f58432e3008374ef6b052c3d9e977da420fca4654f5a25"
     },
     {
@@ -807,8 +823,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 11,
       "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
-      "sourceFingerprint": "267d4c86506296253d8db5b1698a0ce4d28c65f479866a0eb42212340ff2436e",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "b13bc93f88b1b323516fd9ec215c97791ff736f3bc292bffbe9531162d248707",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "7bde1b48aef0533fca21c7ba5e7d09638bab6d52bead6e2f63da43794a09b915"
     },
     {
@@ -822,8 +838,8 @@
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
       "syncRevision": 11,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "081b6d460e844b4cd50df5171b241d88425e27091948efde7ce7439275be73c9",
-      "proxyFingerprint": "5a677466d3a1203a22e339a7e51aad05f3d369c074507f97efd07ee7be798b90",
+      "sourceFingerprint": "813ad14ff3fee3bf405a9eac42c5e39bc1b526f508629ffb7846e06958740c71",
+      "proxyFingerprint": "8bd89c70cd7bf81a6ddcab078eb7ebacf449e879247c83b1998c6311c34c39c7",
       "metadataFingerprint": "ac2c82ede22b4cb450492ef5e53d2b9d3007d3af542887fe3609b758ad916d02"
     },
     {
@@ -832,8 +848,8 @@
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
       "syncRevision": 2,
       "syncNote": "The open aluminum solar frame, leaning panels and containers are projected from the same production build.",
-      "sourceFingerprint": "605d14901ca0e2c3ac9d91cf27701232350e5ab725a31e8957b692cf02cc0d96",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "sourceFingerprint": "76b6330172f8ec487ee857fbf1b543cfcc8f79860fdb3f260a567197b6107c94",
+      "proxyFingerprint": "a2265912855b7129b779be6c0cc352c4cb9d20266933d794483b7c8852a53d4f",
       "metadataFingerprint": "dc56ad49bf76678620c322c0cea2d9942ec6a43d9a3975c9fdb3dab80699acde"
     },
     {

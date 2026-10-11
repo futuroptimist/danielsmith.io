@@ -475,7 +475,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:poi:physicalMetadata',
     kind: 'excluded',
     sourceFiles: ['src/scene/poi/physicalMetadata.ts'],
-    syncRevision: 6,
+    syncRevision: 7,
+    syncNote:
+      'Aquiloop dimensions accompany the production aquarium snapshot and reachable approach.',
     reason:
       'Audited support source; Flywheel physical metadata now describes the simplified rotor body while tabletop geometry remains covered by the POI proxy.',
   },

@@ -1,4 +1,5 @@
 export type ProjectPoiId =
+  | 'aquiloop-living-room-aquarium'
   | 'futuroptimist-living-room-tv'
   | 'flywheel-studio-flywheel'
   | 'jobbot-studio-terminal'
