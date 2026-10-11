@@ -24,6 +24,8 @@ the site experience. Production displays **appVersion**, not chart `version`.
 Documentation, agent instructions, tests, review tooling, and CI-owned launch screenshots
 do not themselves require application or chart bumps. The floor-plan diagram and press-kit
 generator entry points are also excluded because they only write documentation assets.
+Incident records in `outages/` and the standalone `examples/showcase/` demo (including
+its glTF generator) are also unshipped documentation/examples, not Vite build inputs.
 These exclusions do not cover
 shipped content: resume sources in `docs/resume/`, public assets, runtime source, and build inputs count as
 site changes. Changes to generators or workflows that alter shipped output also need

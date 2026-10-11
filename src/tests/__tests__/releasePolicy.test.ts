@@ -136,6 +136,11 @@ describe('release metadata policy with synthetic snapshots', () => {
     'scripts/resume-ats-smoke.py',
     'docs/resume/README.md',
     'docs/resume/ats-smoke.json',
+    'outages/synthetic.md',
+    'outages/synthetic.json',
+    'examples/showcase/demo.html',
+    'examples/showcase/assets/model_uncompressed.gltf',
+    'scripts/generate_showcase_gltf.py',
   ])(
     'allows maintenance of documentation/test helper %s without version churn',
     (file) => {
@@ -157,7 +162,6 @@ describe('release metadata policy with synthetic snapshots', () => {
     'docs/resume/active.tex',
     'scripts/resume-docx.py',
     'scripts/generate-favicon.ts',
-    'scripts/generate_showcase_gltf.py',
     '.github/workflows/ci-image.yml',
     '.github/workflows/resume.yml',
     'new-build-config.json',

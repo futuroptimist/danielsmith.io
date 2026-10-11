@@ -50,6 +50,7 @@ function runtimePath(file) {
   if (file === 'docs/resume/README.md' || file === 'docs/resume/ats-smoke.json')
     return false;
   if (file.startsWith('docs/resume/')) return true;
+  if (/^(outages\/|examples\/showcase\/)/.test(file)) return false;
   if (
     /^\.github\/workflows\/(ci-image|resume|resume-gcs|05-favicon)\.yml$/.test(
       file
@@ -76,6 +77,7 @@ function runtimePath(file) {
     return false;
   if (/^scripts\/generate-(floorplan-diagram|press-kit)\.ts$/.test(file))
     return false;
+  if (file === 'scripts/generate_showcase_gltf.py') return false;
   if (
     /^scripts\/(assert-dist\.cjs|static-asset-expectations\.cjs|resume-ats-smoke\.py)$/.test(
       file
