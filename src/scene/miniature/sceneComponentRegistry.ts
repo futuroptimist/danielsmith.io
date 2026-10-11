@@ -310,6 +310,14 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'Avatar variant display labels moved to i18n only; palettes and miniature geometry remain unchanged.',
   },
   {
+    id: 'avatar:loading-presentation',
+    kind: 'excluded',
+    sourceFiles: ['src/scene/avatar/loadingPresentation.ts'],
+    syncRevision: 1,
+    reason:
+      'The temporary controllable player position marker is excluded from static miniature architecture; its geometry is removed when the rig or fallback becomes visible.',
+  },
+  {
     id: 'audit:src:scene:level:backyardCollisionPolicies',
     kind: 'excluded',
     sourceFiles: ['src/scene/level/backyardCollisionPolicies.ts'],
