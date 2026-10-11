@@ -19,7 +19,7 @@ by LOD. Other tiers retain the recognizable project silhouettes. Every batch
 has computed bounds for frustum culling; no lights, textures, timers or animated
 machinery are added. The whole build belongs to the basement structure group for
 floor-aware visibility. Five height-bounded station colliders contain the visible
-geometry. A screen-reader paragraph describes the projects. Disposal releases
+geometry. A localized screen-reader paragraph describes the projects and refreshes when the language changes. Disposal releases
 shared resources once and removes the description.
 
 Regression tests cover all tiers, project silhouettes, geometry containment,

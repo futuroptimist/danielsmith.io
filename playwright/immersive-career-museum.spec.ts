@@ -6,6 +6,7 @@ import type { AxeResults } from 'axe-core';
 
 import { CAREER_HISTORY } from '../src/assets/careers';
 import { AVAILABLE_LOCALES, getCareerCopy } from '../src/assets/i18n';
+import { getWorkshopDescription } from '../src/assets/i18n/woodworking';
 import { IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET } from '../src/assets/performance';
 
 const URL = '/?mode=immersive&disablePerformanceFailover=1';
@@ -466,6 +467,9 @@ for (const locale of AVAILABLE_LOCALES) {
     await page.keyboard.press('Escape');
     await page.locator('#app canvas').click({ position: { x: 20, y: 200 } });
     await enterMuseum(page);
+    await expect(page.locator('[data-workshop-description]')).toHaveText(
+      getWorkshopDescription(locale)
+    );
     await selectByKeyboard(page, 'career-muon-space');
     const expected = getCareerCopy(locale)['muon-space'];
     await expect(

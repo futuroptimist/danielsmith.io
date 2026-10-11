@@ -75,6 +75,7 @@ import {
   type Locale,
 } from './assets/i18n';
 import { getExteriorStrings } from './assets/i18n/exterior';
+import { getWorkshopDescription } from './assets/i18n/woodworking';
 import { createImmersiveGradientTexture } from './assets/theme/immersiveGradient';
 import {
   createAvatarAccessorySuite,
@@ -200,7 +201,6 @@ import {
 } from './scene/level/stairSafetyColliders';
 import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from './scene/level/upperStairwellLandingSegments';
 import { getWallColliderDebugIdentity } from './scene/level/wallColliderDebugIdentity';
-import { WORKSHOP_DESCRIPTION } from './scene/level/woodworkingLayout';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -2648,7 +2648,7 @@ function buildImmersiveScene(
   workshopDescription.className = 'visually-hidden';
   workshopDescription.dataset.workshopDescription = '';
   workshopDescription.hidden = true;
-  workshopDescription.textContent = WORKSHOP_DESCRIPTION;
+  workshopDescription.textContent = getWorkshopDescription(locale);
   container.append(workshopDescription);
   Object.assign(poiOverrides, careerMuseum.poiOverrides);
   for (const exhibit of [
@@ -4912,6 +4912,8 @@ function buildImmersiveScene(
       return;
     }
     locale = nextLocale;
+    if (workshopDescription)
+      workshopDescription.textContent = getWorkshopDescription(locale);
     if (localeStorage) {
       try {
         localeStorage.setItem(LOCALE_STORAGE_KEY, locale);
