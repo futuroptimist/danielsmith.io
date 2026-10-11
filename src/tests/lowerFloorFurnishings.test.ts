@@ -826,8 +826,8 @@ describe('lower floor furnishings foundation', () => {
       'studio-monstera': {
         minX: 21.137467504308358,
         maxX: 22.137467504308358,
-        minZ: -4.318376618407357,
-        maxZ: -3.318376618407357,
+        minZ: -4.7183766184073574,
+        maxZ: -3.7183766184073574,
       },
     };
 

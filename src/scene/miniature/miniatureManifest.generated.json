@@ -363,11 +363,11 @@
       "id": "audit:src:scene:structures:triangleCount",
       "sourceFiles": ["src/scene/structures/triangleCount.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "b25cd48c798393ad02b0cc49954b419bd28e5854250dbad32abd4d7790e36807",
+      "syncRevision": 2,
+      "syncNote": "Triangle metrics exclude superseded batch sources while retaining counts for ordinary hidden models; this helper does not alter visible miniature geometry.",
+      "sourceFingerprint": "f8f84f39d5af40227cf38ce1473783a1ed5a436a7052daf93efdbdf3a034543e",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "ed03775f7767039cc7e46e90167540c16679b8f724e2e8661724ffbb697c0761"
+      "metadataFingerprint": "19e267c115ee148e19ae2ecdd4308e52eff5a522b62305544f52fabdd48e5e95"
     },
     {
       "id": "avatar:animated-player",
@@ -418,7 +418,7 @@
       "syncRevision": 2,
       "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
       "sourceFingerprint": "2441c3af2ec023f08f419906fdcf83ca475d439bcc2dbea9b8325ba642d1ae3c",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "835e7085625871f0024f62785170b751245413f9532a1e860ef3fcb2f86a3793"
     },
     {
@@ -428,7 +428,7 @@
       "syncRevision": 4,
       "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
       "sourceFingerprint": "4af432b6fa3417ac96a84ae7014b4a18334d556e9fc9400339f5bf2d9177cd31",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "4ba79481cc9a0d32e1995e65cf97a908f62091a16b189367ee835191a0f3b840"
     },
     {
@@ -478,11 +478,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 39,
-      "syncNote": "Half-area fitted furniture keeps physical sizes; the north lounge plant moves 0.8 m and the reading side table 0.5 m to preserve seated avatar approaches and exits.",
-      "sourceFingerprint": "7229e0c6ca09a9258a7b060397e8eefd649a752e788608a896ededcccdd6d8bd",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "3ff0d42927881c98f7823e1baa89d82ef6d9d20849adadb625eeafe7fe410d84"
+      "syncRevision": 40,
+      "syncNote": "Stable named reservations preserve fit offsets, and the full-size studio monstera moves 0.4 m from the garage approach to retain player clearance.",
+      "sourceFingerprint": "6f3d25d6b7dda57939643235c04d90667598dfd3270c62b058142f203fc2cc52",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
+      "metadataFingerprint": "8b2906c11eb66569fe4dd63a9238fcae49fa4e54d04d50be18c26ca01cc95734"
     },
     {
       "id": "decor:wall-paintings",
@@ -501,7 +501,7 @@
       "syncRevision": 3,
       "syncNote": "The full source backyard is projected and its east corner shrub has a separate physical collider.",
       "sourceFingerprint": "2ea41cc8da0c93a48c6c00080c346409f9146543a7dbe4c72084de1ad954e3e6",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "35900627be08724a733d460ae9c7c196aeeff3f1165a9c1f6c0b0ddcb2362f0d"
     },
     {
@@ -514,11 +514,11 @@
         "src/scene/structures/residentialStreet.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 12,
-      "syncNote": "Street lamp proximity and shelter visibility follow the half-area exterior coordinates with unchanged physical assets.",
-      "sourceFingerprint": "473947401392392f5679f711650b9a35f15009a1b95052bf7a14d230eb2fdf8c",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "55a26163d0dce0d807281e54d6384ee5d3f62b01f81aca32fac7bdfc19a9c816"
+      "syncRevision": 13,
+      "syncNote": "The physical shelter, sign and colliders follow the scaled street together; source snapshots retain original mesh shapes after batching.",
+      "sourceFingerprint": "68289bd4871d0a7cb3a227579c006b3f98bf9fbecb70144e721effba8706f4bf",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
+      "metadataFingerprint": "05f49650e3401c5f2dbf91a0c9f2afdaea7e91364d97612d9446dba73f56b179"
     },
     {
       "id": "level:basement-stairs",
@@ -529,11 +529,11 @@
         "src/scene/structures/batchStaticMeshes.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 7,
-      "syncNote": "Repeated static parapets are batched by material and source identity; tread geometry, physical clearances and shared miniature geometry remain unchanged.",
-      "sourceFingerprint": "554b7c9927c804bd0f9af20f2324c0f4072eaf17dcfe928992d5452d81bc8e7a",
+      "syncRevision": 8,
+      "syncNote": "Retained static batch sources are explicitly marked so model metrics count the live geometry once; shared miniature geometry and stair clearances remain unchanged.",
+      "sourceFingerprint": "5f18ce2b0f0ab4dad27737462d6fee5bcdc24479fefbf12ee8586bdb08e216d9",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "a14258b7cb1ac255ffcf6835f8668980f9b1ac25dcf5de6b64c5f966185d93bf"
+      "metadataFingerprint": "c20f2572f6ab68709ae00c511d916434c3b045bb0fd49071cf2467cd26fe4d55"
     },
     {
       "id": "level:career-museum-layout",
@@ -542,7 +542,7 @@
       "syncRevision": 3,
       "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
       "sourceFingerprint": "ea8e34946f2de872229d639c5442ab07723df41e6e97c08edbca36eda81c74df",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "ca07fae7bd65d25266897933a955c12f2ecf53dcf85fa0be956473911a16a9fc"
     },
     {
@@ -571,8 +571,8 @@
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
       "syncRevision": 12,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
-      "sourceFingerprint": "109ba43c69441dd7ab2564042918e2a7b0298e46ca8bc4001fe98af085ddb7ba",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "sourceFingerprint": "a0f0911c74255ee52dfbb9366f580b6b1dfef415c1122d0142e20e7000474f45",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "ac751cad9fa232bfd74856c54b433069148e7709b7ee5d0fa40ac4135f996352"
     },
     {
@@ -652,7 +652,7 @@
       "syncRevision": 17,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "f48897f19e802bfe2109a435a3a323ac64f6e5fd447b14eafd8343630c413ce5",
-      "proxyFingerprint": "0b74e121bd5a01e26514795e6e299b372a9d3d0d7377f8caa4290ed6d3a8d669",
+      "proxyFingerprint": "9a2a93ca5b07338bca655317f622eb66fb32770535e1453b0f71e52c350c08da",
       "metadataFingerprint": "fb552b7deba4757e5cbe634e69885ce89ae5399c3716610a71aee79eb39f5d61"
     },
     {
@@ -875,7 +875,7 @@
       "syncRevision": 2,
       "syncNote": "The open aluminum solar frame, leaning panels and containers are projected from the same production build.",
       "sourceFingerprint": "605d14901ca0e2c3ac9d91cf27701232350e5ab725a31e8957b692cf02cc0d96",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "dc56ad49bf76678620c322c0cea2d9942ec6a43d9a3975c9fdb3dab80699acde"
     },
     {

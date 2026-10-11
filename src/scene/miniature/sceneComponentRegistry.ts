@@ -38,9 +38,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 12,
+    syncRevision: 13,
     syncNote:
-      'Street lamp proximity and shelter visibility follow the half-area exterior coordinates with unchanged physical assets.',
+      'The physical shelter, sign and colliders follow the scaled street together; source snapshots retain original mesh shapes after batching.',
   },
   {
     id: 'level:career-museum-layout',
@@ -121,9 +121,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/batchStaticMeshes.ts',
       'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 7,
+    syncRevision: 8,
     syncNote:
-      'Repeated static parapets are batched by material and source identity; tread geometry, physical clearances and shared miniature geometry remain unchanged.',
+      'Retained static batch sources are explicitly marked so model metrics count the live geometry once; shared miniature geometry and stair clearances remain unchanged.',
   },
   {
     id: 'environment:backyard',
@@ -169,9 +169,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'shared-source',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 39,
+    syncRevision: 40,
     syncNote:
-      'Half-area fitted furniture keeps physical sizes; the north lounge plant moves 0.8 m and the reading side table 0.5 m to preserve seated avatar approaches and exits.',
+      'Stable named reservations preserve fit offsets, and the full-size studio monstera moves 0.4 m from the garage approach to retain player clearance.',
   },
   {
     id: 'avatar:overworld-player',
@@ -593,9 +593,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:structures:triangleCount',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/triangleCount.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Triangle metrics exclude superseded batch sources while retaining counts for ordinary hidden models; this helper does not alter visible miniature geometry.',
   },
 ] as const satisfies readonly MiniatureSceneComponentCoverage[];
 

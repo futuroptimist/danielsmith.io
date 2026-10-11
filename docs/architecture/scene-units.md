@@ -164,6 +164,8 @@ The denser launch view exposes more of the unchanged Sugarkube installation.
 Its static opaque parts and the repeated basement stair parapets are batched by
 shared material and source identity without changing vertices, materials, LED
 updates, physical dimensions or collider ownership. Authored nodes remain
-available for debug inspection; the miniature copies the visible batches. Treads
+available for debug inspection; the miniature copies each retained authored source once, preserving cable shapes. Treads
 retain their individual names. This keeps the existing draw-call budget across
 desktop and phone views without removing visual detail.
+
+Review fit checks place the full-size street shelter and sign together over the scaled stop, with its roof 0.15 m inside the northern property boundary. The studio monstera moves another 0.4 m away from the garage doorway to retain the 0.75 m avatar clearance across the physical approach.

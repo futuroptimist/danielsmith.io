@@ -11,6 +11,7 @@ import {
   getPoiModelTriangleCount,
   registerPoiModelRoot,
 } from '../scene/poi/modelTriangles';
+import { batchStaticMeshes } from '../scene/structures/batchStaticMeshes';
 import { createSugarkubeDeployment } from '../scene/structures/sugarkubeDeployment';
 import { countObjectTriangles } from '../scene/structures/triangleCount';
 
@@ -38,6 +39,30 @@ describe('POI model triangle registry', () => {
       countObjectTriangles(deployment.group)
     );
   });
+
+  it.each(['performance', 'balanced', 'cinematic'] as const)(
+    'counts batched %s Sugarkube geometry once, even on a hidden floor',
+    (quality) => {
+      clearPoiModelRoots();
+      const deployment = createSugarkubeDeployment({
+        position: { x: -6, z: -12 },
+        wallNetworkEndpoint: { x: -20, y: 0.42, z: -12 },
+        detailPolicy: getSceneDetailPolicy(quality),
+      });
+      const triangles = countObjectTriangles(deployment.group);
+      expect(triangles).toBeGreaterThan(0);
+      batchStaticMeshes(deployment.group);
+      registerPoiModelRoot('sugarkube-backyard-greenhouse', deployment.group);
+      expect(getPoiModelTriangleCount('sugarkube-backyard-greenhouse')).toBe(
+        triangles
+      );
+      deployment.group.visible = false;
+      expect(getPoiModelTriangleCount('sugarkube-backyard-greenhouse')).toBe(
+        triangles
+      );
+      clearPoiModelRoots();
+    }
+  );
 
   it('clears the registered Sugarkube deployment root and triangle count', () => {
     clearPoiModelRoots();

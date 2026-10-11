@@ -187,26 +187,26 @@ export const LOWER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -22, maxX: -14, minZ: 14.8, maxZ: 17.2 },
   { minX: 11, maxX: 19, minZ: 14.8, maxZ: 17.2 },
   { minX: -32.0, maxX: -30.9, minZ: -23.2, maxZ: -16.8 },
-  { minX: -20.7, maxX: -15.4, minZ: -30.8, maxZ: -25.5 },
-  { minX: -12.34, maxX: -5.14, minZ: -26.12, maxZ: -19.72 },
-  { minX: -24.0, maxX: -19.2, minZ: -0.77, maxZ: 4.03 },
+  { fit: 'token', minX: -20.7, maxX: -15.4, minZ: -30.8, maxZ: -25.5 },
+  { fit: 'sugarkube', minX: -12.34, maxX: -5.14, minZ: -26.12, maxZ: -19.72 },
+  { fit: 'tabletop', minX: -24.0, maxX: -19.2, minZ: -0.77, maxZ: 4.03 },
   { minX: 26.4, maxX: 31.2, minZ: -24.4, maxZ: -21.2 },
   { minX: 8.4, maxX: 16.4, minZ: -27.0, maxZ: -9.4 },
   { minX: 15.8, maxX: 20.4, minZ: -1.1, maxZ: 3.8 },
   { minX: 0.0, maxX: 6.4, minZ: -2.2, maxZ: 4.6 },
   { minX: -18.5, maxX: -10.0, minZ: 18.0, maxZ: 24.2 },
   { minX: 10.0, maxX: 18.2, minZ: 22.4, maxZ: 30.4 },
-].map((bounds, index) => {
+].map(({ fit, ...bounds }) => {
   const scaled = scaleLayoutBounds(bounds);
   // Reserve the future 2.8 x 1.8 m tabletop plus a 0.75 m approach envelope.
-  if (index === 8)
+  if (fit === 'tabletop')
     return {
       minX: -21.6 * Math.SQRT1_2 - 2.15,
       maxX: -21.6 * Math.SQRT1_2 + 2.15,
       minZ: 1.63 * Math.SQRT1_2 - 1.65,
       maxZ: 1.63 * Math.SQRT1_2 + 1.65,
     };
-  const dz = index === 6 ? 1 : index === 7 ? 3.5 : 0;
+  const dz = fit === 'token' ? 1 : fit === 'sugarkube' ? 3.5 : 0;
   return { ...scaled, minZ: scaled.minZ + dz, maxZ: scaled.maxZ + dz };
 });
 
@@ -228,11 +228,11 @@ export const UPPER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -19.4, maxX: -14.3, minZ: 14.6, maxZ: 19.9 },
   { minX: -3.3, maxX: 2.1, minZ: 11.5, maxZ: 16.6 },
   { minX: 13.9, maxX: 19.3, minZ: 15.0, maxZ: 20.3 },
-  { minX: 7.2, maxX: 16.6, minZ: -25.8, maxZ: -16.0 },
-].map((bounds, index) => {
+  { fit: 'stairs', minX: 7.2, maxX: 16.6, minZ: -25.8, maxZ: -16.0 },
+].map(({ fit, ...bounds }) => {
   const scaled = scaleLayoutBounds(bounds);
   // Keep the full-width flight reserved without consuming the west landing rug.
-  return index === 7
+  return fit === 'stairs'
     ? {
         ...scaled,
         minX:
@@ -1541,6 +1541,7 @@ const AUTHORED_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefinition[
   ];
 
 const FURNITURE_FIT_OFFSETS: Record<string, { x: number; z: number }> = {
+  'studio-monstera': { x: 0, z: -0.4 },
   'studio-woven-rug': { x: 0, z: -0.7 },
   'living-room-lounge-chair-north': { x: 0.3, z: -0.9 },
   'living-room-tv-pothos-left': { x: 0, z: -0.8 },

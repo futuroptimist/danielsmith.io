@@ -1,6 +1,7 @@
 import { Box3, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { expect, it } from 'vitest';
 
+import { createSourceSnapshot } from '../../miniature/sourceSnapshot';
 import { createBasementStaircase } from '../basementStaircase';
 import { batchStaticMeshes } from '../batchStaticMeshes';
 import { createSugarkubeDeployment } from '../sugarkubeDeployment';
@@ -91,4 +92,29 @@ it('batches repeated basement parapets while preserving each source and the trea
       sources.add(object.userData.levelSourceId);
   });
   expect(sources.size).toBe(2);
+});
+
+it('preserves individual miniature cable shapes after batching the full-size deployment', () => {
+  const build = createSugarkubeDeployment({
+    position: { x: -6.18, z: -12.7 },
+    orientationRadians: 1.7,
+    wallNetworkEndpoint: { x: -22.5, y: 0.42, z: -12.7 },
+  });
+  const sources = [{ floor: 'ground' as const, roots: [build.group] }];
+  const before = createSourceSnapshot(sources);
+  batchStaticMeshes(build.group);
+  const after = createSourceSnapshot(sources);
+  const vertices = (group: Group) => {
+    const result: number[][] = [];
+    group.traverse((object) => {
+      if (object instanceof Mesh)
+        result.push(Array.from(object.geometry.attributes.position.array));
+    });
+    return result;
+  };
+  expect(after.records).toEqual(before.records);
+  expect(vertices(after.group)).toEqual(vertices(before.group));
+  expect(after.bounds).toEqual(before.bounds);
+  before.dispose();
+  after.dispose();
 });

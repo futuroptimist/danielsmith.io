@@ -130,8 +130,8 @@ describe('attached garage topology and safety', () => {
 });
 
 const clearGarageApproachTitle =
-  'keeps the house approach clear without moving or deleting ' +
-  'the existing dresser and monstera';
+  'keeps the physical garage approach clear with the dresser retained ' +
+  'and the full-size monstera fitted away from the doorway';
 it(clearGarageApproachTitle, async () => {
   const { DEFAULT_LOWER_FLOOR_FURNISHINGS } = await import(
     '../../structures/lowerFloorFurnishings'
@@ -148,12 +148,13 @@ it(clearGarageApproachTitle, async () => {
   });
   expect(plant.position).toEqual({
     x: 30.6 * Math.SQRT1_2,
-    z: -5.4 * Math.SQRT1_2,
+    z: -5.4 * Math.SQRT1_2 - 0.4,
   });
-  const centerZ = createGarageDoorDefinitions(FLOOR_PLAN_SCALE)[0].center.z;
+  const { x: centerX, z: centerZ } =
+    createGarageDoorDefinitions(FLOOR_PLAN_SCALE)[0].center;
   expect(centerZ).toBeCloseTo(-2 * Math.SQRT1_2);
-  for (let x = 29; x <= 35; x += 0.25)
-    for (let z = -3.5; z <= -0.5; z += 0.25) {
+  for (let x = centerX - 3; x <= centerX + 3; x += 0.25)
+    for (let z = centerZ - 1.5; z <= centerZ + 1.5; z += 0.25) {
       for (const bounds of [dresser.solidBounds!, plant.solidBounds!]) {
         const nearestX = Math.max(bounds.minX, Math.min(x, bounds.maxX));
         const nearestZ = Math.max(bounds.minZ, Math.min(z, bounds.maxZ));

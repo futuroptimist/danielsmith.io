@@ -55,12 +55,13 @@ export function batchStaticMeshes(
     merged.castShadow = first.castShadow;
     merged.receiveShadow = first.receiveShadow;
     merged.renderOrder = first.renderOrder;
-    merged.userData = { ...first.userData };
+    merged.userData = { ...first.userData, staticBatch: true };
     furnishing.add(merged);
     // Preserve authored names/transforms for debug inspection.
-    // Hidden originals are not uploaded to the renderer or copied into miniatures.
+    // The miniature samples these original shapes instead of simplifying a large batch.
     meshes.forEach((mesh) => {
       mesh.visible = false;
+      mesh.userData.staticBatchSource = true;
     });
   }
 }

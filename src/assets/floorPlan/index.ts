@@ -33,8 +33,7 @@ export interface FloorPlanDefinition {
   rooms: RoomDefinition[];
 }
 
-export { PLAN_TO_WORLD_SCALE as FLOOR_PLAN_SCALE } from '../../scene/level/horizontalFootprint';
-const FLOOR_PLAN_SCALE = PLAN_TO_WORLD_SCALE;
+export const FLOOR_PLAN_SCALE = PLAN_TO_WORLD_SCALE;
 
 const scaleValue = (value: number): number => value * FLOOR_PLAN_SCALE;
 

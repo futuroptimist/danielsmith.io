@@ -7,6 +7,7 @@ import {
 } from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { FLOOR_PLAN_SCALE } from '../../../assets/floorPlan';
 import { EXTERIOR_LOCALE_COPY } from '../../../assets/i18n/exterior';
 import { getSceneDetailPolicy } from '../../graphics/sceneDetailPolicy';
 import { PORTFOLIO_LEVEL } from '../../level/portfolioLevel';
@@ -22,7 +23,11 @@ const make = () => {
         measureText: (text: string) => ({ width: text.length * 25 }),
       }) as unknown as CanvasRenderingContext2D
   );
-  return createResidentialStreet(ground, 2, EXTERIOR_LOCALE_COPY.en);
+  return createResidentialStreet(
+    ground,
+    FLOOR_PLAN_SCALE,
+    EXTERIOR_LOCALE_COPY.en
+  );
 };
 afterEach(() => vi.restoreAllMocks());
 describe('original residential street assets', () => {
@@ -84,7 +89,7 @@ describe('original residential street assets', () => {
     expect(build.getCutawaySourceIds()).toEqual(['ground.busStop.shelter']);
     expect((hoods.material as MeshStandardMaterial).opacity).toBe(1);
     build.update(getSceneDetailPolicy('performance'), {
-      x: 55 * Math.SQRT1_2,
+      x: 57 * Math.SQRT1_2,
       z: 32 * Math.SQRT1_2,
       floorId: 'ground',
     });
@@ -164,9 +169,10 @@ describe('original residential street assets', () => {
       build.solids.filter((solid) => solid.definition.kind === 'street.busStop')
     ).toHaveLength(5);
     for (const solid of build.solids) {
-      expect(solid.collider.maxX < 54.25 || solid.collider.minX > 55.75).toBe(
-        true
-      );
+      expect(
+        solid.collider.maxX < 55 * Math.SQRT1_2 - 0.75 ||
+          solid.collider.minX > 55 * Math.SQRT1_2 + 0.75
+      ).toBe(true);
       expect(solid.definition.colliderPolicy).toBeDefined();
     }
     build.group.traverse((object) => {
@@ -207,7 +213,7 @@ describe('original residential street assets', () => {
     }
     expect(
       build.group.getObjectByName('BusStopComingSoonSign')!.position.z
-    ).toBe(36.7);
+    ).toBeCloseTo(20 * FLOOR_PLAN_SCALE - 6.05 - 0.15 + 4.7);
     const texture = (
       build.group.getObjectByName('BusStopComingSoonSign') as Mesh
     ).material as { map: { dispose(): void; version: number } };
@@ -240,4 +246,37 @@ describe('original residential street assets', () => {
 
     expect(build.getSnapshot().lifecycle.isDisposed).toBe(true);
   });
+});
+
+it('moves the physical shelter, sign and colliders together inside the street boundary', () => {
+  const build = make();
+  const roof = build.group.getObjectByName(
+    'Street:ground.busStop.shelter:roof:overhead'
+  ) as InstancedMesh;
+  const part = roof.userData.parts[0];
+  expect(part.size).toEqual([6.2, 0.25, 12.1]);
+  expect(part.position[0]).toBeCloseTo(24.5 * FLOOR_PLAN_SCALE);
+  expect(part.position[2] + 6.05).toBeLessThanOrEqual(20 * FLOOR_PLAN_SCALE);
+  const posts = build.solids.filter((solid) =>
+    solid.role.startsWith('shelter-post')
+  );
+  expect(posts).toHaveLength(4);
+  for (const { collider } of posts) {
+    expect(
+      Math.abs((collider.minX + collider.maxX) / 2 - part.position[0])
+    ).toBeCloseTo(2.6);
+    expect(
+      Math.abs((collider.minZ + collider.maxZ) / 2 - part.position[2])
+    ).toBeCloseTo(5.6);
+  }
+  const sign = build.group.getObjectByName('BusStopComingSoonSign')!;
+  expect(sign.position.x - part.position[0]).toBeCloseTo(2.85);
+  expect(sign.position.z - part.position[2]).toBeCloseTo(4.7);
+  build.update(getSceneDetailPolicy('performance'), {
+    x: part.position[0] + 1,
+    z: part.position[2],
+    floorId: 'ground',
+  });
+  expect(build.getCutawaySourceIds()).toEqual(['ground.busStop.shelter']);
+  build.dispose();
 });
