@@ -18,6 +18,7 @@ import type { PoiId } from '../scene/poi/types';
 import { countObjectTriangles } from '../scene/structures/triangleCount';
 
 const expectedPoiIds: PoiId[] = [
+  'aquiloop-living-room-aquarium',
   'futuroptimist-living-room-tv',
   'flywheel-studio-flywheel',
   'jobbot-studio-terminal',

@@ -285,6 +285,7 @@ import {
   PoiWorldTooltip,
   type PoiWorldTooltipTarget,
 } from './scene/poi/worldTooltip';
+import { createAquiloopAquarium } from './scene/structures/aquiloopAquarium';
 import {
   createAxelNavigator,
   type AxelNavigatorBuild,
@@ -518,6 +519,7 @@ import {
   createAccessibilityPresetManager,
   type AccessibilityPresetManager,
 } from './ui/accessibility/presetManager';
+import { createAquiloopControls } from './ui/aquiloopControls';
 import { CHANGELOG_URL } from './ui/changelog';
 import { createBusStopDescription } from './ui/exterior/busStopDescription';
 import { createDoorControl } from './ui/exterior/doorControl';
@@ -893,6 +895,7 @@ let backyardEnvironment: BackyardEnvironmentBuild | null = null;
 let flywheelShowpiece: FlywheelShowpieceBuild | null = null;
 let f2ClipboardConsole: F2ClipboardConsoleBuild | null = null;
 let sigmaWorkbench: SigmaWorkbenchBuild | null = null;
+let aquiloopAquarium: ReturnType<typeof createAquiloopAquarium> | null = null;
 let woveLoom: WoveLoomBuild | null = null;
 let jobbotTerminal: JobbotTerminalBuild | null = null;
 let axelNavigator: AxelNavigatorBuild | null = null;
@@ -2679,6 +2682,13 @@ function buildImmersiveScene(
   }
 
   const getPoiFloorId = createPoiFloorResolver(floorRegistry.all());
+  const aquariumDefinition = poiDefinitions.find(
+    (poi) => poi.id === 'aquiloop-living-room-aquarium'
+  );
+  if (aquariumDefinition) {
+    aquiloopAquarium = createAquiloopAquarium(aquariumDefinition.position);
+    poiOverrides[aquariumDefinition.id] = aquiloopAquarium.poiOverride;
+  }
   const builtPoiInstances = createPoiInstances(poiDefinitions, poiOverrides, {
     detailPolicy: activeSceneDetailPolicy,
   });
@@ -3356,6 +3366,26 @@ function buildImmersiveScene(
     woveLoom = loom;
   }
 
+  const aquiloopControls = createAquiloopControls(() =>
+    aquiloopAquarium?.suspend()
+  );
+  exteriorCleanup.add(() => aquiloopControls.dispose());
+  const aquiloopPoi = poiInstances.find(
+    (poi) => poi.definition.id === 'aquiloop-living-room-aquarium'
+  );
+  if (aquiloopPoi && aquiloopAquarium) {
+    addPoiStructure(aquiloopPoi, aquiloopAquarium.group);
+    getPoiColliderTarget(aquiloopPoi).push(...aquiloopAquarium.colliders);
+    const suspendAquiloop = () => aquiloopAquarium?.suspend();
+    document.addEventListener('visibilitychange', suspendAquiloop);
+    window.addEventListener('blur', suspendAquiloop);
+    window.addEventListener('focus', suspendAquiloop);
+    exteriorCleanup.add(() => {
+      document.removeEventListener('visibilitychange', suspendAquiloop);
+      window.removeEventListener('blur', suspendAquiloop);
+      window.removeEventListener('focus', suspendAquiloop);
+    });
+  }
   registerMarkerOnlyPoiColliders();
 
   // Keep tabletop construction after all POI visual-anchor producers so
@@ -7564,6 +7594,8 @@ function buildImmersiveScene(
     f2ClipboardConsole = null;
     sigmaWorkbench = null;
     woveLoom = null;
+    aquiloopAquarium?.dispose();
+    aquiloopAquarium = null;
     jobbotTerminal = null;
     axelNavigator = null;
     if (tokenPlaceWorkstation) {
@@ -7830,6 +7862,22 @@ function buildImmersiveScene(
           delta,
           emphasis: Math.max(activation, focus),
         });
+      }
+      const aquariumState = aquiloopAquarium?.update(performance.now() / 1000, {
+        running:
+          !aquiloopControls.paused && !document.hidden && document.hasFocus(),
+        visible:
+          activeFloorId === 'ground' &&
+          player.position.distanceTo(aquiloopAquarium.group.position) < 24,
+        reducedMotion: prefersReducedAvatarMotion(),
+        lowTier: activeSceneDetailPolicy.detailIndex >= 2,
+      });
+      if (aquariumState && aquiloopAquarium) {
+        aquiloopControls.update(
+          aquariumState,
+          activeFloorId === 'ground' &&
+            player.position.distanceTo(aquiloopAquarium.group.position) < 5
+        );
       }
       if (woveLoom) {
         const activation = wovePoi?.activation ?? 0;

@@ -44,6 +44,14 @@ const RASPBERRY_PI_5_BOARD_FOOTPRINT_METERS = {
 };
 
 const physicalMetadata = {
+  'aquiloop-living-room-aquarium': {
+    realWorldReference:
+      '150 US gallon rectangular aquarium on a braced game-prop stand; no load certification',
+    realWorldDimensionsMeters: { width: 1.83, depth: 0.61, height: 0.509 },
+    intendedSceneBounds: { width: 6.4, depth: 2.4, height: 2.7 },
+    anchor: 'bottom-center',
+    clearances: { markerMinHeight: 2.7, avatarPathRadius: 1.15 },
+  },
   'flywheel-studio-flywheel': {
     realWorldReference:
       'industrial flywheel kinetic energy demonstrator with exposed rotor, hub, spokes, and energy port',
