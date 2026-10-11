@@ -1,4 +1,4 @@
-import { Camera, Light, Object3D } from 'three';
+import { Box3, Camera, Light, Object3D } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -83,6 +83,36 @@ describe('miniature POI proxy registry', () => {
       'danielsmith-white-tabletop'
     );
   });
+
+  it.each(ORDERED_SCENE_DETAIL_LEVELS)(
+    'keeps recursive table supports grounded under the top at %s detail',
+    (level) => {
+      const { root } = buildMiniatureProxy(
+        MINIATURE_POI_PROXY_REGISTRY['danielsmith-portfolio-table'],
+        getSceneDetailPolicy(level)
+      );
+      const top = new Box3().setFromObject(
+        root.getObjectByName('danielsmith-white-tabletop')!
+      );
+      for (const name of [
+        'danielsmith-white-table-leg-a',
+        'danielsmith-white-table-leg-b',
+      ]) {
+        const leg = new Box3().setFromObject(root.getObjectByName(name)!);
+        expect(leg.min.x).toBeGreaterThan(top.min.x);
+        expect(leg.max.x).toBeLessThan(top.max.x);
+        expect(leg.min.z).toBeGreaterThan(top.min.z);
+        expect(leg.max.z).toBeLessThan(top.max.z);
+        expect(leg.min.y).toBeCloseTo(0);
+        expect(leg.max.y).toBeCloseTo(top.min.y);
+      }
+      const footprint = new Box3().setFromObject(root);
+      expect(footprint.min.x).toBeCloseTo(top.min.x);
+      expect(footprint.max.x).toBeCloseTo(top.max.x);
+      expect(footprint.min.z).toBeCloseTo(top.min.z);
+      expect(footprint.max.z).toBeCloseTo(top.max.z);
+    }
+  );
 
   it('keeps the PR Reaper proxy aligned to the static silhouette', () => {
     const definition =

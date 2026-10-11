@@ -7,6 +7,11 @@ import type {
   MiniaturePrimitiveDefinition,
 } from './types';
 
+const TABLE_PROXY_LEG_WIDTH = 0.12;
+const TABLE_PROXY_LEG_HEIGHT =
+  PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height -
+  PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.topThickness / 2;
+
 const SELF_FILE = 'src/scene/miniature/poiProxyRegistry.ts';
 const box = (
   name: string,
@@ -561,9 +566,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 15,
+    syncRevision: 16,
     syncNote:
-      'The shared source snapshot includes the measured 2.05 m mirror frame and its unchanged physical base.',
+      'The shared snapshot includes the metric mirror, and recursion-boundary supports derive from the resized tabletop footprint and underside.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',
@@ -588,14 +593,26 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
       ),
       box(
         'danielsmith-white-table-leg-a',
-        [0.12, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0.12],
-        [-1.45, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height / 2, -1.2],
+        [TABLE_PROXY_LEG_WIDTH, TABLE_PROXY_LEG_HEIGHT, TABLE_PROXY_LEG_WIDTH],
+        [
+          -PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.width / 2 +
+            TABLE_PROXY_LEG_WIDTH,
+          TABLE_PROXY_LEG_HEIGHT / 2,
+          -PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.depth / 2 +
+            TABLE_PROXY_LEG_WIDTH,
+        ],
         0xf8fafc
       ),
       box(
         'danielsmith-white-table-leg-b',
-        [0.12, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0.12],
-        [1.45, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height / 2, -1.2],
+        [TABLE_PROXY_LEG_WIDTH, TABLE_PROXY_LEG_HEIGHT, TABLE_PROXY_LEG_WIDTH],
+        [
+          PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.width / 2 -
+            TABLE_PROXY_LEG_WIDTH,
+          TABLE_PROXY_LEG_HEIGHT / 2,
+          -PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.depth / 2 +
+            TABLE_PROXY_LEG_WIDTH,
+        ],
         0xf8fafc
       ),
       box(
