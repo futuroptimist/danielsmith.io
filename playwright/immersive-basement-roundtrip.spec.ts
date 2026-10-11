@@ -259,11 +259,11 @@ test('walks fresh spawn through basement and every upper room, then reverses the
   await checkpoint(page, 'basement-lower-toe');
   const museumLoop = [
     { x: -3, z: -32.5 },
-    { x: -24, z: -32.5 },
-    { x: -24, z: -15.5 },
+    { x: -29, z: -32.5 },
+    { x: -29, z: -15.5 },
     { x: -18, z: -15.5 },
-    { x: -24, z: -15.5 },
-    { x: -24, z: 4.5 },
+    { x: -29, z: -15.5 },
+    { x: -29, z: 4.5 },
     { x: -18, z: 4.5 },
     { x: 20, z: 4.5 },
     { x: 26, z: 4.5 },
@@ -646,6 +646,30 @@ test('measures radius-adjusted circulation lanes and turning pads against live c
   const result = await page.evaluate(() => {
     const w = window.portfolio!.world!;
     const regions = [
+      {
+        name: 'workshop west perimeter',
+        floorId: 'basement' as const,
+        minX: -30,
+        maxX: -28,
+        minZ: -34,
+        maxZ: -22,
+      },
+      {
+        name: 'workshop south route to stairs',
+        floorId: 'basement' as const,
+        minX: -30,
+        maxX: 5.3,
+        minZ: -34,
+        maxZ: -32,
+      },
+      {
+        name: 'workshop front route to museum',
+        floorId: 'basement' as const,
+        minX: -29,
+        maxX: -16,
+        minZ: -23,
+        maxZ: -22,
+      },
       {
         name: 'ground west circulation',
         floorId: 'ground' as const,

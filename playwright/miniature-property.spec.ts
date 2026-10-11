@@ -68,6 +68,10 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     expect(snapshot.bounds.max[0]).toBeGreaterThan(75);
     expect(snapshot.bounds.min[1]).toBeLessThanOrEqual(-5);
     expect(snapshot.sourceNames).toContain('BackyardGalvanizedTub');
+    expect(snapshot.sourceNames).toContain('assembly-bench:box:wood');
+    expect(
+      snapshot.sourceNames.filter((name) => name === 'assembly-bench:box:wood')
+    ).toHaveLength(1);
     expect(
       snapshot.sourceNames.filter((name) => name === 'StaircaseStep-9')
     ).toHaveLength(2);

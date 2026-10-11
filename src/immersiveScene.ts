@@ -200,6 +200,7 @@ import {
 } from './scene/level/stairSafetyColliders';
 import { UPPER_STAIRWELL_LANDING_SEGMENT_POLICIES } from './scene/level/upperStairwellLandingSegments';
 import { getWallColliderDebugIdentity } from './scene/level/wallColliderDebugIdentity';
+import { WORKSHOP_DESCRIPTION } from './scene/level/woodworkingLayout';
 import { createInteriorLightmapTextures } from './scene/lighting/bakedLightmaps';
 import {
   createLightingDebugController,
@@ -379,6 +380,7 @@ import {
   type WallPaintingsBuild,
 } from './scene/structures/wallPaintings';
 import { createWallSegmentMeshes } from './scene/structures/wallSegmentsMesh';
+import { createWoodworkingWorkshop } from './scene/structures/woodworkingWorkshop';
 import {
   createWoveLoom,
   type WoveLoomBuild,
@@ -810,9 +812,16 @@ const INPUT_LATENCY_P95_BUDGET_MS = 200;
 
 const toWorldUnits = (value: number) => value * FLOOR_PLAN_SCALE;
 
+let woodworkingWorkshop: ReturnType<typeof createWoodworkingWorkshop> | null =
+  null;
+let workshopDescription: HTMLParagraphElement | null = null;
 let careerMuseum: CareerMuseumBuild | null = null;
 let disposedCareerMuseumLifecycle: CareerMuseumResourceLifecycle | null = null;
 function disposeCareerMuseumBuild() {
+  woodworkingWorkshop?.dispose();
+  woodworkingWorkshop = null;
+  workshopDescription?.remove();
+  workshopDescription = null;
   if (!careerMuseum) return;
   careerMuseum.dispose();
   disposedCareerMuseumLifecycle = careerMuseum.getResourceLifecycle();
@@ -2631,10 +2640,21 @@ function buildImmersiveScene(
   careerMuseum = createCareerMuseum(careerDefinitions, museumFurnishings);
   disposedCareerMuseumLifecycle = null;
   basementStructureGroup.add(careerMuseum.group);
+  woodworkingWorkshop = createWoodworkingWorkshop(
+    activeSceneDetailPolicy.level
+  );
+  basementStructureGroup.add(woodworkingWorkshop.group);
+  workshopDescription = document.createElement('p');
+  workshopDescription.className = 'visually-hidden';
+  workshopDescription.dataset.workshopDescription = '';
+  workshopDescription.hidden = true;
+  workshopDescription.textContent = WORKSHOP_DESCRIPTION;
+  container.append(workshopDescription);
   Object.assign(poiOverrides, careerMuseum.poiOverrides);
   for (const exhibit of [
     ...careerMuseum.exhibits,
     ...careerMuseum.furnishings,
+    ...woodworkingWorkshop.stations,
   ]) {
     const source = getSceneObjectDefinition(exhibit.id);
     if (!source) throw new Error(`Missing museum scene source: ${exhibit.id}`);
@@ -4813,6 +4833,8 @@ function buildImmersiveScene(
     residentialExterior.update(occupant);
     residentialStreet.update(activeSceneDetailPolicy, occupant);
     residentialStreet.setStrings(getExteriorStrings(locale));
+    if (workshopDescription)
+      workshopDescription.hidden = activeFloorId !== 'basement';
     busStopDescription.update(
       activeFloorId === 'ground',
       getExteriorStrings(locale)
