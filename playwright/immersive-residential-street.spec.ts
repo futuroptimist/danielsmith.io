@@ -415,7 +415,7 @@ test('keeps downward lamp pools visible on approach, passing and departure', asy
     ['return', 55, -15],
     ['departure-boundary', 44.9, -15],
   ] as const) {
-    await walkExteriorTo(page, { x, z });
+    await walkExteriorTo(page, { x: x * Math.SQRT1_2, z: z * Math.SQRT1_2 });
     await expect
       .poll(() =>
         page.evaluate(() =>

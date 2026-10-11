@@ -1832,6 +1832,9 @@ function buildImmersiveScene(
 
   const basementStaircase = createBasementStaircase(PLAYER_RADIUS);
   scene.add(basementStaircase.group);
+  batchStaticMeshes(basementStaircase.group, (mesh) =>
+    mesh.name.includes('RampRail')
+  );
   const basementFloorGroup = new Group();
   basementFloorGroup.name = 'BasementFloorVisuals';
   const basementStructureGroup = new Group();

@@ -60,8 +60,8 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
         await page.evaluate(
           ({ caps, shifted }) => {
             window.portfolio!.world!.movePlayerTo({
-              x: 40,
-              z: -22,
+              x: 40 * Math.SQRT1_2,
+              z: -22 * Math.SQRT1_2,
               floorId: 'ground',
             });
             window.dispatchEvent(

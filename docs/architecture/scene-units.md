@@ -146,7 +146,8 @@ Metre-authored furniture keeps its dimensions and rotates as before. Authored
 positions move with the plan; explicit collider and decorative bounds translate
 with their owner instead of shrinking. Named fit offsets separate the seating,
 kitchen cabinetry, studio rugs and loft ottoman, clear upstairs door approaches,
-and keep garden pieces inside the fence. Nothing is removed from the inventory.
+and keep garden pieces inside the fence. A 0.8 m plant move and 0.5 m reading-side-table
+move preserve chair approaches and exits. Nothing is removed from the inventory.
 Door openings retain 2.4 m clear width (5 m for the garage gate), and both flights
 retain 2.4 m width, 0.28 m treads and 18 rises. The loft landing doorway moves west
 within its existing shared wall to clear the preserved-width stair rail.
@@ -160,7 +161,9 @@ the tabletop and miniature. Recursive miniature
 geometry is rebuilt from the transformed world through its existing fitting path.
 
 The denser launch view exposes more of the unchanged Sugarkube installation.
-Its static opaque parts are batched by shared material without changing vertices,
-materials, LED updates, physical dimensions or collider ownership. Authored nodes
-remain available for debug inspection; the miniature copies the visible batches.
-This keeps the existing draw-call budget without removing visual detail.
+Its static opaque parts and the repeated basement stair parapets are batched by
+shared material and source identity without changing vertices, materials, LED
+updates, physical dimensions or collider ownership. Authored nodes remain
+available for debug inspection; the miniature copies the visible batches. Treads
+retain their individual names. This keeps the existing draw-call budget across
+desktop and phone views without removing visual detail.

@@ -10,7 +10,10 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 
 /** Batch only static opaque pieces with unchanged local transforms, retaining authoring nodes
  * for debug inspection. No collision or source position changes. */
-export function batchStaticMeshes(root: Group): void {
+export function batchStaticMeshes(
+  root: Group,
+  include: (mesh: Mesh) => boolean = () => true
+): void {
   root.updateWorldMatrix(true, true);
   const furnishing = root;
   const inverse = new Matrix4().copy(furnishing.matrixWorld).invert();
@@ -19,7 +22,8 @@ export function batchStaticMeshes(root: Group): void {
     if (
       !(object instanceof Mesh) ||
       !object.visible ||
-      Array.isArray(object.material)
+      Array.isArray(object.material) ||
+      !include(object)
     )
       return;
     const material = object.material as Material;
@@ -29,7 +33,7 @@ export function batchStaticMeshes(root: Group): void {
       object instanceof InstancedMesh
     )
       return;
-    const key = `${material.uuid}:${object.castShadow}:${object.receiveShadow}:${object.renderOrder}`;
+    const key = `${material.uuid}:${object.castShadow}:${object.receiveShadow}:${object.renderOrder}:${object.userData.levelSourceId ?? ''}`;
     const batch = batches.get(key) ?? [];
     batch.push(object);
     batches.set(key, batch);

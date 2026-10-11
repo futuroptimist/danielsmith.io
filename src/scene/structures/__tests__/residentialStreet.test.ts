@@ -49,8 +49,8 @@ describe('original residential street assets', () => {
     ).toHaveLength(4);
 
     build.update(getSceneDetailPolicy('cinematic'), {
-      x: 55,
-      z: 10,
+      x: 55 * Math.SQRT1_2,
+      z: 10 * Math.SQRT1_2,
       floorId: 'ground',
     });
     for (const lamp of build.getSnapshot().lamps) {
@@ -65,27 +65,27 @@ describe('original residential street assets', () => {
       });
     }
     build.update(getSceneDetailPolicy('performance'), {
-      x: 55,
-      z: 10,
+      x: 55 * Math.SQRT1_2,
+      z: 10 * Math.SQRT1_2,
       floorId: 'ground',
     });
     expect(build.getSnapshot().lamps.every((lamp) => !lamp.active)).toBe(true);
     build.update(getSceneDetailPolicy('cinematic'), {
-      x: 55,
-      z: 10,
+      x: 55 * Math.SQRT1_2,
+      z: 10 * Math.SQRT1_2,
       floorId: 'basement',
     });
     expect(build.getSnapshot().lamps.every((lamp) => !lamp.active)).toBe(true);
     build.update(getSceneDetailPolicy('performance'), {
-      x: 50,
-      z: 32,
+      x: 50 * Math.SQRT1_2,
+      z: 32 * Math.SQRT1_2,
       floorId: 'ground',
     });
     expect(build.getCutawaySourceIds()).toEqual(['ground.busStop.shelter']);
     expect((hoods.material as MeshStandardMaterial).opacity).toBe(1);
     build.update(getSceneDetailPolicy('performance'), {
-      x: 55,
-      z: 32,
+      x: 55 * Math.SQRT1_2,
+      z: 32 * Math.SQRT1_2,
       floorId: 'ground',
     });
     expect(build.getCutawaySourceIds()).toEqual([]);
@@ -123,7 +123,11 @@ describe('original residential street assets', () => {
         [45, -15],
         [44.9, -15],
       ]) {
-        build.update(getSceneDetailPolicy(level), { x, z, floorId: 'ground' });
+        build.update(getSceneDetailPolicy(level), {
+          x: x * Math.SQRT1_2,
+          z: z * Math.SQRT1_2,
+          floorId: 'ground',
+        });
         expect(pools.visible).toBe(true);
         build.group.traverse((object) => {
           if (object.userData.levelSourceId === 'ground.street.lamps') {

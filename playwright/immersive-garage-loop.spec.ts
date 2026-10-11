@@ -220,14 +220,17 @@ test(occupiedThresholdTitle, async ({ page }) => {
   ).toMatchObject({ state: 'open', target: 1, occupied: true, blocked: false });
   // Start inside the protected threshold so native movement does not race a
   // legitimate unoccupied closure while browser input commands are dispatched.
-  await walkExteriorTo(page, { x: 51.25 * Math.SQRT1_2, z: 4 * Math.SQRT1_2 });
+  await walkExteriorTo(page, {
+    x: 50 * Math.SQRT1_2 + 1.25,
+    z: 4 * Math.SQRT1_2,
+  });
   const occupiedApproach = await page.evaluate(() => ({
     position: window.portfolio!.world!.getPlayerPosition(),
     door: window
       .portfolio!.world!.getDoorSnapshots()
       .find((door) => door.id === 'garage-door')!,
   }));
-  expect(occupiedApproach.position.x).toBeCloseTo(51.25 * Math.SQRT1_2, 1);
+  expect(occupiedApproach.position.x).toBeCloseTo(50 * Math.SQRT1_2 + 1.25, 1);
   expect(occupiedApproach.position.z).toBeCloseTo(4 * Math.SQRT1_2, 1);
   expect(occupiedApproach.door).toMatchObject({
     state: 'open',
@@ -278,7 +281,7 @@ test(occupiedThresholdTitle, async ({ page }) => {
         },
         { timeout: 15000 }
       )
-      .toBeLessThanOrEqual(50.5);
+      .toBeLessThanOrEqual(50 * Math.SQRT1_2 + 0.5);
   } finally {
     nativeSamples = await observation.evaluate((record) => record.stop());
     await observation.dispose();

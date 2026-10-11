@@ -38,9 +38,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
+      'Street lamp proximity and shelter visibility follow the half-area exterior coordinates with unchanged physical assets.',
   },
   {
     id: 'level:career-museum-layout',
@@ -118,11 +118,12 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: [
       'src/scene/level/basementStair.ts',
       'src/scene/structures/basementStaircase.ts',
+      'src/scene/structures/batchStaticMeshes.ts',
       'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 6,
+    syncRevision: 7,
     syncNote:
-      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
+      'Repeated static parapets are batched by material and source identity; tread geometry, physical clearances and shared miniature geometry remain unchanged.',
   },
   {
     id: 'environment:backyard',
@@ -168,9 +169,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'shared-source',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 38,
+    syncRevision: 39,
     syncNote:
-      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
+      'Half-area fitted furniture keeps physical sizes; the north lounge plant moves 0.8 m and the reading side table 0.5 m to preserve seated avatar approaches and exits.',
   },
   {
     id: 'avatar:overworld-player',

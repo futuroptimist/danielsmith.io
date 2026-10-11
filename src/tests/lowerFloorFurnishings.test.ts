@@ -278,8 +278,8 @@ describe('lower floor furnishings foundation', () => {
       'living-room-tv-pothos-left': {
         minX: -21.42178207935912,
         maxX: -20.721782079359116,
-        minZ: -17.88624817342638,
-        maxZ: -17.186248173426378,
+        minZ: -18.68624817342638,
+        maxZ: -17.986248173426378,
       },
       'living-room-corner-fig': {
         minX: 20.854624791833736,
@@ -356,8 +356,8 @@ describe('lower floor furnishings foundation', () => {
       'studio-round-side-table': {
         minX: 14.590663761154808,
         maxX: 15.390663761154808,
-        minZ: 6.671067811865475,
-        maxZ: 7.471067811865476,
+        minZ: 6.171067811865475,
+        maxZ: 6.971067811865476,
       },
       'studio-low-storage-bench': {
         minX: 2.6426406871192856,

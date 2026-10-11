@@ -56,8 +56,18 @@ test('decorative lighting survives quality round trips without leaking point lig
     expect(state.gabrielBeaconEmissiveIntensity).toBeGreaterThan(0);
     await expect(page.locator('#app canvas')).toHaveCount(1);
     for (const pose of [
-      { name: 'main-house', x: -15, z: -20, floorId: 'ground' as const },
-      { name: 'gabriel-studio', x: -17, z: -11, floorId: 'upper' as const },
+      {
+        name: 'main-house',
+        x: -15 * Math.SQRT1_2,
+        z: -20 * Math.SQRT1_2,
+        floorId: 'ground' as const,
+      },
+      {
+        name: 'gabriel-studio',
+        x: -17 * Math.SQRT1_2,
+        z: -11 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     ]) {
       await page.evaluate(
         (pose) => window.portfolio!.world!.movePlayerTo(pose),

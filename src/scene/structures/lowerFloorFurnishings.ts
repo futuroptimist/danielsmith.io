@@ -1543,6 +1543,8 @@ const AUTHORED_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefinition[
 const FURNITURE_FIT_OFFSETS: Record<string, { x: number; z: number }> = {
   'studio-woven-rug': { x: 0, z: -0.7 },
   'living-room-lounge-chair-north': { x: 0.3, z: -0.9 },
+  'living-room-tv-pothos-left': { x: 0, z: -0.8 },
+  'studio-round-side-table': { x: 0, z: -0.5 },
   'backyard-garden-stool': { x: 0, z: -0.25 },
   'backyard-rock-01': { x: 0, z: -0.7 },
   'backyard-rock-02': { x: 0, z: -0.7 },

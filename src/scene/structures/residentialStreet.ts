@@ -21,6 +21,7 @@ import type { ExteriorStrings } from '../../assets/i18n/exterior';
 import { assertDebugColliderId } from '../debug/colliderDebugIds';
 import { getDebugHash } from '../debug/debugIds';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
+import { HOUSE_HORIZONTAL_SCALE } from '../level/horizontalFootprint';
 import type { FloorDefinition } from '../level/schema';
 import { BUS_STOP, PARKED_EV, STREET_LAMPS } from '../level/streetLayout';
 
@@ -434,10 +435,10 @@ export function createResidentialStreet(
   ) {
     const insideShelter =
       occupant.floorId === 'ground' &&
-      occupant.x > 45.5 &&
-      occupant.x < 53 &&
-      occupant.z > 25.5 &&
-      occupant.z < 38.5;
+      occupant.x > 45.5 * HOUSE_HORIZONTAL_SCALE &&
+      occupant.x < 53 * HOUSE_HORIZONTAL_SCALE &&
+      occupant.z > 25.5 * HOUSE_HORIZONTAL_SCALE &&
+      occupant.z < 38.5 * HOUSE_HORIZONTAL_SCALE;
     const opacity = insideShelter ? 0.2 : 1;
     if (materials.roof.opacity !== opacity) {
       materials.roof.opacity = opacity;
@@ -445,7 +446,8 @@ export function createResidentialStreet(
       materials.roof.depthWrite = !insideShelter;
       materials.roof.needsUpdate = true;
     }
-    const nearby = occupant.floorId === 'ground' && occupant.x > 45;
+    const nearby =
+      occupant.floorId === 'ground' && occupant.x > 45 * HOUSE_HORIZONTAL_SCALE;
     const dynamic = nearby && policy.effects.dynamicPointLights;
     // Keep the authored downward footprint continuous across the proximity and
     // quality boundary. Realtime light augments it rather than replacing it.

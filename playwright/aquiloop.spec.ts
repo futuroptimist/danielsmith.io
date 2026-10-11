@@ -11,7 +11,7 @@ test('aquarium approach, collision, accessible pause and property budgets', asyn
   const safe = page.locator('[data-action="continue-safe-immersive"]');
   if (await safe.isVisible()) await safe.click();
   await page.evaluate(() =>
-    window.portfolio!.world!.movePlayerTo({ x: -4, z: -26 })
+    window.portfolio!.world!.movePlayerTo({ x: -4, z: -28 * Math.SQRT1_2 + 2 })
   );
   const route = await page.evaluate(() => {
     const world = window.portfolio!.world!;
@@ -57,7 +57,7 @@ test('aquarium approach, collision, accessible pause and property budgets', asyn
     for (let i = 0; i < 30; i++) world.stepPlayerForTest({ dx: 0, dz: -0.1 });
     return world.getPlayerPosition();
   });
-  expect(position.z).toBeGreaterThan(-27.7);
+  expect(position.z).toBeGreaterThan(-28 * Math.SQRT1_2 + 0.3);
   await page.screenshot({
     path: test.info().outputPath('aquiloop-living-room.png'),
   });
