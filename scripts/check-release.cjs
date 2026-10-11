@@ -88,20 +88,10 @@ function validate({ read, changed = [], before }) {
     if (file.startsWith('charts/danielsmith/')) return false;
     if (file === 'package.json') {
       const runtimePackage = (text) => {
-        const { version, scripts, ...rest } = JSON.parse(text);
-        return JSON.stringify({
-          ...rest,
-          prebuild: scripts?.prebuild,
-          build: scripts?.build,
-          postbuild: scripts?.postbuild,
-          presmoke: scripts?.presmoke,
-          smoke: scripts?.smoke,
-          postsmoke: scripts?.postsmoke,
-          preinstall: scripts?.preinstall,
-          install: scripts?.install,
-          postinstall: scripts?.postinstall,
-          prepare: scripts?.prepare,
-        });
+        // Build/lifecycle scripts can invoke any other script. Keep the whole map
+        // rather than trying to infer a shell-dependent transitive call graph.
+        const { version, ...rest } = JSON.parse(text);
+        return JSON.stringify(rest);
       };
       return runtimePackage(read(file)) !== runtimePackage(before(file));
     }
@@ -115,6 +105,14 @@ function validate({ read, changed = [], before }) {
   if (appChanged && !greater(current.app, previous.app)) {
     throw new Error(
       'appVersion must increase; downgrades are not release metadata updates.'
+    );
+  }
+  if (
+    appChanged &&
+    entry.split('\n')[0].trim() !== `v${current.app} - unreleased`
+  ) {
+    throw new Error(
+      'New application versions must be marked unreleased; record release evidence later.'
     );
   }
   if (chartChanged && !greater(current.chart, previous.chart)) {

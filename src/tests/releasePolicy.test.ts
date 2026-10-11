@@ -146,7 +146,7 @@ describe('release metadata policy with synthetic snapshots', () => {
   ])('treats %s as a runtime input', (path) => {
     expect(runtimePath(path)).toBe(true);
   });
-  it('keeps private package version and test scripts independent of appVersion', () => {
+  it('keeps private package version independent but checks all package scripts', () => {
     const check = fixture(['package.json'], '0.2.0', '0.2.9', notes());
     const pkg = (version: string, build = 'vite build') =>
       JSON.stringify({
@@ -165,6 +165,44 @@ describe('release metadata policy with synthetic snapshots', () => {
     check.read = (file) =>
       file === 'package.json' ? pkg('9.0.0', 'another-build') : read(file);
     expect(() => validate(check)).toThrow('appVersion increase');
+    check.read = (file) =>
+      file === 'package.json'
+        ? JSON.stringify({
+            ...JSON.parse(pkg('9.0.0')),
+            scripts: { build: 'vite build', generate: 'changed-generator' },
+          })
+        : read(file);
+    expect(() => validate(check)).toThrow('appVersion increase');
+  });
+  it('rejects premature release claims for newly introduced application versions', () => {
+    for (const status of [
+      'released',
+      'deployed to production',
+      'unreleased - staging passed',
+    ]) {
+      expect(() =>
+        validate(
+          fixture(
+            releaseFiles,
+            '0.2.1',
+            '0.2.10',
+            notes('0.2.1').replace('unreleased', status)
+          )
+        )
+      ).toThrow('must be marked unreleased');
+    }
+  });
+  it('allows later evidence-only documentation updates without a new application version', () => {
+    expect(() =>
+      validate(
+        fixture(
+          [changelogPath],
+          '0.2.0',
+          '0.2.9',
+          notes().replace('unreleased', 'tagged source milestone')
+        )
+      )
+    ).not.toThrow();
   });
 });
 

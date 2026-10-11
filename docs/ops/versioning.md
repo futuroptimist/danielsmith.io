@@ -26,8 +26,9 @@ do not themselves require application or chart bumps. These exclusions do not co
 shipped content: `docs/resume/`, public assets, runtime source, and build inputs count as
 site changes. Changes to generators or workflows that alter shipped output also need
 release metadata even where automated path classification cannot infer the effect.
-Test-script-only package edits are excluded; build/smoke scripts and dependency changes
-are included. A lockfile change is conservatively treated as a runtime input.
+All package-script edits and lockfile changes are conservatively treated as runtime
+inputs: build/lifecycle scripts can invoke arbitrary helper scripts. A private package
+version-only edit is independent of appVersion; it does not itself trigger an app bump.
 
 ## Parallel PRs and release preparation
 
@@ -62,7 +63,9 @@ npm run release:check -- --base origin/main
 The first command checks the current appVersion has exactly one populated changelog
 section. The second also compares the working tree to the given base, rejects runtime
 changes without an application bump, rejects any chart-content change without a chart
-bump, and requires changes to the current version's notes. Missing Git bases fail closed.
+bump, and requires changes to the current version's notes. New application sections must
+be labeled `unreleased`; later evidence-only documentation edits may update that status.
+Missing Git bases fail closed.
 CI runs the comparison against the PR event's base SHA with full history. Synthetic
 snapshot tests cover drift, version ordering, exclusions, and independent package identity.
 The guard cannot decide semantic impact or prove a deployment; reviewers own those checks.
