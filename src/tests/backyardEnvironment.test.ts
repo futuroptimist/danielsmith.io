@@ -4,7 +4,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
-  CylinderGeometry,
   EquirectangularReflectionMapping,
   Group,
   LightProbe,
@@ -30,8 +29,10 @@ import {
 } from 'vitest';
 
 import { createBackyardEnvironment } from '../scene/environments/backyard';
+import { isBackyardSourceCollider } from '../scene/level/backyardCollisionPolicies';
 import { validateSourceCollisionRecords } from '../scene/level/sourceCollisionValidation';
 import type { SeasonalLightingPreset } from '../scene/lighting/seasonalPresets';
+import { collidesWithColliders } from '../systems/collision';
 
 import { getProductionRoomBounds } from './helpers/productionLevelFixtures';
 
@@ -116,6 +117,48 @@ describe('createBackyardEnvironment', () => {
     delete document.documentElement.dataset.accessibilityFlickerScale;
   });
 
+  it('blocks walking and running into the east corner shrub without blocking its approach', () => {
+    const environment = createBackyardEnvironment(
+      getProductionRoomBounds('ground', 'backyard')
+    );
+    const shrub = environment.group.getObjectByName('BackyardShrub-2') as Mesh;
+    const collider = environment.colliders.find(
+      (c) => isBackyardSourceCollider(c) && c.role === 'eastShrub'
+    );
+    expect(collider).toBeDefined();
+    const radius = 1.05 * shrub.scale.x;
+    expect(collider!.minX).toBeCloseTo(shrub.position.x - radius);
+    expect(collider!.maxZ).toBeCloseTo(shrub.position.z + radius);
+    // Exercise both movement sampling speeds, from the open yard side.
+    for (const stride of [0.08, 0.18]) {
+      let x = shrub.position.x - radius - 2;
+      for (let step = 0; step < 100; step++) {
+        if (
+          !collidesWithColliders(x + stride, shrub.position.z, 0.55, [
+            collider!,
+          ])
+        )
+          x += stride;
+      }
+      expect(x).toBeLessThanOrEqual(collider!.minX - 0.55);
+      expect(x).toBeGreaterThan(collider!.minX - 0.55 - stride);
+    }
+    expect(
+      collidesWithColliders(
+        shrub.position.x - radius - 0.6,
+        shrub.position.z,
+        0.55,
+        [collider!]
+      )
+    ).toBe(false);
+    for (const name of ['BackyardGreenhouse', 'BackyardModelRocket']) {
+      const poi = environment.group.getObjectByName(name)!;
+      expect(
+        collidesWithColliders(poi.position.x, poi.position.z, 0.55, [collider!])
+      ).toBe(false);
+    }
+  });
+
   it('adds the model rocket installation and collider to the backyard', () => {
     const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
     const { group, colliders } = environment;
@@ -184,85 +227,34 @@ describe('createBackyardEnvironment', () => {
     );
   });
 
-  it('installs the greenhouse exhibit with animated elements and collider', () => {
-    const environment = createBackyardEnvironment(BACKYARD_BOUNDS);
-    const greenhouse = environment.group.getObjectByName('BackyardGreenhouse');
-    expect(greenhouse).toBeInstanceOf(Group);
-
-    const walkway = environment.group.getObjectByName(
-      'BackyardGreenhouseWalkway'
+  it('installs the open solar frame and a collider around its source geometry', () => {
+    const environment = createBackyardEnvironment(
+      getProductionRoomBounds('ground', 'backyard')
     );
-    expect(walkway).toBeInstanceOf(Mesh);
-
-    const pondRipple = environment.group.getObjectByName(
-      'BackyardGreenhousePondRipple'
+    const frame = environment.group.getObjectByName('BackyardGreenhouse')!;
+    expect(frame).toBeInstanceOf(Group);
+    expect(frame.getObjectByName('BackyardGalvanizedTub')).toBeInstanceOf(Mesh);
+    expect(frame.getObjectByName('BackyardLeaningSolarPanel-2')).toBeInstanceOf(
+      Group
     );
-    expect(pondRipple).toBeInstanceOf(Mesh);
-    expect((pondRipple as Mesh).material).toBeInstanceOf(ShaderMaterial);
-    const rippleMaterial = (pondRipple as Mesh).material as ShaderMaterial;
-    const baseAmplitude = rippleMaterial.uniforms.amplitude.value as number;
-    const baseSparkle = rippleMaterial.uniforms.sparkle.value as number;
-
-    const pondPlinth = environment.group.getObjectByName(
-      'BackyardGreenhousePondPlinth'
+    expect(
+      frame.getObjectByName('BackyardGreenhouseRoofRidge')
+    ).toBeUndefined();
+    const collider = environment.colliders.find(
+      (c) =>
+        frame.position.x >= c.minX &&
+        frame.position.x <= c.maxX &&
+        frame.position.z >= c.minZ &&
+        frame.position.z <= c.maxZ
     );
-    expect(pondPlinth).toBeInstanceOf(Mesh);
-    const pond = environment.group.getObjectByName('BackyardGreenhousePond');
-    expect(pond).toBeInstanceOf(Mesh);
-    const pondGeometry = (pond as Mesh).geometry as CylinderGeometry;
-    const plinthGeometry = (pondPlinth as Mesh).geometry as CylinderGeometry;
-    expect(plinthGeometry.parameters.radiusTop).toBeGreaterThan(
-      pondGeometry.parameters.radiusTop
-    );
-    expect(plinthGeometry.parameters.height).toBeGreaterThan(0);
-
-    const solarPivot = (greenhouse as Group).getObjectByName(
-      'BackyardGreenhouseSolarPanels'
-    );
-    expect(solarPivot).toBeInstanceOf(Group);
-    const initialSolarRotation = (solarPivot as Group).rotation.x;
-    environment.update({ elapsed: 1.4, delta: 0.016 });
-    expect((solarPivot as Group).rotation.x).not.toBe(initialSolarRotation);
-
-    const livelyAmplitude = rippleMaterial.uniforms.amplitude.value as number;
-    const livelySparkle = rippleMaterial.uniforms.sparkle.value as number;
-    expect(livelyAmplitude).toBeGreaterThan(baseAmplitude);
-    expect(livelySparkle).toBeGreaterThan(baseSparkle);
-
-    const growLight = environment.group.getObjectByName(
-      'BackyardGreenhouseGrowLight-1'
-    );
-    expect(growLight).toBeInstanceOf(Mesh);
-    const growMaterial = (growLight as Mesh).material as MeshStandardMaterial;
-    const baseline = growMaterial.emissiveIntensity;
-    environment.update({ elapsed: 2.8, delta: 0.016 });
-    expect(growMaterial.emissiveIntensity).not.toBe(baseline);
-
-    document.documentElement.dataset.accessibilityPulseScale = '0';
-    document.documentElement.dataset.accessibilityFlickerScale = '0';
-    environment.update({ elapsed: 4.8, delta: 0.016 });
-
-    const calmAmplitude = rippleMaterial.uniforms.amplitude.value as number;
-    const calmSparkle = rippleMaterial.uniforms.sparkle.value as number;
-    const calmFactor = rippleMaterial.uniforms.calm.value as number;
-    expect(calmAmplitude).toBeGreaterThan(0);
-    expect(calmAmplitude).toBeLessThan(livelyAmplitude);
-    expect(calmSparkle).toBeLessThan(livelySparkle);
-    expect(calmFactor).toBeGreaterThan(0);
-    expect(calmFactor).toBeLessThan(1);
-
-    const greenhousePosition = (greenhouse as Group).position.clone();
-    const greenhouseCollider = environment.colliders.find(
-      (collider) =>
-        greenhousePosition.x >= collider.minX &&
-        greenhousePosition.x <= collider.maxX &&
-        greenhousePosition.z >= collider.minZ &&
-        greenhousePosition.z <= collider.maxZ
-    );
-
-    expect(greenhouseCollider).toBeDefined();
-    expect(greenhouseCollider?.maxX).toBeGreaterThan(greenhouseCollider!.minX);
-    expect(greenhouseCollider?.maxZ).toBeGreaterThan(greenhouseCollider!.minZ);
+    expect(collider).toBeDefined();
+    const before = frame
+      .getObjectByName('BackyardGreenhouseSolarPanels')!
+      .matrix.toArray();
+    environment.update({ elapsed: 3, delta: 0.016 });
+    expect(
+      frame.getObjectByName('BackyardGreenhouseSolarPanels')!.matrix.toArray()
+    ).toEqual(before);
   });
 
   it('adds walkway lanterns that glow and pulse along the greenhouse approach', () => {
@@ -1445,17 +1437,6 @@ describe('createBackyardEnvironment', () => {
     environment.update({ elapsed: 1.4, delta: 0.016 });
     expect(glassMaterial.emissiveIntensity).toBeCloseTo(steadyEmissive, 5);
     expect(light!.intensity).toBeCloseTo(steadyLight, 5);
-
-    const growLight = environment.group.getObjectByName(
-      'BackyardGreenhouseGrowLight-1'
-    ) as Mesh | null;
-    expect(growLight).toBeInstanceOf(Mesh);
-    const growMaterial = (growLight!.material as MeshStandardMaterial)!;
-
-    environment.update({ elapsed: 2.1, delta: 0.016 });
-    const steadyGrow = growMaterial.emissiveIntensity;
-    environment.update({ elapsed: 3.2, delta: 0.016 });
-    expect(growMaterial.emissiveIntensity).toBeCloseTo(steadyGrow, 5);
   });
 
   it('animates the hologram barrier while respecting accessibility damping', () => {

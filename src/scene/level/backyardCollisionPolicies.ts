@@ -16,7 +16,8 @@ export type BackyardCollisionRole =
   | 'leftFenceBoundary'
   | 'rightFenceBoundary'
   | 'backFenceBoundary'
-  | 'hologramBarrier';
+  | 'hologramBarrier'
+  | 'eastShrub';
 
 export interface BackyardFenceSegmentPolicy {
   role: Extract<
@@ -216,11 +217,29 @@ export const createBackyardHologramBarrierCollider = ({
 });
 
 const BACKYARD_SOURCE_IDS: ReadonlySet<string> = new Set([
+  'ground.backyard.eastShrub.solid',
   BACKYARD_HOLOGRAM_BARRIER_POLICY.sourceId,
   ...BACKYARD_FENCE_SEGMENT_POLICIES.map((policy) => policy.sourceId),
 ]);
 
+export const createBackyardEastShrubCollider = (
+  position: { x: number; z: number },
+  radius: number
+): BackyardSourceCollider => ({
+  minX: position.x - radius,
+  maxX: position.x + radius,
+  minZ: position.z - radius,
+  maxZ: position.z + radius,
+  role: 'eastShrub',
+  sourceId: sourceId('ground.backyard.eastShrub.solid'),
+  sourceType: 'generatedCollider',
+  intent: 'physical-boundary',
+  purpose: 'block entry into the visible east corner shrub',
+  name: 'BackyardEastShrub',
+});
+
 const BACKYARD_SOURCE_ROLES: ReadonlySet<string> = new Set([
+  'eastShrub',
   BACKYARD_HOLOGRAM_BARRIER_POLICY.role,
   ...BACKYARD_FENCE_SEGMENT_POLICIES.map((policy) => policy.role),
 ]);
