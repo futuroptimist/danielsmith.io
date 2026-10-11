@@ -180,9 +180,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/avatar/mannequin.ts',
       'src/scene/avatar/accessories.ts',
     ],
-    syncRevision: 4,
+    syncRevision: 5,
     reason:
-      'Avatar accessory labels and runtime drone baseline updates do not affect the excluded overworld player geometry.',
+      'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
   {
     id: 'poi:markers-labels',
@@ -255,11 +255,12 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/avatar/animatedAvatar.ts',
       'src/scene/avatar/chairController.ts',
       'src/scene/avatar/prepareRendering.ts',
+      'src/scene/units.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 5,
+    syncRevision: 6,
     reason:
-      'The moving player, GPU preparation, gait speeds, seated poses and safe reload positions are excluded from static miniature architecture; chair proxies are unchanged.',
+      'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
   {
     id: 'audit:src:scene:avatar:footIkController',
@@ -289,9 +290,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:avatar:locomotionAnimator',
     kind: 'excluded',
     sourceFiles: ['src/scene/avatar/locomotionAnimator.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
   {
     id: 'audit:src:scene:avatar:variantManager',

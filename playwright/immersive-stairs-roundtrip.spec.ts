@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 import type { PortfolioApi } from '../src/app/portfolioApi';
 import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
+import { AVATAR_COLLISION_RADIUS } from '../src/scene/units';
 
 import {
   canOccupyPosition,
@@ -18,7 +19,7 @@ import {
 
 const IMMERSIVE_PREVIEW_URL = '/?mode=immersive&disablePerformanceFailover=1';
 const IMMERSIVE_READY_TIMEOUT_MS = 45_000;
-const PLAYER_RADIUS = 0.75;
+const PLAYER_RADIUS = AVATAR_COLLISION_RADIUS;
 
 const GROUND_POI_IDS = [
   'futuroptimist-living-room-tv',

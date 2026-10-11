@@ -64,6 +64,27 @@ describe('createAvatarLocomotionAnimator', () => {
     });
   };
 
+  it('uses the selected gait even at partial analog speed while retaining idle', () => {
+    const animator = createHandle();
+    for (const gait of ['walk', 'run'] as const) {
+      for (const speed of [0.8, 2, 5]) {
+        animator.update({
+          delta: 0.1,
+          linearSpeed: speed,
+          angularSpeed: 0,
+          gait,
+        });
+        expect(animator.getSnapshot().linearState).toBe(gait);
+        expect(
+          animator.getSnapshot().weights[gait === 'walk' ? 'run' : 'walk']
+        ).toBe(0);
+      }
+      animator.update({ delta: 0.1, linearSpeed: 0, angularSpeed: 0, gait });
+      expect(animator.getSnapshot().linearState).toBe('idle');
+    }
+    animator.dispose();
+  });
+
   it('blends between idle, walk, and run based on linear speed', () => {
     const animator = createHandle();
 

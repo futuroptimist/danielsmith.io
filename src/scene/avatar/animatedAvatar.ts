@@ -3,6 +3,7 @@ import {
   AnimationMixer,
   Box3,
   Color,
+  Group,
   LoopOnce,
   Mesh,
   MeshStandardMaterial,
@@ -14,6 +15,12 @@ import {
 } from 'three';
 
 import { AVATAR_RUN_SPEED } from '../../systems/movement/avatarGait';
+import {
+  AVATAR_BODY_SCALE,
+  AUTHORED_AVATAR_HEIGHT,
+  AVATAR_FOOT_ORIGIN_HEIGHT,
+  TARGET_AVATAR_HEIGHT,
+} from '../units';
 
 import type { AvatarImportResult } from './importer';
 import { createAvatarLocomotionAnimator } from './locomotionAnimator';
@@ -60,7 +67,7 @@ export function groundSeatedLeg(
   const c = foot.getWorldPosition(new Vector3());
   const footRotation = foot.getWorldQuaternion(new Quaternion());
   const target = c.clone();
-  target.y = floorY + 0.12;
+  target.y = floorY + AVATAR_FOOT_ORIGIN_HEIGHT;
   const upper = a.distanceTo(b),
     lower = b.distanceTo(c);
   const direction = target.clone().sub(a);
@@ -114,7 +121,21 @@ export function createAnimatedAvatar(asset: AvatarImportResult) {
   );
   for (const name of AVATAR_CLIPS)
     if (!clips.has(name)) throw new Error(`Missing avatar clip ${name}`);
-  const model = asset.scene;
+  asset.scene.updateMatrixWorld(true);
+  const authoredBounds = new Box3().setFromObject(asset.scene, true);
+  const authoredHeight = authoredBounds.getSize(new Vector3()).y;
+  if (
+    !Number.isFinite(authoredHeight) ||
+    Math.abs(authoredHeight - AUTHORED_AVATAR_HEIGHT) > 0.001
+  )
+    throw new Error('Unexpected avatar height.');
+  // The wrapper cannot be overwritten by authored root animation tracks.
+  const model = new Group();
+  const body = new Group();
+  body.scale.setScalar(TARGET_AVATAR_HEIGHT / authoredHeight);
+  asset.scene.position.y -= authoredBounds.min.y;
+  body.add(asset.scene);
+  model.add(body);
   const outfitTint = { value: new Color(1, 1, 1) };
   model.name = 'DanielAnimatedAvatar';
   model.traverse((object) => {
@@ -156,9 +177,7 @@ export function createAnimatedAvatar(asset: AvatarImportResult) {
     }
   });
   model.updateMatrixWorld(true);
-  const height = new Box3().setFromObject(model).getSize(new Vector3()).y;
-  if (!Number.isFinite(height) || height < 1.5 || height > 2.1)
-    throw new Error('Unexpected avatar height.');
+  const height = new Box3().setFromObject(model, true).getSize(new Vector3()).y;
   const mixer = new AnimationMixer(model);
   const locomotion = createAvatarLocomotionAnimator({
     mixer,
@@ -168,11 +187,14 @@ export function createAnimatedAvatar(asset: AvatarImportResult) {
       run: clips.get('Run')!,
     },
     maxLinearSpeed: AVATAR_RUN_SPEED,
-    thresholds: { idleToWalk: 0.2, walkToRun: 1.4 },
+    thresholds: {
+      idleToWalk: 0.2 * AVATAR_BODY_SCALE,
+      walkToRun: 1.4 * AVATAR_BODY_SCALE,
+    },
     timeScale: {
       // Measured from the exported foot travel and loop duration, in world units/second.
-      walkReferenceSpeed: 0.85446,
-      runReferenceSpeed: 1.57199,
+      walkReferenceSpeed: 0.85446 * AVATAR_BODY_SCALE,
+      runReferenceSpeed: 1.57199 * AVATAR_BODY_SCALE,
       min: 0.3,
       max: 1.8,
     },
@@ -198,7 +220,8 @@ export function createAnimatedAvatar(asset: AvatarImportResult) {
       angularSpeed: number,
       reducedMotion: boolean,
       seat: { clip: SeatAnimation; progress: number; offsetY: number } | null,
-      floorY: number
+      floorY: number,
+      gait?: 'walk' | 'run'
     ) {
       model.position.y = seat?.offsetY ?? 0;
       if (seat) {
@@ -239,6 +262,7 @@ export function createAnimatedAvatar(asset: AvatarImportResult) {
           delta: reducedMotion ? 1 : delta,
           linearSpeed: reducedMotion ? 0 : speed,
           angularSpeed,
+          gait,
         });
         if (reducedMotion) {
           mixer.setTime(0);

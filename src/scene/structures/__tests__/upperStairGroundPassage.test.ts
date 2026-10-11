@@ -8,14 +8,14 @@ import {
 } from '../../../systems/movement/floorConnections';
 import { planMovementSubsteps } from '../../../systems/movement/movementSubsteps';
 import { computeStairLayout } from '../../../systems/movement/stairLayout';
-import { PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT } from '../../avatar/mannequin';
 import { getFloorTopElevation } from '../../level/floorElevations';
+import { AVATAR_COLLISION_RADIUS, AVATAR_TRAVERSAL_HEIGHT } from '../../units';
 import { createBasementStaircase } from '../basementStaircase';
 import { STAIRCASE_CONFIG } from '../portfolioSceneLayout';
 import { createStaircase } from '../staircase';
 import { createUpperStairGroundPassage } from '../upperStairGroundPassage';
 
-const radius = 0.75;
+const radius = AVATAR_COLLISION_RADIUS;
 const config = STAIRCASE_CONFIG;
 const layout = computeStairLayout({
   baseZ: config.basePosition.z,
@@ -64,7 +64,7 @@ const guards = createUpperStairGroundPassage(config, {
 const colliders = guards.map(({ bounds }) => bounds);
 const groundActor = {
   feetY: 0,
-  height: PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT,
+  height: AVATAR_TRAVERSAL_HEIGHT,
   activeConnectionId: null,
 };
 const basement = createBasementStaircase();

@@ -7,7 +7,9 @@ GPU shaders and the pixel atlas are prepared before the visible swap. Parallel s
 is cancellable on scene teardown and bounded to five seconds, retaining the mannequin on failure.
 
 The approved asset has 2,976 triangles, one skinned mesh/material, 20 bones, an embedded 128 px
-atlas, and a standing height of approximately 1.872 meters. Runtime uses nearest filtering.
+atlas, and an authored standing height of approximately 1.872 meters. Runtime normalizes measured
+bounds to 1.90 meters and uses nearest filtering. See [scene units](scene-units.md) for the
+measured dimensional inventory and outstanding architecture migration.
 It contains no raw reference photograph. Keep model revisions separate from controller changes.
 
 ## Animation contract
@@ -17,19 +19,21 @@ are `Idle`, `Walk`, `Run`, `SitDown`, `Seated`, and `StandUp`. The loader subtra
 first-key time from each clip to remove the frame-one leading hold. Translation and yaw belong
 to the existing camera-relative movement controller; locomotion clips remain in place.
 
-Walking starts at 1.1 world units/second; running is 2.5. Playback follows the exported foot travel
-and loop duration (reference stride speeds 0.85446 and 1.57199), reducing foot sliding.
-**Caps Lock** toggles the game-local
-gait, independent of the operating system's Caps Lock state. Key repeat cannot toggle again.
-Text inputs and settings retain their keys. Losing focus clears the held-key latch and preserves
-the chosen gait. The controls and help list include the shortcut.
-The gait shortcut yields when Caps Lock is assigned to any configurable action. Automatic doors
+Walking is 1.116453 metres/second; running is 2.537393. Body dimensions, movement and the exported
+stride references (originally 0.85446 and 1.57199) share the 1.90 / 1.872 scale ratio.
+**Caps Lock off means running (the default); on means walking.** Modifier state is observed on
+keyboard events without consuming UI-owned or remapped keys. Repeat cannot toggle again, and the
+first keyboard event after focus returns resynchronizes the physical lock. The touch gait button
+writes the same state; the next keyboard event restores the physical lock state. The selected gait
+also owns the animation clip, while actual speed controls idle blending and stride playback.
+Automatic doors
 use the same maximum run speed as movement when calculating proximity lead and opening motion.
 
 Reduced motion retains movement control but presents a stable idle pose; seating transitions
 snap between validated positions. Camera framing and mirror height use the loaded model height.
-The existing controller collision radius and height remain unchanged so replacing the visual
-asset cannot open unsafe low-headroom routes below stairs.
+The conservative collision radius remains 0.75 metres and contains the normalized body. The conservative 2.6 metre
+traversal-height envelope remains separate from visual height, preserving unsafe-route exclusions
+below stairs until the architectural migration is complete.
 Placeholder foot offsets are detached for the skeletal model. Seated foot grounding rotates
 the two-bone leg chains while retaining bone lengths.
 
@@ -37,7 +41,7 @@ the two-bone leg chains while retaining bone lengths.
 
 The two living-room lounge chairs and the studio reading chair expose seat anchors derived
 from their actual transforms and cushion heights (0.47 m and 0.62 m). The authored animation's
-0.40 m cushion height and 0.395 m hip retreat are compensated at runtime. Other furniture keeps
+0.40 m cushion height and 0.395 m hip retreat are scaled with the body and compensated at runtime. Other furniture keeps
 its existing interaction behavior until individual seat and clearance metadata is supplied.
 Taller cushions shift the seated root forward by the extra height so grounded knees clear the
 front edge instead of passing through the cushion.

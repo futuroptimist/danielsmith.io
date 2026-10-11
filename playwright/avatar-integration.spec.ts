@@ -15,44 +15,66 @@ test('approved avatar loads, gait toggles and nearby lounge seating exits safely
     { timeout: 60_000 }
   );
   await page.keyboard.press('Escape');
+  const softwareNotice = page.locator(
+    '[data-action="continue-safe-immersive"]'
+  );
+  if (await softwareNotice.isVisible()) await softwareNotice.click();
+  expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
+    'run'
+  );
+  // CDP does not emulate the OS lock LED; use the browser's real modifier-event API.
+  const reportLock = async (
+    caps: boolean,
+    key = 'CapsLock',
+    code = 'CapsLock'
+  ) =>
+    page.evaluate(
+      ({ caps, key, code }) => {
+        window.dispatchEvent(
+          new KeyboardEvent('keydown', {
+            key,
+            code,
+            modifierCapsLock: caps,
+            bubbles: true,
+          })
+        );
+        window.dispatchEvent(
+          new KeyboardEvent('keyup', {
+            key,
+            code,
+            modifierCapsLock: caps,
+            bubbles: true,
+          })
+        );
+      },
+      { caps, key, code }
+    );
+  await reportLock(true);
   expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
     'walk'
   );
-  await page.keyboard.press('CapsLock');
+  await reportLock(true, 'Shift', 'ShiftLeft');
+  expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
+    'walk'
+  );
+  await reportLock(false);
   expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
     'run'
   );
-  await page.keyboard.press('CapsLock');
-  const beforeRemappedMove = await page.evaluate(() => {
-    window.portfolio!.input!.keyBindings!.setBinding('moveForward', [
-      'CapsLock',
-    ]);
-    return window.portfolio!.world!.getPlayerPosition();
-  });
-  await page.keyboard.down('CapsLock');
-  try {
-    expect(
-      await page.evaluate(() => window.portfolio?.avatar?.getGait?.())
-    ).toBe('walk');
-    await expect
-      .poll(() =>
-        page.evaluate((before) => {
-          const p = window.portfolio!.world!.getPlayerPosition();
-          return Math.hypot(p.x - before.x, p.z - before.z);
-        }, beforeRemappedMove)
-      )
-      .toBeGreaterThan(0.05);
-  } finally {
-    await page.keyboard.up('CapsLock');
-  }
-  await page.evaluate(() =>
-    window.portfolio!.input!.keyBindings!.resetBinding('moveForward')
+  await page.locator('[data-avatar-gait-control]').click();
+  expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
+    'walk'
   );
-  await page.keyboard.press('CapsLock');
+  await reportLock(false, 'ArrowUp', 'ArrowUp');
   expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
     'run'
   );
-  await page.keyboard.press('CapsLock');
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await reportLock(true, 'Z', 'KeyW');
+  expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
+    'walk'
+  );
+  await reportLock(false);
   await page.evaluate(() =>
     window.portfolio?.world?.movePlayerTo({
       x: -30.13,

@@ -158,7 +158,8 @@ const localizedTemplates: Record<
     },
     toggleGait: {
       keys: 'Bloq Mayús',
-      description: 'Alternar correr / caminar (empieza caminando)',
+      description:
+        'Bloq Mayús activado: caminar; desactivado: correr (predeterminado). Botón para cambiar.',
     },
     keyboardMove: 'Mover',
     pointerDrag: 'Arrastrar para panorámica',
@@ -209,7 +210,8 @@ const localizedTemplates: Record<
     },
     toggleGait: {
       keys: 'Caps Lock',
-      description: 'Alternar corrida / caminhada (começa caminhando)',
+      description:
+        'Caps Lock ligado: caminhar; desligado: correr (padrão). Botão para alternar.',
     },
     githubStarsTemplate: '{value} estrelas',
     listNameTemplate: 'Exibições de {siteName}',
@@ -267,7 +269,8 @@ const localizedTemplates: Record<
     },
     toggleGait: {
       keys: 'Feststelltaste',
-      description: 'Laufen / Gehen umschalten (beginnt mit Gehen)',
+      description:
+        'Feststelltaste ein: gehen; aus: laufen (Standard). Taste zum Wechseln.',
     },
     githubStarsTemplate: '{value} Sterne',
     listNameTemplate: '{siteName}-Exponate',
@@ -324,7 +327,8 @@ const localizedTemplates: Record<
     },
     toggleGait: {
       keys: 'Caps Lock',
-      description: 'Váltás futás és séta között (kezdetben séta)',
+      description:
+        'Caps Lock be: séta; ki: futás (alapértelmezett). Gombbal váltható.',
     },
     githubStarsTemplate: '{value} csillag',
     listNameTemplate: '{siteName} kiállításai',
