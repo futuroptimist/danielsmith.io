@@ -7,9 +7,9 @@ import type { AxeResults } from 'axe-core';
 import { CAREER_HISTORY } from '../src/assets/careers';
 import { AVAILABLE_LOCALES, getCareerCopy } from '../src/assets/i18n';
 import { getWorkshopDescription } from '../src/assets/i18n/woodworking';
+import { IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET } from '../src/assets/performance';
 import { CAREER_INTERACTION_ANCHOR } from '../src/scene/level/careerMuseumLayout';
 import { getFloorTopElevation } from '../src/scene/level/floorElevations';
-import { IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET } from '../src/assets/performance';
 
 const URL = '/?mode=immersive&disablePerformanceFailover=1';
 const DISCLAIMER =
