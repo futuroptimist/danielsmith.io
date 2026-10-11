@@ -112,16 +112,17 @@ The standing player remains 1.90 m after normalization from its measured 1.872 m
 bind pose. Walk/run remain 1.116453 / 2.537393 m/s, with proportional stride and seat
 offsets. The orthographic camera retains its framing bounds and 0.95 m focus.
 
-## Remaining exterior scope
+## Exterior coordinate contract
 
-The property X/Z footprint remains approximately 64 x 64 world units. Plan
-coordinates still convert once through `FLOOR_PLAN_SCALE` (sqrt(2), approximately 1.414214).
-Changing that factor alone would move plan-anchored objects while leaving physical
-furnishings and colliders behind; a global scene scale would shrink the player,
-chairs and aquarium too. Exterior layout, the existing 4.6 x 9.2 m EV envelope,
-yard, street and future neighbourhood need their own coordinated horizontal
-migration. Existing exterior routes must continue to pass during this room change.
-This room correction is not a claim that the entire property is metre-calibrated.
+The former 64 x 64 m house-and-yard envelope now spans approximately
+45.255 x 45.255 m. Exterior plan anchors, including doors, yard, street and
+bus stop, follow the same one-time `FLOOR_PLAN_SCALE` conversion (sqrt(2),
+approximately 1.414214). Their physical assemblies and collision bounds move
+together; the EV retains its 4.6 x 9.2 m envelope, and street furniture keeps
+its metre-authored dimensions. Existing exterior routes pass with the smaller
+plan. Future neighbourhood work must use this coordinate contract and check
+physical fit explicitly. This correction does not claim that every legacy
+exterior asset has been individually metre-calibrated.
 
 ## Half-area horizontal footprint
 
