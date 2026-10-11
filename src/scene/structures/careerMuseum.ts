@@ -14,7 +14,11 @@ import {
 } from 'three';
 
 import type { RectCollider } from '../../systems/collision';
-import { CAREER_EXHIBIT_FOOTPRINT } from '../level/careerMuseumLayout';
+import {
+  CAREER_EXHIBIT_FOOTPRINT,
+  CAREER_AUTHORED_FOOTPRINT,
+  MUSEUM_BODY_SCALE,
+} from '../level/careerMuseumLayout';
 import {
   createPoiLabelTexture,
   type PoiInstanceOverrides,
@@ -101,10 +105,9 @@ export interface CareerMuseumBuild {
   dispose(): void;
 }
 
-const TABLE = { ...CAREER_EXHIBIT_FOOTPRINT, height: 1.45 } as const;
+const TABLE = { ...CAREER_AUTHORED_FOOTPRINT, height: 1.45 } as const;
 export const CAREER_MUSEUM_FOOTPRINT = {
-  width: TABLE.width,
-  depth: TABLE.depth,
+  ...CAREER_EXHIBIT_FOOTPRINT,
 };
 
 const box = (
@@ -468,6 +471,7 @@ export function createCareerMuseum(
       definition.position.z
     );
     root.rotation.y = definition.headingRadians ?? 0;
+    root.scale.setScalar(MUSEUM_BODY_SCALE);
     const parts = exhibitParts(definition.id);
     const batches = new Map<string, Part[]>();
     parts.forEach((part) => {
@@ -558,12 +562,12 @@ export function createCareerMuseum(
     group.add(root);
     const angle = definition.headingRadians ?? 0;
     const halfX =
-      (Math.abs(Math.cos(angle)) * TABLE.width +
-        Math.abs(Math.sin(angle)) * TABLE.depth) /
+      (Math.abs(Math.cos(angle)) * CAREER_EXHIBIT_FOOTPRINT.width +
+        Math.abs(Math.sin(angle)) * CAREER_EXHIBIT_FOOTPRINT.depth) /
       2;
     const halfZ =
-      (Math.abs(Math.sin(angle)) * TABLE.width +
-        Math.abs(Math.cos(angle)) * TABLE.depth) /
+      (Math.abs(Math.sin(angle)) * CAREER_EXHIBIT_FOOTPRINT.width +
+        Math.abs(Math.cos(angle)) * CAREER_EXHIBIT_FOOTPRINT.depth) /
       2;
     return {
       id: definition.id,
@@ -589,6 +593,7 @@ export function createCareerMuseum(
         placement.position.z
       );
       root.rotation.y = placement.headingRadians ?? 0;
+      root.scale.setScalar(MUSEUM_BODY_SCALE);
       let width = 4.4;
       let depth = 1.25;
       let parts: Part[];
@@ -715,12 +720,12 @@ export function createCareerMuseum(
       group.add(root);
       const angle = placement.headingRadians ?? 0;
       const halfX =
-        (Math.abs(Math.cos(angle)) * width +
-          Math.abs(Math.sin(angle)) * depth) /
+        (Math.abs(Math.cos(angle)) * width * MUSEUM_BODY_SCALE +
+          Math.abs(Math.sin(angle)) * depth * MUSEUM_BODY_SCALE) /
         2;
       const halfZ =
-        (Math.abs(Math.sin(angle)) * width +
-          Math.abs(Math.cos(angle)) * depth) /
+        (Math.abs(Math.sin(angle)) * width * MUSEUM_BODY_SCALE +
+          Math.abs(Math.cos(angle)) * depth * MUSEUM_BODY_SCALE) /
         2;
       return {
         id: placement.id,

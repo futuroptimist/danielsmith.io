@@ -166,7 +166,7 @@ describe('getDoorwayPassageZones', () => {
 });
 
 describe('upper landing west egress doorway', () => {
-  const desiredWorldZSamples = [-26.14, -27.5, -29, -30.5, -31.24];
+  const desiredWorldZSamples = [-30.27, -29.8, -29.07, -28.4, -27.87];
   const upperLanding = UPPER_FLOOR_PLAN.rooms.find(
     (room) => room.id === 'upperLanding'
   );
@@ -250,7 +250,8 @@ describe('upper landing west egress doorway', () => {
       getRoomCategory,
     });
     const colliders = wallInstances.map((instance) => instance.collider);
-    const lowerRequestedEdgeZ = Math.min(...desiredWorldZSamples);
+    const lowerRequestedEdgeZ =
+      Math.min(...desiredWorldZSamples) + PLAYER_RADIUS + 0.01;
 
     expect(
       collidesWithColliders(
@@ -270,7 +271,7 @@ describe('upper landing west egress doorway', () => {
     ).toBe(false);
   });
 
-  it('omits the former upper landing to loft library west wall blocker', () => {
+  it('keeps the metric loft doorway clear and closes the former oversized gap', () => {
     const wallInstances = createWallSegmentInstances(UPPER_FLOOR_PLAN, {
       floorId: 'upper',
       baseElevation: 0,
@@ -280,27 +281,17 @@ describe('upper landing west egress doorway', () => {
       fenceThickness: FENCE_THICKNESS,
       getRoomCategory,
     });
-    const formerWallBounds = {
-      minX: 3.875,
-      maxX: 8.525,
-      minZ: -16.25,
-      maxZ: -15.75,
-    };
-
-    expect(
-      wallInstances.some(
-        (instance) =>
-          instance.segment.rooms.some((room) => room.id === 'upperLanding') &&
-          instance.segment.rooms.some((room) => room.id === 'loftLibrary') &&
-          Math.abs(instance.collider.minX - formerWallBounds.minX) < 0.001 &&
-          Math.abs(instance.collider.maxX - formerWallBounds.maxX) < 0.001 &&
-          Math.abs(instance.collider.minZ - formerWallBounds.minZ) < 0.001 &&
-          Math.abs(instance.collider.maxZ - formerWallBounds.maxZ) < 0.001
-      )
-    ).toBe(false);
     expect(
       collidesWithColliders(
         6.2,
+        -16,
+        PLAYER_RADIUS,
+        wallInstances.map((instance) => instance.collider)
+      )
+    ).toBe(true);
+    expect(
+      collidesWithColliders(
+        9.6,
         -16,
         PLAYER_RADIUS,
         wallInstances.map((instance) => instance.collider)

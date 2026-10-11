@@ -46,7 +46,7 @@ test('walks at native full speed both ways below the upper staircase and retains
     await pressNativeMovementChord(
       page,
       ['KeyW', 'KeyA'],
-      runHoldForDistance(24)
+      runHoldForDistance(15)
     );
     let west = await page.evaluate(() =>
       window.portfolio!.world!.getPlayerPosition()
@@ -64,7 +64,7 @@ test('walks at native full speed both ways below the upper staircase and retains
     await pressNativeMovementChord(
       page,
       ['KeyS', 'KeyD'],
-      runHoldForDistance(24)
+      runHoldForDistance(15)
     );
     let east = await page.evaluate(() =>
       window.portfolio!.world!.getPlayerPosition()

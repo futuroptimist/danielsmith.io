@@ -22,10 +22,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/level/woodworkingLayout.ts',
       'src/scene/structures/woodworkingWorkshop.ts',
     ],
-    syncRevision: 1,
+    syncRevision: 2,
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
     syncNote:
-      'The basement snapshot includes static workshop geometry before the table is built.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
   },
   {
     id: 'exterior:front-entry',
@@ -38,27 +38,27 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'The source snapshot includes the garage, front yard, sidewalk and street within one property envelope.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
   },
   {
     id: 'level:career-museum-layout',
     kind: 'shared-source',
     sourceFiles: ['src/scene/level/careerMuseumLayout.ts'],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'The basement layout is included in the source snapshot and follows the active-floor cutaway.',
+      'Metre-scaled installations share their production bounds and transforms with the source snapshot.',
   },
   {
     id: 'career:museum-exhibits',
     kind: 'shared-source',
     sourceFiles: ['src/scene/structures/careerMuseum.ts'],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'The source snapshot reuses built museum geometry without duplicating textures or exhibit controllers.',
+      'Metre-scaled installations share their production bounds and transforms with the source snapshot.',
   },
   {
     id: 'career:reviewed-content',
@@ -81,9 +81,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/assets/floorPlan/index.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 10,
+    syncRevision: 11,
     syncNote:
-      'All production floors and the basement woodworking stations participate in the fixed property envelope.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
   },
   {
     id: 'level:floors-walls',
@@ -94,9 +94,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/wallSegmentsMesh.ts',
       'src/scene/structures/floorTiles.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Type-only wall geometry guards keep generated floor and wall topology unchanged.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
   },
   {
     id: 'level:stairs-landing',
@@ -107,10 +107,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/upperStairwellLanding.ts',
       'src/scene/level/upperStairwellLandingSegments.ts',
     ],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Both stair builds share tread geometry; the ground miniature retains the ' +
-      'upstairs silhouette and renders the source-derived basement opening.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
   },
   {
     id: 'level:basement-stairs',
@@ -120,11 +119,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/basementStaircase.ts',
       'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 4,
+    syncRevision: 5,
     syncNote:
-      'Ground-floor rail trim owns its slab footprint and the final parapets meet ' +
-      'its underside. The independent 80% landing-wall cutaway preserves collision. ' +
-      'The tabletop retains the shared opening and its ground-only view.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
   },
   {
     id: 'environment:backyard',
@@ -152,17 +149,18 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/ceilingPanels.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 1,
-    syncNote: 'Ceiling panel fixtures need simplified caps in the tabletop.',
+    syncRevision: 2,
+    syncNote:
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
   },
   {
     id: 'decor:wall-paintings',
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'Printer painting side fix changes only full-scale wall mounting; tabletop proxy remains aligned.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
   },
   {
     id: 'decor:lower-floor-furnishings',
@@ -212,7 +210,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'collision:upper-stair-ground-passage',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/upperStairGroundPassage.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
+    syncNote:
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
     reason:
       'Elevation-aware runtime collision volumes derive from the shared staircase ' +
       'without changing its visible miniature geometry.',
@@ -258,7 +258,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/units.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 6,
+    syncRevision: 7,
+    syncNote:
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
     reason:
       'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
@@ -338,9 +340,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:level:floorElevations',
     kind: 'excluded',
     sourceFiles: ['src/scene/level/floorElevations.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
+    syncNote:
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
     reason:
-      'Basement elevation is reserved without building a basement; existing ground and upper world elevations and miniature geometry are unchanged.',
+      'Floor elevations are consumed through built geometry in the shared source snapshot.',
   },
   {
     id: 'audit:src:scene:level:mediaWallPolicy',
@@ -386,9 +390,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:level:stairSafetyColliders',
     kind: 'excluded',
     sourceFiles: ['src/scene/level/stairSafetyColliders.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
+    syncNote:
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
     reason:
-      'Connection-local floor identities and mirrored positive-Z safety are supported; the existing negative-Z upstairs bounds and miniature geometry are unchanged.',
+      'Navigation-only guards follow the narrower stairs; visible stair geometry is covered by the shared source snapshot.',
   },
   {
     id: 'audit:src:scene:level:wallColliderDebugIdentity',

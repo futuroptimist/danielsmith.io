@@ -20,15 +20,18 @@ import {
   createLowerFloorFurnishings,
   createUpperFloorFurnishings,
 } from '../src/scene/structures/lowerFloorFurnishings';
+import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../src/scene/structures/portfolioMiniatureTableContract';
 import {
   STAIRCASE_CONFIG,
   WALL_HEIGHT,
 } from '../src/scene/structures/portfolioSceneLayout';
+import { createSelfieMirror } from '../src/scene/structures/selfieMirror';
 import { createWoodworkingWorkshop } from '../src/scene/structures/woodworkingWorkshop';
 import {
   AVATAR_BODY_SCALE,
   TARGET_AVATAR_HEIGHT,
   TARGET_ROOM_CLEAR_HEIGHT,
+  FLOOR_SLAB_THICKNESS,
 } from '../src/scene/units';
 import {
   AVATAR_WALK_SPEED,
@@ -74,6 +77,11 @@ async function main() {
       );
     });
   });
+  const mirror = createSelfieMirror({
+    position: { x: 0, z: 0 },
+    width: 1.7,
+    height: 2.05,
+  });
   const report = {
     units: {
       physicalUnitsPerMetre: 1,
@@ -93,8 +101,11 @@ async function main() {
     },
     architecture: {
       wallHeight: WALL_HEIGHT,
+      ceilingUndersideAboveFloor: TARGET_ROOM_CLEAR_HEIGHT,
+      slabThickness: FLOOR_SLAB_THICKNESS,
       floors: FLOOR_TOP_ELEVATIONS,
       stairRise: STAIRCASE_CONFIG.step.rise,
+      stairCount: STAIRCASE_CONFIG.step.count,
       stairRun: STAIRCASE_CONFIG.step.run,
       stairWidth: STAIRCASE_CONFIG.step.width,
       frontDoor: {
@@ -107,6 +118,11 @@ async function main() {
       },
     },
     parkedEV: { width: PARKED_EV.width, length: PARKED_EV.depth },
+    portfolioTable: PORTFOLIO_MINIATURE_TABLE_DIMENSIONS,
+    mirror: {
+      installation: dimensions(mirror.group),
+      frame: dimensions(mirror.group.getObjectByName('SelfieMirrorFrame')!),
+    },
     aquarium: {
       installation: dimensions(aquarium.group),
       water: dimensions(
@@ -122,5 +138,6 @@ async function main() {
   };
   console.log(JSON.stringify(report, null, 2));
   aquarium.dispose();
+  mirror.dispose();
 }
 void main();

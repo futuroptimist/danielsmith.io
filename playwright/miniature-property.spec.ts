@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+import { getFloorTopElevation } from '../src/scene/level/floorElevations';
+import { FLOOR_SLAB_THICKNESS } from '../src/scene/units';
+
 for (const reducedMotion of ['no-preference', 'reduce'] as const) {
   test(`property table and corner shrub (${reducedMotion})`, async ({
     page,
@@ -66,7 +69,9 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     expect(snapshot.triangles).toBeLessThan(40000);
     expect(snapshot.drawCalls).toBeLessThanOrEqual(64);
     expect(snapshot.bounds.max[0]).toBeGreaterThan(75);
-    expect(snapshot.bounds.min[1]).toBeLessThanOrEqual(-5);
+    expect(snapshot.bounds.min[1]).toBeCloseTo(
+      getFloorTopElevation('basement') - FLOOR_SLAB_THICKNESS
+    );
     expect(snapshot.sourceNames).toContain('BackyardGalvanizedTub');
     expect(snapshot.sourceNames).toContain('assembly-bench:box:wood');
     expect(

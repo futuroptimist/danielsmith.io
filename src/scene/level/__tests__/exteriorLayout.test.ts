@@ -41,7 +41,7 @@ describe('front entry declarative topology', () => {
       (gap) => gap.label === 'living-to-front-yard'
     )!;
     expect(wall.run!.start.z + (gap.start + gap.end) / 2).toBe(-7.5);
-    expect(gap.end - gap.start).toBe(FRONT_ENTRY.width);
+    expect(gap.end - gap.start).toBeCloseTo(FRONT_ENTRY.width);
     expect(HOUSE_CAMERA_OUTLINE).toEqual([
       [-16, -16],
       [16, -16],
@@ -72,8 +72,8 @@ describe('front entry declarative topology', () => {
     const door = createExteriorDoorDefinitions(FLOOR_PLAN_SCALE)[0];
     expect(door.center.x).toBeCloseTo(32);
     expect(door.center.z).toBeCloseTo(-15);
-    expect(door.height).toBe(3.5);
-    expect(door.width).toBeCloseTo(6);
+    expect(door.height).toBe(2.1);
+    expect(door.width).toBeCloseTo(2.4);
   });
   it('provides continuous navigable path and a clear planter-free threshold', () => {
     const nav = createNavMesh(FLOOR_PLAN);

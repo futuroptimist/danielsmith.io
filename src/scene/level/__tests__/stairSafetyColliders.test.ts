@@ -90,8 +90,8 @@ describe('stair safety collider source definitions', () => {
         (collider) => collider.name === 'UpperStairWestBannisterGuard'
       )?.bounds
     ).toEqual({
-      minX: 9.4,
-      maxX: 10.290000000000001,
+      minX: 8.4,
+      maxX: 9.290000000000001,
       minZ: -24.669999999999998,
       maxZ: -18.130000000000003,
     });

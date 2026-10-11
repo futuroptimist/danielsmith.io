@@ -82,7 +82,11 @@ export function createUpperStairGroundPassage(
   const landingEndZ = landingStartZ + direction * config.landing.depth;
   const minZ = Math.min(landingStartZ, landingEndZ);
   const maxZ = Math.max(landingStartZ, landingEndZ);
-  const minY = config.basePosition.y + config.step.rise * config.step.count;
+  const minY =
+    config.basePosition.y +
+    (config.landing.topRise ??
+      config.step.rise * config.step.count + config.landing.thickness) -
+    config.landing.thickness;
   add(
     'landing.underside',
     {

@@ -1,3 +1,4 @@
+import { Box3 } from 'three';
 import {
   afterEach,
   beforeAll,
@@ -83,6 +84,7 @@ describe('createLivingRoomMediaWall', () => {
     const bounds = getProductionRoomBounds('ground', 'livingRoom');
     const build = createLivingRoomMediaWall(bounds);
 
+    expect(new Box3().setFromObject(build.group).max.y).toBeLessThan(2.74);
     const screen = build.group.getObjectByName('LivingRoomMediaWallScreen');
     expect(screen).toBeTruthy();
 

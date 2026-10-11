@@ -1,4 +1,9 @@
 import {
+  CAREER_EXHIBIT_FOOTPRINT,
+  CAREER_INTERACTION_ANCHOR,
+} from '../../../level/careerMuseumLayout';
+import { getFloorTopElevation } from '../../../level/floorElevations';
+import {
   createCareerPoiDefinitions,
   type CareerPoiPlacement,
 } from '../../careers';
@@ -6,9 +11,13 @@ import type { CareerPoiId } from '../../types';
 
 const placement = (x: number, z: number): CareerPoiPlacement => ({
   roomId: 'careerMuseum',
-  position: { x, y: -5, z },
-  interactionAnchorPosition: { x, y: -4.25, z: z + 2.5 },
-  footprint: { width: 4.8, depth: 3 },
+  position: { x, y: getFloorTopElevation('basement'), z },
+  interactionAnchorPosition: {
+    x,
+    y: getFloorTopElevation('basement') + CAREER_INTERACTION_ANCHOR.height,
+    z: z + CAREER_INTERACTION_ANCHOR.frontOffset,
+  },
+  footprint: CAREER_EXHIBIT_FOOTPRINT,
   interactionRadius: 3.6,
   headingRadians: 0,
 });

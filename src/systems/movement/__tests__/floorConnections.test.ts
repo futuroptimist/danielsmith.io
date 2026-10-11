@@ -134,7 +134,7 @@ describe('floor registry', () => {
   it('reports negative elevation and detached read-only floor snapshots', () => {
     const registry = createFloorRegistry([floor('basement')]);
     const snapshot = registry.getSnapshot();
-    expect(snapshot[0].elevation).toBe(-5);
+    expect(snapshot[0].elevation).toBe(getFloorTopElevation('basement'));
     snapshot[0].navigation[0].minX = 99;
     snapshot[0].roomIds.push('not-a-room');
     expect(registry.getSnapshot()[0].navigation[0].minX).toBe(-100);
@@ -175,7 +175,9 @@ describe('adjacent floor connections', () => {
       floorId: 'basement',
       activeConnectionId: null,
     });
-    expect(controller.sampleHeight(centerX, topZ)).toBe(-5);
+    expect(controller.sampleHeight(centerX, topZ)).toBe(
+      getFloorTopElevation('basement')
+    );
     controller.reset('upper');
     expect(
       controller.preview(
@@ -185,7 +187,7 @@ describe('adjacent floor connections', () => {
     ).toMatchObject({ floorId: 'upper', activeConnectionId: null });
     expect(
       controller.sampleHeight(basement.geometry.centerX, basement.geometry.topZ)
-    ).toBe(5);
+    ).toBe(getFloorTopElevation('upper'));
   });
 
   it('retains every floor outside explicit transition zones', () => {
@@ -597,7 +599,7 @@ describe('existing upstairs compatibility fixture', () => {
               x,
               z,
               currentFloor,
-              upperFloorElevation: 5,
+              upperFloorElevation: getFloorTopElevation('upper'),
             })
           );
         }

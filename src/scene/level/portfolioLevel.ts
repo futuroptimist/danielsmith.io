@@ -20,7 +20,7 @@ import { WORKSHOP_OBJECTS } from './woodworkingLayout';
 
 const sourceId = (value: string) => assertLevelSourceId(value);
 
-const DOOR_WIDTH = 4;
+const DOOR_WIDTH = 1.2;
 const DOOR_HALF_WIDTH = DOOR_WIDTH / 2;
 
 const doorwayRange = (center: number) => ({
@@ -87,8 +87,9 @@ const livingToStudioDoorCenter = 7.5;
 const kitchenToBackyardDoorCenter = -9;
 const studioToBackyardDoorCenter = 7.5;
 const kitchenToStudioDoorCenterZ = 2;
-const upperLandingToCreatorsStudioDoorway = { start: -16, end: -13.07 };
-const upperLandingToLoftLibraryDoorway = { start: 2, end: 8.2 };
+const upperLandingToCreatorsStudioDoorway = { start: -15.135, end: -13.935 };
+// Leave a full player-radius approach beside the stair's west physical rail.
+const upperLandingToLoftLibraryDoorway = { start: 4.2, end: 5.4 };
 
 const centeredGap = (runStart: number, center: number, label: string) => {
   const range = doorwayRange(center);
@@ -629,9 +630,8 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           ['creatorsStudio', 'upperLanding', 'loftLibrary'],
           [
             gap(
-              0,
-              upperLandingToCreatorsStudioDoorway.end -
-                upperLandingToCreatorsStudioDoorway.start,
+              upperLandingToCreatorsStudioDoorway.start - -16,
+              upperLandingToCreatorsStudioDoorway.end - -16,
               'creators-studio-to-landing'
             ),
             centeredGap(-16, -4, 'creators-studio-to-library'),
@@ -692,9 +692,8 @@ export const PORTFOLIO_LEVEL: LevelDefinition = {
           ['upperLanding', 'loftLibrary'],
           [
             gap(
-              0,
-              upperLandingToLoftLibraryDoorway.end -
-                upperLandingToLoftLibraryDoorway.start,
+              upperLandingToLoftLibraryDoorway.start - 2,
+              upperLandingToLoftLibraryDoorway.end - 2,
               'landing-to-library'
             ),
           ]

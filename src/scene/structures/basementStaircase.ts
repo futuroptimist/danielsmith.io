@@ -30,15 +30,14 @@ export function getBasementStairLayout(playerRadius = 0.75) {
     step: {
       count: definition.stepCount,
       rise:
-        (definition.upperFloorElevation -
-          definition.lowerFloorElevation -
-          definition.landingThickness) /
+        (definition.upperFloorElevation - definition.lowerFloorElevation) /
         definition.stepCount,
       run: world(definition.stepRun),
       width: world(definition.width),
       material: { color: 0x9b8973, roughness: 0.72, metalness: 0.04 },
     },
     landing: {
+      topRise: definition.upperFloorElevation - definition.lowerFloorElevation,
       depth: world(definition.landingDepth),
       thickness: definition.landingThickness,
       material: { color: 0x81796d, roughness: 0.68, metalness: 0.04 },

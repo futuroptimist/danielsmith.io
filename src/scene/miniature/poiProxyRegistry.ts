@@ -7,6 +7,11 @@ import type {
   MiniaturePrimitiveDefinition,
 } from './types';
 
+const TABLE_PROXY_LEG_WIDTH = 0.12;
+const TABLE_PROXY_LEG_HEIGHT =
+  PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height -
+  PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.topThickness / 2;
+
 const SELF_FILE = 'src/scene/miniature/poiProxyRegistry.ts';
 const box = (
   name: string,
@@ -111,9 +116,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',
     displayName: 'Futur Optimist TV proxy',
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.',
+      'Metre-scaled installations share their production bounds and transforms with the source snapshot.',
     sourceFiles: [...baseFiles, 'src/scene/structures/mediaWall.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -459,9 +464,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Metre-scaled installations share their production bounds and transforms with the source snapshot.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -490,9 +495,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 25,
+    syncRevision: 26,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
@@ -561,9 +566,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 13,
+    syncRevision: 16,
     syncNote:
-      'The full property is projected from production visuals, terminating at the shared table shell.',
+      'The shared snapshot includes the metric mirror, and recursion-boundary supports derive from the resized tabletop footprint and underside.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',
@@ -588,14 +593,26 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
       ),
       box(
         'danielsmith-white-table-leg-a',
-        [0.12, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0.12],
-        [-1.45, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height / 2, -1.2],
+        [TABLE_PROXY_LEG_WIDTH, TABLE_PROXY_LEG_HEIGHT, TABLE_PROXY_LEG_WIDTH],
+        [
+          -PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.width / 2 +
+            TABLE_PROXY_LEG_WIDTH,
+          TABLE_PROXY_LEG_HEIGHT / 2,
+          -PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.depth / 2 +
+            TABLE_PROXY_LEG_WIDTH,
+        ],
         0xf8fafc
       ),
       box(
         'danielsmith-white-table-leg-b',
-        [0.12, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height, 0.12],
-        [1.45, PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.height / 2, -1.2],
+        [TABLE_PROXY_LEG_WIDTH, TABLE_PROXY_LEG_HEIGHT, TABLE_PROXY_LEG_WIDTH],
+        [
+          PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.width / 2 -
+            TABLE_PROXY_LEG_WIDTH,
+          TABLE_PROXY_LEG_HEIGHT / 2,
+          -PORTFOLIO_MINIATURE_TABLE_DIMENSIONS.depth / 2 +
+            TABLE_PROXY_LEG_WIDTH,
+        ],
         0xf8fafc
       ),
       box(

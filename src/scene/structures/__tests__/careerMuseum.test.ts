@@ -8,6 +8,7 @@ import {
 } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { getFloorTopElevation } from '../../level/floorElevations';
 import { getTestCareerPois } from '../../poi/__tests__/helpers/careerFixtures';
 import { createCareerMuseum } from '../careerMuseum';
 import { countObjectTriangles } from '../triangleCount';
@@ -48,6 +49,10 @@ describe('original career museum geometry', () => {
     expect(drawCalls).toBeLessThanOrEqual(35);
     expect(countObjectTriangles(build.group)).toBeLessThan(4000);
     expect(build.resourceCounts.textures).toBe(4);
+    for (const furnishing of build.furnishings) {
+      const bounds = new Box3().setFromObject(furnishing.group);
+      expect(bounds.max.y - furnishing.group.position.y).toBeLessThan(2.74);
+    }
     build.dispose();
   });
 
@@ -96,9 +101,11 @@ describe('original career museum geometry', () => {
   it('keeps anchors at avatar height beyond the solid stand and derives exact collision extents', () => {
     const build = createCareerMuseum(getTestCareerPois());
     for (const exhibit of build.exhibits) {
-      expect(exhibit.interactionAnchor.y).toBe(-4.25);
+      expect(exhibit.interactionAnchor.y).toBe(
+        getFloorTopElevation('basement') + 0.75
+      );
       expect(exhibit.interactionAnchor.z - exhibit.collider.maxZ).toBeCloseTo(
-        1
+        0.9
       );
       const renderedSolid = new Box3();
       exhibit.group.updateWorldMatrix(true, true);
@@ -116,7 +123,7 @@ describe('original career museum geometry', () => {
       expect(exhibit.collider.maxZ).toBeCloseTo(renderedSolid.max.z);
       expect(
         new Box3().setFromObject(exhibit.group).getSize(new Vector3()).y
-      ).toBeLessThan(3.7);
+      ).toBeLessThan(2.74);
     }
     build.dispose();
   });
@@ -214,6 +221,10 @@ describe('original career museum geometry', () => {
     expect(calls).toBeLessThan(75);
     expect(countObjectTriangles(build.group)).toBeLessThan(5500);
     expect(build.resourceCounts.textures).toBe(4);
+    for (const furnishing of build.furnishings) {
+      const bounds = new Box3().setFromObject(furnishing.group);
+      expect(bounds.max.y - furnishing.group.position.y).toBeLessThan(2.74);
+    }
     build.dispose();
   });
 

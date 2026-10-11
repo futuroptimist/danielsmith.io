@@ -1,3 +1,5 @@
+import { FLOOR_SLAB_THICKNESS } from '../units';
+
 import { FLOOR_TOP_ELEVATIONS } from './floorElevations';
 
 /** Horizontal measurements are level units; elevations are world units. */
@@ -8,12 +10,12 @@ export const BASEMENT_STAIR_CONNECTION = {
   lowerFloorElevation: FLOOR_TOP_ELEVATIONS.basement,
   upperFloorElevation: FLOOR_TOP_ELEVATIONS.ground,
   centerX: 1.9,
-  bottomZ: -14.65,
-  width: 2.4,
-  stepRun: 0.85,
-  stepCount: 9,
-  landingDepth: 2.6,
-  landingThickness: 0.38,
+  bottomZ: -9.52,
+  width: 1.2,
+  stepRun: 0.14,
+  stepCount: 18,
+  landingDepth: 1.2,
+  landingThickness: FLOOR_SLAB_THICKNESS,
   direction: 'positiveZ',
   transitionMargin: 0.6,
   landingTriggerMargin: 0.2,

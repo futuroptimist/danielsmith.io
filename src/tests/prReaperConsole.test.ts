@@ -141,7 +141,7 @@ describe('createPrReaperInstallation', () => {
       9 / 21,
       12
     );
-    expect(PR_REAPER_SCREEN_HEIGHT).toBeGreaterThanOrEqual(6 * 0.82);
+    expect(PR_REAPER_SCREEN_HEIGHT).toBeGreaterThanOrEqual(1.9);
     expect(screenTop).toBeLessThan(PR_REAPER_AVAILABLE_LED_SAFE_HEIGHT);
     expect(PR_REAPER_SCREEN_TO_EMITTER_STANDOFF).toBeGreaterThanOrEqual(
       PR_REAPER_MIN_EMITTER_STANDOFF

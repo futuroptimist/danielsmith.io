@@ -1,4 +1,5 @@
 import type { DoorDefinition } from '../../systems/doors/controller';
+import { DOOR_CLEAR_HEIGHT } from '../units';
 
 import {
   GARAGE_ROOMS,
@@ -27,7 +28,12 @@ export const HOUSE_CAMERA_OUTLINE: Array<[number, number]> = [
   [16, 16],
   [-16, 16],
 ];
-export const FRONT_ENTRY = { x: 16, z: -7.5, width: 3, height: 3.5 } as const;
+export const FRONT_ENTRY = {
+  x: 16,
+  z: -7.5,
+  width: 1.2,
+  height: DOOR_CLEAR_HEIGHT,
+} as const;
 // A distinct interior approach east of the existing solid stair guard.
 export const FRONT_ENTRY_APPROACH = { start: 11.75, end: 14.75 } as const;
 const source = assertLevelSourceId;

@@ -10,6 +10,7 @@ import {
   type MuseumFurnishingPlacement,
 } from '../../structures/careerMuseum';
 import { CAREER_MUSEUM_OBJECTS } from '../careerMuseumLayout';
+import { getFloorTopElevation } from '../floorElevations';
 import { PORTFOLIO_LEVEL } from '../portfolioLevel';
 import { validateLevelDefinition } from '../schema';
 
@@ -31,7 +32,7 @@ describe('declarative career museum layout', () => {
     for (const object of CAREER_MUSEUM_OBJECTS) {
       expect(object.floorId).toBe('basement');
       expect(object.roomId).toBe('careerMuseum');
-      expect(object.position.y).toBe(-5);
+      expect(object.position.y).toBe(getFloorTopElevation('basement'));
       expect(object.colliderPolicy?.kind).toBe(
         object.kind === 'museum.wall-art' ? 'decorativeNoCollision' : 'solid'
       );
@@ -43,11 +44,13 @@ describe('declarative career museum layout', () => {
       expect(placement.position.z).toBeCloseTo(
         object.position.z * FLOOR_PLAN_SCALE
       );
-      expect(placement.position.y).toBe(-5);
-      expect(placement.interactionAnchorPosition.y).toBe(-4.25);
+      expect(placement.position.y).toBe(getFloorTopElevation('basement'));
+      expect(placement.interactionAnchorPosition.y).toBe(
+        getFloorTopElevation('basement') + 0.75
+      );
       expect(
         placement.interactionAnchorPosition.z - placement.position.z
-      ).toBeCloseTo(2.5);
+      ).toBeCloseTo(1.8);
     }
   });
 

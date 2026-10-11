@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { collidesWithColliders } from '../../../systems/collision';
 import { ORDERED_SCENE_DETAIL_LEVELS } from '../../graphics/sceneDetailPolicy';
 import { CAREER_MUSEUM_OBJECTS } from '../../level/careerMuseumLayout';
+import { getFloorTopElevation } from '../../level/floorElevations';
 import { WORKSHOP_RESERVATION } from '../../level/woodworkingLayout';
 import { createWoodworkingWorkshop } from '../woodworkingWorkshop';
 
@@ -89,7 +90,7 @@ describe('woodworking corner', () => {
       const z = (collider.minZ + collider.maxZ) / 2;
       expect(
         collidesWithColliders(x, z, 0.75, colliders, {
-          feetY: -5,
+          feetY: getFloorTopElevation('basement'),
           height: 1.8,
           activeConnectionId: null,
         })

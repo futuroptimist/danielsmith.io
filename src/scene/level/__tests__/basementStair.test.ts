@@ -10,6 +10,7 @@ import {
   getBasementStairLayout,
 } from '../../structures/basementStaircase';
 import { DEFAULT_LOWER_FLOOR_FURNISHINGS } from '../../structures/lowerFloorFurnishings';
+import { getFloorTopElevation } from '../floorElevations';
 import { generateFloorSurfaces } from '../generateFloorSurfaces';
 import { PORTFOLIO_LEVEL } from '../portfolioLevel';
 import { validateLevelDefinition } from '../schema';
@@ -28,9 +29,11 @@ describe('basement shell and stairs', () => {
     expect(room.bounds.minZ).toBeCloseTo(-18 * FLOOR_PLAN_SCALE);
     expect(room.bounds.maxX).toBeCloseTo(16 * FLOOR_PLAN_SCALE);
     const build = createBasementStaircase(radius);
-    expect(build.connection.lowerFloorElevation).toBe(-5);
+    expect(build.connection.lowerFloorElevation).toBe(
+      getFloorTopElevation('basement')
+    );
     expect(build.geometry.topZ).toBeCloseTo(-7 * FLOOR_PLAN_SCALE);
-    expect(build.geometry.landingMaxZ).toBeCloseTo(-4.4 * FLOOR_PLAN_SCALE);
+    expect(build.geometry.landingMaxZ).toBeCloseTo(-5.8 * FLOOR_PLAN_SCALE);
     expect(build.connection.upperFloorElevation).toBe(0);
   });
 
@@ -59,7 +62,9 @@ describe('basement shell and stairs', () => {
       ).toBe(false);
       const step = stair.group.getObjectByName(`StaircaseStep-${index + 1}`)!;
       const box = new Box3().setFromObject(step);
-      expect(box.max.y).toBeCloseTo(-5 + (index + 1) * stair.config.step.rise);
+      expect(box.max.y).toBeCloseTo(
+        getFloorTopElevation('basement') + (index + 1) * stair.config.step.rise
+      );
     }
     const landing = new Box3().setFromObject(
       stair.group.getObjectByName('StaircaseLanding')!
@@ -92,7 +97,7 @@ describe('basement shell and stairs', () => {
     const westGuard = stair.safety.find(
       (guard) => guard.name === 'BasementStairs-ground-westVoidRail'
     )!;
-    expect(stair.config.step.width - radius * 2).toBeGreaterThanOrEqual(3);
+    expect(stair.config.step.width - radius * 2).toBeGreaterThanOrEqual(0.9);
     const lowerRoomWallInnerZ = BASEMENT_FLOOR_PLAN.rooms[0].bounds.minZ + 0.25;
     const lowerRailToe = stair.geometry.bottomZ - stair.thickness;
     expect(

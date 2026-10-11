@@ -178,7 +178,6 @@ const createNegativeZUpperStairSafetyColliders = ({
   const upperStairWestBannisterMinX = upperStairwellOpening.minX;
   const upperStairWestBannisterMaxX =
     stairNavigationZones.explicitDescentCorridor.minX - playerRadius - 0.01;
-  const upperStairWestBannisterShiftX = 1;
   const upperStairNorthBannisterMinX =
     stairNavigationZones.explicitDescentCorridor.minX +
     upperStairBannisterThickness * 1.5;
@@ -202,7 +201,8 @@ const createNegativeZUpperStairSafetyColliders = ({
       intent: 'safety-guard',
       purpose: 'guard upper stairwell void edge',
       bounds: {
-        minX: stairNavigationZones.explicitDescentCorridor.maxX,
+        // The corridor contains player centers; its physical edge includes radius.
+        minX: stairNavigationZones.explicitDescentCorridor.maxX + playerRadius,
         maxX: stairCenterX + stairHalfWidth + stairwellMarginX,
         minZ: upperStairLandingEntryMaxZ,
         maxZ: upperStairVoidMaxZ,
@@ -233,8 +233,8 @@ const createNegativeZUpperStairSafetyColliders = ({
       intent: 'safety-guard',
       purpose: 'preserve descent corridor edge',
       bounds: {
-        minX: upperStairWestBannisterMinX + upperStairWestBannisterShiftX,
-        maxX: upperStairWestBannisterMaxX + upperStairWestBannisterShiftX,
+        minX: upperStairWestBannisterMinX,
+        maxX: upperStairWestBannisterMaxX,
         minZ: Math.min(
           upperStairNorthBannisterBaseCenterZ,
           upperStairWestBannisterSouthZ

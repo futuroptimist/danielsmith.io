@@ -4,7 +4,10 @@ import { expect, test, type Page } from '@playwright/test';
 
 import type { PortfolioApi } from '../src/app/portfolioApi';
 import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
-import type { FloorId } from '../src/scene/level/floorElevations';
+import {
+  getFloorTopElevation,
+  type FloorId,
+} from '../src/scene/level/floorElevations';
 
 const URL = '/?mode=immersive&disablePerformanceFailover=1';
 const SPAWN = { x: 0, z: -20 };
@@ -12,25 +15,11 @@ const LANDING = { x: 3.8, z: -11 };
 const TOE = { x: 3.8, z: -32.5 };
 const GROUND_TO_UPPER = [
   SPAWN,
-  { x: -15, z: -20 },
-  { x: -15, z: -7.1 },
-  { x: -14.7, z: -7.1 },
-  { x: -14.7, z: -6.8 },
-  { x: -10.2, z: -6.8 },
-  { x: -10.2, z: -5 },
-  { x: -9.9, z: -5 },
-  { x: -9.9, z: -4.7 },
-  { x: -8.7, z: -4.7 },
-  { x: -8.7, z: -4.4 },
-  { x: -5.1, z: -4.4 },
-  { x: -5.1, z: 0.7 },
-  { x: -4.8, z: 0.7 },
-  { x: -4.8, z: 1 },
-  { x: 1.2, z: 1 },
-  { x: 1.2, z: -1.1 },
-  { x: 12.3, z: -1.1 },
-  { x: 12.3, z: -10.1 },
-  { x: 12.4, z: -10.3 },
+  { x: 0, z: -23 },
+  { x: 23, z: -23 },
+  { x: 23, z: -14 },
+  { x: 12.4, z: -14 },
+  { x: 12.4, z: -16.5 },
 ];
 
 async function ready(page: Page) {
@@ -355,7 +344,7 @@ test('completes ten consecutive round trips with slow diagonal lips, stops and r
     await walk(page, [{ x: 3.8, z: -14.1 }], 0.035);
     const down = await walk(page, [{ x: 3.7, z: -14.8 }, TOE], 0.07);
     expect(down.floor).toBe('basement');
-    expect(down.position.y).toBe(-5);
+    expect(down.position.y).toBe(getFloorTopElevation('basement'));
     expect(down.maxHeightChange).toBeLessThan(0.55);
     await walk(
       page,
@@ -478,12 +467,12 @@ test('blocks coarse displacements through side and back stair rails', async ({
 }) => {
   await ready(page);
   const fixtures = [
-    { floorId: 'ground' as const, x: 0, z: -20, dx: 12, dz: 0 },
-    { floorId: 'ground' as const, x: 8, z: -20, dx: -12, dz: 0 },
-    { floorId: 'basement' as const, x: 0, z: -20, dx: 12, dz: 0 },
-    { floorId: 'basement' as const, x: 8, z: -20, dx: -12, dz: 0 },
-    { floorId: 'ground' as const, x: 0.5, z: -30.8, dx: 12, dz: 1 },
-    { floorId: 'basement' as const, x: 3.8, z: -7, dx: 0, dz: -12 },
+    { floorId: 'ground' as const, x: 1.2, z: -16.5, dx: 12, dz: 0 },
+    { floorId: 'ground' as const, x: 6.4, z: -16.5, dx: -12, dz: 0 },
+    { floorId: 'basement' as const, x: 1.2, z: -16.5, dx: 12, dz: 0 },
+    { floorId: 'basement' as const, x: 6.4, z: -16.5, dx: -12, dz: 0 },
+    { floorId: 'ground' as const, x: 3.8, z: -21, dx: 0, dz: 12 },
+    { floorId: 'basement' as const, x: 3.8, z: -10, dx: 0, dz: -12 },
   ];
   for (const fixture of fixtures) {
     const result = await page.evaluate((fixture) => {
@@ -504,13 +493,13 @@ test('blocks genuine side and back attempts without floor hopping on either loca
 }) => {
   await ready(page);
   const cases = [
-    { floorId: 'ground' as const, x: 0, z: -20, dx: 0.1, dz: 0 },
-    { floorId: 'ground' as const, x: 7.8, z: -20, dx: -0.1, dz: 0 },
-    { floorId: 'ground' as const, x: 0.5, z: -30.8, dx: 0.1, dz: 0.05 },
-    { floorId: 'basement' as const, x: 0, z: -20, dx: 0.1, dz: 0 },
-    { floorId: 'basement' as const, x: 8, z: -20, dx: -0.1, dz: 0 },
-    { floorId: 'basement' as const, x: 3.8, z: -7, dx: 0, dz: -0.1 },
-    { floorId: 'basement' as const, x: 0, z: -11, dx: 0.1, dz: 0 },
+    { floorId: 'ground' as const, x: 1.2, z: -16.5, dx: 0.1, dz: 0 },
+    { floorId: 'ground' as const, x: 6.4, z: -16.5, dx: -0.1, dz: 0 },
+    { floorId: 'ground' as const, x: 3.8, z: -21, dx: 0, dz: 0.1 },
+    { floorId: 'basement' as const, x: 1.2, z: -16.5, dx: 0.1, dz: 0 },
+    { floorId: 'basement' as const, x: 6.4, z: -16.5, dx: -0.1, dz: 0 },
+    { floorId: 'basement' as const, x: 3.8, z: -10, dx: 0, dz: -0.1 },
+    { floorId: 'basement' as const, x: 1.2, z: -12.5, dx: 0.1, dz: 0 },
   ];
   for (const fixture of cases) {
     const result = await page.evaluate((fixture) => {
@@ -528,7 +517,7 @@ test('blocks genuine side and back attempts without floor hopping on either loca
     }, fixture);
     expect(result.blocked, JSON.stringify(fixture)).toBe(true);
     expect(result.floors).toEqual([fixture.floorId]);
-    expect(result.y).toBe(fixture.floorId === 'basement' ? -5 : 0);
+    expect(result.y).toBe(getFloorTopElevation(fixture.floorId));
   }
 });
 
@@ -575,7 +564,7 @@ test('uses genuine keyboard controls through the basement stairs in both directi
   await keyboardAxis(page, ['KeyW', 'KeyD'], 'z', -32);
   const bottom = await checkpoint(page, 'keyboard-basement');
   expect(bottom.floor).toBe('basement');
-  expect(bottom.position.y).toBe(-5);
+  expect(bottom.position.y).toBe(getFloorTopElevation('basement'));
   await keyboardAxis(page, ['KeyS', 'KeyA'], 'z', -11);
   expect((await checkpoint(page, 'keyboard-ground')).floor).toBe('ground');
 });
@@ -706,9 +695,9 @@ test('measures radius-adjusted circulation lanes and turning pads against live c
       {
         name: 'basement stair clear width',
         floorId: 'basement' as const,
-        minX: 2.25,
-        maxX: 5.35,
-        minZ: -28.8,
+        minX: 3.4,
+        maxX: 4.2,
+        minZ: -18.8,
         maxZ: -14.8,
       },
     ];
