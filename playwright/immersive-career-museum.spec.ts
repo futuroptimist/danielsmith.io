@@ -7,6 +7,7 @@ import type { AxeResults } from 'axe-core';
 import { CAREER_HISTORY } from '../src/assets/careers';
 import { AVAILABLE_LOCALES, getCareerCopy } from '../src/assets/i18n';
 import { getWorkshopDescription } from '../src/assets/i18n/woodworking';
+import { CAREER_INTERACTION_ANCHOR } from '../src/scene/level/careerMuseumLayout';
 import { getFloorTopElevation } from '../src/scene/level/floorElevations';
 import { IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET } from '../src/assets/performance';
 
@@ -19,27 +20,31 @@ const APPROACHES = [
     title: 'The University of Southern Mississippi',
     path: [
       { x: -29, z: -32.5 },
-      { x: -29, z: -15.5 },
-      { x: -18, z: -15.5 },
+      { x: -29, z: -18 + CAREER_INTERACTION_ANCHOR.frontOffset },
+      { x: -18, z: -18 + CAREER_INTERACTION_ANCHOR.frontOffset },
     ],
   },
   {
     id: 'career-naval-research',
     title: 'Naval Research Laboratory',
     path: [
-      { x: -29, z: -15.5 },
-      { x: -29, z: 4.5 },
-      { x: -18, z: 4.5 },
+      { x: -29, z: -18 + CAREER_INTERACTION_ANCHOR.frontOffset },
+      { x: -29, z: 2 + CAREER_INTERACTION_ANCHOR.frontOffset },
+      { x: -18, z: 2 + CAREER_INTERACTION_ANCHOR.frontOffset },
     ],
   },
-  { id: 'career-youtube', title: 'YouTube', path: [{ x: 20, z: 4.5 }] },
+  {
+    id: 'career-youtube',
+    title: 'YouTube',
+    path: [{ x: 20, z: 2 + CAREER_INTERACTION_ANCHOR.frontOffset }],
+  },
   {
     id: 'career-muon-space',
     title: 'Muon Space',
     path: [
-      { x: 26, z: 4.5 },
-      { x: 26, z: -17.5 },
-      { x: 20, z: -17.5 },
+      { x: 26, z: 2 + CAREER_INTERACTION_ANCHOR.frontOffset },
+      { x: 26, z: -20 + CAREER_INTERACTION_ANCHOR.frontOffset },
+      { x: 20, z: -20 + CAREER_INTERACTION_ANCHOR.frontOffset },
     ],
   },
 ];
