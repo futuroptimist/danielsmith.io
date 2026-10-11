@@ -603,14 +603,15 @@ for (const viewport of [
     });
     if (viewport.width === 390) {
       const session = await context.newCDPSession(page);
-      const origin = { x: 120 * Math.SQRT1_2, y: 620 };
+      // HUD touch coordinates are pixels and do not follow the world footprint.
+      const origin = { x: 120, y: 620 };
       await session.send('Input.dispatchTouchEvent', {
         type: 'touchStart',
         touchPoints: [origin],
       });
       await session.send('Input.dispatchTouchEvent', {
         type: 'touchMove',
-        touchPoints: [{ x: 168 * Math.SQRT1_2, y: 572 }],
+        touchPoints: [{ x: 168, y: 572 }],
       });
       try {
         await page.waitForFunction(
