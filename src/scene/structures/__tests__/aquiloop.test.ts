@@ -1,4 +1,4 @@
-import { Box3, Mesh, Vector3 } from 'three';
+import { Box3, InstancedMesh, Matrix4, Mesh, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { getPoiDefinitions } from '../../poi/registry';
@@ -123,6 +123,20 @@ describe('Aquiloop exhibit integration', () => {
       if (o instanceof Mesh) meshes.push(o);
     });
     expect(meshes.length).toBeLessThan(35);
+    const instanceMatrix = new Matrix4();
+    for (const mesh of meshes) {
+      if (!(mesh instanceof InstancedMesh) || !mesh.name.endsWith('-parts'))
+        continue;
+      expect(mesh.boundingSphere).not.toBeNull();
+      for (let i = 0; i < mesh.count; i++) {
+        mesh.getMatrixAt(i, instanceMatrix);
+        expect(
+          mesh.boundingSphere!.containsPoint(
+            new Vector3().setFromMatrixPosition(instanceMatrix)
+          )
+        ).toBe(true);
+      }
+    }
     expect(countObjectTriangles(build.group)).toBeLessThan(11000);
     const bounds = new Box3().setFromObject(build.group).getSize(new Vector3());
     expect(bounds.x).toBeLessThan(6.4);

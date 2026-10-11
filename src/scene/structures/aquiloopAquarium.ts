@@ -339,6 +339,8 @@ export function createAquiloopAquarium(position: {
     mesh.name = `aquiloop-${batch.color}-parts`;
     mesh.userData.partNames = batch.transforms.map((t) => t.name);
     batch.transforms.forEach((t, i) => mesh.setMatrixAt(i, t.matrix));
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
     group.add(mesh);
   }
   const levels = new InstancedMesh(

@@ -587,11 +587,11 @@
         "src/scene/structures/aquiloopCycle.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 3,
-      "syncNote": "Aquarium animals share five instanced color batches; the production snapshot preserves their initial poses without controllers.",
-      "sourceFingerprint": "4d9f117fc25a56a932e9f3507797a91e26bdb2c8aabb1f53801b13033abb2d73",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
-      "metadataFingerprint": "2bddf9dfd88656fb76c73b570a29108eb49fbcd20c742780ccbc4d229d124fc8"
+      "syncRevision": 4,
+      "syncNote": "Static aquarium instance bounds are initialized explicitly; the shared production snapshot remains controller-free.",
+      "sourceFingerprint": "6ff1253f40b538a7608521850befd9fe8e964ee156fe59064350fddb26532d32",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "metadataFingerprint": "17674fbda38628c4a28d18e47fb188485dbe70b3a522803c3907bf5caaa0a792"
     },
     {
       "id": "poi:axel-studio-tracker",
@@ -605,7 +605,7 @@
       "syncRevision": 11,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "aa83d343be910aaf7fb7c36037e990c58ca28f072322e751b91823150382f516",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "136eb09e474c1747a905e77abc94b010525bac293a29621b1dc26a2cbf5bf792"
     },
     {
@@ -626,7 +626,7 @@
       "syncRevision": 13,
       "syncNote": "The full property is projected from production visuals, terminating at the shared table shell.",
       "sourceFingerprint": "83e451205018946b2968f01ac1f56eaf40b5690cc6332bf390cb10cbff58c380",
-      "proxyFingerprint": "93b5f4d2f90aa4830dcfb0ddaf63114855093297b27dc01d71e2b9d58c158d0d",
+      "proxyFingerprint": "e7652c40391fa55d03c4381f1fbc01380348fa4c30f99b5cab1369370eeba37a",
       "metadataFingerprint": "35b1bfc30027c66279b9117322ac4272a84c0fe70f298472356d9d292af53705"
     },
     {
@@ -641,7 +641,7 @@
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "24a7525bdbff3a92604fd127143450d056dc6eff32077fb57ea3195caa95e2de",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "648068649e4910e20bd1a888de59adec5dac209221caffc162584ea6c9a0f962"
     },
     {
@@ -656,7 +656,7 @@
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "238b925d85e287137c440314845f60a256ad5dc0abfe48fa8385ecc6c2844551",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "374f1c43bc12155eccbecfbb13f64728105171a61b62a8ea49952588f01c4578"
     },
     {
@@ -673,7 +673,7 @@
       "syncRevision": 33,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "90bd5f7ccf106e6b573d1e8281610bc5ed460d5b37a555a5968c990b0bcfb96b",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "9ab72cf220178d2194864823379f6edfa24e399dbc4ded5d46d41102e3a6ea6f"
     },
     {
@@ -688,7 +688,7 @@
       "syncRevision": 11,
       "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
       "sourceFingerprint": "4fc9d4e2f3bbc4788a07437266e9320b1be261fc00855a42c3eaaa92ae1fa324",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "f6b7064ad7524ba70d1ff6843062d773aa871f1f57b5d1ec3e283a851fea60b2"
     },
     {
@@ -703,7 +703,7 @@
       "syncRevision": 14,
       "syncNote": "Decorative beacon point lighting follows scene detail policy; emissive beacon and miniature geometry are unchanged.",
       "sourceFingerprint": "53853072da562c7cb702b5ad616d0789d6f8d2945a210291c18b4fa1e4bacb46",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "de90242a4d0b2f7ae716343c715df8769e57d38b5a8659637e6fc245d7726110"
     },
     {
@@ -718,7 +718,7 @@
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "dc89a9552756b989a30fa222c31369ee2f472ceafaf7615426c3b4cd6c361cd2",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "12fb891bfaeefdbc5ab3fac36f014e6a2361cede659a6be4bf970acb51c44651"
     },
     {
@@ -733,7 +733,7 @@
       "syncRevision": 11,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "63f236088633d8c5943f10eea80a2734a7d6b19279dc4ee7f6ab81da076654a5",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "d693522a75866ce43b1ef486ad54b15a4b24c769ba867334dc7b29b2571a07b1"
     },
     {
@@ -769,7 +769,7 @@
       "syncRevision": 25,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "ba8c20cd844cca0f50535984967dac15c94f40b1a4142ac55bcd3a318dca9f5c",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "75c5d1b70a57adaca75034b2c45a5cb00d60fa6780c906da0a50171bdcc90333"
     },
     {
@@ -784,7 +784,7 @@
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "0ae6f3da100d34cae0283b59fe041d665a521ec638ebf3802f79d4da609d11ca",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "8a6e1413278abf4faf2787139ea2aa81968d8564f4f291d8a3e6dec69b6f1541"
     },
     {
@@ -799,7 +799,7 @@
       "syncRevision": 11,
       "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
       "sourceFingerprint": "86871eced5988df75cc7c0caa8d505fbc456dc895f3ab35867c73c7622fd8224",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "00bf5781cc0332f855f58432e3008374ef6b052c3d9e977da420fca4654f5a25"
     },
     {
@@ -824,7 +824,7 @@
       "syncRevision": 11,
       "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
       "sourceFingerprint": "0e42ef0b58fb53fef908bbabd5e66f9b9b6c7981f3d7becbfe33d2be11f5c131",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "7bde1b48aef0533fca21c7ba5e7d09638bab6d52bead6e2f63da43794a09b915"
     },
     {
@@ -839,7 +839,7 @@
       "syncRevision": 11,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "19d288ae3e8791a7db81f2bad5bfa2e16b965c3ef2af2091590dc56b23a2adab",
-      "proxyFingerprint": "1fa37465f2473c395d66cc8c708ddb21d82962727494438f4112c75b7352fcf3",
+      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
       "metadataFingerprint": "ac2c82ede22b4cb450492ef5e53d2b9d3007d3af542887fe3609b758ad916d02"
     },
     {
