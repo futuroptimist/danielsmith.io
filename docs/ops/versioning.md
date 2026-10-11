@@ -70,4 +70,6 @@ be labeled `unreleased`; later evidence-only documentation edits may update that
 Missing Git bases fail closed.
 CI runs the comparison against the PR event's base SHA with full history. Synthetic
 snapshot tests cover drift, version ordering, exclusions, and independent package identity.
+Helm CI also renders build-info for synthetic staging/production inputs and checks that
+production displays the actual chart appVersion while staging retains the image identity.
 The guard cannot decide semantic impact or prove a deployment; reviewers own those checks.

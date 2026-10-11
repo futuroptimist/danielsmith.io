@@ -171,4 +171,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { validate, runtimePath };
+module.exports = { validate, runtimePath, chartVersions };
