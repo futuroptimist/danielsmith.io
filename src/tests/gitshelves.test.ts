@@ -1,4 +1,10 @@
-import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from 'three';
+import {
+  Box3,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+} from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { createGitshelvesInstallation } from '../scene/structures/gitshelves';
@@ -59,6 +65,7 @@ describe('createGitshelvesInstallation', () => {
     });
 
     expect(build.group.name).toBe('GitshelvesInstallation');
+    expect(new Box3().setFromObject(build.group).max.y).toBeLessThan(2.74);
     expect(build.group.getObjectByName('GitshelvesBase')).toBeTruthy();
     expect(build.group.getObjectByName('GitshelvesPanel')).toBeTruthy();
     expect(build.group.getObjectByName('GitshelvesLabel')).toBeTruthy();

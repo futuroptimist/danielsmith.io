@@ -1,4 +1,5 @@
 import type { DoorDefinition } from '../../systems/doors/controller';
+import { DOOR_CLEAR_HEIGHT, TARGET_AVATAR_HEIGHT } from '../units';
 
 import type {
   SceneObjectDefinition,
@@ -11,15 +12,15 @@ const source = assertLevelSourceId;
 export const HOUSE_GARAGE_DOOR = {
   x: 16,
   z: -1,
-  width: 3,
-  height: 3.5,
+  width: 1.2,
+  height: DOOR_CLEAR_HEIGHT,
 } as const;
 export const GARAGE_DOOR = {
   x: 25,
   z: 2,
-  width: 7,
-  height: 4.8,
-  minimumHeadroom: 3.1,
+  width: 2.5,
+  height: 2.4,
+  minimumHeadroom: TARGET_AVATAR_HEIGHT + 0.15,
 } as const;
 export const GARAGE_ROOMS: SemanticRoomDefinition[] = [
   {

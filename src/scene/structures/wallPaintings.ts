@@ -75,8 +75,8 @@ export interface WallPaintingsBuild {
 
 const WALL_OFFSET = 0.08;
 const DEFAULT_BACKING_DEPTH = 0.06;
-const GROUND_PAINTING_CENTER_Y = 2.35;
-const UPPER_PAINTING_CENTER_Y = UPPER_FLOOR_TOP_ELEVATION + 2.2;
+const GROUND_PAINTING_CENTER_Y = 1.6;
+const UPPER_PAINTING_CENTER_Y = UPPER_FLOOR_TOP_ELEVATION + 1.6;
 const ROCKET_NOSECONE_DRESSER_ID = 'living-room-south-bookcase-west';
 const ROCKET_NOSECONE_DRESSER_CENTER = getFurnishingCenter(
   ROCKET_NOSECONE_DRESSER_ID
@@ -111,16 +111,16 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     wallOrientation: 'north',
     position: {
       x: ROCKET_NOSECONE_DRESSER_CENTER.x,
-      y: 2.5,
+      y: 0.45,
       z: ROCKET_NOSECONE_DRESSER_CENTER.z,
     },
-    size: 2.15,
+    size: 0.86,
     frame: {
       frameColor: 0x4f3528,
       matColor: 0xe8dfcf,
-      frameThickness: 0.16,
-      frameDepth: 0.16,
-      matBorder: 0.18,
+      frameThickness: 0.064,
+      frameDepth: 0.064,
+      matBorder: 0.072,
     },
   },
   {
@@ -131,13 +131,13 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     room: 'kitchen',
     wallOrientation: 'west',
     position: { x: -31.92, y: 0.35, z: 2.7 },
-    size: 1.85,
+    size: 0.74,
     frame: {
       frameColor: 0x556b4f,
       matColor: 0xf0ead8,
-      frameThickness: 0.13,
-      frameDepth: 0.2,
-      matBorder: 0.14,
+      frameThickness: 0.052,
+      frameDepth: 0.08,
+      matBorder: 0.056,
     },
   },
   {
@@ -148,14 +148,14 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     room: 'studio',
     wallOrientation: 'north',
     position: { x: 5.2, z: -7.92 },
-    size: 2.0,
+    size: 0.8,
     frame: {
       frameColor: 0x25354f,
       matColor: 0xd9e2ee,
-      frameThickness: 0.19,
-      frameDepth: 0.14,
-      matBorder: 0.12,
-      backingDepth: 0.08,
+      frameThickness: 0.076,
+      frameDepth: 0.056,
+      matBorder: 0.048,
+      backingDepth: 0.032,
     },
   },
   {
@@ -166,13 +166,13 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     room: 'creators studio',
     wallOrientation: 'west',
     position: { x: -19.92, z: -12.2 },
-    size: 2.25,
+    size: 0.9,
     frame: {
       frameColor: 0x6d4c2f,
       matColor: 0xefe4ca,
-      frameThickness: 0.14,
-      frameDepth: 0.18,
-      matBorder: 0.22,
+      frameThickness: 0.056,
+      frameDepth: 0.072,
+      matBorder: 0.088,
     },
   },
   {
@@ -185,13 +185,13 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     surfaceSide: 'positive',
     mountSurfaceOffset: WALL_THICKNESS / 2,
     position: { x: 4.08, z: -2.0 },
-    size: 1.9,
+    size: 0.76,
     frame: {
       frameColor: 0x2f3033,
       matColor: 0xe7e0d2,
-      frameThickness: 0.18,
-      frameDepth: 0.12,
-      matBorder: 0.16,
+      frameThickness: 0.072,
+      frameDepth: 0.048,
+      matBorder: 0.064,
     },
   },
   {
@@ -202,14 +202,14 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     room: 'focus pods',
     wallOrientation: 'west',
     position: { x: -19.92, z: 20.0 },
-    size: 2.1,
+    size: 0.84,
     frame: {
       frameColor: 0x6a7258,
       matColor: 0xf2eadb,
-      frameThickness: 0.12,
-      frameDepth: 0.22,
-      matBorder: 0.2,
-      backingDepth: 0.1,
+      frameThickness: 0.048,
+      frameDepth: 0.088,
+      matBorder: 0.08,
+      backingDepth: 0.04,
     },
   },
 ] as const;

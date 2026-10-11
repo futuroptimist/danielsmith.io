@@ -148,6 +148,10 @@ export class PrReaperReapingController {
             this.holdTime >= PR_REAPER_AIM_HOLD_SECONDS &&
             this.isTrackableCandidate(selected)
           ) {
+            // Finish the fine aim before firing. A shorter screen brings targets
+            // closer to the muzzle, amplifying even small tracking lag.
+            this.currentPose = { ...this.targetPose };
+            this.aimError = 0;
             this.state = 'fire';
             this.laserRemainingTime = PR_REAPER_LASER_DURATION_SECONDS;
             this.lastReapedCandidateId = selected.id;

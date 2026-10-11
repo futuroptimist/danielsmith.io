@@ -51,8 +51,8 @@ describe('attached garage topology and safety', () => {
     const definition = createGarageDoorDefinitions(FLOOR_PLAN_SCALE).find(
       (door) => door.kind === 'overhead'
     )!;
-    expect(definition.width).toBeCloseTo(14);
-    expect(definition.height).toBe(4.8);
+    expect(definition.width).toBeCloseTo(5);
+    expect(definition.height).toBe(2.4);
     expect(definition.clearanceProgress * definition.height).toBeCloseTo(
       GARAGE_DOOR.minimumHeadroom
     );
@@ -63,7 +63,7 @@ describe('attached garage topology and safety', () => {
       blocked: true,
       state: 'opening',
     });
-    expect(door.update(definition.duration * 0.2, outside)).toMatchObject({
+    expect(door.update(definition.duration * 0.3, outside)).toMatchObject({
       blocked: false,
       state: 'opening',
     });

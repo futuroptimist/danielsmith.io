@@ -13,6 +13,8 @@ export interface StaircaseStepConfig {
 }
 
 export interface StaircaseLandingConfig {
+  /** Landing top above base; independent of the structural slab thickness. */
+  topRise?: number;
   depth: number;
   thickness: number;
   material: MeshStandardMaterialParameters;
@@ -113,7 +115,9 @@ export function createStaircase(config: StaircaseConfig): StaircaseBuildResult {
   const landing = new Mesh(landingGeometry, landingMaterial);
   landing.position.set(
     basePosition.x,
-    basePosition.y + totalRise + config.landing.thickness / 2,
+    basePosition.y +
+      (config.landing.topRise ?? totalRise + config.landing.thickness) -
+      config.landing.thickness / 2,
     basePosition.z +
       directionMultiplier *
         (config.step.run * config.step.count + config.landing.depth / 2)

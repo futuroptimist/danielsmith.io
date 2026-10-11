@@ -18,6 +18,8 @@ import type { RectCollider } from '../collision';
 
 import { createRequiredTightPoiCollider } from './poiColliderBounds';
 
+export const GITSHELVES_BODY_SCALE = 0.65;
+
 export interface GitshelvesInstallationBuild {
   group: Group;
   colliders: RectCollider[];
@@ -168,6 +170,7 @@ export function createGitshelvesInstallation(
   const group = new Group();
   group.name = 'GitshelvesInstallation';
   group.position.copy(basePosition);
+  group.scale.setScalar(GITSHELVES_BODY_SCALE);
   group.rotation.y = orientationRadians;
 
   const colliders: RectCollider[] = [];

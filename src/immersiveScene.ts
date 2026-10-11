@@ -391,6 +391,9 @@ import {
   AVATAR_COLLISION_RADIUS,
   AVATAR_TRAVERSAL_HEIGHT,
   TARGET_AVATAR_HEIGHT,
+  TARGET_ROOM_CLEAR_HEIGHT,
+  FLOOR_SLAB_THICKNESS,
+  DOOR_CLEAR_HEIGHT,
 } from './scene/units';
 import {
   AmbientAudioController,
@@ -1845,6 +1848,7 @@ function buildImmersiveScene(
     generateFloorSurfaces(getLevelFloor('basement'), {
       material: basementFloorMaterial,
       elevation: basementStaircase.definition.lowerFloorElevation,
+      thickness: FLOOR_SLAB_THICKNESS,
       groupName: 'BasementFloorTiles',
     }).group
   );
@@ -1857,7 +1861,7 @@ function buildImmersiveScene(
     {
       coordinateScale: FLOOR_PLAN_SCALE,
       baseElevation: basementStaircase.definition.lowerFloorElevation,
-      wallHeight: 4.2,
+      wallHeight: WALL_HEIGHT,
       wallThickness: WALL_THICKNESS,
       fenceHeight: FENCE_HEIGHT,
       fenceThickness: FENCE_THICKNESS,
@@ -1901,6 +1905,7 @@ function buildImmersiveScene(
     {
       material: floorMaterial,
       elevation: GROUND_FLOOR_TOP_ELEVATION,
+      thickness: FLOOR_SLAB_THICKNESS,
       groupName: 'GroundFloorTiles',
       cutoutsBySurfaceId: {
         'livingRoom-floor-main': basementStaircase.floorCutouts,
@@ -2041,7 +2046,7 @@ function buildImmersiveScene(
     })),
     wallHeight: WALL_HEIGHT,
     baseElevation: GROUND_FLOOR_TOP_ELEVATION,
-    doorHeight: WALL_HEIGHT * 0.72,
+    doorHeight: DOOR_CLEAR_HEIGHT,
     jambThickness: WALL_THICKNESS * 0.76,
     lintelThickness: 0.26,
     trimDepth: WALL_THICKNESS * 0.92,
@@ -2050,15 +2055,43 @@ function buildImmersiveScene(
   groundFloorGroup.add(doorwayOpenings.group);
 
   const ceilings = createRoomCeilingPanels(FLOOR_PLAN.rooms, {
-    height: WALL_HEIGHT - 0.15,
-    inset: 1.1,
-    thickness: 0.32,
+    height: TARGET_ROOM_CLEAR_HEIGHT + FLOOR_SLAB_THICKNESS / 2,
+    inset: 0.05,
+    thickness: FLOOR_SLAB_THICKNESS,
+    cutouts: [
+      {
+        minX:
+          STAIRCASE_CONFIG.basePosition.x -
+          STAIRCASE_CONFIG.step.width / 2 -
+          0.4,
+        maxX:
+          STAIRCASE_CONFIG.basePosition.x +
+          STAIRCASE_CONFIG.step.width / 2 +
+          0.4,
+        minZ:
+          STAIRCASE_CONFIG.basePosition.z -
+          STAIRCASE_CONFIG.step.run * STAIRCASE_CONFIG.step.count -
+          0.4,
+        maxZ: STAIRCASE_CONFIG.basePosition.z + 0.4,
+      },
+    ],
     tintIntensity: 0.24,
     opacity: 0.08,
     lightMap: interiorLightmaps.ceiling,
     lightMapIntensity: 0.52,
   });
   groundFloorGroup.add(ceilings.group);
+  const basementCeilings = createRoomCeilingPanels(BASEMENT_FLOOR_PLAN.rooms, {
+    height:
+      basementStaircase.definition.lowerFloorElevation +
+      TARGET_ROOM_CLEAR_HEIGHT +
+      FLOOR_SLAB_THICKNESS / 2,
+    thickness: FLOOR_SLAB_THICKNESS,
+    inset: 0.05,
+    cutouts: basementStaircase.floorCutouts,
+  });
+  basementStructureGroup.add(basementCeilings.group);
+  ceilings.panels.push(...basementCeilings.panels);
 
   const livingRoom = FLOOR_PLAN.rooms.find((room) => room.id === 'livingRoom');
   if (livingRoom) {
@@ -2118,8 +2151,8 @@ function buildImmersiveScene(
     const mirror = createSelfieMirror({
       position: selfiePosition,
       orientationRadians: selfieOrientation,
-      width: 3.4,
-      height: 4.1,
+      width: 1.7,
+      height: 2.05,
     });
     groundFloorGroup.add(mirror.group);
     namedColliderDebugNames.set(
@@ -2471,6 +2504,14 @@ function buildImmersiveScene(
     },
   });
   upperFloorGroup.add(upperWallMeshes.group);
+  const upperCeilings = createRoomCeilingPanels(UPPER_FLOOR_PLAN.rooms, {
+    height:
+      upperFloorElevation + TARGET_ROOM_CLEAR_HEIGHT + FLOOR_SLAB_THICKNESS / 2,
+    thickness: FLOOR_SLAB_THICKNESS,
+    inset: 0.05,
+  });
+  upperFloorGroup.add(upperCeilings.group);
+  ceilings.panels.push(...upperCeilings.panels);
   upperWallInstances.forEach((instance) => {
     const debugIdentity = getWallColliderDebugIdentity('upper', instance);
     upperFloorColliders.push(instance.collider);

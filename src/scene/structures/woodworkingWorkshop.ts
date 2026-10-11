@@ -13,6 +13,7 @@ import type { SceneDetailLevel } from '../graphics/sceneDetailPolicy';
 import { getFloorTopElevation } from '../level/floorElevations';
 import {
   WORKSHOP_DESCRIPTION,
+  WORKSHOP_BODY_SCALE,
   WORKSHOP_STATIONS,
 } from '../level/woodworkingLayout';
 
@@ -58,6 +59,7 @@ export function createWoodworkingWorkshop(
   const stations = WORKSHOP_STATIONS.map((station) => {
     const root = new Group();
     root.name = `Woodworking:${station.id}`;
+    root.scale.setScalar(WORKSHOP_BODY_SCALE);
     root.position.set(
       station.x * FLOOR_PLAN_SCALE,
       getFloorTopElevation('basement'),
@@ -279,10 +281,14 @@ export function createWoodworkingWorkshop(
 export const getWorkshopCollider = (
   station: (typeof WORKSHOP_STATIONS)[number]
 ) => ({
-  minX: station.x * FLOOR_PLAN_SCALE - station.width / 2,
-  maxX: station.x * FLOOR_PLAN_SCALE + station.width / 2,
-  minZ: station.z * FLOOR_PLAN_SCALE - station.depth / 2,
-  maxZ: station.z * FLOOR_PLAN_SCALE + station.depth / 2,
+  minX:
+    station.x * FLOOR_PLAN_SCALE - (station.width * WORKSHOP_BODY_SCALE) / 2,
+  maxX:
+    station.x * FLOOR_PLAN_SCALE + (station.width * WORKSHOP_BODY_SCALE) / 2,
+  minZ:
+    station.z * FLOOR_PLAN_SCALE - (station.depth * WORKSHOP_BODY_SCALE) / 2,
+  maxZ:
+    station.z * FLOOR_PLAN_SCALE + (station.depth * WORKSHOP_BODY_SCALE) / 2,
   minY: getFloorTopElevation('basement'),
-  maxY: getFloorTopElevation('basement') + station.height,
+  maxY: getFloorTopElevation('basement') + station.height * WORKSHOP_BODY_SCALE,
 });

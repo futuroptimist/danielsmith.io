@@ -1,9 +1,11 @@
+import { STOREY_HEIGHT } from '../units';
+
 import type { SceneObjectDefinition } from './schema';
 
 export const FLOOR_TOP_ELEVATIONS = {
-  basement: -5,
+  basement: -STOREY_HEIGHT,
   ground: 0,
-  upper: 5,
+  upper: STOREY_HEIGHT,
 } as const;
 
 export type FloorId = keyof typeof FLOOR_TOP_ELEVATIONS;

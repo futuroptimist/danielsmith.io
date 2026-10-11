@@ -31,7 +31,7 @@ const upstairs: StairConnection = {
   lowerFloorId: 'ground',
   upperFloorId: 'upper',
   lowerFloorElevation: 0,
-  upperFloorElevation: 5,
+  upperFloorElevation: getFloorTopElevation('upper'),
   lowerEntranceOnly: true,
   layout,
   groups: [],
@@ -149,10 +149,16 @@ describe('upper stair ground passage', () => {
   });
 
   it('opens only headroom that fits the full avatar and its collision radius', () => {
-    const firstHighTreadZ = config.basePosition.z - config.step.run * 6;
+    const firstHighStep = Math.ceil(groundActor.height / config.step.rise);
+    const firstHighTreadZ =
+      config.basePosition.z - config.step.run * firstHighStep;
     const x = config.basePosition.x;
-    expect(config.step.rise * 5).toBeLessThan(groundActor.height);
-    expect(config.step.rise * 6).toBeGreaterThan(groundActor.height);
+    expect(config.step.rise * (firstHighStep - 1)).toBeLessThan(
+      groundActor.height
+    );
+    expect(config.step.rise * firstHighStep).toBeGreaterThan(
+      groundActor.height
+    );
     expect(
       collidesWithColliders(
         x,
@@ -205,8 +211,9 @@ describe('upper stair ground passage', () => {
     expect(start.y).toBe(0);
     expect(controller.getState().activeConnectionId).toBeNull();
     start.set(config.basePosition.x, 0, config.basePosition.z + 0.2);
-    walk(controller, start, 0, -12);
-    expect(start.y).toBeGreaterThan(3);
+    walk(controller, start, 0, -((config.step.count * config.step.run) / 2));
+    expect(start.y).toBeGreaterThan(1);
+    expect(start.y).toBeLessThan(getFloorTopElevation('upper'));
     const rampY = start.y;
     walk(controller, start, 10, 0);
     expect(start.x).toBeLessThan(config.basePosition.x + config.step.width / 2);
@@ -229,7 +236,9 @@ describe('upper stair ground passage', () => {
       walk(controller, position, x - position.x, z - position.z);
       expect(position.x).toBeCloseTo(x);
       expect(position.z).toBeCloseTo(z);
-      expect(position.y).toBe(z === -32.5 ? -5 : 0);
+      expect(position.y).toBe(
+        z === -32.5 ? getFloorTopElevation('basement') : 0
+      );
       expect(controller.getState().floorId).toBe(
         z === -32.5 ? 'basement' : 'ground'
       );
@@ -249,7 +258,7 @@ describe('upper stair ground passage', () => {
     start.set(config.basePosition.x, 0, config.basePosition.z + 0.2);
     walk(controller, start, 0, -17);
     expect(controller.getState().floorId).toBe('upper');
-    expect(start.y).toBe(5);
+    expect(start.y).toBe(getFloorTopElevation('upper'));
     walk(controller, start, 0, 17);
     expect(controller.getState().floorId).toBe('ground');
     expect(start.y).toBe(0);
@@ -257,7 +266,9 @@ describe('upper stair ground passage', () => {
     controller.commitPosition(b.centerX, b.topZ - 0.6);
     expect(controller.getState().floorId).toBe('basement');
     controller.commitPosition(b.centerX, b.bottomZ);
-    expect(controller.sampleHeight(b.centerX, b.bottomZ)).toBe(-5);
+    expect(controller.sampleHeight(b.centerX, b.bottomZ)).toBe(
+      getFloorTopElevation('basement')
+    );
     controller.commitPosition(b.centerX, b.topZ + 0.5);
     expect(controller.getState().floorId).toBe('ground');
   });

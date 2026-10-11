@@ -2,6 +2,7 @@ import { Mesh, Texture, TextureLoader, Vector3 } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../../assets/floorPlan';
+import { getFloorTopElevation } from '../../level/floorElevations';
 import { DEFAULT_LOWER_FLOOR_FURNISHINGS } from '../lowerFloorFurnishings';
 import { WALL_THICKNESS } from '../portfolioSceneLayout';
 import {
@@ -35,6 +36,19 @@ function getPartName(childName: string): string {
 }
 
 describe('WALL_PAINTING_CONFIGS', () => {
+  it('fits every frame below the 2.74m ceiling and the dresser frame above its furniture', () => {
+    for (const config of WALL_PAINTING_CONFIGS) {
+      const center =
+        resolveWallPaintingMountPose(config).position.y -
+        getFloorTopElevation(config.floor);
+      const halfHeight =
+        config.size / 2 + config.frame.matBorder + config.frame.frameThickness;
+      expect(center + halfHeight).toBeLessThan(2.74);
+      expect(center - halfHeight).toBeGreaterThan(0);
+      if (config.id === 'rocket-nosecone-living-room-north')
+        expect(center - halfHeight).toBeGreaterThan(1.43);
+    }
+  });
   it('places exactly one painting for each public image asset', () => {
     expect(WALL_PAINTING_CONFIGS).toHaveLength(EXPECTED_IMAGE_PATHS.length);
     expect(

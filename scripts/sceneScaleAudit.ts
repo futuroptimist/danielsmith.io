@@ -20,6 +20,7 @@ import {
   createLowerFloorFurnishings,
   createUpperFloorFurnishings,
 } from '../src/scene/structures/lowerFloorFurnishings';
+import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS } from '../src/scene/structures/portfolioMiniatureTableContract';
 import {
   STAIRCASE_CONFIG,
   WALL_HEIGHT,
@@ -29,6 +30,7 @@ import {
   AVATAR_BODY_SCALE,
   TARGET_AVATAR_HEIGHT,
   TARGET_ROOM_CLEAR_HEIGHT,
+  FLOOR_SLAB_THICKNESS,
 } from '../src/scene/units';
 import {
   AVATAR_WALK_SPEED,
@@ -93,8 +95,11 @@ async function main() {
     },
     architecture: {
       wallHeight: WALL_HEIGHT,
+      ceilingUndersideAboveFloor: TARGET_ROOM_CLEAR_HEIGHT,
+      slabThickness: FLOOR_SLAB_THICKNESS,
       floors: FLOOR_TOP_ELEVATIONS,
       stairRise: STAIRCASE_CONFIG.step.rise,
+      stairCount: STAIRCASE_CONFIG.step.count,
       stairRun: STAIRCASE_CONFIG.step.run,
       stairWidth: STAIRCASE_CONFIG.step.width,
       frontDoor: {
@@ -107,6 +112,7 @@ async function main() {
       },
     },
     parkedEV: { width: PARKED_EV.width, length: PARKED_EV.depth },
+    portfolioTable: PORTFOLIO_MINIATURE_TABLE_DIMENSIONS,
     aquarium: {
       installation: dimensions(aquarium.group),
       water: dimensions(

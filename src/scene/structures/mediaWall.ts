@@ -25,6 +25,7 @@ import {
   type MediaWallPolicy,
 } from '../level/mediaWallPolicy';
 
+export const MEDIA_WALL_BODY_SCALE = 0.6;
 const SCREEN_WIDTH = 2048;
 const SCREEN_HEIGHT = 1024;
 const BADGE_WIDTH = 512;
@@ -510,6 +511,13 @@ export function createLivingRoomMediaWall(
   const wallInteriorOffset = 0.12;
   const wallInteriorX = bounds.minX + wallInteriorOffset;
   const anchorZ = (bounds.minZ + bounds.maxZ) / 2;
+  // Scale around the wall mounting point, preserving the room placement and bindings.
+  group.scale.setScalar(MEDIA_WALL_BODY_SCALE);
+  group.position.set(
+    wallInteriorX * (1 - MEDIA_WALL_BODY_SCALE),
+    0,
+    anchorZ * (1 - MEDIA_WALL_BODY_SCALE)
+  );
 
   const boardWidth = 6.4;
   const boardHeight = 3.6;

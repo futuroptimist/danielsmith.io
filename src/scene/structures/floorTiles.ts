@@ -143,7 +143,7 @@ const subtractCutout = (
   return pieces.filter(hasPositiveArea);
 };
 
-const getRoomTileBounds = (
+export const getRoomTileBounds = (
   room: RoomDefinition,
   options: RoomFloorOptions,
   inset: number

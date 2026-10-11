@@ -111,9 +111,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'futuroptimist-living-room-tv',
     id: 'poi:futuroptimist-living-room-tv',
     displayName: 'Futur Optimist TV proxy',
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.',
+      'Metre-scaled installations share their production bounds and transforms with the source snapshot.',
     sourceFiles: [...baseFiles, 'src/scene/structures/mediaWall.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -459,9 +459,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'gitshelves-living-room-installation',
     id: 'poi:gitshelves-living-room-installation',
     displayName: 'Gitshelves proxy',
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Metre-scaled installations share their production bounds and transforms with the source snapshot.',
     sourceFiles: [...baseFiles, 'src/scene/structures/gitshelves.ts'],
     proxyFiles: [SELF_FILE],
     primitives: [
@@ -490,9 +490,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'pr-reaper-backyard-console',
     id: 'poi:pr-reaper-backyard-console',
     displayName: 'PR Reaper holographic reaper installation proxy',
-    syncRevision: 25,
+    syncRevision: 26,
     syncNote:
-      'Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/prReaperConsole.ts',
@@ -561,9 +561,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'The full property is projected from production visuals, terminating at the shared table shell.',
+      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

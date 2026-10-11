@@ -44,9 +44,15 @@ export const CAREER_MUSEUM_OBJECTS: SceneObjectDefinition[] = [
   object('museum-east-art', 'museum.wall-art', 10, -17.8, false),
 ];
 
-export const CAREER_EXHIBIT_FOOTPRINT = { width: 4.8, depth: 3 } as const;
+/** Uniform body scale keeps dioramas and furniture below the 2.74 m ceiling. */
+export const MUSEUM_BODY_SCALE = 0.6;
+export const CAREER_AUTHORED_FOOTPRINT = { width: 4.8, depth: 3 } as const;
+export const CAREER_EXHIBIT_FOOTPRINT = {
+  width: CAREER_AUTHORED_FOOTPRINT.width * MUSEUM_BODY_SCALE,
+  depth: CAREER_AUTHORED_FOOTPRINT.depth * MUSEUM_BODY_SCALE,
+} as const;
 export const CAREER_INTERACTION_ANCHOR = {
   height: 0.75,
-  frontOffset: 2.5,
+  frontOffset: 1.8,
   radius: 3.6,
 } as const;

@@ -7,6 +7,7 @@ import type { AxeResults } from 'axe-core';
 import { CAREER_HISTORY } from '../src/assets/careers';
 import { AVAILABLE_LOCALES, getCareerCopy } from '../src/assets/i18n';
 import { getWorkshopDescription } from '../src/assets/i18n/woodworking';
+import { getFloorTopElevation } from '../src/scene/level/floorElevations';
 import { IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET } from '../src/assets/performance';
 
 const URL = '/?mode=immersive&disablePerformanceFailover=1';
@@ -349,7 +350,7 @@ for (const profile of [
       const position = await page.evaluate(() =>
         window.portfolio!.world!.getPlayerPosition()
       );
-      expect(position.y).toBe(-5);
+      expect(position.y).toBe(getFloorTopElevation('basement'));
       if (profile.touch) {
         const target = await page.evaluate(
           (id) =>

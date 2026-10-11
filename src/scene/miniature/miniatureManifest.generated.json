@@ -113,11 +113,11 @@
       "id": "audit:src:scene:level:floorElevations",
       "sourceFiles": ["src/scene/level/floorElevations.ts"],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Basement elevation is reserved without building a basement; existing ground and upper world elevations and miniature geometry are unchanged.",
-      "sourceFingerprint": "415f25dbc5a6ca57a7e9da6f1fc696816eb312a627e793f5e60deda72225dc5e",
+      "syncRevision": 3,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "6366b8059e9dae4881b03d266fccf8bf6cf130220edd89e5efbfb1f396d9536e",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "ef0673d82d0b9d54c1367dd771cc18e133e68dad5f3c3e5f7a8c82600ed5d5db"
+      "metadataFingerprint": "12b96df5d92e8329e2557ae52ca86a52ff857de2cb7edb3325edaa7141cbe6ff"
     },
     {
       "id": "audit:src:scene:level:mediaWallPolicy",
@@ -173,11 +173,11 @@
       "id": "audit:src:scene:level:stairSafetyColliders",
       "sourceFiles": ["src/scene/level/stairSafetyColliders.ts"],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Connection-local floor identities and mirrored positive-Z safety are supported; the existing negative-Z upstairs bounds and miniature geometry are unchanged.",
-      "sourceFingerprint": "2663ce7676fb70d038491ff13f8b75473169b1cf7bd817d854f60d983229ed04",
+      "syncRevision": 3,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "6ead45a8e0d2d5f8ddc0ad3374886097e330df810a0d749e79596b57ec94effe",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "945690a314ae6a624f03584a0bf9983e919e0000c65d24ed6607c37217a5e56c"
+      "metadataFingerprint": "b059a48104afd55cd11b3e1a8b58d6adde206088d82820220d5aa03b66a6202a"
     },
     {
       "id": "audit:src:scene:level:wallColliderDebugIdentity",
@@ -379,11 +379,11 @@
         "src/systems/movement/avatarGait.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 6,
-      "syncNote": "The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.",
-      "sourceFingerprint": "1e705439628b85b15c077a1ec5a0be37045c3029bf7df193f1bd07fe4949b34a",
+      "syncRevision": 7,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "a7e47d2bc8bf1ffec7a442d4e94550180c6d5fb8368669b8afde0cae797f32e2",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "415eeeadcd6b474d1a2d75bcba37b27deb7e81ffbe55fac8070b2cf543ade111"
+      "metadataFingerprint": "7a79f43596723dbc7a7479bfae709513c06cf28549b7d924ba7c8acf7e6b7374"
     },
     {
       "id": "avatar:loading-presentation",
@@ -415,21 +415,21 @@
         "src/scene/structures/woodworkingWorkshop.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 1,
-      "syncNote": "The basement snapshot includes static workshop geometry before the table is built.",
-      "sourceFingerprint": "bf842115ab43c85cc20e3fab8fe89fb6e62759b004756049f864210c25da3292",
+      "syncRevision": 2,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "2441c3af2ec023f08f419906fdcf83ca475d439bcc2dbea9b8325ba642d1ae3c",
       "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "d23d1319bcdeac0333ef2b5bf5485e2ae1dea3336dae10a7eca7dbf71b471fcb"
+      "metadataFingerprint": "835e7085625871f0024f62785170b751245413f9532a1e860ef3fcb2f86a3793"
     },
     {
       "id": "career:museum-exhibits",
       "sourceFiles": ["src/scene/structures/careerMuseum.ts"],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 3,
-      "syncNote": "The source snapshot reuses built museum geometry without duplicating textures or exhibit controllers.",
-      "sourceFingerprint": "bfe3929a51475301aaf52bbd423e95d1c205d27664b63978cca385a251020d2f",
+      "syncRevision": 4,
+      "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
+      "sourceFingerprint": "4af432b6fa3417ac96a84ae7014b4a18334d556e9fc9400339f5bf2d9177cd31",
       "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "7dd1ae53aace9b2150667db3fb9a16f5e42d23512d45db5b96588a4a70bba5dc"
+      "metadataFingerprint": "4ba79481cc9a0d32e1995e65cf97a908f62091a16b189367ee835191a0f3b840"
     },
     {
       "id": "career:reviewed-content",
@@ -445,11 +445,11 @@
       "id": "collision:upper-stair-ground-passage",
       "sourceFiles": ["src/scene/structures/upperStairGroundPassage.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Elevation-aware runtime collision volumes derive from the shared staircase without changing its visible miniature geometry.",
-      "sourceFingerprint": "60bd0463d563529a6edd28fc34efe7dda37c19c403fb66c0ee5daa519c3171cb",
+      "syncRevision": 2,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "f4567a06562f2cab664e1b4d4434a3adfe44abeaa65ec9d7b2c1203f23d4e1bc",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "634ce254745c8b7e0e8cd87a7b129b7b6838fc2b9647f020f8ef25d56d10b66a"
+      "metadataFingerprint": "73b1324a6dd69ab64aa3a48c80196bf57519874a460d65c1c199edb2eac0cc4b"
     },
     {
       "id": "debug:visualizers",
@@ -468,11 +468,11 @@
       "id": "decor:ceiling-panels",
       "sourceFiles": ["src/scene/structures/ceilingPanels.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 1,
-      "syncNote": "Ceiling panel fixtures need simplified caps in the tabletop.",
-      "sourceFingerprint": "ebd5f2e8ef4522745c486e0fe00d2a9c9b59067c82e0f73e807082f3af3cbcd5",
+      "syncRevision": 2,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "707fa295820477132155fba99ef89c22e4ac3fa53f1812828b4694846384b38c",
       "proxyFingerprint": "3d85d84201361eb255d4244b61275f9e8311f4b80baf61cecd7e744cb36cf038",
-      "metadataFingerprint": "73cc34b6ec09ede01419bf028fe4d2a8e6b227520c61098398daaa25ffe91566"
+      "metadataFingerprint": "8ab97ec16706959989e08dc1e65ee988d0fba371b50b009ee7bd05ac49344da6"
     },
     {
       "id": "decor:lower-floor-furnishings",
@@ -488,11 +488,11 @@
       "id": "decor:wall-paintings",
       "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "Printer painting side fix changes only full-scale wall mounting; tabletop proxy remains aligned.",
-      "sourceFingerprint": "f30afe3f618a76fa74adf07e96d8ee81f9a856a7546d52490af3a80de382cd58",
+      "syncRevision": 12,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "c7ed6ea313efade6393788cb4ed0c9a70cb230be591b099d7d56d78e8c50429f",
       "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
-      "metadataFingerprint": "fe17b25475c0d89fa3e3195bca4eb87ebef30a5667cf1f08223b40ed28501ede"
+      "metadataFingerprint": "2d48a2ebf0ebe4733d9bd24e825206a1013c0f2ed57061ca0859f237d6c708d9"
     },
     {
       "id": "environment:backyard",
@@ -514,11 +514,11 @@
         "src/scene/structures/residentialStreet.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 9,
-      "syncNote": "The source snapshot includes the garage, front yard, sidewalk and street within one property envelope.",
-      "sourceFingerprint": "f2141170247919658432db7b5d7ce2cbe360bf18fcf5de5cea353f3d1c818197",
+      "syncRevision": 10,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "4159b32e58f3cdedf385f6f3c2e4354fe3dd3eb273da89a3098687cd4759658f",
       "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "76876069a79f7cf2fee4c61699ff3927d63e3f5e931f132bba8e20e41ce5d5fe"
+      "metadataFingerprint": "fa2e286d7fbedfc0fdd954e847aa43c4b84df07c7da2bfaae387d64cc05af46a"
     },
     {
       "id": "level:basement-stairs",
@@ -528,21 +528,21 @@
         "src/scene/structures/basementStaircase.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 4,
-      "syncNote": "Ground-floor rail trim owns its slab footprint and the final parapets meet its underside. The independent 80% landing-wall cutaway preserves collision. The tabletop retains the shared opening and its ground-only view.",
-      "sourceFingerprint": "96237a9011a26e90d2b55561cd1eebe904f9dc9524790e96b31b507bed3882f2",
+      "syncRevision": 5,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "460fe744467af1fd84329f22c9310a29115aa1d1d305d94c44f28f9720bd5b0b",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "22d03e8a972ef51325244e4ee957dd619132c0a849faf5ef923c3a073c9ce43a"
+      "metadataFingerprint": "ba8c7eeda770847fdac1fd6d79ac9883273d0581b2f274535f930ad493beed26"
     },
     {
       "id": "level:career-museum-layout",
       "sourceFiles": ["src/scene/level/careerMuseumLayout.ts"],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 2,
-      "syncNote": "The basement layout is included in the source snapshot and follows the active-floor cutaway.",
-      "sourceFingerprint": "321da641adc722b357741b64fd8e7a1e40bdbc91ad7463a33d0be41150da67f3",
+      "syncRevision": 3,
+      "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
+      "sourceFingerprint": "ea8e34946f2de872229d639c5442ab07723df41e6e97c08edbca36eda81c74df",
       "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "42cb6085a35b87f61ddd3b48ce49be1fc51aa695b258105885c1ed3540cb59dc"
+      "metadataFingerprint": "ca07fae7bd65d25266897933a955c12f2ecf53dcf85fa0be956473911a16a9fc"
     },
     {
       "id": "level:floors-walls",
@@ -553,11 +553,11 @@
         "src/scene/structures/wallSegmentsMesh.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Type-only wall geometry guards keep generated floor and wall topology unchanged.",
-      "sourceFingerprint": "5f2b2b41faf9adfaea0ba0f96580e18c51cf8f04c4729ef7986a7e251fd2223c",
+      "syncRevision": 3,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "f601938ea3f6f8b5039d7c5d1c59f860e9e0c61ef18afeea5da2f1a85ca51c1d",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "c04d97d08981648eb9a6d7c1480a4c7dc3d341a21375554352a0a4f1ababd1e3"
+      "metadataFingerprint": "295bcfe2bbf8e82bb857847df04196b3b330242198b60c9d4fbf3e3d07082579"
     },
     {
       "id": "level:portfolio-layout",
@@ -567,11 +567,11 @@
         "src/scene/level/schema.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 10,
-      "syncNote": "All production floors and the basement woodworking stations participate in the fixed property envelope.",
-      "sourceFingerprint": "1fbe9b3c52197d6e165c9912d6ff149aaf73f15264ad456ddb4c73d499fbe6e9",
+      "syncRevision": 11,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "a78c895702617a079f7521e05567453178d1e0063c98f9ec43e1fae7b136dcea",
       "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "e0d4f3330268c3213218a4ad4ed4700d2407eeaaf17b03590e5d423c97afbebf"
+      "metadataFingerprint": "6ca3f8e7f408516b2885fa1b8cd320276b9401f502c32ea9d600b0ec7533a3b6"
     },
     {
       "id": "level:stairs-landing",
@@ -582,11 +582,11 @@
         "src/scene/structures/upperStairwellLanding.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 2,
-      "syncNote": "Both stair builds share tread geometry; the ground miniature retains the upstairs silhouette and renders the source-derived basement opening.",
-      "sourceFingerprint": "2b97cf44654424ad3e9c81e5a871258baff4a1fba0d9e3926313d3ac8204c06b",
+      "syncRevision": 3,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "9574ceb3fdc1ce9c2415ba0c98658b061f9a6f40c28befaf7827518151c9b199",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "a1a7761c6086ad3a0dc321d104ff672db2a1603092642c5b18abcb1611aafbeb"
+      "metadataFingerprint": "f617894572bcf2a65effc5bb0b734079a330087e606dbcd64dd684e1c8b83e7f"
     },
     {
       "id": "lighting:visible-fixtures",
@@ -614,7 +614,7 @@
       "syncRevision": 4,
       "syncNote": "Static aquarium instance bounds are initialized explicitly; the shared production snapshot remains controller-free.",
       "sourceFingerprint": "6ff1253f40b538a7608521850befd9fe8e964ee156fe59064350fddb26532d32",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "17674fbda38628c4a28d18e47fb188485dbe70b3a522803c3907bf5caaa0a792"
     },
     {
@@ -629,7 +629,7 @@
       "syncRevision": 11,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "aa83d343be910aaf7fb7c36037e990c58ca28f072322e751b91823150382f516",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "136eb09e474c1747a905e77abc94b010525bac293a29621b1dc26a2cbf5bf792"
     },
     {
@@ -647,11 +647,11 @@
         "src/scene/miniature/sourceSnapshot.ts",
         "src/scene/structures/portfolioMiniatureTable.ts"
       ],
-      "syncRevision": 13,
-      "syncNote": "The full property is projected from production visuals, terminating at the shared table shell.",
-      "sourceFingerprint": "83e451205018946b2968f01ac1f56eaf40b5690cc6332bf390cb10cbff58c380",
-      "proxyFingerprint": "709021c654a5b1d04eed196564b9d07c4906c56ef7d68b410786b48f0d076373",
-      "metadataFingerprint": "35b1bfc30027c66279b9117322ac4272a84c0fe70f298472356d9d292af53705"
+      "syncRevision": 14,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "009747ed8007420d1d2895defe0feba29ef089dd8b638b9e3121c2d92d06349c",
+      "proxyFingerprint": "4185a01cae4a8f168c572ff1072764208bd3989e86b30aa49b1b6e8d4cbadeec",
+      "metadataFingerprint": "f9d2055edc136a23f03a8d02b4db403c6b7f474510234a64f050c0e995ed3c32"
     },
     {
       "id": "poi:dspace-backyard-rocket",
@@ -665,7 +665,7 @@
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "24a7525bdbff3a92604fd127143450d056dc6eff32077fb57ea3195caa95e2de",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "648068649e4910e20bd1a888de59adec5dac209221caffc162584ea6c9a0f962"
     },
     {
@@ -680,7 +680,7 @@
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "238b925d85e287137c440314845f60a256ad5dc0abfe48fa8385ecc6c2844551",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "374f1c43bc12155eccbecfbb13f64728105171a61b62a8ea49952588f01c4578"
     },
     {
@@ -697,7 +697,7 @@
       "syncRevision": 33,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "90bd5f7ccf106e6b573d1e8281610bc5ed460d5b37a555a5968c990b0bcfb96b",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "9ab72cf220178d2194864823379f6edfa24e399dbc4ded5d46d41102e3a6ea6f"
     },
     {
@@ -709,11 +709,11 @@
         "src/scene/structures/mediaWall.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
-      "sourceFingerprint": "4fc9d4e2f3bbc4788a07437266e9320b1be261fc00855a42c3eaaa92ae1fa324",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
-      "metadataFingerprint": "f6b7064ad7524ba70d1ff6843062d773aa871f1f57b5d1ec3e283a851fea60b2"
+      "syncRevision": 12,
+      "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
+      "sourceFingerprint": "bde2526bc994dca0169977f88880d4256cb8118f2e2e5d88b5e3569741e93ec4",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
+      "metadataFingerprint": "3cd94bb59a8e5401e7554aab1f0ceaf9195beb6bde7fff7d6f40b3cbcb6c5fc7"
     },
     {
       "id": "poi:gabriel-studio-sentry",
@@ -727,7 +727,7 @@
       "syncRevision": 14,
       "syncNote": "Decorative beacon point lighting follows scene detail policy; emissive beacon and miniature geometry are unchanged.",
       "sourceFingerprint": "53853072da562c7cb702b5ad616d0789d6f8d2945a210291c18b4fa1e4bacb46",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "de90242a4d0b2f7ae716343c715df8769e57d38b5a8659637e6fc245d7726110"
     },
     {
@@ -739,11 +739,11 @@
         "src/scene/structures/gitshelves.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 13,
-      "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "dc89a9552756b989a30fa222c31369ee2f472ceafaf7615426c3b4cd6c361cd2",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
-      "metadataFingerprint": "12fb891bfaeefdbc5ab3fac36f014e6a2361cede659a6be4bf970acb51c44651"
+      "syncRevision": 14,
+      "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
+      "sourceFingerprint": "a8069fc9ba23fe5e485ce0c2a1651434c3feec21f4f83ea081cce8b55fea3237",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
+      "metadataFingerprint": "d2baf47d7f08a8cac62dd037e0f39022b043f7dd677653ade50ba34d7c0583a3"
     },
     {
       "id": "poi:jobbot-studio-terminal",
@@ -757,7 +757,7 @@
       "syncRevision": 11,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "63f236088633d8c5943f10eea80a2734a7d6b19279dc4ee7f6ab81da076654a5",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "d693522a75866ce43b1ef486ad54b15a4b24c769ba867334dc7b29b2571a07b1"
     },
     {
@@ -790,11 +790,11 @@
         "src/ui/accessibility/animationPreferences.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 25,
-      "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "ba8c20cd844cca0f50535984967dac15c94f40b1a4142ac55bcd3a318dca9f5c",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
-      "metadataFingerprint": "75c5d1b70a57adaca75034b2c45a5cb00d60fa6780c906da0a50171bdcc90333"
+      "syncRevision": 26,
+      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
+      "sourceFingerprint": "989b7b47f453d199357875e13f02b9f353c3ec00df0d5fdc77c0684237a3b19a",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
+      "metadataFingerprint": "fb637ce0b9bdc94b3a3567257e1989c84fd591c2815ff4a7c9dc2ee2e339d62d"
     },
     {
       "id": "poi:sigma-kitchen-workbench",
@@ -808,7 +808,7 @@
       "syncRevision": 13,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "0ae6f3da100d34cae0283b59fe041d665a521ec638ebf3802f79d4da609d11ca",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "8a6e1413278abf4faf2787139ea2aa81968d8564f4f291d8a3e6dec69b6f1541"
     },
     {
@@ -823,7 +823,7 @@
       "syncRevision": 11,
       "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
       "sourceFingerprint": "86871eced5988df75cc7c0caa8d505fbc456dc895f3ab35867c73c7622fd8224",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "00bf5781cc0332f855f58432e3008374ef6b052c3d9e977da420fca4654f5a25"
     },
     {
@@ -848,7 +848,7 @@
       "syncRevision": 11,
       "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
       "sourceFingerprint": "0e42ef0b58fb53fef908bbabd5e66f9b9b6c7981f3d7becbfe33d2be11f5c131",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "7bde1b48aef0533fca21c7ba5e7d09638bab6d52bead6e2f63da43794a09b915"
     },
     {
@@ -863,7 +863,7 @@
       "syncRevision": 11,
       "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
       "sourceFingerprint": "19d288ae3e8791a7db81f2bad5bfa2e16b965c3ef2af2091590dc56b23a2adab",
-      "proxyFingerprint": "6a3e07df8327e7d29f90c533f01b0c1dbfd296a15b2f60e89708d14e0de5cd51",
+      "proxyFingerprint": "51d616bad36ffab368fe1d1bdd0de126c884dbf9e89aa9345cd8364020f06b18",
       "metadataFingerprint": "ac2c82ede22b4cb450492ef5e53d2b9d3007d3af542887fe3609b758ad916d02"
     },
     {

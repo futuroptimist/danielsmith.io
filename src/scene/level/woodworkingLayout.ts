@@ -1,6 +1,8 @@
 import { getFloorTopElevation } from './floorElevations';
 import type { SceneObjectDefinition } from './schema';
 import { assertLevelSourceId } from './sourceIds';
+/** Convert the legacy oversized station-local geometry once, including its collider. */
+export const WORKSHOP_BODY_SCALE = 0.5;
 
 /** Corner reservation in plan units. Keep aquarium placement outside this rectangle. */
 export const WORKSHOP_RESERVATION = {

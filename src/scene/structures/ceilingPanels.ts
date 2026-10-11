@@ -10,6 +10,9 @@ import {
 
 import type { RoomDefinition } from '../../assets/floorPlan';
 import { applyLightmapUv2 } from '../lighting/bakedLightmaps';
+import { FLOOR_SLAB_THICKNESS, TARGET_ROOM_CLEAR_HEIGHT } from '../units';
+
+import { getRoomTileBounds, type RoomFloorCutout } from './floorTiles';
 
 export interface RoomCeilingPanel {
   readonly roomId: string;
@@ -22,6 +25,8 @@ export interface RoomCeilingBuild {
 }
 
 export interface RoomCeilingOptions {
+  /** Stair openings use the same world-space cutouts as the floor assembly. */
+  readonly cutouts?: RoomFloorCutout[];
   /** Height where the panel should sit (center position). */
   readonly height?: number;
   /** Amount of inset from each wall to avoid intersecting trim/lighting. */
@@ -49,10 +54,10 @@ export interface RoomCeilingOptions {
   readonly lightMapIntensity?: number;
 }
 
-const DEFAULT_HEIGHT = 5.85;
+const DEFAULT_HEIGHT = TARGET_ROOM_CLEAR_HEIGHT + FLOOR_SLAB_THICKNESS / 2;
 const DEFAULT_INSET = 0.9;
 const MIN_DIMENSION = 0.1;
-const DEFAULT_THICKNESS = 0.3;
+const DEFAULT_THICKNESS = FLOOR_SLAB_THICKNESS;
 const BASE_COLOR = 0x1f2636;
 const DEFAULT_TINT_INTENSITY = 0.28;
 const DEFAULT_OPACITY = 0.08;
@@ -145,30 +150,37 @@ export function createRoomCeilingPanels(
       return;
     }
 
-    const width = room.bounds.maxX - room.bounds.minX - inset * 2;
-    const depth = room.bounds.maxZ - room.bounds.minZ - inset * 2;
+    getRoomTileBounds(room, { cutouts: options.cutouts }, inset).forEach(
+      (bounds, index) => {
+        const width = bounds.maxX - bounds.minX;
+        const depth = bounds.maxZ - bounds.minZ;
 
-    if (width <= MIN_DIMENSION || depth <= MIN_DIMENSION) {
-      return;
-    }
+        if (width <= MIN_DIMENSION || depth <= MIN_DIMENSION) {
+          return;
+        }
 
-    const geometry = new BoxGeometry(width, thickness, depth);
-    applyLightmapUv2(geometry);
+        const geometry = new BoxGeometry(width, thickness, depth);
+        applyLightmapUv2(geometry);
 
-    const mesh = new Mesh(
-      geometry,
-      createMaterial(room, options, defaultMaterial)
+        const mesh = new Mesh(
+          geometry,
+          createMaterial(room, options, defaultMaterial)
+        );
+        mesh.position.set(
+          (bounds.minX + bounds.maxX) / 2,
+          height,
+          (bounds.minZ + bounds.maxZ) / 2
+        );
+        mesh.name =
+          index === 0
+            ? `${room.name} Ceiling`
+            : `${room.name} Ceiling ${index + 1}`;
+        mesh.receiveShadow = true;
+
+        group.add(mesh);
+        panels.push({ roomId: room.id, mesh });
+      }
     );
-    mesh.position.set(
-      (room.bounds.minX + room.bounds.maxX) / 2,
-      height,
-      (room.bounds.minZ + room.bounds.maxZ) / 2
-    );
-    mesh.name = `${room.name} Ceiling`;
-    mesh.receiveShadow = true;
-
-    group.add(mesh);
-    panels.push({ roomId: room.id, mesh });
   });
 
   return { group, panels };

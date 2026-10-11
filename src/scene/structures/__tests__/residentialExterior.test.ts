@@ -94,7 +94,7 @@ describe('attached garage overhead visuals', () => {
         expect(lowerEdge).toBeCloseTo(
           door.snapshot().progress * door.definition.height
         );
-      expect(door.snapshot().blocked).toBe(lowerEdge + 0.001 < 3.1);
+      expect(door.snapshot().blocked).toBe(lowerEdge + 0.001 < 2.05);
     }
     expect(panel.visible).toBe(false);
     build.dispose();

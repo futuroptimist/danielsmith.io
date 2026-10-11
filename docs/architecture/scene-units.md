@@ -2,7 +2,7 @@
 
 Runtime physical dimensions use **one world unit per metre**, seconds for movement,
 and radians for angles. `src/scene/units.ts` records the target avatar and room
-clearance. The legacy scene does **not yet consistently satisfy this contract**.
+clearance. The room assemblies and player follow this contract; the exterior layout retains legacy spacing.
 Plan X/Z coordinates use `FLOOR_PLAN_SCALE` (approximately 2) exactly once; elevations
 are already world coordinates. A plan conversion is not a physical metre conversion.
 Never apply either transform again to generated meshes or colliders.
@@ -30,9 +30,9 @@ Walking changes from 1.1 to **1.116453 m/s**; running from 2.5 to **2.537393 m/s
 Stride reference speeds, transition thresholds, seated hip retreat and foot-origin
 height use the same ratio. The collision radius remains 0.75 m: the normalized standing body fits inside it with margin.
 This is deliberately a conservative navigation footprint, not shoulder width. Scaling that already-oversized envelope by 1.5% would consume existing tangent route clearances without improving body containment.
-The existing 2.6 m stair exclusion envelope stays explicit until architectural
-clearances and routes are migrated together. Reducing it with the visual height
-would silently open routes beneath stairs. Camera focus is at half standing height;
+The 2.6 m stair exclusion envelope remains a conservative navigation constraint,
+independent of standing body height. Reducing it with visual height would silently
+open routes beneath stairs. Camera focus is at half standing height;
 the existing orthographic zoom constraints still limit the requested framing.
 
 Running is the default. Caps Lock off selects run, on selects walk. Every reported
@@ -46,64 +46,78 @@ button activation preserves that choice; subsequent keyboard input restores the
 physical lock state. Locomotion blends toward that selected clip; actual speed
 controls idle and stride playback, including analog input and collisions.
 
-## Measured legacy conflicts
+## Coordinated room dimensions
 
-All values below are current world units, not inferred physical measurements.
+The vertical room assembly is 2.74 m clear plus a 0.30 m slab, giving 3.04 m
+between finished floors. Basement, ground and upper floor tops are -3.04, 0 and
+3.04 m. Each ceiling underside follows its floor; staircase apertures remain open.
+The previous runtime ceiling was centred at 5.85 with **0.32 m** thickness, so its
+underside was 5.69 m (the old factory default of 0.30 was not the runtime override).
 
-| Component                  | Measured/authored value                          | Conflict or disposition                                                     |
-| -------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
-| Main walls                 | 6 high                                           | Target clear room height is 2.74 m; not migrated here                       |
-| Basement walls             | 4.2 high                                         | Separate construction path must migrate too                                 |
-| Ceiling slab               | centre 5.85, thickness 0.30                      | Underside 5.70; wall top and clear ceiling height are distinct              |
-| Floor tops                 | basement -5, ground 0, upper 5                   | Must migrate with floor slabs and both stair controllers                    |
-| Upper stair                | 9 rises of 0.51333, tread 1.70, width 6.20       | Cannot fix by changing wall height only                                     |
-| Front/house-garage door    | width 6, height 3.5                              | Taller than the proposed room; includes sliding pocket and collider logic   |
-| Garage opening             | width 14, height 4.8, minimum headroom 3.1       | Needs a separate residential garage contract                                |
-| Existing parked EV         | 4.6 wide, 9.2 long                               | Oversized relative to metre-authored people/props                           |
-| Lounge seats               | cushion 0.47                                     | Keep physical geometry and rotate anchors from actual transforms            |
-| Reading chair              | cushion 0.62                                     | Keep explicit tall-seat compensation and foot IK                            |
-| Aquarium water             | 1.83 × 0.61 × 0.509                              | Approximately 568 L / 150 US gal; already metre-authored                    |
-| Bucket shells              | nominal diameter 0.34, height 0.37               | Already plausible 5-gallon containers; faceted X bounds are 0.32336         |
-| Aquarium collider envelope | three local solid blocks; declared POI 6.4 × 2.4 | Do not confuse marker/installation envelope with tank volume                |
-| Workshop benches           | top around 1.71, installation 3.70 high          | Too tall for ordinary benches and the target ceiling                        |
-| Workshop machines          | band saw 3.50, drill press 3.20 high             | Must resize with their source-backed collision boxes                        |
-| Kitchen west counter       | 1.52 high                                        | Furniture is mixed-scale, not uniformly oversized                           |
-| Kitchen island             | approximately 1.04 high                          | Much closer to physical scale; assess independently                         |
-| Portfolio table            | 4.35 × 3.9, tabletop 1.32                        | Declared reference 1.4 × 0.9 × 1.25 has nonuniform ratios                   |
-| Reaper display             | derived from wall height and cove offset         | Installation reach and collider footprint depend on architectural migration |
+| Assembly                        | Before                                            | Current                                             |
+| ------------------------------- | ------------------------------------------------- | --------------------------------------------------- |
+| Ground and upper walls          | 6 m                                               | 2.74 m                                              |
+| Basement walls                  | 4.2 m                                             | 2.74 m                                              |
+| Floor-to-floor height           | 5 m                                               | 3.04 m                                              |
+| Upper stair                     | 9 rises, 0.51333 m rise, 1.70 m run, 6.20 m width | 18 rises, 0.168889 m rise, 0.28 m run, 2.40 m width |
+| Basement stair                  | 9 rises, 1.70 m run, 4.80 m width                 | 18 rises, 0.168889 m rise, 0.28 m run, 2.40 m width |
+| Front and house/garage doors    | 6 x 3.5 m                                         | 2.4 x 2.1 m                                         |
+| Garage opening                  | 14 x 4.8 m; 3.1 m clearance gate                  | 5 x 2.4 m; 2.05 m clearance gate                    |
+| Ordinary room openings          | 8 m wide                                          | 2.4 m wide                                          |
+| Workshop bench surface          | about 1.71 m                                      | about 0.855 m                                       |
+| Workshop band saw / drill press | 3.50 / 3.20 m                                     | 1.75 / 1.60 m                                       |
+| Miniature table top             | 4.35 x 3.90 m; centre 1.32 m                      | 1.40 x 0.90 m; finished surface 1.25 m              |
+| Selfie mirror                   | 3.40 x 4.10 m                                     | 1.70 x 2.05 m                                       |
 
-The house footprint is approximately 64 × 64 world units. Halving all world
-geometry would also halve already-correct seats, tank volume dimensions, buckets
-and the avatar. Changing only `FLOOR_PLAN_SCALE` moves plan-anchored objects but
-leaves world-authored furnishings and colliders behind. Neither is a safe fix.
+The upper flight ends at z=-21.8. Its 9.3 m level corridor connects the existing
+west rooms while retaining the ground crossing at z=-23 with 2.74 m underside
+clearance. Keeping the former flight endpoint with normal treads would put that
+crossing under low steps. The basement flight ends at z=-14 and its lower end is
+z=-19.04. Both final treads meet their landing slab tops exactly.
 
-## Dependency-aware split
+The 0.75 m collision radius is preserved. A 0.9 m single doorway could not pass
+that conservative footprint, so room and sliding entries use generous 2.4 m
+openings. Stair void exclusions retain the 2.6 m conservative traversal envelope;
+the overhead garage gate uses the actual 1.90 m body plus 0.15 m clearance. Guards
+must distinguish player-centre corridors from physical edges and add the radius
+only once. Door pockets, trim, wall apertures and moving panels share definitions.
 
-1. **Units audit and player/input foundation (this change):** establish the metre
-   contract, normalize the player, scale movement/stride/seating consistently,
-   preserve the conservative traversal envelope and normalize the miniature marker.
-   Keep existing routes and dimensional evidence reproducible.
-2. **House structure and navigation:** migrate plan positions, room clear height,
-   floor-top/slab elevations, doors/pockets, both stair flights, openings, guards,
-   roofs/ceilings, LED strips, camera bounds and source-backed colliders atomically.
-   Place the ceiling underside at 2.74 m, then derive its top and next floor from
-   slab thickness. Choose stair rise/count/run against the available footprint;
-   do not retain nine half-metre risers. Require grounded traversal through every
-   door and both stairs in both directions before accepting new clearances.
-3. **Furnishings and installations, on the structural branch:** classify each
-   asset as metre-authored or legacy before transforming it. Migrate oversized
-   counters, benches, machines and table with their interactions, anchors, POI
-   envelopes, debug metadata and colliders. Preserve tank/bucket physical sizes.
-   Revalidate all three chairs, blocked exits, camera occlusion, reduced motion,
-   quality tiers and recursive snapshots. Do not release the structural migration
-   alone with floating/tall furnishings.
-4. **Exterior and future neighborhood, after the shared contract:** migrate the
-   existing yard, garage, EV, fences, landscaping and street navigation together.
-   New neighborhood construction must consume the completed metre contract rather
-   than copy legacy dimensions. Preserve intentional architectural models and
-   display enlargements as named, documented transforms with matching proxies.
+Wall art is resized and remounted below the new ceiling, with the rocket frame
+above its 1.43 m dresser. The Reaper display follows available wall clearance; its
+arm finishes fine aim at firing so the closer display does not amplify tracking
+lag. Workshop local geometry and colliders use the same named 0.5 conversion.
+Table dimensions are authored directly because the former width/depth ratios did
+not match its declared physical reference. The world-to-table transform and player
+marker follow the new bed dimensions without applying another metre conversion.
 
-Steps 2 and 3 can be reviewed as stacked PRs but form one release unit. Staging and
-production remain unchanged until the owner approves the combined verified result.
-The expanded room/world correction remains outstanding; this foundation must not
-be presented as a completed scene-wide scale migration.
+Museum stands and furniture use a uniform 0.6 body scale: exhibit tables are
+0.87 m high, the tallest dioramas and gallery art fit below 2.74 m, and collider
+footprints shrink with the visible solids. Their interaction anchors remain
+0.75 m above the floor, 0.90 m beyond the stand edge. The media wall scales by
+0.6 around its mounting point (top 4.25 to 2.55 m); Gitshelves scales by 0.65,
+including signage, with its collision footprint measured from the resulting body.
+These adjustments apply to museum dioramas, not the metre-authored Aquiloop.
+
+## Preserved metre-authored assets
+
+Aquarium water remains 1.83 x 0.61 x 0.509 m (about 568 litres / 150 US gallons).
+Bucket shells remain nominally 0.34 m diameter by 0.37 m tall; faceted X bounds are
+0.32336 m. Lounge cushions remain 0.47 m and the tall reading chair 0.62 m, retaining
+seat alignment and foot IK. The kitchen counter's 1.52 m overall bound includes
+its backsplash; its actual worktop is about 1.02 m, and the island is about 1.04 m.
+These assets must not be halved to compensate for oversized architecture.
+
+The standing player remains 1.90 m after normalization from its measured 1.872 m
+bind pose. Walk/run remain 1.116453 / 2.537393 m/s, with proportional stride and seat
+offsets. The orthographic camera retains its framing bounds and 0.95 m focus.
+
+## Remaining exterior scope
+
+The property X/Z footprint remains approximately 64 x 64 world units. Plan
+coordinates still convert once through `FLOOR_PLAN_SCALE` (approximately 2).
+Changing that factor alone would move plan-anchored objects while leaving physical
+furnishings and colliders behind; a global scene scale would shrink the player,
+chairs and aquarium too. Exterior layout, the existing 4.6 x 9.2 m EV envelope,
+yard, street and future neighbourhood need their own coordinated horizontal
+migration. Existing exterior routes must continue to pass during this room change.
+This room correction is not a claim that the entire property is metre-calibrated.

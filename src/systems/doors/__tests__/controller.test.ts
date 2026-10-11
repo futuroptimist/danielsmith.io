@@ -69,7 +69,11 @@ describe('source-backed door controller', () => {
     expect(1 - closing[0]).toBeLessThan(closing[0] - closing[1]);
     expect(closing[2]).toBeLessThan(closing[1] - closing[2]);
   });
-  it.each([occupied, { ...occupied, x: 32.8 }, { ...occupied, z: -8 }])(
+  it.each([
+    occupied,
+    { ...occupied, x: 32.8 },
+    { ...occupied, z: definition.center.z + definition.width },
+  ])(
     'reopens occupied thresholds and panel sweeps before enabling a collider',
     (person) => {
       const door = createDoorController(definition);
