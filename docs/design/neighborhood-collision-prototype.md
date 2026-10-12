@@ -47,7 +47,7 @@ clearance tests when accepted layout data exists.
 ## Measured evidence and proposed limits
 
 The [machine-readable report](../qa/performance/neighborhood-collision-prototype.json)
-records capture commit `e46da6e6`, accepted base `2af9b2b8`, a clean prototype
+records capture commit `17a0af21`, accepted base `2af9b2b8`, a clean repository
 working tree, prototype source hashes, environment, all three timing
 attempt summaries and the opening-width sweep. The
 [read-only overlay](../assets/neighborhood-collision-prototype.svg) shows physical
@@ -65,7 +65,7 @@ candidate; the 32-collider case is a same-method baseline, not the live-house ba
 | ------------------------------------------------- | ------------------------------------------------- |
 | Selected grid / seam overlap                      | 0.125 m / 0.001 m                                 |
 | Inner curve                                       | 6.0 m physical width; 154 walkable rectangles     |
-| Guaranteed interior radial actor-center strip     | 4.141 m, excluding sector endcaps                 |
+| Guaranteed interior radial actor-center strip     | 4.1407 m, excluding sector endcaps                |
 | Rotated frontage plus fence fixture               | 204 solid rectangles                              |
 | Measured frontage boundary deviation              | 0.1773 m or less                                  |
 | Measured fence boundary deviation                 | 0.1777 m or less                                  |
@@ -87,17 +87,18 @@ at unrelated corners or at joins to a future site layout.
 
 | Collision / navigation candidates | Observed batch p95 range, three attempts |
 | --------------------------------- | ---------------------------------------- |
-| 32 / 16                           | 0.111-0.117 ms                           |
-| 128 / 64                          | 0.299-0.316 ms                           |
-| 256 / 128                         | 0.597-2.326 ms                           |
-| 256 / 256                         | 0.687-0.724 ms                           |
-| 512 / 256                         | 1.078-1.147 ms                           |
-| 1,024 / 512                       | 3.577-3.633 ms                           |
-| 2,048 / 1,024                     | 6.689-7.144 ms                           |
+| 32 / 16                           | 0.098-0.104 ms                           |
+| 128 / 64                          | 0.254-0.259 ms                           |
+| 256 / 128                         | 0.471-0.494 ms                           |
+| 256 / 256                         | 0.555-0.564 ms                           |
+| 512 / 256                         | 0.914-0.951 ms                           |
+| 1,024 / 512                       | 1.881-1.896 ms                           |
+| 2,048 / 1,024                     | 3.692-3.871 ms                           |
 
-Ambient host load was uncontrolled. The 256/128 attempt includes a 2.326 ms p95
-and 4.692 ms p99 spike; it is retained, not discarded. These timings cannot guarantee
-a production latency ceiling. Repeat on a controlled host before accepting any CPU target.
+Ambient host load was uncontrolled. The [prior committed capture](https://github.com/futuroptimist/danielsmith.io/blob/459e0481b580a36c164ac8548d214cc051f0fb77/docs/qa/performance/neighborhood-collision-prototype.json)
+retains a 256/128 attempt with a 2.326 ms p95 and 4.692 ms p99 spike. The newer lower
+numbers do not erase that variability or establish a production latency ceiling.
+Repeat on a controlled host before accepting any CPU target.
 
 Recommended **review targets**, not accepted runtime budgets:
 
@@ -108,10 +109,10 @@ Recommended **review targets**, not accepted runtime budgets:
 - Use <=256 solid candidates and <=256 walkable rectangles per occupancy query for the
   next synthetic slice. The present fixture fits; this says nothing about 24 full lots.
   At that cap, propose <=1.0 ms p95 and <=1.3 ms p99 for this exact host probe. Its three
-  attempts measured 0.687-0.724 ms p95 and <=1.187 ms p99. The smaller-count spike above
+  attempts measured 0.555-0.564 ms p95 and <=0.601 ms p99. The prior smaller-count spike
   means this is a target requiring controlled repetition, not an established guarantee.
-  The 512+ cases exceed the proposed p95 ceiling; do not adopt them without a separately
-  measured candidate-reduction strategy.
+  The prior 512-candidate capture exceeded the proposed p95 ceiling; the current 1,024+
+  cases also exceed it. Retain the lower candidate cap until a controlled qualification.
 - The live scene must still meet the design's matched <=10% frame regression gate and
   real low-end qualification. The standalone CPU ceiling does not establish either.
 - Preserve at least 3.0 m physical clear width **plus the separately agreed collision
@@ -127,13 +128,19 @@ limits, stop and propose a separate capability change rather than narrowing the 
 
 ## Reproduce and review
 
-From the repository root, using existing locked dependencies:
+From a clean repository root, using existing locked dependencies and an output
+directory outside the repository:
 
 ```bash
 npx vitest run src/tests/prototypes/__tests__/rectangularNeighborhood.test.ts
 npx tsx src/tests/prototypes/measureNeighborhood.ts /absolute/review-output-directory
 npm run release:check -- --base origin/main
 ```
+
+Capture requires all tracked and untracked nonignored repository files to be clean,
+including imported runtime source and dependency manifests. It checks again after the
+probe and rejects a changed commit before writing evidence. Ignored dependency/build
+outputs are outside the Git cleanliness check; use the existing locked installation.
 
 The measurement command writes only `report.json` and `overlay.svg` to the explicit
 output directory. It does not launch the app, update layouts or contact a provider.
