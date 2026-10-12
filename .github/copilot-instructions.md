@@ -112,6 +112,13 @@ because `format:write` mutates files.
 
 ## Documentation Standards
 
+- Follow [the release policy](../docs/ops/versioning.md): site changes require a
+  `docs/changelog.md` entry and a Chart.yaml `appVersion` bump. Any chart content change,
+  including appVersion, also requires a chart `version` bump. The private npm version
+  remains independent. See the policy for docs/test-only exclusions and parallel PRs.
+- Run `npm run release:check -- --base origin/main` before handoff. New notes remain
+  unreleased; staging and production each require human approval and evidence.
+
 - Update `docs/` when behavior, prompts, or workflows change
 - Store generated images as SVG or PNG in `docs/assets/`
 - Keep README synchronized with feature additions

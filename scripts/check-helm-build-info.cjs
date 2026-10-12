@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 const { execFileSync } = require('node:child_process');
+const { readFileSync } = require('node:fs');
+const { chartVersions } = require('./check-release.cjs');
 
 const chartPath = 'charts/danielsmith';
+const { app: appVersion } = chartVersions(
+  readFileSync(`${chartPath}/Chart.yaml`, 'utf8')
+);
 
 const render = (args = []) =>
   execFileSync('helm', ['template', 'danielsmith', chartPath, ...args], {
@@ -118,7 +123,7 @@ assertIncludes(
 );
 assertIncludes(
   prodRender,
-  '"tag": "v0.1.3"',
+  `"tag": "v${appVersion}"`,
   'prod should display the semver Chart.AppVersion, not the raw image tag'
 );
 
