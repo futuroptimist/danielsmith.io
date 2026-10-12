@@ -7714,7 +7714,8 @@ function buildImmersiveScene(
             replacement.model,
             camera,
             scene,
-            avatarPreparation.signal
+            avatarPreparation.signal,
+            [player]
           ))
         ) {
           replacement.dispose();

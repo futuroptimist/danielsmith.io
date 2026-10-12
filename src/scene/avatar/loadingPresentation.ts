@@ -10,6 +10,7 @@ import {
 
 export const AVATAR_LOADING_TIMEOUT_MS = 15_000;
 export const AVATAR_REVEAL_SECONDS = 0.45;
+const MARKER_BASE_OPACITY = 0.55;
 
 /** These materials belong to the player. Restore every flag when the handoff ends. */
 function fadeBody(bodies: Object3D[]) {
@@ -61,7 +62,7 @@ export function createAvatarLoadingPresentation(
   const material = new MeshBasicMaterial({
     color: '#aab8bd',
     transparent: true,
-    opacity: 0.55,
+    opacity: MARKER_BASE_OPACITY,
     depthWrite: false,
     depthTest: false,
   });
@@ -87,11 +88,11 @@ export function createAvatarLoadingPresentation(
     incoming = outgoing = undefined;
   };
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const setState = (next: typeof state) => {
+  const setState = (next: typeof state, requestRender = true) => {
     state = next;
     fallback.visible = next === 'fallback';
     marker.visible = next === 'pending';
-    onChange();
+    if (requestRender) onChange();
   };
   const fail = () => {
     if (state !== 'pending') return;
@@ -103,7 +104,7 @@ export function createAvatarLoadingPresentation(
       return;
     clearTimeout(timer);
     revealProgress = 0;
-    material.opacity = 0.55;
+    material.opacity = MARKER_BASE_OPACITY;
     setState('pending');
     timer = setTimeout(fail, AVATAR_LOADING_TIMEOUT_MS);
   };
@@ -141,11 +142,12 @@ export function createAvatarLoadingPresentation(
         revealProgress * revealProgress * (3 - 2 * revealProgress);
       incoming?.set(opacity);
       outgoing?.set(1 - opacity);
-      material.opacity = 0.55 * (1 - opacity);
+      material.opacity = MARKER_BASE_OPACITY * (1 - opacity);
       if (revealProgress === 1) {
         finishReveal();
-        setState('ready');
-      } else onChange();
+        // This update already runs inside a render frame; do not bypass safe-mode cadence.
+        setState('ready', false);
+      }
     },
     getSnapshot: () => ({
       presentation: state,

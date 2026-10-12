@@ -2,6 +2,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   type Camera,
+  type Material,
   type Object3D,
   type Scene,
   type Texture,
@@ -14,21 +15,49 @@ export async function prepareAvatarRendering(
   model: Object3D,
   camera: Camera,
   scene: Scene,
-  signal: AbortSignal
+  signal: AbortSignal,
+  companions: Object3D[] = []
 ): Promise<boolean> {
   if (signal.aborted) return false;
   const existing = new Set(renderer.info.programs ?? []);
-  renderer.compile(model, camera, scene);
+  const roots = [model, ...companions];
   const textures = new Set<Texture>();
-  model.traverse((object) => {
-    if (!(object instanceof Mesh)) return;
-    for (const material of Array.isArray(object.material)
-      ? object.material
-      : [object.material]) {
-      if (material instanceof MeshStandardMaterial && material.map)
-        textures.add(material.map);
-    }
-  });
+  const materials = new Map<
+    Material,
+    { transparent: boolean; depthWrite: boolean }
+  >();
+  roots.forEach((root) =>
+    root.traverse((object) => {
+      if (!(object instanceof Mesh)) return;
+      for (const material of Array.isArray(object.material)
+        ? object.material
+        : [object.material]) {
+        if (!materials.has(material))
+          materials.set(material, {
+            transparent: material.transparent,
+            depthWrite: material.depthWrite,
+          });
+        if (material instanceof MeshStandardMaterial && material.map)
+          textures.add(material.map);
+      }
+    })
+  );
+  roots.forEach((root) => renderer.compile(root, camera, scene));
+  // Opacity mode changes Three's program key. Warm the reveal variant too, including
+  // reparented accessories and the recovery body, before any visible handoff starts.
+  try {
+    materials.forEach((_, material) => {
+      material.transparent = true;
+      material.depthWrite = false;
+      material.needsUpdate = true;
+    });
+    roots.forEach((root) => renderer.compile(root, camera, scene));
+  } finally {
+    materials.forEach((original, material) => {
+      Object.assign(material, original);
+      material.needsUpdate = true;
+    });
+  }
   textures.forEach((texture) => renderer.initTexture(texture));
   const pending = (renderer.info.programs ?? []).filter(
     (program) => !existing.has(program)

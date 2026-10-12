@@ -9,7 +9,8 @@ The handoff changes opacity only and preserves movement and Caps Lock gait state
 skips the fade (including when enabled mid-transition), retaining a stable idle pose.
 Re-entering immersive mode or reloading retries the asset with a fresh marker and timeout.
 The text portfolio remains independent of the model download.
-GPU shaders and the pixel atlas are prepared before the visible swap. Parallel shader polling
+Opaque and transparent reveal shaders for the avatar, accessories, and recovery body, plus the
+pixel atlas, are prepared before the visible swap. The fade respects software-safe frame cadence. Parallel shader polling
 is cancellable on scene teardown and bounded to five seconds, revealing the mannequin on failure.
 
 The approved asset has 2,976 triangles, one skinned mesh/material, 20 bones, an embedded 128 px

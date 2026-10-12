@@ -176,6 +176,21 @@ describe('avatar loading presentation', () => {
     }
   );
 
+  it('requests the first reveal frame without forcing subsequent frames past the safe-mode cap', () => {
+    const { presentation, changed } = setup();
+    changed.mockClear();
+    presentation.ready(new Group());
+    expect(changed).toHaveBeenCalledTimes(1);
+    changed.mockClear();
+    presentation.update(AVATAR_REVEAL_SECONDS / 2);
+    expect(presentation.getSnapshot().presentation).toBe('revealing');
+    expect(changed).not.toHaveBeenCalled();
+    presentation.update(AVATAR_REVEAL_SECONDS / 2);
+    expect(presentation.getSnapshot().presentation).toBe('ready');
+    expect(changed).not.toHaveBeenCalled();
+    presentation.dispose();
+  });
+
   it('disposes marker resources once and ignores late events', () => {
     const { player, presentation, changed } = setup();
     const marker = player.getObjectByName('AvatarLoadingMarker')!;

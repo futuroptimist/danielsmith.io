@@ -379,21 +379,21 @@
         "src/systems/movement/avatarGait.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 8,
-      "syncNote": "Run speed and stride cadence increased by 20%; player dimensions and the miniature marker geometry are unchanged.",
-      "sourceFingerprint": "e8c2a3c499479f45badd71ecde8c9e3ccc914b879eb4f2a712f0558db92d9267",
+      "syncRevision": 9,
+      "syncNote": "Both avatar handoff shader variants are prepared before display; the faster run cadence, player dimensions, and miniature geometry are unchanged.",
+      "sourceFingerprint": "68979561e2f66fa19f1e680eb590a45ebc8c5035648463ef5e4f6258ca08207d",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "8ebd2abb743753b5c1f6b4b6b4c89fa84d0b4f078ba904938573b6b1208068f5"
+      "metadataFingerprint": "530e4bbae36ff3875bbad7041569e2a381a7a49bf723fe2038b91e08fd9cecc5"
     },
     {
       "id": "avatar:loading-presentation",
       "sourceFiles": ["src/scene/avatar/loadingPresentation.ts"],
       "proxyFiles": [],
-      "syncRevision": 2,
+      "syncRevision": 3,
       "syncNote": "The muted player cue and opacity-only avatar handoff are transient presentation, excluded from static miniature architecture; building geometry is unchanged.",
-      "sourceFingerprint": "3706a99d2c9ca68c864a2ce93010c298399c72a1038ccf9b8f83c44c445982f7",
+      "sourceFingerprint": "5c55b98c675260cad790b3e83d8352ddf9b08d1588e7e04f85808d88eaaa3645",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "909c28a230527b50e0a657e8b14cf19ba2690c67a3a96c16e87a9e6ef4314355"
+      "metadataFingerprint": "089b248711449a4dc41b797df590afb450d26b24f08ea2ef75c0ea1c749775f2"
     },
     {
       "id": "avatar:overworld-player",
