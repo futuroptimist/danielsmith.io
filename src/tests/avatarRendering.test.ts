@@ -7,6 +7,7 @@ import {
   Scene,
   Texture,
   type WebGLRenderer,
+  type Object3D,
 } from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -37,18 +38,22 @@ function fixture() {
   const controller = new AbortController();
   return {
     renderer,
+    model,
+    material,
+    programs,
     query,
     controller,
     ready: () => {
       ready = true;
     },
-    start: () =>
+    start: (companions: Object3D[] = []) =>
       prepareAvatarRendering(
         renderer as unknown as WebGLRenderer,
         model,
         new PerspectiveCamera(),
         new Scene(),
-        controller.signal
+        controller.signal,
+        companions
       ),
   };
 }
@@ -66,6 +71,69 @@ describe('avatar GPU preparation lifecycle', () => {
     f.ready();
     await vi.advanceTimersByTimeAsync(10);
     expect(await result).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('prepares both shader variants for the model and companions, then restores flags', async () => {
+    const f = fixture();
+    const accessoryMaterial = new MeshStandardMaterial({
+      transparent: true,
+      depthWrite: false,
+      map: f.material.map,
+    });
+    const accessory = new Mesh(new BoxGeometry(), accessoryMaterial);
+    const flags: boolean[][] = [];
+    f.renderer.compile.mockImplementation(() => {
+      flags.push([
+        f.material.transparent,
+        f.material.depthWrite,
+        accessoryMaterial.transparent,
+        accessoryMaterial.depthWrite,
+      ]);
+      f.programs.push({ program: {} });
+    });
+    const result = f.start([accessory]);
+    expect(flags).toEqual([
+      [false, true, true, false],
+      [false, true, true, false],
+      [true, false, true, false],
+      [true, false, true, false],
+    ]);
+    expect(f.material.transparent).toBe(false);
+    expect(f.material.depthWrite).toBe(true);
+    expect(accessoryMaterial.transparent).toBe(true);
+    expect(accessoryMaterial.depthWrite).toBe(false);
+    expect(f.renderer.initTexture).toHaveBeenCalledTimes(1);
+    f.ready();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(await result).toBe(true);
+  });
+  it('waits for the transparent variant even when the opaque shader is ready', async () => {
+    const f = fixture();
+    let transparentReady = false;
+    f.query.mockImplementation(
+      (...args: unknown[]) =>
+        args[0] === f.programs[0]?.program || transparentReady
+    );
+    const result = f.start();
+    const completed = vi.fn();
+    void result.then(completed);
+    await vi.advanceTimersByTimeAsync(20);
+    expect(completed).not.toHaveBeenCalled();
+    transparentReady = true;
+    await vi.advanceTimersByTimeAsync(10);
+    expect(await result).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('restores material flags if compiling the reveal variant fails', async () => {
+    const f = fixture();
+    f.renderer.compile
+      .mockImplementationOnce(() => {})
+      .mockImplementationOnce(() => {
+        throw new Error('compile failed');
+      });
+    await expect(f.start()).rejects.toThrow('compile failed');
+    expect(f.material.transparent).toBe(false);
+    expect(f.material.depthWrite).toBe(true);
     expect(vi.getTimerCount()).toBe(0);
   });
   it('cancels without querying the context after scene disposal', async () => {

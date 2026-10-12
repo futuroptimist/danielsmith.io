@@ -454,7 +454,7 @@ async function walkUpperLandingWestExitToCreatorsStudio(page: Page) {
   }
 
   const creatorsStudioCenter = getUpperRoomCenter('creatorsStudio');
-  const doorwayZ = Math.max(westDoorway.start + PLAYER_RADIUS, -29);
+  const doorwayZ = (westDoorway.start + westDoorway.end) / 2;
   const egressLaneX = stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
   const westLandingExitX = upperLandingRoom.bounds.minX + PLAYER_RADIUS;
   const creatorsDoorwayEntryX = upperLandingRoom.bounds.minX - PLAYER_RADIUS;
@@ -723,23 +723,23 @@ test('off-stair ground points near the upper stair top stay on ground', async ({
     }
     return {
       source: world.predictFloorAt({
-        x: 7.4,
-        z: -25.27,
+        x: 7.4 * Math.SQRT1_2,
+        z: -25.27 * Math.SQRT1_2,
         currentFloor: 'ground',
       }),
       lifted: world.predictFloorAt({
-        x: 8.14,
-        z: -25.36,
+        x: 8.14 * Math.SQRT1_2,
+        z: -25.36 * Math.SQRT1_2,
         currentFloor: 'ground',
       }),
       sourceZone: world.getStairTransitionZone({
-        x: 7.4,
-        z: -25.27,
+        x: 7.4 * Math.SQRT1_2,
+        z: -25.27 * Math.SQRT1_2,
         currentFloor: 'ground',
       }),
       liftedZone: world.getStairTransitionZone({
-        x: 8.14,
-        z: -25.36,
+        x: 8.14 * Math.SQRT1_2,
+        z: -25.36 * Math.SQRT1_2,
         currentFloor: 'ground',
       }),
     };
@@ -779,59 +779,111 @@ test('upper landing samples preserve intended passage and void behavior', async 
   const visibleLandingSamples: NamedPosition[] = [
     {
       name: 'visible landing center',
-      target: { x: 12.4, z: -26.84, floorId: 'upper' as const },
+      target: {
+        x: 12.4 * Math.SQRT1_2,
+        z: -26.84 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'visible landing west edge',
-      target: { x: 12.2, z: -26.84, floorId: 'upper' as const },
+      target: {
+        x: 12.2 * Math.SQRT1_2,
+        z: -26.84 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'visible landing east edge',
-      target: { x: 12.6, z: -26.84, floorId: 'upper' as const },
+      target: {
+        x: 12.6 * Math.SQRT1_2,
+        z: -26.84 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'visible landing north edge',
-      target: { x: 12.4, z: -26.72, floorId: 'upper' as const },
+      target: {
+        x: 12.4 * Math.SQRT1_2,
+        z: -26.72 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'visible landing south edge',
-      target: { x: 12.4, z: -26.96, floorId: 'upper' as const },
+      target: {
+        x: 12.4 * Math.SQRT1_2,
+        z: -26.96 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
   ];
   const physicalLandingSamplesAtFormerZ29: NamedPosition[] = [
     {
       name: 'physical z=-29 landing center',
-      target: { x: 12.4, z: -29, floorId: 'upper' as const },
+      target: {
+        x: 12.4 * Math.SQRT1_2,
+        z: -29 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'physical z=-29 landing west sample',
-      target: { x: 12.2, z: -29, floorId: 'upper' as const },
+      target: {
+        x: 12.2 * Math.SQRT1_2,
+        z: -29 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'physical z=-29 landing east sample',
-      target: { x: 12.6, z: -29, floorId: 'upper' as const },
+      target: {
+        x: 12.6 * Math.SQRT1_2,
+        z: -29 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
   ];
   const noFloorCutoutSamples: NamedPosition[] = [
     {
       name: 'east no-floor cutout beside z=-29 landing sample',
-      target: { x: 13.7, z: -20, floorId: 'upper' as const },
+      target: {
+        x: 13.7 * Math.SQRT1_2,
+        z: -20 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'south no-floor cutout beyond StaircaseLanding slab',
-      target: { x: 12.4, z: -31.35, floorId: 'upper' as const },
+      target: {
+        x: 12.4 * Math.SQRT1_2,
+        z: -31.35 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'raw lower-step upper-floor occupancy probe at descent centerline',
-      target: { x: 12.4, z: -16.25, floorId: 'upper' as const },
+      target: {
+        x: 12.4 * Math.SQRT1_2,
+        z: -16.25 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'raw lower-step upper-floor occupancy probe at second bottom step',
-      target: { x: 12.4, z: -16.75, floorId: 'upper' as const },
+      target: {
+        x: 12.4 * Math.SQRT1_2,
+        z: -16.75 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'upper stair guard gap outside intended descent lane',
-      target: { x: 10.1, z: -17.25, floorId: 'upper' as const },
+      target: {
+        x: 10.1 * Math.SQRT1_2,
+        z: -17.25 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
   ];
 
@@ -851,8 +903,8 @@ test('upper landing samples preserve intended passage and void behavior', async 
   }
 
   const upperLandingDoorwayClearance = {
-    x: 9.6,
-    z: -15.5,
+    x: 8.4 * Math.SQRT1_2,
+    z: -15.5 * Math.SQRT1_2,
     floorId: 'upper' as const,
   };
   expect(await canOccupyPosition(page, upperLandingDoorwayClearance)).toBe(
@@ -948,11 +1000,27 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       (collider) => overlapsOpenPassage(collider.bounds)
     );
     const openingSamples = [
-      { x: 9.35, z: -16, floorId: 'upper' as const },
-      { x: 9.6, z: -16, floorId: 'upper' as const },
-      { x: 9.85, z: -16, floorId: 'upper' as const },
+      {
+        x: 8.4 * Math.SQRT1_2 - 0.25,
+        z: -16 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
+      {
+        x: 8.4 * Math.SQRT1_2,
+        z: -16 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
+      {
+        x: 8.4 * Math.SQRT1_2 + 0.25,
+        z: -16 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     ];
-    const passageStart = { x: 9.6, z: -16.6, floorId: 'upper' as const };
+    const passageStart = {
+      x: 8.4 * Math.SQRT1_2,
+      z: -16.6 * Math.SQRT1_2,
+      floorId: 'upper' as const,
+    };
     const passageStep = { dx: 0, dz: 0.1 };
     world.movePlayerTo(passageStart);
     const passageSteps: Array<ReturnType<TestWorldApi['stepPlayerForTest']>> =
@@ -1152,7 +1220,13 @@ test('blocks coarse displacements through upstairs side and back rails', async (
   );
   if (!upperLanding) throw new Error('Missing upper landing room');
   const fixtures = [
-    { floorId: 'upper' as const, x: 9.5, z: -19, dx: 12, dz: 0 },
+    {
+      floorId: 'upper' as const,
+      x: stairCenterX - 2.6,
+      z: -19 * Math.SQRT1_2,
+      dx: 12,
+      dz: 0,
+    },
     {
       floorId: 'upper' as const,
       x: stairCenterX,
@@ -1160,7 +1234,13 @@ test('blocks coarse displacements through upstairs side and back rails', async (
       dx: 0,
       dz: -12,
     },
-    { floorId: 'ground' as const, x: 15.5, z: -18, dx: -12, dz: 0 },
+    {
+      floorId: 'ground' as const,
+      x: stairCenterX + 2.6,
+      z: -18 * Math.SQRT1_2,
+      dx: -12,
+      dz: 0,
+    },
   ];
   for (const fixture of fixtures) {
     const result = await page.evaluate((fixture) => {
@@ -1189,15 +1269,35 @@ test('ground stair side guard blocks squeeze entry and preserves the stair path'
   const html = page.locator('html');
   const { stairCenterX, stairBottomZ, stairTopZ } = await getStairMetrics(page);
   const blockedSamples = [
-    { x: 13.7, z: -17.5, floorId: 'ground' as const },
-    { x: 13.7, z: -19, floorId: 'ground' as const },
-    { x: 11.1, z: -18, floorId: 'ground' as const },
+    {
+      x: 13.7 * Math.SQRT1_2,
+      z: -17.5 * Math.SQRT1_2,
+      floorId: 'ground' as const,
+    },
+    {
+      x: 13.7 * Math.SQRT1_2,
+      z: -19 * Math.SQRT1_2,
+      floorId: 'ground' as const,
+    },
+    {
+      x: 11.1 * Math.SQRT1_2,
+      z: -18 * Math.SQRT1_2,
+      floorId: 'ground' as const,
+    },
   ];
   const livingRoomSamples = [
-    { x: 21.35, z: -14.66, floorId: 'ground' as const },
-    { x: 22.1, z: -14.66, floorId: 'ground' as const },
-    { x: 23, z: -18, floorId: 'ground' as const },
-    { x: 24, z: -18, floorId: 'ground' as const },
+    {
+      x: 21.35 * Math.SQRT1_2,
+      z: -14.66 * Math.SQRT1_2,
+      floorId: 'ground' as const,
+    },
+    {
+      x: 22.1 * Math.SQRT1_2,
+      z: -14.66 * Math.SQRT1_2,
+      floorId: 'ground' as const,
+    },
+    { x: 23 * Math.SQRT1_2, z: -18 * Math.SQRT1_2, floorId: 'ground' as const },
+    { x: 24 * Math.SQRT1_2, z: -18 * Math.SQRT1_2, floorId: 'ground' as const },
   ];
   const lowerEntrance = {
     x: stairCenterX,
@@ -1293,7 +1393,9 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
 
   const landingWestEgressLaneX =
     stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
-  for (const z of [-26.14, -27.5, -29, -30.5, -31.24]) {
+  for (const z of [-26.14, -27.5, -29, -30.5, -30.8].map(
+    (z) => z * Math.SQRT1_2
+  )) {
     const egressSample = {
       x: landingWestEgressLaneX,
       z,
@@ -1303,7 +1405,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
     expect(await getBlockingColliderNames(page, egressSample)).toEqual([]);
   }
 
-  const physicalLandingZ = -29;
+  const physicalLandingZ = -29 * Math.SQRT1_2;
   const physicalLandingSamples: NamedPosition[] = [
     {
       name: 'physical west landing sample',
@@ -1419,7 +1521,11 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     z: stairTopZ + stairDirection * 1.8,
     floorId: 'upper' as const,
   };
-  const normalLoftSpace = { x: 5.5, z: -9, floorId: 'upper' as const };
+  const normalLoftSpace = {
+    x: 5.5 * Math.SQRT1_2,
+    z: -9 * Math.SQRT1_2,
+    floorId: 'upper' as const,
+  };
   const normalLoftEastNudge = {
     ...normalLoftSpace,
     x: normalLoftSpace.x + 0.45,
@@ -1431,19 +1537,31 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     throw new Error('Missing upper landing room');
   }
   const loftDoorway = {
-    x: 9.6,
+    x: 8.4 * Math.SQRT1_2,
     z: upperLandingRoom.bounds.maxZ + PLAYER_RADIUS,
     floorId: 'upper' as const,
   };
-  const westSideStairEntry = { x: 10.3, z: -19, floorId: 'upper' as const };
+  const westSideStairEntry = {
+    x: 10.3 * Math.SQRT1_2,
+    z: -19 * Math.SQRT1_2,
+    floorId: 'upper' as const,
+  };
   const lowerStepRawOccupancyProbes = [
     {
       name: 'raw lower-step upper-floor occupancy probe at descent centerline',
-      target: { x: stairCenterX, z: -16.25, floorId: 'upper' as const },
+      target: {
+        x: stairCenterX,
+        z: -16.25 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'raw lower-step upper-floor occupancy probe at second bottom step',
-      target: { x: stairCenterX, z: -16.75, floorId: 'upper' as const },
+      target: {
+        x: stairCenterX,
+        z: -16.75 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
   ];
   const stairTopDescentRun = {
@@ -1475,8 +1593,8 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     },
   ];
   const westEdgeFloorClearance = {
-    x: 7.5,
-    z: -23,
+    x: 7.5 * Math.SQRT1_2,
+    z: -23 * Math.SQRT1_2,
     floorId: 'upper' as const,
   };
   const westVoidBypass = {
@@ -1499,13 +1617,17 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
   const physicalLandingMouthSamples: NamedPosition[] = [
     {
       name: 'physical center landing sample',
-      target: { x: stairCenterX, z: -28.8, floorId: 'upper' as const },
+      target: {
+        x: stairCenterX,
+        z: -28.8 * Math.SQRT1_2,
+        floorId: 'upper' as const,
+      },
     },
     {
       name: 'physical east landing sample',
       target: {
         x: stairCenterX + PLAYER_RADIUS * 0.5,
-        z: -29,
+        z: -29 * Math.SQRT1_2,
         floorId: 'upper' as const,
       },
     },
@@ -1570,7 +1692,7 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
   );
   const runtimeWestEntry = await stepRuntimeIntoUpperStairEdge(
     page,
-    { x: 10, z: -19 },
+    { x: stairCenterX - 2.6, z: -19 * Math.SQRT1_2 },
     { dx: 0.12, dz: 0 }
   );
   expect(runtimeWestEntry.movedX).toBe(false);
@@ -1610,7 +1732,7 @@ test('upper landing edge nudges stay upstairs until the descent corridor is ente
   const html = page.locator('html');
   const { stairCenterX, stairTopZ } = await getStairMetrics(page);
   const screenshotLandingEdge = {
-    x: stairCenterX + 5,
+    x: stairCenterX + 3.5,
     z: stairTopZ + 0.7,
     floorId: 'upper' as const,
   };

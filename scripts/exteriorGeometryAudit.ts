@@ -11,7 +11,6 @@ import { FLOOR_PLAN_SCALE } from '../src/assets/floorPlan';
 import { EXTERIOR_LOCALE_COPY } from '../src/assets/i18n/exterior';
 import { createExteriorDoorDefinitions } from '../src/scene/level/exteriorLayout';
 import { PORTFOLIO_LEVEL } from '../src/scene/level/portfolioLevel';
-import { STREET_BEHAVIOR_REGIONS } from '../src/scene/level/streetLayout';
 import { createResidentialExterior } from '../src/scene/structures/residentialExterior';
 import { createResidentialStreet } from '../src/scene/structures/residentialStreet';
 import { createDoorController } from '../src/systems/doors/controller';
@@ -126,7 +125,7 @@ export function auditExteriorGeometry(scale = FLOOR_PLAN_SCALE) {
       behavioralRegions: {
         floorId: 'ground',
         boundary: 'strict',
-        ...STREET_BEHAVIOR_REGIONS,
+        ...street.getBehaviorRegions(),
       },
       declaredColliders,
       doors: doors.map(({ definition }) => definition),

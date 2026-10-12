@@ -22,12 +22,7 @@ import { assertDebugColliderId } from '../debug/colliderDebugIds';
 import { getDebugHash } from '../debug/debugIds';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import type { FloorDefinition } from '../level/schema';
-import {
-  BUS_STOP,
-  PARKED_EV,
-  STREET_LAMPS,
-  STREET_BEHAVIOR_REGIONS,
-} from '../level/streetLayout';
+import { BUS_STOP, PARKED_EV, STREET_LAMPS } from '../level/streetLayout';
 
 import type { ExteriorSolid } from './residentialExterior';
 
@@ -326,15 +321,36 @@ export function createResidentialStreet(
     mesh.computeBoundingSphere();
     group.add(mesh);
   }
+  // Translate the shelter as one physical assembly; retain its metre dimensions.
+  const shelterX = 24.5 * scale;
+  const roofDepth = 12.1;
+  const streetNorth =
+    floor.rooms.find((room) => room.id === 'street')!.bounds.maxZ * scale;
+  const shelterZ = Math.min(
+    BUS_STOP.z * scale,
+    streetNorth - roofDepth / 2 - 0.15
+  );
+  // Resolved world-space behavior bounds are distinct from anchors and solid footprints.
+  const behaviorRegions = {
+    shelterCutaway: {
+      minX: shelterX - 3.5,
+      maxX: shelterX + 4,
+      minZ: shelterZ - 6.5,
+      maxZ: shelterZ + 6.5,
+    },
+    lightActivation: { minX: 22.5 * scale },
+  };
   // Open-front shelter: full-height posts and bench are the only pedestrian obstacles.
-  for (const x of [46.4, 51.6])
-    for (const z of [26.4, 37.6]) {
+  for (const dx of [-2.6, 2.6])
+    for (const dz of [-5.6, 5.6]) {
+      const x = shelterX + dx;
+      const z = shelterZ + dz;
       add('metal', shelter.sourceId, x, 2.2, z, 0.22, 4.4, 0.22);
       add('metal', shelter.sourceId, x, 0.1, z, 0.4, 0.2, 0.4);
       solids.push({
         ...identity(
           shelter.sourceId,
-          `shelter-post-${x === 46.4 ? 'west' : 'east'}-${z === 26.4 ? 'south' : 'north'}`
+          `shelter-post-${dx < 0 ? 'west' : 'east'}-${dz < 0 ? 'south' : 'north'}`
         ),
         definition: shelter,
         collider: {
@@ -345,19 +361,53 @@ export function createResidentialStreet(
         },
       });
     }
-  add('roof', shelter.sourceId, 49, 4.5, 32, 6.2, 0.25, 12.1, true);
-  add('wood', shelter.sourceId, 48.1, 0.74, 32, 1.3, 0.18, 4.6);
-  add('wood', shelter.sourceId, 47.5, 1.2, 32, 0.18, 0.85, 4.6);
-  for (const z of [30.3, 33.7])
-    add('metal', shelter.sourceId, 48.1, 0.35, z, 1.1, 0.7, 0.18);
+  add(
+    'roof',
+    shelter.sourceId,
+    shelterX,
+    4.5,
+    shelterZ,
+    6.2,
+    0.25,
+    roofDepth,
+    true
+  );
+  add('wood', shelter.sourceId, shelterX - 0.9, 0.74, shelterZ, 1.3, 0.18, 4.6);
+  add('wood', shelter.sourceId, shelterX - 1.5, 1.2, shelterZ, 0.18, 0.85, 4.6);
+  for (const dz of [-1.7, 1.7])
+    add(
+      'metal',
+      shelter.sourceId,
+      shelterX - 0.9,
+      0.35,
+      shelterZ + dz,
+      1.1,
+      0.7,
+      0.18
+    );
   solids.push({
     ...identity(shelter.sourceId, 'shelter-bench'),
     definition: shelter,
-    collider: { minX: 47.2, maxX: 48.8, minZ: 29.6, maxZ: 34.4 },
+    collider: {
+      minX: shelterX - 1.8,
+      maxX: shelterX - 0.2,
+      minZ: shelterZ - 2.4,
+      maxZ: shelterZ + 2.4,
+    },
   });
   // The forward fascia keeps the world sign inside the close isometric view.
-  const signZ = BUS_STOP.z * scale + 4.7;
-  add('metal', shelter.sourceId, 51.76, 3.72, signZ, 0.16, 1.55, 3.8, true);
+  const signZ = shelterZ + 4.7;
+  add(
+    'metal',
+    shelter.sourceId,
+    shelterX + 2.76,
+    3.72,
+    signZ,
+    0.16,
+    1.55,
+    3.8,
+    true
+  );
   const canvas = document.createElement('canvas');
   canvas.width = 768;
   canvas.height = 300;
@@ -368,7 +418,7 @@ export function createResidentialStreet(
   const sign = new Mesh(signGeometry, signMaterial);
   sign.name = 'BusStopComingSoonSign';
   sign.rotation.y = Math.PI / 2;
-  sign.position.set(51.85, 3.72, signZ);
+  sign.position.set(shelterX + 2.85, 3.72, signZ);
   annotate(sign, shelter.sourceId, true);
   group.add(sign);
   let signText = '';
@@ -437,7 +487,7 @@ export function createResidentialStreet(
     policy: SceneDetailPolicy,
     occupant: { x: number; z: number; floorId: string }
   ) {
-    const region = STREET_BEHAVIOR_REGIONS.shelterCutaway;
+    const region = behaviorRegions.shelterCutaway;
     const insideShelter =
       occupant.floorId === 'ground' &&
       occupant.x > region.minX &&
@@ -453,7 +503,7 @@ export function createResidentialStreet(
     }
     const nearby =
       occupant.floorId === 'ground' &&
-      occupant.x > STREET_BEHAVIOR_REGIONS.lightActivation.minX;
+      occupant.x > behaviorRegions.lightActivation.minX;
     const dynamic = nearby && policy.effects.dynamicPointLights;
     // Keep the authored downward footprint continuous across the proximity and
     // quality boundary. Realtime light augments it rather than replacing it.
@@ -495,6 +545,10 @@ export function createResidentialStreet(
     setStrings,
     update,
     getSnapshot,
+    getBehaviorRegions: () => ({
+      shelterCutaway: { ...behaviorRegions.shelterCutaway },
+      lightActivation: { ...behaviorRegions.lightActivation },
+    }),
     getCutawaySourceIds: () =>
       materials.roof.opacity < 1 ? [shelter.sourceId] : [],
     dispose() {

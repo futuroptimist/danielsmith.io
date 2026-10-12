@@ -68,11 +68,17 @@ export function createSourceSnapshot(
       if (visited.has(object)) return;
       if (
         object.name === 'MiniatureWorldRoot' ||
-        object.name === 'PortfolioMiniatureTable'
+        object.name === 'PortfolioMiniatureTable' ||
+        object.userData.staticBatch === true
       )
         return;
       // Floor visibility is camera state, not authored absence. Nested hidden effects stay hidden.
-      if (!root && !object.visible) return;
+      if (
+        !root &&
+        !object.visible &&
+        object.userData.staticBatchSource !== true
+      )
+        return;
       visited.add(object);
       if (
         object instanceof Mesh &&

@@ -4,6 +4,45 @@ Release notes for the immersive danielsmith.io portfolio. The in-app link curren
 this repository Markdown page as a temporary wiki/documentation surface; a native changelog view
 may replace it in a future release.
 
+## v0.3.1 - unreleased
+
+- Added source-linked exterior measurements that distinguish actual street meshes,
+  conservative colliders, anchors and activation regions without changing appearance
+  or movement. Corrected garage scale documentation and added geometry regressions.
+- Advanced application metadata to `0.3.1` and chart packaging to `0.2.13`.
+  These versions do not imply a tag, release or deployment.
+
+## v0.3.0 - unreleased
+
+- Reduced horizontal room area by 50% on all three floors while preserving room
+  proportions, 2.74 m ceiling clearance, avatar height and furniture sizes.
+  Repositioned furnishings and adjusted door approaches so the smaller house
+  retains its stair connections and accessible exhibits.
+- Preserved the faster running speed and smooth avatar loading introduced in
+  `0.2.1` and `0.2.2`. Exhibit size changes remain separate.
+- Advanced application metadata to `0.3.0` for the substantial house layout change
+  and chart packaging to `0.2.12`; these versions do not imply a tag or deployment.
+
+## v0.2.2 - unreleased
+
+- Smoothed the animated avatar's arrival with a muted position cue and a short fade,
+  including enabled accessories, without restoring the obsolete avatar flash.
+- Preserved movement and Caps Lock gait through loading, along with failure recovery,
+  retry, late loading success, and reduced-motion behavior. The faster running speed
+  introduced in `0.2.1` remains unchanged.
+- Advanced application metadata to `0.2.2` for this compatible loading fix and chart
+  packaging to `0.2.11`. These versions do not imply a tag, release, or deployment.
+
+## v0.2.1 - unreleased
+
+- Increased the character's running speed by 20%, from 2.537393 to 3.044872 metres/second,
+  while preserving walking at 1.116453 metres/second and the Caps Lock controls
+  (off runs by default; on walks).
+- Matched the running animation cadence to the faster movement and retained camera-relative
+  movement, collision-safe traversal, door timing, and reduced-motion behavior.
+- Advanced application metadata to `0.2.1` for this compatible movement adjustment and chart
+  packaging to `0.2.10`. These versions do not imply a tag, release, or deployment.
+
 ## v0.2.0 - unreleased
 
 This application version reconciles the substantial merged changes since `v0.1.3`.

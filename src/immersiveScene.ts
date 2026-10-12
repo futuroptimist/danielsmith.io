@@ -293,6 +293,7 @@ import {
 } from './scene/structures/axelNavigator';
 import { createBasementLandingCutaway } from './scene/structures/basementLandingCutaway';
 import { createBasementStaircase } from './scene/structures/basementStaircase';
+import { batchStaticMeshes } from './scene/structures/batchStaticMeshes';
 import {
   createCareerMuseum,
   type CareerMuseumBuild,
@@ -1831,6 +1832,9 @@ function buildImmersiveScene(
 
   const basementStaircase = createBasementStaircase(PLAYER_RADIUS);
   scene.add(basementStaircase.group);
+  batchStaticMeshes(basementStaircase.group, (mesh) =>
+    mesh.name.includes('RampRail')
+  );
   const basementFloorGroup = new Group();
   basementFloorGroup.name = 'BasementFloorVisuals';
   const basementStructureGroup = new Group();
@@ -3303,6 +3307,7 @@ function buildImmersiveScene(
     deployment.colliders.forEach((collider) =>
       getPoiColliderTarget(sugarkubePoi).push(collider)
     );
+    batchStaticMeshes(deployment.group);
     sugarkubeDeployment = deployment;
   }
 
@@ -7714,7 +7719,8 @@ function buildImmersiveScene(
             replacement.model,
             camera,
             scene,
-            avatarPreparation.signal
+            avatarPreparation.signal,
+            [player]
           ))
         ) {
           replacement.dispose();
@@ -7729,7 +7735,6 @@ function buildImmersiveScene(
         return;
       }
       player.add(replacement.model);
-      avatarLoadingPresentation.ready();
       const wrist = player.getObjectByName('MannequinAccessoryWristConsole');
       const hand = asset.bones.get('HandL');
       if (wrist && hand) {
@@ -7769,6 +7774,11 @@ function buildImmersiveScene(
       ) {
         cameraZoomTarget = initialCameraFraming.zoom;
       }
+      avatarLoadingPresentation.ready(
+        replacement.model,
+        prefersReducedAvatarMotion(),
+        drone ? [drone] : []
+      );
     })
     .catch((error) => {
       avatarLoadingPresentation.fail();
@@ -7815,6 +7825,7 @@ function buildImmersiveScene(
       }
       let phaseStart = performance.now();
       updateMovement(delta);
+      avatarLoadingPresentation.update(delta, prefersReducedAvatarMotion());
       animatedAvatar?.update(
         delta,
         locomotionLinearSpeed,

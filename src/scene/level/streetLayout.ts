@@ -15,11 +15,6 @@ export const BUS_STOP = {
 } as const;
 /** X/Z are plan anchors; width/depth declare a world-space collider, not body size. */
 export const PARKED_EV = { x: 33, z: -10, width: 4.6, depth: 9.2 } as const;
-/** World-space behavior regions, independent of semantic anchors and visible solids. */
-export const STREET_BEHAVIOR_REGIONS = {
-  shelterCutaway: { minX: 45.5, maxX: 53, minZ: 25.5, maxZ: 38.5 },
-  lightActivation: { minX: 45 },
-} as const;
 export const STREET_LAMPS = {
   x: 29.6,
   z: [-14, -4, 6, 16],

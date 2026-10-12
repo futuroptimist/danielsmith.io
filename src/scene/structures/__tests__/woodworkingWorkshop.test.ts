@@ -1,6 +1,7 @@
 import { Box3, InstancedMesh, LOD, PerspectiveCamera } from 'three';
 import { describe, expect, it, vi } from 'vitest';
 
+import { FLOOR_PLAN_SCALE } from '../../../assets/floorPlan';
 import { collidesWithColliders } from '../../../systems/collision';
 import { ORDERED_SCENE_DETAIL_LEVELS } from '../../graphics/sceneDetailPolicy';
 import { CAREER_MUSEUM_OBJECTS } from '../../level/careerMuseumLayout';
@@ -49,10 +50,18 @@ describe('woodworking corner', () => {
         expect(box.max.x).toBeLessThanOrEqual(station.collider.maxX + 0.001);
         expect(box.min.z).toBeGreaterThanOrEqual(station.collider.minZ - 0.001);
         expect(box.max.z).toBeLessThanOrEqual(station.collider.maxZ + 0.001);
-        expect(box.min.x).toBeGreaterThanOrEqual(WORKSHOP_RESERVATION.minX * 2);
-        expect(box.max.x).toBeLessThanOrEqual(WORKSHOP_RESERVATION.maxX * 2);
-        expect(box.min.z).toBeGreaterThanOrEqual(WORKSHOP_RESERVATION.minZ * 2);
-        expect(box.max.z).toBeLessThanOrEqual(WORKSHOP_RESERVATION.maxZ * 2);
+        expect(box.min.x).toBeGreaterThanOrEqual(
+          WORKSHOP_RESERVATION.minX * FLOOR_PLAN_SCALE
+        );
+        expect(box.max.x).toBeLessThanOrEqual(
+          WORKSHOP_RESERVATION.maxX * FLOOR_PLAN_SCALE
+        );
+        expect(box.min.z).toBeGreaterThanOrEqual(
+          WORKSHOP_RESERVATION.minZ * FLOOR_PLAN_SCALE
+        );
+        expect(box.max.z).toBeLessThanOrEqual(
+          WORKSHOP_RESERVATION.maxZ * FLOOR_PLAN_SCALE
+        );
       }
       build.dispose();
     }
@@ -66,8 +75,8 @@ describe('woodworking corner', () => {
     )) {
       expect(
         collidesWithColliders(
-          object.position.x * 2,
-          object.position.z * 2 + 2.5,
+          object.position.x * FLOOR_PLAN_SCALE,
+          object.position.z * FLOOR_PLAN_SCALE + 2.5,
           3.6,
           colliders
         )
@@ -81,7 +90,14 @@ describe('woodworking corner', () => {
           [-29 + 58 * t, -33],
           [3.8, -33 + 24 * t],
         ]) {
-          expect(collidesWithColliders(x, z, radius, colliders)).toBe(false);
+          expect(
+            collidesWithColliders(
+              x * Math.SQRT1_2,
+              z * Math.SQRT1_2,
+              radius,
+              colliders
+            )
+          ).toBe(false);
         }
       }
     }

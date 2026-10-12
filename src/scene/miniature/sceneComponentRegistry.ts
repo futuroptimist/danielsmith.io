@@ -38,9 +38,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 11,
+    syncRevision: 14,
     syncNote:
-      'Street regions extracted; production and miniature geometry unchanged.',
+      'Expose resolved street regions; production and miniature geometry unchanged.',
   },
   {
     id: 'level:career-museum-layout',
@@ -77,13 +77,14 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'shared-source',
     sourceFiles: [
       'src/scene/level/portfolioLevel.ts',
+      'src/scene/level/horizontalFootprint.ts',
       'src/scene/level/schema.ts',
       'src/assets/floorPlan/index.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
   },
   {
     id: 'level:floors-walls',
@@ -117,11 +118,12 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     sourceFiles: [
       'src/scene/level/basementStair.ts',
       'src/scene/structures/basementStaircase.ts',
+      'src/scene/structures/batchStaticMeshes.ts',
       'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 5,
+    syncRevision: 9,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Static batching keys use an equivalent array join for line length; source geometry, triangle counts and miniature shapes are unchanged.',
   },
   {
     id: 'environment:backyard',
@@ -158,18 +160,18 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'proxy',
     sourceFiles: ['src/scene/structures/wallPaintings.ts'],
     proxyFiles: [SELF_FILE],
-    syncRevision: 12,
+    syncRevision: 13,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
   },
   {
     id: 'decor:lower-floor-furnishings',
     kind: 'shared-source',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 37,
+    syncRevision: 40,
     syncNote:
-      'Both floor furnishing sets are projected from their existing production geometry and colors.',
+      'Stable named reservations preserve fit offsets, and the full-size studio monstera moves 0.4 m from the garage approach to retain player clearance.',
   },
   {
     id: 'avatar:overworld-player',
@@ -258,9 +260,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/units.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 7,
+    syncRevision: 9,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Both avatar handoff shader variants are prepared before display; the faster run cadence, player dimensions, and miniature geometry are unchanged.',
     reason:
       'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
@@ -316,9 +318,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'avatar:loading-presentation',
     kind: 'excluded',
     sourceFiles: ['src/scene/avatar/loadingPresentation.ts'],
-    syncRevision: 1,
+    syncRevision: 3,
     reason:
-      'The temporary controllable player position marker is excluded from static miniature architecture; its geometry is removed when the rig or fallback becomes visible.',
+      'The muted player cue and opacity-only avatar handoff are transient presentation, excluded from static miniature architecture; building geometry is unchanged.',
   },
   {
     id: 'audit:src:scene:level:backyardCollisionPolicies',
@@ -591,9 +593,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:structures:triangleCount',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/triangleCount.ts'],
-    syncRevision: 1,
+    syncRevision: 2,
     reason:
-      'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
+      'Triangle metrics exclude superseded batch sources while retaining counts for ordinary hidden models; this helper does not alter visible miniature geometry.',
   },
 ] as const satisfies readonly MiniatureSceneComponentCoverage[];
 

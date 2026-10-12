@@ -10,7 +10,13 @@ import {
 
 import type { RectCollider } from '../collision';
 import { UPPER_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
+import {
+  scaleLayoutBounds,
+  scaleLayoutPosition,
+} from '../level/horizontalFootprint';
 import { isLevelSourceId } from '../level/sourceIds';
+
+import { STAIRCASE_CONFIG } from './portfolioSceneLayout';
 
 export type FloorFurnishingFloorId = 'ground' | 'upper';
 
@@ -164,12 +170,15 @@ export interface UpperFloorFurnishingsBuild {
   >[];
 }
 
-export const LOWER_FLOOR_ROOM_BOUNDS: Record<LowerFloorRoomId, RectCollider> = {
-  livingRoom: { minX: -32, maxX: 32, minZ: -32, maxZ: -8 },
-  kitchen: { minX: -32, maxX: -4, minZ: -8, maxZ: 16 },
-  studio: { minX: -4, maxX: 32, minZ: -8, maxZ: 16 },
-  backyard: { minX: -32, maxX: 32, minZ: 16, maxZ: 32 },
-};
+export const LOWER_FLOOR_ROOM_BOUNDS: Record<LowerFloorRoomId, RectCollider> =
+  Object.fromEntries(
+    Object.entries({
+      livingRoom: { minX: -32, maxX: 32, minZ: -32, maxZ: -8 },
+      kitchen: { minX: -32, maxX: -4, minZ: -8, maxZ: 16 },
+      studio: { minX: -4, maxX: 32, minZ: -8, maxZ: 16 },
+      backyard: { minX: -32, maxX: 32, minZ: 16, maxZ: 32 },
+    }).map(([id, bounds]) => [id, scaleLayoutBounds(bounds)])
+  ) as Record<LowerFloorRoomId, RectCollider>;
 
 export const LOWER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -22, maxX: -14, minZ: -9.2, maxZ: -6.8 },
@@ -178,23 +187,38 @@ export const LOWER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -22, maxX: -14, minZ: 14.8, maxZ: 17.2 },
   { minX: 11, maxX: 19, minZ: 14.8, maxZ: 17.2 },
   { minX: -32.0, maxX: -30.9, minZ: -23.2, maxZ: -16.8 },
-  { minX: -20.7, maxX: -15.4, minZ: -30.8, maxZ: -25.5 },
-  { minX: -12.34, maxX: -5.14, minZ: -26.12, maxZ: -19.72 },
-  { minX: -24.0, maxX: -19.2, minZ: -0.77, maxZ: 4.03 },
+  { fit: 'token', minX: -20.7, maxX: -15.4, minZ: -30.8, maxZ: -25.5 },
+  { fit: 'sugarkube', minX: -12.34, maxX: -5.14, minZ: -26.12, maxZ: -19.72 },
+  { fit: 'tabletop', minX: -24.0, maxX: -19.2, minZ: -0.77, maxZ: 4.03 },
   { minX: 26.4, maxX: 31.2, minZ: -24.4, maxZ: -21.2 },
   { minX: 8.4, maxX: 16.4, minZ: -27.0, maxZ: -9.4 },
   { minX: 15.8, maxX: 20.4, minZ: -1.1, maxZ: 3.8 },
   { minX: 0.0, maxX: 6.4, minZ: -2.2, maxZ: 4.6 },
   { minX: -18.5, maxX: -10.0, minZ: 18.0, maxZ: 24.2 },
   { minX: 10.0, maxX: 18.2, minZ: 22.4, maxZ: 30.4 },
-];
+].map(({ fit, ...bounds }) => {
+  const scaled = scaleLayoutBounds(bounds);
+  // Reserve the future 2.8 x 1.8 m tabletop plus a 0.75 m approach envelope.
+  if (fit === 'tabletop')
+    return {
+      minX: -21.6 * Math.SQRT1_2 - 2.15,
+      maxX: -21.6 * Math.SQRT1_2 + 2.15,
+      minZ: 1.63 * Math.SQRT1_2 - 1.65,
+      maxZ: 1.63 * Math.SQRT1_2 + 1.65,
+    };
+  const dz = fit === 'token' ? 1 : fit === 'sugarkube' ? 3.5 : 0;
+  return { ...scaled, minZ: scaled.minZ + dz, maxZ: scaled.maxZ + dz };
+});
 
-export const UPPER_FLOOR_ROOM_BOUNDS: Record<UpperFloorRoomId, RectCollider> = {
-  upperLanding: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
-  creatorsStudio: { minX: -20, maxX: 4, minZ: -32, maxZ: 0 },
-  loftLibrary: { minX: 4, maxX: 24, minZ: -16, maxZ: 12 },
-  focusPods: { minX: -20, maxX: 24, minZ: 12, maxZ: 28 },
-};
+export const UPPER_FLOOR_ROOM_BOUNDS: Record<UpperFloorRoomId, RectCollider> =
+  Object.fromEntries(
+    Object.entries({
+      upperLanding: { minX: 4, maxX: 20.8, minZ: -32, maxZ: -16 },
+      creatorsStudio: { minX: -20, maxX: 4, minZ: -32, maxZ: 0 },
+      loftLibrary: { minX: 4, maxX: 24, minZ: -16, maxZ: 12 },
+      focusPods: { minX: -20, maxX: 24, minZ: 12, maxZ: 28 },
+    }).map(([id, bounds]) => [id, scaleLayoutBounds(bounds)])
+  ) as Record<UpperFloorRoomId, RectCollider>;
 
 export const UPPER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -18.4, maxX: -15.1, minZ: -30.4, maxZ: -27.2 },
@@ -204,10 +228,26 @@ export const UPPER_FLOOR_RESERVED_BLOCKERS: readonly RectCollider[] = [
   { minX: -19.4, maxX: -14.3, minZ: 14.6, maxZ: 19.9 },
   { minX: -3.3, maxX: 2.1, minZ: 11.5, maxZ: 16.6 },
   { minX: 13.9, maxX: 19.3, minZ: 15.0, maxZ: 20.3 },
-  { minX: 7.2, maxX: 16.6, minZ: -25.8, maxZ: -16.0 },
-];
+  { fit: 'stairs', minX: 7.2, maxX: 16.6, minZ: -25.8, maxZ: -16.0 },
+].map(({ fit, ...bounds }) => {
+  const scaled = scaleLayoutBounds(bounds);
+  // Keep the full-width flight reserved without consuming the west landing rug.
+  return fit === 'stairs'
+    ? {
+        ...scaled,
+        minX:
+          STAIRCASE_CONFIG.basePosition.x -
+          STAIRCASE_CONFIG.step.width / 2 -
+          0.4,
+        maxX:
+          STAIRCASE_CONFIG.basePosition.x +
+          STAIRCASE_CONFIG.step.width / 2 +
+          0.4,
+      }
+    : scaled;
+});
 
-export const DEFAULT_UPPER_FLOOR_FURNISHINGS: readonly UpperFloorFurnishingDefinition[] =
+const AUTHORED_UPPER_FLOOR_FURNISHINGS: readonly UpperFloorFurnishingDefinition[] =
   [
     {
       id: 'upper-landing-bench',
@@ -660,7 +700,7 @@ export const DEFAULT_UPPER_FLOOR_FURNISHINGS: readonly UpperFloorFurnishingDefin
     },
   ];
 
-export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefinition[] =
+const AUTHORED_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefinition[] =
   [
     {
       id: 'living-room-media-sofa',
@@ -1499,6 +1539,65 @@ export const DEFAULT_LOWER_FLOOR_FURNISHINGS: readonly LowerFloorFurnishingDefin
       visual: { color: 0x8a5a36, accentColor: 0x6e9b58, height: 1.1 },
     },
   ];
+
+const FURNITURE_FIT_OFFSETS: Record<string, { x: number; z: number }> = {
+  'studio-monstera': { x: 0, z: -0.4 },
+  'studio-woven-rug': { x: 0, z: -0.7 },
+  'living-room-lounge-chair-north': { x: 0.3, z: -0.9 },
+  'living-room-tv-pothos-left': { x: 0, z: -0.8 },
+  'studio-round-side-table': { x: 0, z: -0.5 },
+  'backyard-garden-stool': { x: 0, z: -0.25 },
+  'backyard-rock-01': { x: 0, z: -0.7 },
+  'backyard-rock-02': { x: 0, z: -0.7 },
+  'backyard-rock-03': { x: 0, z: -0.7 },
+  'backyard-rock-garden-gravel': { x: 0, z: -0.7 },
+  'backyard-planter-west-north': { x: 0, z: -0.9 },
+  'backyard-planter-east-north': { x: 0, z: -0.9 },
+  'upper-landing-bench': { x: 0, z: -0.25 },
+  'creators-studio-floor-plant': { x: -1.2, z: 0 },
+  'creators-studio-work-cabinet': { x: 0, z: 1.7 },
+  'loft-library-reading-lamp': { x: 0, z: 1.6 },
+  'upper-landing-runner': { x: 0.7, z: 0 },
+  'living-room-side-table': { x: 0, z: -0.45 },
+  'living-room-lounge-chair-east': { x: 0, z: 0.55 },
+  'kitchen-west-counter-run': { x: 0.3, z: 1.2 },
+  'kitchen-sink-cabinet': { x: 0.3, z: -0.65 },
+  'kitchen-tall-pantry-south': { x: 0.5, z: 0 },
+  'kitchen-fridge': { x: 0.3, z: 0 },
+  'kitchen-trash-drawer': { x: 1.6, z: 0 },
+  'loft-library-ottoman': { x: 0.4, z: 0 },
+  'focus-pods-tree-planter': { x: 0, z: -2.9 },
+};
+
+function fitFurnishing<T extends AnyFloorFurnishingDefinition>(
+  definition: T
+): T {
+  const offset = FURNITURE_FIT_OFFSETS[definition.id] ?? { x: 0, z: 0 };
+  const position = scaleLayoutPosition(definition.position);
+  position.x += offset.x;
+  position.z += offset.z;
+  const dx = position.x - definition.position.x;
+  const dz = position.z - definition.position.z;
+  const translate = (bounds: RectCollider | undefined) =>
+    bounds && {
+      ...bounds,
+      minX: bounds.minX + dx,
+      maxX: bounds.maxX + dx,
+      minZ: bounds.minZ + dz,
+      maxZ: bounds.maxZ + dz,
+    };
+  return {
+    ...definition,
+    position,
+    solidBounds: translate(definition.solidBounds),
+    decorativeBounds: translate(definition.decorativeBounds),
+  };
+}
+
+export const DEFAULT_LOWER_FLOOR_FURNISHINGS =
+  AUTHORED_LOWER_FLOOR_FURNISHINGS.map(fitFurnishing);
+export const DEFAULT_UPPER_FLOOR_FURNISHINGS =
+  AUTHORED_UPPER_FLOOR_FURNISHINGS.map(fitFurnishing);
 
 export function createAabbFromCenterSize(
   center: { x: number; z: number },

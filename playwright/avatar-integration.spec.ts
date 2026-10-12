@@ -77,8 +77,8 @@ test('approved avatar loads, gait toggles and nearby lounge seating exits safely
   await reportLock(false);
   await page.evaluate(() =>
     window.portfolio?.world?.movePlayerTo({
-      x: -30.13,
-      z: -22.8,
+      x: -28.5 * Math.SQRT1_2 + 0.3 - 1.63,
+      z: -22.8 * Math.SQRT1_2 - 0.9,
       floorId: 'ground',
     })
   );
@@ -124,8 +124,8 @@ test('changing quality while seated reloads at a clear standing position', async
   await page.keyboard.press('Escape');
   await page.evaluate(() =>
     window.portfolio!.world!.movePlayerTo({
-      x: -30.13,
-      z: -22.8,
+      x: -28.5 * Math.SQRT1_2 + 0.3 - 1.63,
+      z: -22.8 * Math.SQRT1_2 - 0.9,
       floorId: 'ground',
     })
   );
@@ -358,8 +358,8 @@ test('reduced motion supports the other lounge and reading chair without trappin
   );
   await page.keyboard.press('Escape');
   for (const point of [
-    { x: -27.73, z: -15.9 },
-    { x: 20.68, z: 11.5 },
+    { x: -26.1 * Math.SQRT1_2 - 1.63, z: -15.9 * Math.SQRT1_2 + 0.55 },
+    { x: 22.2 * Math.SQRT1_2 - 1.52, z: 12.6 * Math.SQRT1_2 - 1.1 },
   ]) {
     await page.evaluate(
       (p) => window.portfolio?.world?.movePlayerTo({ ...p, floorId: 'ground' }),
@@ -381,4 +381,124 @@ test('reduced motion supports the other lounge and reading chair without trappin
       .toBe('free');
     await page.keyboard.up('w');
   }
+});
+
+test('delayed avatar fades in while movement and Caps Lock gait survive the handoff', async ({
+  page,
+}) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/daniel-animated-avatar.glb', async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto(url);
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.())
+    )
+    .toMatchObject({ presentation: 'pending', fallbackVisible: false });
+  await page.keyboard.press('Escape');
+  const notice = page.locator('[data-action="continue-safe-immersive"]');
+  if (await notice.isVisible()) await notice.click();
+  await page.evaluate(() =>
+    window.portfolio?.avatar?.setAccessoryEnabled('holo-drone', true)
+  );
+  const before = await page.evaluate(() =>
+    window.portfolio!.world!.getPlayerPosition()
+  );
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'w',
+        code: 'KeyW',
+        modifierCapsLock: true,
+        bubbles: true,
+      })
+    )
+  );
+  await expect
+    .poll(() =>
+      page.evaluate((start) => {
+        const p = window.portfolio!.world!.getPlayerPosition();
+        return Math.hypot(p.x - start.x, p.z - start.z);
+      }, before)
+    )
+    .toBeGreaterThan(0.1);
+  expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
+    'walk'
+  );
+  await page.screenshot({ path: 'test-results/avatar-muted-loading.png' });
+  // Record every frame so a short transition cannot be missed by a slow CI assertion poll.
+  const sequence = page.evaluate(
+    () =>
+      new Promise<
+        Array<{
+          presentation: string;
+          revealProgress: number;
+          fallbackVisible: boolean;
+          position: { x: number; z: number };
+        }>
+      >((resolve) => {
+        const frames: Array<{
+          presentation: string;
+          revealProgress: number;
+          fallbackVisible: boolean;
+          position: { x: number; z: number };
+        }> = [];
+        const sample = () => {
+          const state = window.portfolio!.avatar!
+            .getAnimationState!() as (typeof frames)[number];
+          frames.push({
+            ...state,
+            position: window.portfolio!.world!.getPlayerPosition(),
+          });
+          if (state.presentation === 'ready') resolve(frames);
+          else requestAnimationFrame(sample);
+        };
+        sample();
+      })
+  );
+  release();
+  const frames = await sequence;
+  expect(
+    frames.some(
+      (s) =>
+        s.presentation === 'revealing' &&
+        s.revealProgress > 0 &&
+        s.revealProgress < 1
+    )
+  ).toBe(true);
+  expect(frames.every((s) => !s.fallbackVisible)).toBe(true);
+  const duringReveal = frames.find(
+    (s) => s.presentation === 'revealing'
+  )!.position;
+  const afterReveal = frames[frames.length - 1].position;
+  expect(
+    Math.hypot(afterReveal.x - duringReveal.x, afterReveal.z - duringReveal.z)
+  ).toBeGreaterThan(0.01);
+  await expect
+    .poll(() =>
+      page.evaluate((start) => {
+        const p = window.portfolio!.world!.getPlayerPosition();
+        return Math.hypot(p.x - start.x, p.z - start.z);
+      }, afterReveal)
+    )
+    .toBeGreaterThan(0.1);
+  expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
+    'walk'
+  );
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new KeyboardEvent('keyup', {
+        key: 'w',
+        code: 'KeyW',
+        modifierCapsLock: true,
+        bubbles: true,
+      })
+    )
+  );
+  await page.screenshot({ path: 'test-results/avatar-revealed.png' });
 });

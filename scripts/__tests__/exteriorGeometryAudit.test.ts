@@ -7,6 +7,7 @@ import {
 } from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { FLOOR_PLAN_SCALE } from '../../src/assets/floorPlan';
 import { EXTERIOR_LOCALE_COPY } from '../../src/assets/i18n/exterior';
 import {
   getSceneDetailPolicy,
@@ -125,28 +126,51 @@ describe('exterior metric audit', () => {
   it('preserves strict world-space cutaway and lighting boundaries across detail tiers', () => {
     canvas();
     const floor = PORTFOLIO_LEVEL.floors.find((item) => item.id === 'ground')!;
-    const build = createResidentialStreet(floor, 2, EXTERIOR_LOCALE_COPY.en);
+    const build = createResidentialStreet(
+      floor,
+      FLOOR_PLAN_SCALE,
+      EXTERIOR_LOCALE_COPY.en
+    );
     const before = measureExteriorMeshes(build.group);
+    const roof = before.find((part) => part.mesh.endsWith(':roof:overhead'))!;
+    const [centerX, , centerZ] = roof.center;
+    const regions = build.getBehaviorRegions();
+    expect(regions.shelterCutaway.minX).toBeCloseTo(centerX - 3.5, 5);
+    expect(regions.shelterCutaway.maxZ).toBeCloseTo(centerZ + 6.5, 5);
+    // Returned audit data must not be able to change runtime activation bounds.
+    const copy = build.getBehaviorRegions();
+    copy.shelterCutaway.minX = 0;
+    copy.lightActivation.minX = 0;
+    expect(build.getBehaviorRegions()).toEqual(regions);
+    const region = regions.shelterCutaway;
     try {
       for (const tier of ORDERED_SCENE_DETAIL_LEVELS) {
         const policy = getSceneDetailPolicy(tier);
         for (const [x, z, inside] of [
-          [45.5, 32, false],
-          [53, 32, false],
-          [49, 25.5, false],
-          [49, 38.5, false],
-          [49, 32, true],
+          [region.minX, centerZ, false],
+          [region.maxX, centerZ, false],
+          [centerX, region.minZ, false],
+          [centerX, region.maxZ, false],
+          [centerX, centerZ, true],
         ] as const) {
           build.update(policy, { x, z, floorId: 'ground' });
           expect(build.getCutawaySourceIds()).toEqual(
             inside ? ['ground.busStop.shelter'] : []
           );
         }
-        build.update(policy, { x: 45, z: 32, floorId: 'ground' });
+        build.update(policy, {
+          x: regions.lightActivation.minX,
+          z: centerZ,
+          floorId: 'ground',
+        });
         expect(build.getSnapshot().lamps.every((lamp) => !lamp.active)).toBe(
           true
         );
-        build.update(policy, { x: 45.001, z: 32, floorId: 'ground' });
+        build.update(policy, {
+          x: regions.lightActivation.minX + 0.001,
+          z: centerZ,
+          floorId: 'ground',
+        });
         expect(
           build
             .getSnapshot()
@@ -154,7 +178,7 @@ describe('exterior metric audit', () => {
               (lamp) => lamp.active === policy.effects.dynamicPointLights
             )
         ).toBe(true);
-        build.update(policy, { x: 49, z: 32, floorId: 'upper' });
+        build.update(policy, { x: centerX, z: centerZ, floorId: 'upper' });
         expect(build.getCutawaySourceIds()).toEqual([]);
         expect(build.getSnapshot().lamps.every((lamp) => !lamp.active)).toBe(
           true

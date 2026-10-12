@@ -19,32 +19,61 @@ const APPROACHES = [
     id: 'career-southern-mississippi',
     title: 'The University of Southern Mississippi',
     path: [
-      { x: -29, z: -32.5 },
-      { x: -29, z: -18 + CAREER_INTERACTION_ANCHOR.frontOffset },
-      { x: -18, z: -18 + CAREER_INTERACTION_ANCHOR.frontOffset },
+      { x: -29 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+      {
+        x: -29 * Math.SQRT1_2,
+        z: -18 * Math.SQRT1_2 + CAREER_INTERACTION_ANCHOR.frontOffset,
+      },
+      {
+        x: -18 * Math.SQRT1_2,
+        z: -18 * Math.SQRT1_2 + CAREER_INTERACTION_ANCHOR.frontOffset,
+      },
     ],
   },
   {
     id: 'career-naval-research',
     title: 'Naval Research Laboratory',
     path: [
-      { x: -29, z: -18 + CAREER_INTERACTION_ANCHOR.frontOffset },
-      { x: -29, z: 2 + CAREER_INTERACTION_ANCHOR.frontOffset },
-      { x: -18, z: 2 + CAREER_INTERACTION_ANCHOR.frontOffset },
+      {
+        x: -29 * Math.SQRT1_2,
+        z: -18 * Math.SQRT1_2 + CAREER_INTERACTION_ANCHOR.frontOffset,
+      },
+      {
+        x: -29 * Math.SQRT1_2,
+        z: 2 * Math.SQRT1_2 + CAREER_INTERACTION_ANCHOR.frontOffset,
+      },
+      {
+        x: -18 * Math.SQRT1_2,
+        z: 2 * Math.SQRT1_2 + CAREER_INTERACTION_ANCHOR.frontOffset,
+      },
     ],
   },
   {
     id: 'career-youtube',
     title: 'YouTube',
-    path: [{ x: 20, z: 2 + CAREER_INTERACTION_ANCHOR.frontOffset }],
+    path: [
+      {
+        x: 20 * Math.SQRT1_2,
+        z: 2 * Math.SQRT1_2 + CAREER_INTERACTION_ANCHOR.frontOffset,
+      },
+    ],
   },
   {
     id: 'career-muon-space',
     title: 'Muon Space',
     path: [
-      { x: 26, z: 2 + CAREER_INTERACTION_ANCHOR.frontOffset },
-      { x: 26, z: -20 + CAREER_INTERACTION_ANCHOR.frontOffset },
-      { x: 20, z: -20 + CAREER_INTERACTION_ANCHOR.frontOffset },
+      {
+        x: 26 * Math.SQRT1_2,
+        z: 2 * Math.SQRT1_2 + CAREER_INTERACTION_ANCHOR.frontOffset,
+      },
+      {
+        x: 26 * Math.SQRT1_2,
+        z: -20 * Math.SQRT1_2 + CAREER_INTERACTION_ANCHOR.frontOffset,
+      },
+      {
+        x: 20 * Math.SQRT1_2,
+        z: -20 * Math.SQRT1_2 + CAREER_INTERACTION_ANCHOR.frontOffset,
+      },
     ],
   },
 ];
@@ -89,9 +118,9 @@ async function walk(page: Page, points: { x: number; z: number }[]) {
 
 async function enterMuseum(page: Page) {
   await walk(page, [
-    { x: 0, z: -11 },
-    { x: 3.8, z: -11 },
-    { x: 3.8, z: -32.5 },
+    { x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+    { x: 3.8 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+    { x: 3.8 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
   ]);
   expect(
     await page.evaluate(() => window.portfolio!.world!.getActiveFloor())
@@ -126,9 +155,9 @@ test('workshop description and perimeter stay floor-aware', async ({
   );
   expect(redundantVisibilityWrites).toBe(0);
   await walk(page, [
-    { x: -29, z: -32.5 },
-    { x: -29, z: -22 },
-    { x: -22, z: -22 },
+    { x: -29 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+    { x: -29 * Math.SQRT1_2, z: -22 * Math.SQRT1_2 },
+    { x: -22 * Math.SQRT1_2, z: -22 * Math.SQRT1_2 },
   ]);
   await page.mouse.move(500, 400);
   await page.mouse.wheel(0, 500);
@@ -137,10 +166,10 @@ test('workshop description and perimeter stay floor-aware', async ({
     path: test.info().outputPath('woodworking-corner.png'),
   });
   await walk(page, [
-    { x: -29, z: -22 },
-    { x: -29, z: -32.5 },
-    { x: 3.8, z: -32.5 },
-    { x: 3.8, z: -11 },
+    { x: -29 * Math.SQRT1_2, z: -22 * Math.SQRT1_2 },
+    { x: -29 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+    { x: 3.8 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+    { x: 3.8 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
   ]);
   await expect(description).toBeHidden();
 });
@@ -439,15 +468,15 @@ for (const profile of [
     );
     expect(afterMetrics.cachedRepoCount).toBe(beforeMetrics.cachedRepoCount);
     await walk(page, [
-      { x: 26, z: -17.5 },
-      { x: 29, z: -17.5 },
-      { x: 29, z: 12.5 },
-      { x: -29, z: 12.5 },
-      { x: -29, z: -32.5 },
-      { x: 3.8, z: -32.5 },
-      { x: 3.8, z: -11 },
-      { x: 0, z: -11 },
-      { x: 0, z: -20 },
+      { x: 26 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
+      { x: 29 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
+      { x: 29 * Math.SQRT1_2, z: 12.5 * Math.SQRT1_2 },
+      { x: -29 * Math.SQRT1_2, z: 12.5 * Math.SQRT1_2 },
+      { x: -29 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+      { x: 3.8 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+      { x: 3.8 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+      { x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+      { x: 0 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 },
     ]);
     await captureCounters(page, 'post-museum-counters');
     const final = await page.evaluate(() => ({
@@ -544,10 +573,10 @@ test('keeps high-contrast career details accessible and gallery context visible 
   await page.locator('#app canvas').click({ position: { x: 20, y: 200 } });
   await enterMuseum(page);
   await walk(page, [
-    { x: 12, z: -32.5 },
-    { x: 26, z: -32.5 },
-    { x: 26, z: -17.5 },
-    { x: 20, z: -17.5 },
+    { x: 12 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+    { x: 26 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+    { x: 26 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
+    { x: 20 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
   ]);
   await selectByKeyboard(page, 'career-muon-space');
   await expect(
@@ -557,9 +586,9 @@ test('keeps high-contrast career details accessible and gallery context visible 
   await page.locator('.poi-tooltip-overlay__close').click();
   await expect(page.locator('.poi-tooltip-overlay')).toBeHidden();
   await walk(page, [
-    { x: 26, z: -17.5 },
-    { x: 26, z: -4 },
-    { x: 0, z: -4 },
+    { x: 26 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
+    { x: 26 * Math.SQRT1_2, z: -4 * Math.SQRT1_2 },
+    { x: 0 * Math.SQRT1_2, z: -4 * Math.SQRT1_2 },
   ]);
   for (let index = 0; index < 12; index += 1)
     await page.keyboard.press('Shift+Minus');
@@ -586,12 +615,12 @@ test('records repeated residency, retains the museum resource pool, and releases
     await enterMuseum(page);
     for (const exhibit of APPROACHES) await walk(page, exhibit.path);
     await walk(page, [
-      { x: 26, z: -17.5 },
-      { x: 26, z: -32.5 },
-      { x: 3.8, z: -32.5 },
-      { x: 3.8, z: -11 },
-      { x: 0, z: -11 },
-      { x: 0, z: -20 },
+      { x: 26 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
+      { x: 26 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+      { x: 3.8 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+      { x: 3.8 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+      { x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+      { x: 0 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 },
     ]);
     const snapshot = await captureCounters(page, `repeat-route-${pass + 1}`);
     counts.push(snapshot.diagnostics.rendererCounters);

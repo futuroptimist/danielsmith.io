@@ -54,7 +54,10 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     });
     if (await safe.isVisible()) await safe.click();
     await page.evaluate(() =>
-      window.portfolio!.world!.movePlayerTo({ x: -18, z: 1.63 })
+      window.portfolio!.world!.movePlayerTo({
+        x: -21.6 * Math.SQRT1_2 + 3.6,
+        z: 1.63 * Math.SQRT1_2,
+      })
     );
     await expect
       .poll(() =>
@@ -62,13 +65,13 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
           () => window.portfolio!.world!.getMiniatureSnapshot!()!.player[0]
         )
       )
-      .toBe(-18);
+      .toBe(-21.6 * Math.SQRT1_2 + 3.6);
     const snapshot = await page.evaluate(
       () => window.portfolio!.world!.getMiniatureSnapshot!()!
     );
     expect(snapshot.triangles).toBeLessThan(40000);
     expect(snapshot.drawCalls).toBeLessThanOrEqual(64);
-    expect(snapshot.bounds.max[0]).toBeGreaterThan(75);
+    expect(snapshot.bounds.max[0]).toBeGreaterThan(75 * Math.SQRT1_2);
     expect(snapshot.bounds.min[1]).toBeCloseTo(
       getFloorTopElevation('basement') - FLOOR_SLAB_THICKNESS
     );
@@ -134,24 +137,32 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     for (const stride of [0.08, 0.18]) {
       const result = await page.evaluate((stride) => {
         const world = window.portfolio!.world!;
-        world.movePlayerTo({ x: 26, z: 26.9, floorId: 'ground' });
+        world.movePlayerTo({
+          x: 26 * Math.SQRT1_2,
+          z: 26.9 * Math.SQRT1_2,
+          floorId: 'ground',
+        });
         for (let i = 0; i < 80; i++)
           world.stepPlayerForTest({ dx: stride, dz: 0 });
         return {
           position: world.getPlayerPosition(),
           inside: world.canOccupyPosition({
-            x: 30.6,
-            z: 26.9,
+            x: 30.6 * Math.SQRT1_2,
+            z: 26.9 * Math.SQRT1_2,
             floorId: 'ground',
           }),
         };
       }, stride);
       expect(result.inside).toBe(false);
-      expect(result.position.x).toBeLessThan(29.4);
-      expect(result.position.x).toBeGreaterThan(27.5);
+      expect(result.position.x).toBeLessThan(30.6 * Math.SQRT1_2 - 1.2);
+      expect(result.position.x).toBeGreaterThan(30.6 * Math.SQRT1_2 - 3.1);
     }
     await page.evaluate(() =>
-      window.portfolio!.world!.movePlayerTo({ x: 16, z: 24, floorId: 'ground' })
+      window.portfolio!.world!.movePlayerTo({
+        x: 16 * Math.SQRT1_2,
+        z: 24 * Math.SQRT1_2,
+        floorId: 'ground',
+      })
     );
     await page.waitForTimeout(1500);
     await page.screenshot({

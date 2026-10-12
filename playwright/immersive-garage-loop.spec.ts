@@ -24,13 +24,16 @@ async function closeApproachingDoor(page: Page, id: string) {
   await operate(page, id, 'closed');
 }
 async function enterGarage(page: Page) {
-  await walkExteriorTo(page, { x: 29, z: -2 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -2 * Math.SQRT1_2,
+  });
   await closeApproachingDoor(page, 'house-garage-door');
   await expect(
     page.locator('[data-exterior-door-control]')
   ).toHaveAccessibleName('Open House–garage door');
   await operate(page, 'house-garage-door', 'open');
-  await walkExteriorTo(page, { x: 41, z: 4 });
+  await walkExteriorTo(page, { x: 41 * Math.SQRT1_2, z: 4 * Math.SQRT1_2 });
   expect(
     await page.evaluate(
       () => window.portfolio!.debugCoordinates!.getState().currentRoomId
@@ -44,9 +47,16 @@ for (const side of ['house', 'garage'] as const) {
   }) => {
     test.setTimeout(90000);
     await readyExterior(page);
-    await walkExteriorTo(page, { x: 29, z: -2 });
+    await walkExteriorTo(page, {
+      x: 32 * Math.SQRT1_2 - 3,
+      z: -2 * Math.SQRT1_2,
+    });
     await waitDoor(page, 'house-garage-door', 'open');
-    if (side === 'garage') await walkExteriorTo(page, { x: 35, z: -2 });
+    if (side === 'garage')
+      await walkExteriorTo(page, {
+        x: 32 * Math.SQRT1_2 + 3,
+        z: -2 * Math.SQRT1_2,
+      });
     for (const state of ['closed', 'open'] as const) {
       await operate(page, 'house-garage-door', state);
       await expect(page.locator('#app canvas').first()).toBeVisible();
@@ -66,13 +76,16 @@ test('walks the entire house, garage, driveway and front-entry loop in both dire
   // Both complete directions retain their door operations and native crossing.
   test.setTimeout(180000);
   await readyExterior(page);
-  await walkExteriorTo(page, { x: 29, z: -2 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -2 * Math.SQRT1_2,
+  });
   await closeApproachingDoor(page, 'house-garage-door');
   expect(
     await page.evaluate(() =>
       window.portfolio!.world!.canOccupyPosition({
-        x: 32,
-        z: -2,
+        x: 32 * Math.SQRT1_2,
+        z: -2 * Math.SQRT1_2,
         floorId: 'ground',
       })
     )
@@ -81,19 +94,19 @@ test('walks the entire house, garage, driveway and front-entry loop in both dire
   expect(
     await page.evaluate(() =>
       window.portfolio!.world!.canOccupyPosition({
-        x: 32,
-        z: -2,
+        x: 32 * Math.SQRT1_2,
+        z: -2 * Math.SQRT1_2,
         floorId: 'ground',
       })
     )
   ).toBe(true);
-  await walkExteriorTo(page, { x: 47, z: 4 });
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2 - 3, z: 4 * Math.SQRT1_2 });
   await closeApproachingDoor(page, 'garage-door');
   expect(
     await page.evaluate(() =>
       window.portfolio!.world!.canOccupyPosition({
-        x: 50,
-        z: 4,
+        x: 50 * Math.SQRT1_2,
+        z: 4 * Math.SQRT1_2,
         floorId: 'ground',
       })
     )
@@ -113,7 +126,8 @@ test('walks the entire house, garage, driveway and front-entry loop in both dire
   await page.keyboard.down('KeyD');
   try {
     await page.waitForFunction(
-      () => window.portfolio!.world!.getPlayerPosition().x >= 53,
+      () =>
+        window.portfolio!.world!.getPlayerPosition().x >= 50 * Math.SQRT1_2 + 3,
       undefined,
       { timeout: 15000 }
     );
@@ -122,23 +136,35 @@ test('walks the entire house, garage, driveway and front-entry loop in both dire
     await page.keyboard.up('KeyD');
   }
   await page.waitForTimeout(600);
-  await walkExteriorTo(page, { x: 55, z: -15 });
-  await walkExteriorTo(page, { x: 35, z: -15 });
+  await walkExteriorTo(page, { x: 55 * Math.SQRT1_2, z: -15 * Math.SQRT1_2 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 + 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await waitDoor(page, 'front-door', 'open');
-  await walkExteriorTo(page, { x: 0, z: -20 });
+  await walkExteriorTo(page, { x: 0 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 });
   // Reverse the complete loop; close/reopen each aperture from its opposite side.
-  await walkExteriorTo(page, { x: 29, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await operate(page, 'front-door', 'closed');
   await operate(page, 'front-door', 'open');
-  await walkExteriorTo(page, { x: 55, z: -15 });
-  await walkExteriorTo(page, { x: 53, z: 4 });
+  await walkExteriorTo(page, { x: 55 * Math.SQRT1_2, z: -15 * Math.SQRT1_2 });
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2 + 3, z: 4 * Math.SQRT1_2 });
   await operate(page, 'garage-door', 'closed');
   await operate(page, 'garage-door', 'open');
-  await walkExteriorTo(page, { x: 35, z: -2 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 + 3,
+    z: -2 * Math.SQRT1_2,
+  });
   await operate(page, 'house-garage-door', 'closed');
   await operate(page, 'house-garage-door', 'open');
-  await walkExteriorTo(page, { x: 29, z: -2 });
-  await walkExteriorTo(page, { x: 0, z: -20 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -2 * Math.SQRT1_2,
+  });
+  await walkExteriorTo(page, { x: 0 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 });
   expect(
     await page.evaluate(() => window.portfolio!.world!.getActiveFloor())
   ).toBe('ground');
@@ -151,7 +177,7 @@ test(occupiedThresholdTitle, async ({ page }) => {
   test.setTimeout(120000);
   await readyExterior(page);
   await enterGarage(page);
-  await walkExteriorTo(page, { x: 47, z: 4 });
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2 - 3, z: 4 * Math.SQRT1_2 });
   await closeApproachingDoor(page, 'garage-door');
   await page.locator('[data-exterior-door-control]').click();
   await expect
@@ -171,8 +197,8 @@ test(occupiedThresholdTitle, async ({ page }) => {
     return {
       door,
       canCross: window.portfolio!.world!.canOccupyPosition({
-        x: 50,
-        z: 4,
+        x: 50 * Math.SQRT1_2,
+        z: 4 * Math.SQRT1_2,
         floorId: 'ground',
       }),
     };
@@ -182,7 +208,7 @@ test(occupiedThresholdTitle, async ({ page }) => {
     intermediate.door.progress < 3.1 / 4.8
   );
   await waitDoor(page, 'garage-door', 'open');
-  await walkExteriorTo(page, { x: 50, z: 4 });
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2, z: 4 * Math.SQRT1_2 });
   for (let i = 0; i < 3; i++)
     await page.locator('[data-exterior-door-control]').click();
   expect(
@@ -194,15 +220,18 @@ test(occupiedThresholdTitle, async ({ page }) => {
   ).toMatchObject({ state: 'open', target: 1, occupied: true, blocked: false });
   // Start inside the protected threshold so native movement does not race a
   // legitimate unoccupied closure while browser input commands are dispatched.
-  await walkExteriorTo(page, { x: 51.25, z: 4 });
+  await walkExteriorTo(page, {
+    x: 50 * Math.SQRT1_2 + 1.25,
+    z: 4 * Math.SQRT1_2,
+  });
   const occupiedApproach = await page.evaluate(() => ({
     position: window.portfolio!.world!.getPlayerPosition(),
     door: window
       .portfolio!.world!.getDoorSnapshots()
       .find((door) => door.id === 'garage-door')!,
   }));
-  expect(occupiedApproach.position.x).toBeCloseTo(51.25, 1);
-  expect(occupiedApproach.position.z).toBeCloseTo(4, 1);
+  expect(occupiedApproach.position.x).toBeCloseTo(50 * Math.SQRT1_2 + 1.25, 1);
+  expect(occupiedApproach.position.z).toBeCloseTo(4 * Math.SQRT1_2, 1);
   expect(occupiedApproach.door).toMatchObject({
     state: 'open',
     blocked: false,
@@ -252,7 +281,7 @@ test(occupiedThresholdTitle, async ({ page }) => {
         },
         { timeout: 15000 }
       )
-      .toBeLessThanOrEqual(50.5);
+      .toBeLessThanOrEqual(50 * Math.SQRT1_2 + 0.5);
   } finally {
     nativeSamples = await observation.evaluate((record) => record.stop());
     await observation.dispose();
@@ -261,7 +290,7 @@ test(occupiedThresholdTitle, async ({ page }) => {
       contentType: 'application/json',
     });
   }
-  const threshold = createGarageDoorDefinitions(2).find(
+  const threshold = createGarageDoorDefinitions().find(
     (door) => door.id === 'garage-door'
   )!.threshold;
   const radius = 0.75;
@@ -279,9 +308,9 @@ test(occupiedThresholdTitle, async ({ page }) => {
   // Each native pulse releases its keys before reading the endpoint. Departure
   // beyond the hold zone may still close the door. Re-approach through real
   // movement for the final occupied snapshot.
-  await walkExteriorTo(page, { x: 47, z: 4 });
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2 - 3, z: 4 * Math.SQRT1_2 });
   await waitDoor(page, 'garage-door', 'open');
-  await walkExteriorTo(page, { x: 50, z: 4 });
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2, z: 4 * Math.SQRT1_2 });
   await waitDoor(page, 'garage-door', 'open');
   expect(
     await page.evaluate(
@@ -307,15 +336,18 @@ test('operates both garage doors by touch and preserves reduced-motion occupancy
   });
   const page = await context.newPage();
   await readyExterior(page);
-  await walkExteriorTo(page, { x: 29, z: -2 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -2 * Math.SQRT1_2,
+  });
   await closeApproachingDoor(page, 'house-garage-door');
   await page.locator('[data-exterior-door-control]').tap();
   await waitDoor(page, 'house-garage-door', 'open');
-  await walkExteriorTo(page, { x: 47, z: 4 });
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2 - 3, z: 4 * Math.SQRT1_2 });
   await closeApproachingDoor(page, 'garage-door');
   await page.locator('[data-exterior-door-control]').tap();
   await waitDoor(page, 'garage-door', 'open');
-  await walkExteriorTo(page, { x: 50, z: 4 });
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2, z: 4 * Math.SQRT1_2 });
   await page.locator('[data-exterior-door-control]').tap();
   expect(
     await page.evaluate(
@@ -325,7 +357,16 @@ test('operates both garage doors by touch and preserves reduced-motion occupancy
           .find((door) => door.id === 'garage-door')!.blocked
     )
   ).toBe(false);
-  await walkExteriorTo(page, { x: 53, z: 4 });
+  const doorStatus = page.locator(
+    '[data-exterior-door-control] + [aria-live="polite"]'
+  );
+  await expect(doorStatus).toHaveText(
+    'Garage door: Doorway occupied. Holding the door open.'
+  );
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2 + 3, z: 4 * Math.SQRT1_2 });
+  // The route helper moves the world synchronously. Wait for the scene to
+  // refresh the projected control before tapping its new screen position.
+  await expect(doorStatus).toHaveText('Garage door: Open');
   await page.locator('[data-exterior-door-control]').tap();
   await waitDoor(page, 'garage-door', 'closed');
   await page.screenshot({
@@ -345,7 +386,10 @@ for (const viewport of [
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await readyExterior(page);
     await enterGarage(page);
-    await walkExteriorTo(page, { x: 47, z: 4 });
+    await walkExteriorTo(page, {
+      x: 50 * Math.SQRT1_2 - 3,
+      z: 4 * Math.SQRT1_2,
+    });
     await closeApproachingDoor(page, 'garage-door');
     const button = page.locator('[data-exterior-door-control]');
     await expect(button).toHaveAccessibleName('Open Garage door');
@@ -355,7 +399,10 @@ for (const viewport of [
     expect(box.y).toBeGreaterThanOrEqual(0);
     expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
     await operate(page, 'garage-door', 'open');
-    await walkExteriorTo(page, { x: 53, z: 4 });
+    await walkExteriorTo(page, {
+      x: 50 * Math.SQRT1_2 + 3,
+      z: 4 * Math.SQRT1_2,
+    });
     await page.screenshot({
       path: test
         .info()

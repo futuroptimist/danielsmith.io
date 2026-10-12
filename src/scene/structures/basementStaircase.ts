@@ -19,12 +19,15 @@ const GROUND_RAIL_TRIM_THICKNESS = 0.12;
 /** One descriptor owns the treads, opening, rails, navigation and safety bounds. */
 export function getBasementStairLayout(playerRadius = 0.75) {
   const definition = BASEMENT_STAIR_CONNECTION;
+  // Anchor the upper landing to the plan, but preserve the original metre run
+  // and clearance dimensions (the descriptor uses the former 2:1 plan units).
   const config: StaircaseConfig = {
     name: 'BasementStaircase',
     basePosition: new Vector3(
       world(definition.centerX),
       definition.lowerFloorElevation,
-      world(definition.bottomZ)
+      world(definition.bottomZ + definition.stepCount * definition.stepRun) -
+        definition.stepCount * definition.stepRun * 2
     ),
     direction: definition.direction,
     step: {
@@ -32,20 +35,20 @@ export function getBasementStairLayout(playerRadius = 0.75) {
       rise:
         (definition.upperFloorElevation - definition.lowerFloorElevation) /
         definition.stepCount,
-      run: world(definition.stepRun),
-      width: world(definition.width),
+      run: definition.stepRun * 2,
+      width: definition.width * 2,
       material: { color: 0x9b8973, roughness: 0.72, metalness: 0.04 },
     },
     landing: {
       topRise: definition.upperFloorElevation - definition.lowerFloorElevation,
-      depth: world(definition.landingDepth),
+      depth: definition.landingDepth * 2,
       thickness: definition.landingThickness,
       material: { color: 0x81796d, roughness: 0.68, metalness: 0.04 },
     },
   };
   const behavior = {
-    transitionMargin: world(definition.transitionMargin),
-    landingTriggerMargin: world(definition.landingTriggerMargin),
+    transitionMargin: definition.transitionMargin * 2,
+    landingTriggerMargin: definition.landingTriggerMargin * 2,
     stepRise: config.step.rise,
     descentCorridorInset: playerRadius,
   };
@@ -56,7 +59,7 @@ export function getBasementStairLayout(playerRadius = 0.75) {
     landingDepth: config.landing.depth,
     direction: config.direction,
     guardMargin: behavior.transitionMargin,
-    stairwellMargin: world(definition.openingMargin),
+    stairwellMargin: definition.openingMargin * 2,
   });
   const geometry = {
     centerX: config.basePosition.x,
@@ -68,13 +71,13 @@ export function getBasementStairLayout(playerRadius = 0.75) {
     totalRise: config.step.rise * config.step.count,
     direction: layout.directionMultiplier,
   };
-  const thickness = world(definition.guardThickness);
+  const thickness = definition.guardThickness * 2;
   const west = geometry.centerX - geometry.halfWidth;
   const east = geometry.centerX + geometry.halfWidth;
   const opening: RectCollider = {
     minX: west,
     maxX: east,
-    minZ: geometry.bottomZ - world(definition.openingMargin),
+    minZ: geometry.bottomZ - definition.openingMargin * 2,
     maxZ: geometry.topZ,
   };
   const landing: RectCollider = {

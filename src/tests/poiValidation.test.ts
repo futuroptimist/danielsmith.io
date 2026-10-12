@@ -198,7 +198,7 @@ describe('validatePoiDefinitions', () => {
     const doorwayPoi = clonePoi({
       id: 'futuroptimist-doorway-test' as (typeof baseDefinitions)[0]['id'],
       position: {
-        x: livingRoomBounds.minX + 14,
+        x: -18 * Math.SQRT1_2,
         y: baseDefinitions[0].position.y,
         z: livingRoomBounds.maxZ - 0.4,
       },
@@ -316,7 +316,7 @@ describe('assertValidPoiDefinitions', () => {
     const doorwayBlocker = clonePoi({
       id: 'doorway-blocker' as PoiDefinition['id'],
       position: {
-        x: livingRoomBounds.minX + 14,
+        x: -18 * Math.SQRT1_2,
         y: baseDefinitions[0].position.y,
         z: livingRoomBounds.maxZ - 0.35,
       },

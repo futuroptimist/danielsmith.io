@@ -57,10 +57,10 @@ describe('front entry declarative topology', () => {
       (gap) => gap.label === 'studio-to-front-entry'
     )!;
     expect((wall.run!.start.x + entry.start) * FLOOR_PLAN_SCALE).toBeCloseTo(
-      23.5
+      23.5 * Math.SQRT1_2
     );
     expect((wall.run!.start.x + entry.end) * FLOOR_PLAN_SCALE).toBeCloseTo(
-      29.5
+      29.5 * Math.SQRT1_2
     );
     expect(
       wall.run!.gaps!.some((gap) => gap.label === 'living-to-studio')
@@ -70,14 +70,15 @@ describe('front entry declarative topology', () => {
   });
   it('scales horizontal coordinates once and keeps door headroom unscaled', () => {
     const door = createExteriorDoorDefinitions(FLOOR_PLAN_SCALE)[0];
-    expect(door.center.x).toBeCloseTo(32);
-    expect(door.center.z).toBeCloseTo(-15);
+    expect(door.center.x).toBeCloseTo(32 * Math.SQRT1_2);
+    expect(door.center.z).toBeCloseTo(-15 * Math.SQRT1_2);
     expect(door.height).toBe(2.1);
     expect(door.width).toBeCloseTo(2.4);
   });
   it('provides continuous navigable path and a clear planter-free threshold', () => {
     const nav = createNavMesh(FLOOR_PLAN);
-    for (let x = 30; x < 58; x += 0.1) expect(nav.contains(x, -15)).toBe(true);
+    for (let x = 30; x < 58; x += 0.1)
+      expect(nav.contains(x * Math.SQRT1_2, -15 * Math.SQRT1_2)).toBe(true);
     const mirror = PORTFOLIO_LEVEL.floors
       .find((floor) => floor.id === 'ground')!
       .sceneObjects!.find(

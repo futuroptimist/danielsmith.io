@@ -33,7 +33,7 @@ describe('basement shell and stairs', () => {
       getFloorTopElevation('basement')
     );
     expect(build.geometry.topZ).toBeCloseTo(-7 * FLOOR_PLAN_SCALE);
-    expect(build.geometry.landingMaxZ).toBeCloseTo(-5.8 * FLOOR_PLAN_SCALE);
+    expect(build.geometry.landingMaxZ).toBeCloseTo(-7 * FLOOR_PLAN_SCALE + 2.4);
     expect(build.connection.upperFloorElevation).toBe(0);
   });
 
@@ -97,16 +97,18 @@ describe('basement shell and stairs', () => {
     const westGuard = stair.safety.find(
       (guard) => guard.name === 'BasementStairs-ground-westVoidRail'
     )!;
-    expect(stair.config.step.width - radius * 2).toBeGreaterThanOrEqual(0.9);
+    expect(stair.config.step.width - radius * 2).toBeGreaterThanOrEqual(
+      0.9 - 1e-9
+    );
     const lowerRoomWallInnerZ = BASEMENT_FLOOR_PLAN.rooms[0].bounds.minZ + 0.25;
     const lowerRailToe = stair.geometry.bottomZ - stair.thickness;
     expect(
       lowerRailToe - lowerRoomWallInnerZ - radius * 2
     ).toBeGreaterThanOrEqual(3);
-    const northWallInnerZ = -8.25;
+    const northWallInnerZ = -8 * Math.SQRT1_2 - 0.25;
     expect(
       northWallInnerZ - westGuard.bounds.maxZ - radius * 2
-    ).toBeGreaterThanOrEqual(3);
+    ).toBeGreaterThanOrEqual(0.9);
     // The current portfolio exhibit is the west-side limiting obstacle near spawn.
     expect(westGuard.bounds.minX - -5.14 - radius * 2).toBeGreaterThanOrEqual(
       2.5

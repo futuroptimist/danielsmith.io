@@ -9,7 +9,9 @@ function countGeometryTriangles(geometry: BufferGeometry): number {
 export function countObjectTriangles(root: Object3D): number {
   let triangles = 0;
   root.traverse((object) => {
-    if (object instanceof Mesh) {
+    // Retained authoring meshes have their geometry represented by a live batch.
+    // Keep ordinary hidden models countable, including models on another floor.
+    if (object instanceof Mesh && object.userData.staticBatchSource !== true) {
       const instances = object instanceof InstancedMesh ? object.count : 1;
       triangles += countGeometryTriangles(object.geometry) * instances;
     }

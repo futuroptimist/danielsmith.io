@@ -1,6 +1,10 @@
 import type { DoorDefinition } from '../../systems/doors/controller';
 import { DOOR_CLEAR_HEIGHT, TARGET_AVATAR_HEIGHT } from '../units';
 
+import {
+  HOUSE_HORIZONTAL_SCALE,
+  PLAN_TO_WORLD_SCALE,
+} from './horizontalFootprint';
 import type {
   SceneObjectDefinition,
   SemanticRoomDefinition,
@@ -12,13 +16,13 @@ const source = assertLevelSourceId;
 export const HOUSE_GARAGE_DOOR = {
   x: 16,
   z: -1,
-  width: 1.2,
+  width: 1.2 / HOUSE_HORIZONTAL_SCALE,
   height: DOOR_CLEAR_HEIGHT,
 } as const;
 export const GARAGE_DOOR = {
   x: 25,
   z: 2,
-  width: 2.5,
+  width: 2.5 / HOUSE_HORIZONTAL_SCALE,
   height: 2.4,
   minimumHeadroom: TARGET_AVATAR_HEIGHT + 0.15,
 } as const;
@@ -141,7 +145,9 @@ export const GARAGE_OBJECTS: SceneObjectDefinition[] = [
   },
 ];
 
-export function createGarageDoorDefinitions(scale: number): DoorDefinition[] {
+export function createGarageDoorDefinitions(
+  scale: number = PLAN_TO_WORLD_SCALE
+): DoorDefinition[] {
   return [
     {
       id: 'house-garage-door',
