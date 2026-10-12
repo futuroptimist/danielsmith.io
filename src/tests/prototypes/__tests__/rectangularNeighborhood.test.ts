@@ -230,7 +230,7 @@ describe('isolated rectangular neighborhood feasibility', () => {
     expect(field.contains(60, 0)).toBe(true);
     expect(collidesWithColliders(60, 0, R, solids)).toBe(true);
   });
-  it('connects a synthetic intersection and protected-stop approach without altering site anchors', () => {
+  it('connects a synthetic intersection and protected-stop approach', () => {
     // Explicitly synthetic: these rectangles are not the existing stop or parcel audit.
     const physicalWidth = 3.8;
     const half = physicalWidth / 2 - R;

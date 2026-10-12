@@ -80,7 +80,7 @@ tested 3.8 m opening to 3.1341 m; the finer grid recovers useful clearance. An a
 3.0 m opening is not automatically a 3.0 m collision-clear opening: the width sweep
 retains these failures instead of declaring all nominally wide gaps feasible.
 Independently of the sampled rotations, the cell-diagonal proof gives a conservative
-3.4407 m strip for a 3.8 m parallel opening when generation stays within its caps:
+3.4406 m strip for a 3.8 m parallel opening when generation stays within its caps:
 subtract at most one 0.1797 m deviation on each side. This does not establish clearance
 at unrelated corners or at joins to a future site layout.
 
