@@ -699,7 +699,7 @@ async function runRoute(evidence = null) {
         };
       });
       if (
-        result.street.busStop.signText !== 'Bus stop Â· Coming Soon' ||
+        result.street.busStop.signText !== 'Bus stop · Coming Soon' ||
         result.streetSign.description !== 'Bus stop: Coming Soon' ||
         !result.streetSign.available ||
         result.streetSign.interactiveElements !== 0 ||
@@ -793,8 +793,6 @@ function createCaptureSession(directory, options = {}) {
   } = require('./lib/performance-capture-probe.cjs');
   const {
     parseCapture,
-    analyzeCapture,
-    projectLegacyProbe,
     sha256,
   } = require('./lib/performance-capture-analysis.cjs');
   const labels = [
@@ -1145,24 +1143,83 @@ function createCaptureSession(directory, options = {}) {
           bounds.maxRawBytes,
           bytes
         );
-        const analysis = analyzeCapture(validated);
+        // Keep the pure CPU work off the page/host event loop so a pathological
+        // bounded input cannot prevent the absolute finalization timer firing.
+        const { Worker } = require('node:worker_threads');
+        const worker = new Worker(
+          `
+          const { parentPort, workerData } = require('node:worker_threads');
+          const api = require(workerData.modulePath);
+          try {
+            const analysis = api.analyzeCapture(workerData.raw);
+            const prefixes = workerData.prefixes.map(prefix => {
+              try { return api.projectLegacyProbe(workerData.raw, prefix); }
+              catch { return null; }
+            });
+            parentPort.postMessage({ analysis, prefixes });
+          } catch (error) {
+            parentPort.postMessage({ error: ['output_limit','invalid_input','input_limit'].includes(error.code) ? error.code : 'internal_error' });
+          }
+        `,
+          {
+            eval: true,
+            workerData: {
+              modulePath: path.join(
+                __dirname,
+                'lib/performance-capture-analysis.cjs'
+              ),
+              raw: validated,
+              prefixes: [
+                ...checkpoints,
+                {
+                  atMs: stop,
+                  callbackCount: t.length,
+                  longTaskDeliveryCount: data.longTasks.length,
+                },
+              ],
+            },
+          }
+        );
+        let analysisResult;
+        let analysisTimer;
+        try {
+          analysisResult = await Promise.race([
+            new Promise((resolve, reject) => {
+              worker.once('message', (value) =>
+                value.error ? reject(error(value.error)) : resolve(value)
+              );
+              worker.once('error', () => reject(error('internal_error')));
+              worker.once('exit', (code) => {
+                if (code !== 0) reject(error('internal_error'));
+              });
+            }),
+            new Promise((_, reject) => {
+              analysisTimer = setTimeout(
+                () => reject(error('export_timeout')),
+                Math.max(0, deadline - Date.now())
+              );
+            }),
+          ]);
+        } finally {
+          clearTimeout(analysisTimer);
+          void worker.terminate();
+        }
+        if (Date.now() >= deadline) throw error('export_timeout');
+        const analysis = analysisResult.analysis;
         analysis.rawSha256 = sha256(bytes);
         operation.write(
           'route-capture-analysis-v1.json',
           analysis,
           bounds.maxAnalysisBytes
         );
+        if (analysis.analysisState === 'rejected' && state !== 'cancelled') {
+          state = 'partial';
+          terminalReason = 'invalid_clock';
+        }
         if (result) {
           for (let i = 0; i < checkpoints.length; i++)
-            result.checkpoints[i].stallProbe = projectLegacyProbe(
-              validated,
-              checkpoints[i]
-            );
-          result.wholeRouteStallProbe = projectLegacyProbe(validated, {
-            atMs: stop,
-            callbackCount: t.length,
-            longTaskDeliveryCount: data.longTasks.length,
-          });
+            result.checkpoints[i].stallProbe = analysisResult.prefixes[i];
+          result.wholeRouteStallProbe = analysisResult.prefixes.at(-1);
         }
         await call(() => window.__routeCapture.dispose());
       } catch (error) {
@@ -1179,6 +1236,7 @@ function createCaptureSession(directory, options = {}) {
                     'input_limit',
                     'invalid_input',
                     'invalid_clock',
+                    'internal_error',
                     'capacity',
                   ].includes(error.code)
                 ? error.code

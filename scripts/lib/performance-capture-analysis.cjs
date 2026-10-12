@@ -1797,7 +1797,7 @@ function compareCaptures(base, candidate) {
     )
   )
     reasons.push('identity_unbound');
-  for (const key of ['profile', 'toolchain'])
+  for (const key of ['profile', 'toolchain', 'bounds'])
     if (JSON.stringify(a[key]) !== JSON.stringify(b[key]))
       reasons.push(key + '_mismatch');
   if (a.source.routeContractSha256 !== b.source.routeContractSha256)
@@ -1806,8 +1806,6 @@ function compareCaptures(base, candidate) {
     x.windows.map((w) => [
       w.id,
       w.kind,
-      w.startMs,
-      w.endMs,
       w.requiredDurationMs,
       w.selection,
       w.warmthState,

@@ -25,6 +25,35 @@ const temporary = mkdtempSync(
 afterAll(() => rmSync(temporary, { recursive: true, force: true }));
 
 describe('opt-in capture lifecycle with synthetic pages', () => {
+  it('never stitches a replacement document into the original attempt', async () => {
+    const directory = path.join(temporary, 'navigation');
+    const session = createCaptureSession(directory);
+    const handlers = new Map<string, (frame: object) => void>();
+    const frame = {};
+    const evaluate = vi.fn();
+    session.attach({
+      on: (name: string, fn: (frame: object) => void) => handlers.set(name, fn),
+      mainFrame: () => frame,
+      isClosed: () => false,
+      evaluate,
+    });
+    handlers.get('framenavigated')!(frame);
+    handlers.get('framenavigated')!(frame);
+    await session.finish('failure');
+    expect(evaluate).not.toHaveBeenCalled();
+    expect(
+      JSON.parse(
+        readFileSync(
+          path.join(directory, 'route-capture-terminal-v1.json'),
+          'utf8'
+        )
+      )
+    ).toMatchObject({ reason: 'navigation', captureStoppedAtMs: null });
+  });
+  it('preserves the exact scene bus-stop separator', () => {
+    expect(source).toContain('Bus stop \u00b7 Coming Soon');
+    expect(source).not.toContain('Bus stop \u00c2\u00b7 Coming Soon');
+  });
   it('exports the actual probe after stop, retaining checkpoint prefixes and helper gaps', async () => {
     const directory = path.join(temporary, 'complete');
     let now = 0;
@@ -280,7 +309,7 @@ function streetDiagnostics() {
       evaluate: vi
         .fn()
         .mockResolvedValueOnce({
-          busStop: { signText: 'Bus stop Â· Coming Soon' },
+          busStop: { signText: 'Bus stop · Coming Soon' },
           lamps: Array.from({ length: 4 }, () => ({ groundPoolVisible: true })),
         })
         .mockResolvedValueOnce({

@@ -108,6 +108,9 @@ and drains the observer; synthetic pagehide is recorded without stopping. New na
 BFCache restoration requires a new attempt. Cleanup touches only helper-owned listeners,
 observer, callbacks, context and browser. Stop, export and cleanup share one absolute grace;
 chunks cannot renew it. An unresponsive page yields incomplete evidence with unknown endpoints.
+Pure final analysis runs in an owned Node worker under the same remaining grace, so CPU work
+cannot prevent the host timeout from firing. A timed-out analysis preserves the raw file and
+records incomplete cleanup when the remaining grace is exhausted.
 
 Native frame presentation, input-to-next-paint, GPU timing, whole-frame pass totals,
 geometry/texture bytes, and retained heap are explicitly uncollected. Every result keeps

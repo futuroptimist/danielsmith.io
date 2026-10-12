@@ -147,6 +147,49 @@ function sync(c: ReturnType<typeof raw>) {
 }
 
 describe('synthetic supplemental analysis oracles (not hardware evidence)', () => {
+  it('compares semantic windows across different document clock origins', () => {
+    const base = raw(),
+      candidate = raw();
+    const offset = 17;
+    candidate.rafTimestampsMs = candidate.rafTimestampsMs.map(
+      (t) => t + offset
+    );
+    candidate.markers.forEach((m) => {
+      m.atMs += offset;
+    });
+    for (const key of [
+      'captureStartedAtMs',
+      'captureStoppedAtMs',
+      'firstCallbackAtMs',
+      'lastCallbackAtMs',
+      'plannedDeadlineAtMs',
+    ] as const)
+      candidate.coverage[key] += offset;
+    expect(compareCaptures(base, candidate)).toMatchObject({
+      state: 'diagnostic_profile_comparable',
+      deltaP95Ms: 0,
+      hardwareQualified: false,
+    });
+    candidate.bounds.maxDurationMs--;
+    candidate.coverage.plannedDeadlineAtMs--;
+    expect(compareCaptures(base, candidate).reasons).toContain(
+      'bounds_mismatch'
+    );
+  });
+  it('refuses modified lifecycle receipts even when the raw hash still matches', () => {
+    const input = path.join(root, 'receipt-input'),
+      output = path.join(root, 'receipt-output');
+    const op = createOperation(input, 'capture'),
+      c = raw();
+    c.attemptId = op.state.attemptId;
+    c.toolchain = op.hashes;
+    op.running();
+    op.write('route-capture-raw-v1.json', c);
+    op.finish('complete', 'finished');
+    writeFileSync(path.join(input, 'route-capture-running-v1.json'), '{}');
+    expect(() => analyzeDirectory(input, output)).toThrow('identity_invalid');
+    expect(readdirSync(output)).not.toContain('route-capture-raw-v1.json');
+  });
   it.each([119, 120, 121])(
     'requires 121 post-boundary callbacks for a prefix-120 window (%i intervals)',
     (n) => {

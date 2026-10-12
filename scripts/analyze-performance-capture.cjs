@@ -139,6 +139,31 @@ function analyzeDirectory(input, output) {
     );
     if (manifest.kind !== 'route_capture_manifest')
       throw failure('invalid_input');
+    let inputOperation = null;
+    for (const phase of ['initial', 'running', 'terminal']) {
+      const name = `route-capture-${phase}-v1.json`;
+      const receiptEntry = manifest.files.find((file) => file.name === name);
+      if (!receiptEntry) throw failure('invalid_input');
+      const receiptBytes = readBounded(path.join(input, name));
+      if (
+        receiptBytes.length !== receiptEntry.byteLength ||
+        sha256(receiptBytes) !== receiptEntry.sha256
+      )
+        throw failure('identity_invalid');
+      const receipt = validateArtifact(JSON.parse(receiptBytes));
+      if (inputOperation === null) inputOperation = receipt.operation;
+      if (receipt.operation !== inputOperation)
+        throw failure('identity_invalid');
+      if (
+        receipt.kind !== 'route_capture_receipt' ||
+        receipt.phase !== phase ||
+        receipt.operationId !== manifest.operationId ||
+        (receipt.attemptId !== null && receipt.attemptId !== manifest.attemptId)
+      )
+        throw failure('identity_invalid');
+      if (phase === 'terminal' && receipt.state !== manifest.state)
+        throw failure('identity_invalid');
+    }
     const entry = manifest.files.find(
       (f) => f.name === 'route-capture-raw-v1.json'
     );
@@ -155,7 +180,10 @@ function analyzeDirectory(input, output) {
     if (bytes.length > raw.bounds.maxRawBytes) throw failure('input_limit');
     if (
       raw.attemptId !== manifest.attemptId ||
-      JSON.stringify(raw.toolchain) !== JSON.stringify(manifest.toolchain)
+      raw.toolchain.helperSha256 !== manifest.toolchain.helperSha256 ||
+      raw.toolchain.probeSha256 !== manifest.toolchain.probeSha256 ||
+      (inputOperation === 'capture' &&
+        raw.toolchain.analyzerSha256 !== manifest.toolchain.analyzerSha256)
     )
       throw failure('identity_invalid');
     operation.state.attemptId = raw.attemptId;
