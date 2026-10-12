@@ -13,6 +13,7 @@ export const BUS_STOP = {
   x: 25.6,
   z: 16,
 } as const;
+/** X/Z are plan anchors; width/depth declare a world-space collider, not body size. */
 export const PARKED_EV = { x: 33, z: -10, width: 4.6, depth: 9.2 } as const;
 export const STREET_LAMPS = {
   x: 29.6,

@@ -14,7 +14,6 @@ import { FLOOR_PLAN_SCALE } from '../src/assets/floorPlan';
 import { FRONT_ENTRY } from '../src/scene/level/exteriorLayout';
 import { FLOOR_TOP_ELEVATIONS } from '../src/scene/level/floorElevations';
 import { GARAGE_DOOR } from '../src/scene/level/garageLayout';
-import { PARKED_EV } from '../src/scene/level/streetLayout';
 import { createAquiloopAquarium } from '../src/scene/structures/aquiloopAquarium';
 import {
   createLowerFloorFurnishings,
@@ -38,6 +37,8 @@ import {
   AVATAR_RUN_SPEED,
 } from '../src/systems/movement/avatarGait';
 
+import { auditExteriorGeometry } from './exteriorGeometryAudit';
+
 const dimensions = (object: Object3D) => {
   object.updateWorldMatrix(true, true);
   const bounds = new Box3().setFromObject(object, true);
@@ -51,6 +52,20 @@ const dimensions = (object: Object3D) => {
   };
 };
 async function main() {
+  // The sign texture is irrelevant to vertex bounds. No canvas renderer is required.
+  const previousDocument = globalThis.document;
+  if (typeof document === 'undefined')
+    globalThis.document = {
+      createElement: () => ({ width: 0, height: 0, getContext: () => null }),
+    } as unknown as Document;
+  let exterior;
+  try {
+    exterior = auditExteriorGeometry();
+  } finally {
+    if (previousDocument === undefined)
+      Reflect.deleteProperty(globalThis, 'document');
+    else globalThis.document = previousDocument;
+  }
   const loader = new GLTFLoader();
   loader.register(() => ({
     name: 'AuditTexture',
@@ -117,7 +132,7 @@ async function main() {
         height: GARAGE_DOOR.height,
       },
     },
-    parkedEV: { width: PARKED_EV.width, length: PARKED_EV.depth },
+    exterior,
     portfolioTable: PORTFOLIO_MINIATURE_TABLE_DIMENSIONS,
     mirror: {
       installation: dimensions(mirror.group),

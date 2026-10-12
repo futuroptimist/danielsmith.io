@@ -4,6 +4,14 @@ Release notes for the immersive danielsmith.io portfolio. The in-app link curren
 this repository Markdown page as a temporary wiki/documentation surface; a native changelog view
 may replace it in a future release.
 
+## v0.3.1 - unreleased
+
+- Added source-linked exterior measurements that distinguish actual street meshes,
+  conservative colliders, anchors and activation regions without changing appearance
+  or movement. Corrected garage scale documentation and added geometry regressions.
+- Advanced application metadata to `0.3.1` and chart packaging to `0.2.13`.
+  These versions do not imply a tag, release or deployment.
+
 ## v0.3.0 - unreleased
 
 - Reduced horizontal room area by 50% on all three floors while preserving room
