@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
 
+import {
+  AVATAR_RUN_SPEED,
+  AVATAR_WALK_SPEED,
+} from '../src/systems/movement/avatarGait';
+
 const url = '/?mode=immersive&disablePerformanceFailover=1';
 for (const level of ['performance', 'balanced', 'cinematic']) {
   test(`metric avatar and one gait across input combinations (${level})`, async ({
@@ -77,20 +82,15 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
           { caps, shifted }
         );
         try {
-          const speed = caps ? 1.116452991 : 2.537393162;
-          await expect
-            .poll(async () => (await snapshot()).locomotion.linearSpeed, {
-              timeout: 30_000,
-            })
-            .toBeGreaterThan(speed * 0.95);
-          expect((await snapshot()).locomotion.linearSpeed).toBeLessThan(
-            speed * 1.01
-          );
-          await expect
-            .poll(async () => (await snapshot()).locomotion.linearState, {
-              timeout: 30_000,
-            })
-            .toBe(caps ? 'walk' : 'run');
+          const speed = caps ? AVATAR_WALK_SPEED : AVATAR_RUN_SPEED;
+          // Sample speed and blend together: slow software rendering can let the
+          // player reach an obstacle between separate browser round trips.
+          await expect(async () => {
+            const { locomotion } = await snapshot();
+            expect(locomotion.linearSpeed).toBeGreaterThan(speed * 0.95);
+            expect(locomotion.linearSpeed).toBeLessThan(speed * 1.01);
+            expect(locomotion.linearState).toBe(caps ? 'walk' : 'run');
+          }).toPass({ timeout: 30_000 });
           expect(
             await page.evaluate(() => window.portfolio!.avatar!.getGait!())
           ).toBe(caps ? 'walk' : 'run');

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { AVATAR_RUN_SPEED } from '../avatarGait';
 import { planMovementSubsteps } from '../movementSubsteps';
 
 describe('planMovementSubsteps', () => {
@@ -33,6 +34,21 @@ describe('planMovementSubsteps', () => {
       );
       expect(plan.stepX * plan.count).toBeCloseTo(dx, 12);
       expect(plan.stepZ * plan.count).toBeCloseTo(dz, 12);
+      expect(plan.truncated).toBe(false);
+    }
+  );
+
+  it.each([1 / 60, 0.25, 1])(
+    'preserves faster run travel at delta %s',
+    (delta) => {
+      const distance = AVATAR_RUN_SPEED * delta;
+      const component = distance / Math.SQRT2;
+      const plan = planMovementSubsteps(component, -component, 0.375);
+      expect(Math.hypot(plan.stepX, plan.stepZ)).toBeLessThanOrEqual(0.375);
+      expect(Math.hypot(plan.stepX, plan.stepZ) * plan.count).toBeCloseTo(
+        distance,
+        12
+      );
       expect(plan.truncated).toBe(false);
     }
   );
