@@ -178,6 +178,18 @@ describe('isolated rectangular neighborhood feasibility', () => {
     (angle) => {
       const fences = fenceOpening(angle),
         solids = fences.flatMap((s) => decomposeSolid(s).map((p) => p.bounds));
+      const projected = fences.map((fence) =>
+        decomposeSolid(fence).flatMap((piece) =>
+          corners(piece.bounds).map(
+            (point) =>
+              (point.x - 60) * Math.cos(angle) + point.z * Math.sin(angle)
+          )
+        )
+      );
+      // Physical clearance is independent of the still-unapproved allowance.
+      expect(
+        Math.min(...projected[1]) - Math.max(...projected[0])
+      ).toBeGreaterThanOrEqual(3.0);
       const center = { ...fences[0], center: { x: 60, z: 0 } };
       // Two actors on parallel lanes (1.5 m center separation), both directions.
       for (const offset of [-0.75, 0.75])

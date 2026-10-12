@@ -47,7 +47,8 @@ clearance tests when accepted layout data exists.
 ## Measured evidence and proposed limits
 
 The [machine-readable report](../qa/performance/neighborhood-collision-prototype.json)
-records the accepted base, prototype source hashes, environment, all three timing
+records capture commit `e46da6e6`, accepted base `2af9b2b8`, a clean prototype
+working tree, prototype source hashes, environment, all three timing
 attempt summaries and the opening-width sweep. The
 [read-only overlay](../assets/neighborhood-collision-prototype.svg) shows physical
 surfaces, collision rectangles and actor footprints. It is a synthetic diagnostic,
@@ -84,25 +85,33 @@ Independently of the sampled rotations, the cell-diagonal proof gives a conserva
 subtract at most one 0.1797 m deviation on each side. This does not establish clearance
 at unrelated corners or at joins to a future site layout.
 
-| Collision / navigation candidates    | Observed batch p95 range, three attempts |
-| ------------------------------------ | ---------------------------------------- |
-| 32 / 16 baseline                     | 0.097-0.102 ms                           |
-| 128 / 64                             | 0.256-0.273 ms                           |
-| 256 / 128                            | 0.484-0.624 ms                           |
-| 512 / 256                            | 0.947-0.990 ms                           |
-| 1,024 / 512                          | 1.895-1.969 ms                           |
-| 2,048 / 1,024 bounded stress maximum | 3.769-4.063 ms                           |
+| Collision / navigation candidates | Observed batch p95 range, three attempts |
+| --------------------------------- | ---------------------------------------- |
+| 32 / 16                           | 0.111-0.117 ms                           |
+| 128 / 64                          | 0.299-0.316 ms                           |
+| 256 / 128                         | 0.597-2.326 ms                           |
+| 256 / 256                         | 0.687-0.724 ms                           |
+| 512 / 256                         | 1.078-1.147 ms                           |
+| 1,024 / 512                       | 3.577-3.633 ms                           |
+| 2,048 / 1,024                     | 6.689-7.144 ms                           |
+
+Ambient host load was uncontrolled. The 256/128 attempt includes a 2.326 ms p95
+and 4.692 ms p99 spike; it is retained, not discarded. These timings cannot guarantee
+a production latency ceiling. Repeat on a controlled host before accepting any CPU target.
 
 Recommended **review targets**, not accepted runtime budgets:
 
 - Keep the 0.125 m grid, 1 mm seam overlap and <=0.18 m boundary-deviation ceiling.
   Generation fails closed above 262,144 candidate cells or 512 emitted rectangles per
-  source. These are preprocessing bounds; reaching one is not permission to enlarge it.
-- Use <=512 solid candidates and <=256 walkable rectangles per occupancy query for the
+  source. Unsafe integer grid indices and overrides above those ceilings are rejected.
+  These are preprocessing bounds; reaching one is not permission to enlarge it.
+- Use <=256 solid candidates and <=256 walkable rectangles per occupancy query for the
   next synthetic slice. The present fixture fits; this says nothing about 24 full lots.
-  At that cap, propose <=1.1 ms p95 and <=1.3 ms p99 for this exact host probe. Observed
-  p99 was <=1.182 ms. The 1,024+ cases exceed the proposed p95 ceiling; do not adopt them
-  without a separately measured candidate-reduction strategy.
+  At that cap, propose <=1.0 ms p95 and <=1.3 ms p99 for this exact host probe. Its three
+  attempts measured 0.687-0.724 ms p95 and <=1.187 ms p99. The smaller-count spike above
+  means this is a target requiring controlled repetition, not an established guarantee.
+  The 512+ cases exceed the proposed p95 ceiling; do not adopt them without a separately
+  measured candidate-reduction strategy.
 - The live scene must still meet the design's matched <=10% frame regression gate and
   real low-end qualification. The standalone CPU ceiling does not establish either.
 - Preserve at least 3.0 m physical clear width **plus the separately agreed collision
