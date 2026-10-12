@@ -25,8 +25,10 @@ are `Idle`, `Walk`, `Run`, `SitDown`, `Seated`, and `StandUp`. The loader subtra
 first-key time from each clip to remove the frame-one leading hold. Translation and yaw belong
 to the existing camera-relative movement controller; locomotion clips remain in place.
 
-Walking is 1.116453 metres/second; running is 2.537393. Body dimensions, movement and the exported
-stride references (originally 0.85446 and 1.57199) share the 1.90 / 1.872 scale ratio.
+Walking is 1.116453 metres/second; running is 3.044872 (20% faster than the previous run pace).
+The gait constants are 1.1 and 3.0 metres/second multiplied by the 1.90 / 1.872 body scale ratio.
+Exported stride references (0.85446 and 1.57199 before body scaling) remain unchanged;
+the animation playback ceiling is 2.0 so the faster run cadence is not clamped.
 **Caps Lock off means running (the default); on means walking.** Modifier state is observed on
 keyboard events without consuming UI-owned or remapped keys. Repeat cannot toggle again, and the
 first keyboard event after focus returns resynchronizes the physical lock. The touch gait button
