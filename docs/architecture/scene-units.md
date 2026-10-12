@@ -125,7 +125,9 @@ The EV's **4.6 x 9.2 m** declaration is its conservative collider, not its body 
 or an approved resize target. The complete visible assembly measures about
 **4.42 x 1.90 x 8.38 m** (X/Y/Z), including mirrors, wheels and lights. The audit
 reports individual meshes/instances and signed collision padding separately.
-Negative padding flags geometry extending outside declared bounds; decorative
+Margins within the reported 0.00001 m tolerance are zeroed to suppress Float32
+instance-transform noise; raw measured vertex bounds remain available.
+Negative padding beyond that tolerance flags geometry outside declared bounds; decorative
 parts are excluded. For multi-solid sources, padding compares solid meshes
 intersecting each declared rectangle, not the whole source union. The complete
 mesh inventory remains available to detect parts outside every solid.

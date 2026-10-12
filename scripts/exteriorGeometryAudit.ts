@@ -16,6 +16,11 @@ import { createResidentialExterior } from '../src/scene/structures/residentialEx
 import { createResidentialStreet } from '../src/scene/structures/residentialStreet';
 import { createDoorController } from '../src/systems/doors/controller';
 
+// Float32 instance matrices introduce micrometre-scale noise at exterior coordinates.
+const PADDING_TOLERANCE_METRES = 0.00001;
+const paddingMargin = (value: number) =>
+  Math.abs(value) <= PADDING_TOLERANCE_METRES ? 0 : value;
+
 /** Audit actual builders; semantic positions are not promises about mesh centres. */
 export function auditExteriorGeometry(scale = FLOOR_PLAN_SCALE) {
   const floor = PORTFOLIO_LEVEL.floors.find(
@@ -58,15 +63,16 @@ export function auditExteriorGeometry(scale = FLOOR_PLAN_SCALE) {
         conservativePadding: bounds.isEmpty()
           ? null
           : {
-              minX: bounds.min.x - b.minX,
-              maxX: b.maxX - bounds.max.x,
-              minZ: bounds.min.z - b.minZ,
-              maxZ: b.maxZ - bounds.max.z,
+              minX: paddingMargin(bounds.min.x - b.minX),
+              maxX: paddingMargin(b.maxX - bounds.max.x),
+              minZ: paddingMargin(bounds.min.z - b.minZ),
+              maxZ: paddingMargin(b.maxZ - bounds.max.z),
             },
       };
     });
     return {
       coordinateContract: {
+        paddingToleranceMetres: PADDING_TOLERANCE_METRES,
         planAnchors:
           'Source position X/Z; multiply by plan scale exactly once.',
         localDimensions:

@@ -83,6 +83,24 @@ describe('exterior metric audit', () => {
     });
     expect(collider.conservativePadding!.minX).toBeCloseTo(0.09, 5);
     expect(collider.conservativePadding!.maxZ).toBeCloseTo(0.41, 5);
+    // Flush instance faces must not be reported as overruns due to Float32 noise.
+    const poles = a.declaredColliders.filter((item) =>
+      String(item.role).startsWith('lamp-pole-')
+    );
+    expect(poles).toHaveLength(4);
+    poles.forEach((pole) =>
+      expect(pole.conservativePadding).toEqual({
+        minX: 0,
+        maxX: 0,
+        minZ: 0,
+        maxZ: 0,
+      })
+    );
+    // The cabinet's visible front detail really extends past its declared footprint.
+    const cabinet = a.declaredColliders.find(
+      (item) => item.role === 'garage.cabinet'
+    )!;
+    expect(cabinet.conservativePadding!.maxZ).toBeCloseTo(-0.05, 5);
     expect(
       a.declaredColliders.filter(
         (item) => item.sourceId === 'ground.busStop.shelter'
