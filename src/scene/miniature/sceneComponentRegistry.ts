@@ -38,9 +38,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'The physical shelter, sign and colliders follow the scaled street together; source snapshots retain original mesh shapes after batching.',
+      'Expose resolved street regions; production and miniature geometry unchanged.',
   },
   {
     id: 'level:career-museum-layout',

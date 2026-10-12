@@ -153,7 +153,8 @@ The garage is a ground-floor interior at plan X `[16, 25]`, Z `[-4, 8]`.
 `garageLayout.ts` owns the house door at `(16, -1)` and the vehicle door at `(25, 2)`.
 The studio wall contains the pedestrian opening between the existing monstera
 and dresser, which retain their positions and solid colliders; the garage's east wall contains
-a fourteen-world-unit vehicle aperture. The garage south wall replaces the
+a five-metre vehicle aperture (`GARAGE_DOOR.width * FLOOR_PLAN_SCALE`).
+The garage south wall replaces the
 corresponding yard fence run explicitly in source. The remaining fence segment
 continues to the sidewalk. No overlapping obsolete wall or guard is removed at
 runtime. Both garage doors reuse the front-door controller and input binding. Each opens
@@ -175,8 +176,10 @@ The nearby DOM control stays below the measured HUD rectangle, including phone
 portrait and landscape, rather than being covered by the Text or Settings controls.
 
 The overhead shutter retracts into an opaque top housing. Its panel's lower edge
-is `progress × 4.8` world units above the ground; the aperture becomes passable
-only at **3.1 units of headroom**, above the 2.6-unit avatar. Closing checks the
+is `progress * 2.4` world units above the ground; the aperture becomes passable
+only at **2.05 m of headroom**, above the 1.90 m standing avatar plus 0.15 m clearance.
+The separate 2.6 m stair traversal envelope remains conservative navigation clearance.
+Closing checks the
 whole threshold before the collision gate can reactivate. The slat instances,
 shared geometry and materials are explicitly disposed with the exterior.
 

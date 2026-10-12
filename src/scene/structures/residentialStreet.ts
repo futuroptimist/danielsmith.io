@@ -330,6 +330,16 @@ export function createResidentialStreet(
     BUS_STOP.z * scale,
     streetNorth - roofDepth / 2 - 0.15
   );
+  // Resolved world-space behavior bounds are distinct from anchors and solid footprints.
+  const behaviorRegions = {
+    shelterCutaway: {
+      minX: shelterX - 3.5,
+      maxX: shelterX + 4,
+      minZ: shelterZ - 6.5,
+      maxZ: shelterZ + 6.5,
+    },
+    lightActivation: { minX: 22.5 * scale },
+  };
   // Open-front shelter: full-height posts and bench are the only pedestrian obstacles.
   for (const dx of [-2.6, 2.6])
     for (const dz of [-5.6, 5.6]) {
@@ -477,12 +487,13 @@ export function createResidentialStreet(
     policy: SceneDetailPolicy,
     occupant: { x: number; z: number; floorId: string }
   ) {
+    const region = behaviorRegions.shelterCutaway;
     const insideShelter =
       occupant.floorId === 'ground' &&
-      occupant.x > shelterX - 3.5 &&
-      occupant.x < shelterX + 4 &&
-      occupant.z > shelterZ - 6.5 &&
-      occupant.z < shelterZ + 6.5;
+      occupant.x > region.minX &&
+      occupant.x < region.maxX &&
+      occupant.z > region.minZ &&
+      occupant.z < region.maxZ;
     const opacity = insideShelter ? 0.2 : 1;
     if (materials.roof.opacity !== opacity) {
       materials.roof.opacity = opacity;
@@ -490,7 +501,9 @@ export function createResidentialStreet(
       materials.roof.depthWrite = !insideShelter;
       materials.roof.needsUpdate = true;
     }
-    const nearby = occupant.floorId === 'ground' && occupant.x > 22.5 * scale;
+    const nearby =
+      occupant.floorId === 'ground' &&
+      occupant.x > behaviorRegions.lightActivation.minX;
     const dynamic = nearby && policy.effects.dynamicPointLights;
     // Keep the authored downward footprint continuous across the proximity and
     // quality boundary. Realtime light augments it rather than replacing it.
@@ -532,6 +545,10 @@ export function createResidentialStreet(
     setStrings,
     update,
     getSnapshot,
+    getBehaviorRegions: () => ({
+      shelterCutaway: { ...behaviorRegions.shelterCutaway },
+      lightActivation: { ...behaviorRegions.lightActivation },
+    }),
     getCutawaySourceIds: () =>
       materials.roof.opacity < 1 ? [shelter.sourceId] : [],
     dispose() {

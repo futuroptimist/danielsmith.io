@@ -514,11 +514,11 @@
         "src/scene/structures/residentialStreet.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 13,
-      "syncNote": "The physical shelter, sign and colliders follow the scaled street together; source snapshots retain original mesh shapes after batching.",
-      "sourceFingerprint": "68289bd4871d0a7cb3a227579c006b3f98bf9fbecb70144e721effba8706f4bf",
+      "syncRevision": 14,
+      "syncNote": "Expose resolved street regions; production and miniature geometry unchanged.",
+      "sourceFingerprint": "2259f0681a491776836d7789aad986a9f9088541bb86973f308e0a66533e5434",
       "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
-      "metadataFingerprint": "05f49650e3401c5f2dbf91a0c9f2afdaea7e91364d97612d9446dba73f56b179"
+      "metadataFingerprint": "898326af26f84b97005b69e349b3a981244efbadf55a22fc22d011935da47930"
     },
     {
       "id": "level:basement-stairs",
