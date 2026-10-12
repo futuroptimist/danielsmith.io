@@ -68,6 +68,14 @@ function changeBullets(section) {
 }
 
 function runtimePath(file) {
+  if (
+    [
+      'scripts/lib/performance-capture-probe.cjs',
+      'scripts/lib/performance-capture-analysis.cjs',
+      'scripts/analyze-performance-capture.cjs',
+    ].includes(file)
+  )
+    return false;
   // Unknown paths fail closed. These exclusions are review/test/documentation tooling only.
   if (file === 'docs/resume/README.md' || file === 'docs/resume/ats-smoke.json')
     return false;
