@@ -240,10 +240,7 @@ for (const cleanupScope of ['exterior', 'initialization'] as const) {
       ]);
       if (phase === 'ready') {
         expect(snapshot.movementPressed).toBe(false);
-        expect(snapshot.joystickMovement).toEqual({
-          x: 0 * Math.SQRT1_2,
-          y: 0,
-        });
+        expect(snapshot.joystickMovement).toEqual({ x: 0, y: 0 });
         await expect(page.locator('.joystick')).toHaveCount(0);
         await page.keyboard.up('KeyW');
       }

@@ -89,9 +89,7 @@ async function ready(page: Page) {
   const safe = page.locator('[data-action="continue-safe-immersive"]');
   if (await safe.isVisible()) await safe.click();
   // Resume the scene's normal keyboard focus after the optional renderer warning.
-  await page
-    .locator('#app canvas')
-    .click({ position: { x: 20 * Math.SQRT1_2, y: 200 } });
+  await page.locator('#app canvas').click({ position: { x: 20, y: 200 } });
 }
 
 async function walk(page: Page, points: { x: number; z: number }[]) {
@@ -520,9 +518,7 @@ for (const locale of AVAILABLE_LOCALES) {
       locale
     );
     await page.keyboard.press('Escape');
-    await page
-      .locator('#app canvas')
-      .click({ position: { x: 20 * Math.SQRT1_2, y: 200 } });
+    await page.locator('#app canvas').click({ position: { x: 20, y: 200 } });
     await enterMuseum(page);
     await expect(page.locator('[data-workshop-description]')).toHaveText(
       getWorkshopDescription(locale)
@@ -574,9 +570,7 @@ test('keeps high-contrast career details accessible and gallery context visible 
     .locator('.accessibility-presets__radio[value="high-contrast"]')
     .check();
   await page.keyboard.press('Escape');
-  await page
-    .locator('#app canvas')
-    .click({ position: { x: 20 * Math.SQRT1_2, y: 200 } });
+  await page.locator('#app canvas').click({ position: { x: 20, y: 200 } });
   await enterMuseum(page);
   await walk(page, [
     { x: 12 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
