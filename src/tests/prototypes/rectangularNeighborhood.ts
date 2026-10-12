@@ -15,12 +15,14 @@ export interface GridOptions {
   maxRectangles: number;
   overlap: number;
 }
-export const GRID: GridOptions = {
+const MAX_CELLS = 262144;
+const MAX_RECTANGLES = 512;
+export const GRID: Readonly<GridOptions> = Object.freeze({
   cellSize: 0.125,
-  maxCells: 262144,
-  maxRectangles: 512,
+  maxCells: MAX_CELLS,
+  maxRectangles: MAX_RECTANGLES,
   overlap: 0.001,
-};
+});
 export interface Arc {
   sourceId: string;
   center: Point;
@@ -100,8 +102,10 @@ function rasterize(
     overlap >= h / 4 ||
     !Number.isSafeInteger(maxCells) ||
     maxCells < 1 ||
+    maxCells > MAX_CELLS ||
     !Number.isSafeInteger(maxRectangles) ||
-    maxRectangles < 1
+    maxRectangles < 1 ||
+    maxRectangles > MAX_RECTANGLES
   ) {
     throw new Error('Invalid bounded grid.');
   }
@@ -109,6 +113,9 @@ function rasterize(
     x1 = Math.ceil(extent.maxX / h);
   const z0 = Math.floor(extent.minZ / h),
     z1 = Math.ceil(extent.maxZ / h);
+  if (![x0, x1, z0, z1].every(Number.isSafeInteger)) {
+    throw new Error('Unsafe grid index range.');
+  }
   if ((x1 - x0) * (z1 - z0) > maxCells)
     throw new Error('Candidate cell budget exceeded.');
   const pieces: Piece[] = [];

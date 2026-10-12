@@ -73,7 +73,7 @@ export function openingEvidence(angle: number, gap: number) {
     rectangleCount: parts.flat().length,
   };
 }
-function timing(count: number) {
+function timing(count: number, zoneCount: number) {
   // Bounded worst-case misses scan every rectangle. No GPU, scene or hardware claim.
   const source = fixture().solids.map((p) => p.bounds);
   const colliders: RectCollider[] = Array.from({ length: count }, (_, i) => ({
@@ -83,7 +83,7 @@ function timing(count: number) {
     minZ: 100,
     maxZ: 101,
   }));
-  const zones = colliders.slice(0, Math.max(1, Math.floor(count / 2)));
+  const zones = colliders.slice(0, zoneCount);
   const nav = navFrom(zones);
   const probe = () => {
     let hits = 0;
@@ -147,9 +147,26 @@ export function run(output: string) {
   const { walkable, solids } = fixture();
   const report = {
     schema: 1,
-    baseCommit: execFileSync('git', ['rev-parse', 'HEAD'], {
+    captureCommit: execFileSync('git', ['rev-parse', 'HEAD'], {
       encoding: 'utf8',
     }).trim(),
+    acceptedBaseCommit: execFileSync(
+      'git',
+      ['merge-base', 'HEAD', 'origin/main'],
+      { encoding: 'utf8' }
+    ).trim(),
+    prototypeWorkingTreeDirty:
+      execFileSync(
+        'git',
+        [
+          'status',
+          '--porcelain',
+          '--untracked-files=all',
+          '--',
+          'src/tests/prototypes',
+        ],
+        { encoding: 'utf8' }
+      ).trim().length > 0,
     prototypeHashes: Object.fromEntries(
       [
         'rectangularNeighborhood.ts',
@@ -191,7 +208,15 @@ export function run(output: string) {
     openings: [3, 3.2, 3.4, 3.8].flatMap((gap) =>
       [0, Math.PI / 7, Math.PI / 4].map((angle) => openingEvidence(angle, gap))
     ),
-    cpu: [32, 128, 256, 512, 1024, 2048].map(timing),
+    cpu: [
+      [32, 16],
+      [128, 64],
+      [256, 128],
+      [256, 256],
+      [512, 256],
+      [1024, 512],
+      [2048, 1024],
+    ].map(([count, zones]) => timing(count, zones)),
   };
   mkdirSync(output, { recursive: true });
   writeFileSync(

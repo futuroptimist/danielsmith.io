@@ -33,7 +33,7 @@ function local(s: RotatedSolid, x: number, z: number) {
 describe('isolated rectangular neighborhood feasibility', () => {
   it('fits the proposed candidate and geometric-deviation ceilings', () => {
     const current = fixture();
-    expect(current.solids.length + 2).toBeLessThanOrEqual(512);
+    expect(current.solids.length + 2).toBeLessThanOrEqual(256);
     expect(current.walkable.length + 3).toBeLessThanOrEqual(256);
     expect(deviationBound()).toBeLessThanOrEqual(0.18);
   });
@@ -73,8 +73,17 @@ describe('isolated rectangular neighborhood feasibility', () => {
     expect(() =>
       decomposeArc(INNER_CURVE, { ...GRID, maxRectangles: 1 })
     ).toThrow('Rectangle budget');
+    expect(() =>
+      decomposeArc(INNER_CURVE, { ...GRID, maxCells: 262145 })
+    ).toThrow('Invalid bounded grid');
+    expect(() =>
+      decomposeSolid(ROTATED_FRONTAGE, { ...GRID, maxRectangles: 513 })
+    ).toThrow('Invalid bounded grid');
     expect(() => decomposeArc({ ...INNER_CURVE, width: 2 * R })).toThrow();
     expect(() => decomposeSolid({ ...ROTATED_FRONTAGE, angle: NaN })).toThrow();
+    expect(() =>
+      decomposeSolid({ ...ROTATED_FRONTAGE, center: { x: 1e16, z: 0 } })
+    ).toThrow('Unsafe grid index');
     expect(() =>
       decomposeSolid(ROTATED_FRONTAGE, { ...GRID, cellSize: 0 })
     ).toThrow();
