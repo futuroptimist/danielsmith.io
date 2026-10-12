@@ -7714,7 +7714,8 @@ function buildImmersiveScene(
             replacement.model,
             camera,
             scene,
-            avatarPreparation.signal
+            avatarPreparation.signal,
+            [player]
           ))
         ) {
           replacement.dispose();
@@ -7729,7 +7730,6 @@ function buildImmersiveScene(
         return;
       }
       player.add(replacement.model);
-      avatarLoadingPresentation.ready();
       const wrist = player.getObjectByName('MannequinAccessoryWristConsole');
       const hand = asset.bones.get('HandL');
       if (wrist && hand) {
@@ -7769,6 +7769,11 @@ function buildImmersiveScene(
       ) {
         cameraZoomTarget = initialCameraFraming.zoom;
       }
+      avatarLoadingPresentation.ready(
+        replacement.model,
+        prefersReducedAvatarMotion(),
+        drone ? [drone] : []
+      );
     })
     .catch((error) => {
       avatarLoadingPresentation.fail();
@@ -7815,6 +7820,7 @@ function buildImmersiveScene(
       }
       let phaseStart = performance.now();
       updateMovement(delta);
+      avatarLoadingPresentation.update(delta, prefersReducedAvatarMotion());
       animatedAvatar?.update(
         delta,
         locomotionLinearSpeed,

@@ -4,6 +4,16 @@ Release notes for the immersive danielsmith.io portfolio. The in-app link curren
 this repository Markdown page as a temporary wiki/documentation surface; a native changelog view
 may replace it in a future release.
 
+## v0.2.2 - unreleased
+
+- Smoothed the animated avatar's arrival with a muted position cue and a short fade,
+  including enabled accessories, without restoring the obsolete avatar flash.
+- Preserved movement and Caps Lock gait through loading, along with failure recovery,
+  retry, late loading success, and reduced-motion behavior. The faster running speed
+  introduced in `0.2.1` remains unchanged.
+- Advanced application metadata to `0.2.2` for this compatible loading fix and chart
+  packaging to `0.2.11`. These versions do not imply a tag, release, or deployment.
+
 ## v0.2.1 - unreleased
 
 - Increased the character's running speed by 20%, from 2.537393 to 3.044872 metres/second,
