@@ -121,9 +121,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/batchStaticMeshes.ts',
       'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 8,
+    syncRevision: 9,
     syncNote:
-      'Retained static batch sources are explicitly marked so model metrics count the live geometry once; shared miniature geometry and stair clearances remain unchanged.',
+      'Static batching keys use an equivalent array join for line length; source geometry, triangle counts and miniature shapes are unchanged.',
   },
   {
     id: 'environment:backyard',

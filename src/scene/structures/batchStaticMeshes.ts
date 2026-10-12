@@ -33,7 +33,13 @@ export function batchStaticMeshes(
       object instanceof InstancedMesh
     )
       return;
-    const key = `${material.uuid}:${object.castShadow}:${object.receiveShadow}:${object.renderOrder}:${object.userData.levelSourceId ?? ''}`;
+    const key = [
+      material.uuid,
+      object.castShadow,
+      object.receiveShadow,
+      object.renderOrder,
+      object.userData.levelSourceId ?? '',
+    ].join(':');
     const batch = batches.get(key) ?? [];
     batch.push(object);
     batches.set(key, batch);

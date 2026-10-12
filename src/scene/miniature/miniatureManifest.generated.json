@@ -529,11 +529,11 @@
         "src/scene/structures/batchStaticMeshes.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 8,
-      "syncNote": "Retained static batch sources are explicitly marked so model metrics count the live geometry once; shared miniature geometry and stair clearances remain unchanged.",
-      "sourceFingerprint": "5f18ce2b0f0ab4dad27737462d6fee5bcdc24479fefbf12ee8586bdb08e216d9",
+      "syncRevision": 9,
+      "syncNote": "Static batching keys use an equivalent array join for line length; source geometry, triangle counts and miniature shapes are unchanged.",
+      "sourceFingerprint": "9d05ea205474eec286cec88c0b81dc24a543f929841000ab2925c6d8f454fe38",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "c20f2572f6ab68709ae00c511d916434c3b045bb0fd49071cf2467cd26fe4d55"
+      "metadataFingerprint": "03d949ec4abfde2f84eb3fd7f4d7c0315792f0f4d0de3cc73e7ba0dac460968d"
     },
     {
       "id": "level:career-museum-layout",
