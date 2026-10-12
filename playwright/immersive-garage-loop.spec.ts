@@ -357,7 +357,16 @@ test('operates both garage doors by touch and preserves reduced-motion occupancy
           .find((door) => door.id === 'garage-door')!.blocked
     )
   ).toBe(false);
+  const doorStatus = page.locator(
+    '[data-exterior-door-control] + [aria-live="polite"]'
+  );
+  await expect(doorStatus).toHaveText(
+    'Garage door: Doorway occupied. Holding the door open.'
+  );
   await walkExteriorTo(page, { x: 50 * Math.SQRT1_2 + 3, z: 4 * Math.SQRT1_2 });
+  // The route helper moves the world synchronously. Wait for the scene to
+  // refresh the projected control before tapping its new screen position.
+  await expect(doorStatus).toHaveText('Garage door: Open');
   await page.locator('[data-exterior-door-control]').tap();
   await waitDoor(page, 'garage-door', 'closed');
   await page.screenshot({
