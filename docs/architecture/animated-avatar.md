@@ -1,12 +1,16 @@
 # Animated portfolio avatar
 
 The immersive player loads `public/assets/avatar/daniel-animated-avatar.glb` after validating its
-skin, required bones, clips, and unit scale. A static cyan ground ring and direction pointer mark the controllable player while loading;
-the procedural body stays hidden until a failure or a 15-second loading timeout. The marker
-does not animate, including with reduced motion. Failure reveals the usable mannequin fallback.
-A late successful download still replaces that fallback; re-entering immersive mode or reloading
-retries the asset with a fresh marker and timeout. The text portfolio remains independent of the model download.
-GPU shaders and the pixel atlas are prepared before the visible swap. Parallel shader polling
+skin, required bones, clips, and unit scale. A muted, static ground ring and direction pointer mark the controllable player while loading;
+the procedural body stays hidden until a failure or a 15-second loading timeout. Once GPU preparation
+finishes, the approved avatar fades in over 450 ms as the cue fades out, at the player's current
+position and facing. A late successful download crossfades from the usable mannequin fallback.
+The handoff changes opacity only and preserves movement and Caps Lock gait state. Reduced motion
+skips the fade (including when enabled mid-transition), retaining a stable idle pose.
+Re-entering immersive mode or reloading retries the asset with a fresh marker and timeout.
+The text portfolio remains independent of the model download.
+Opaque and transparent reveal shaders for the avatar, accessories, and recovery body, plus the
+pixel atlas, are prepared before the visible swap. The fade respects software-safe frame cadence. Parallel shader polling
 is cancellable on scene teardown and bounded to five seconds, revealing the mannequin on failure.
 
 The approved asset has 2,976 triangles, one skinned mesh/material, 20 bones, an embedded 128 px
@@ -22,8 +26,10 @@ are `Idle`, `Walk`, `Run`, `SitDown`, `Seated`, and `StandUp`. The loader subtra
 first-key time from each clip to remove the frame-one leading hold. Translation and yaw belong
 to the existing camera-relative movement controller; locomotion clips remain in place.
 
-Walking is 1.116453 metres/second; running is 2.537393. Body dimensions, movement and the exported
-stride references (originally 0.85446 and 1.57199) share the 1.90 / 1.872 scale ratio.
+Walking is 1.116453 metres/second; running is 3.044872 (20% faster than the previous run pace).
+The gait constants are 1.1 and 3.0 metres/second multiplied by the 1.90 / 1.872 body scale ratio.
+Exported stride references (0.85446 and 1.57199 before body scaling) remain unchanged;
+the animation playback ceiling is 2.0 so the faster run cadence is not clamped.
 **Caps Lock off means running (the default); on means walking.** Modifier state is observed on
 keyboard events without consuming UI-owned or remapped keys. Repeat cannot toggle again, and the
 first keyboard event after focus returns resynchronizes the physical lock. The touch gait button

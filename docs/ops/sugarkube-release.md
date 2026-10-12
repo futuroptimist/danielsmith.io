@@ -7,6 +7,13 @@ components.
 
 ## Release contract
 
+Follow [the application version and changelog policy](versioning.md) before preparing a
+release. Runtime changes require an `appVersion` bump and a `docs/changelog.md` entry;
+changing `appVersion` also changes chart content and requires a chart `version` bump.
+The private npm package version is independent. Obtain explicit human approval before
+staging and separate approval before production; a merge or successful build is not
+deployment evidence.
+
 - Image repository: `ghcr.io/futuroptimist/danielsmith.io`
 - Deploy image tag: immutable `main-<shortsha>` from GitHub Actions
 - Convenience image tag: `main-latest` for rendering and ad hoc checks only
@@ -39,8 +46,8 @@ The JSON contract is:
 - `tag`: staging shows the immutable image tag (`main-<shortsha>`); production shows the semver
   chart application version (`v<Chart.AppVersion>`)
 
-When chart behavior changes, bump `charts/danielsmith/Chart.yaml` so production's displayed version
-advances with the published Helm chart. The deployment template includes a `checksum/build-info` pod
+When chart content changes, bump chart `version`; when the site changes, also bump `appVersion`.
+Production displays `appVersion`, not the chart package version. The deployment template includes a `checksum/build-info` pod
 annotation, so changing only the ingress host, image tag, or chart app version still rolls pods and
 refreshes the seeded file. After staging or production deploys, validate the public file alongside
 health checks:

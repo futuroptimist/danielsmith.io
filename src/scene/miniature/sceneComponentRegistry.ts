@@ -260,9 +260,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/units.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 7,
+    syncRevision: 9,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Both avatar handoff shader variants are prepared before display; the faster run cadence, player dimensions, and miniature geometry are unchanged.',
     reason:
       'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
@@ -318,9 +318,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'avatar:loading-presentation',
     kind: 'excluded',
     sourceFiles: ['src/scene/avatar/loadingPresentation.ts'],
-    syncRevision: 1,
+    syncRevision: 3,
     reason:
-      'The temporary controllable player position marker is excluded from static miniature architecture; its geometry is removed when the rig or fallback becomes visible.',
+      'The muted player cue and opacity-only avatar handoff are transient presentation, excluded from static miniature architecture; building geometry is unchanged.',
   },
   {
     id: 'audit:src:scene:level:backyardCollisionPolicies',

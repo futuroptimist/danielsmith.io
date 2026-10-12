@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test';
 
+import {
+  AVATAR_RUN_SPEED,
+  AVATAR_WALK_SPEED,
+} from '../src/systems/movement/avatarGait';
+
 const url = '/?mode=immersive&disablePerformanceFailover=1';
 for (const level of ['performance', 'balanced', 'cinematic']) {
   test(`metric avatar and one gait across input combinations (${level})`, async ({
@@ -77,7 +82,7 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
           { caps, shifted }
         );
         try {
-          const speed = caps ? 1.116452991 : 2.537393162;
+          const speed = caps ? AVATAR_WALK_SPEED : AVATAR_RUN_SPEED;
           // Read speed, animation and selected gait in one browser task. Slow
           // software WebGL can reach the corridor wall between separate calls.
           await expect(async () => {

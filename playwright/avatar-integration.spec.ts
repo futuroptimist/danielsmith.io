@@ -382,3 +382,123 @@ test('reduced motion supports the other lounge and reading chair without trappin
     await page.keyboard.up('w');
   }
 });
+
+test('delayed avatar fades in while movement and Caps Lock gait survive the handoff', async ({
+  page,
+}) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/daniel-animated-avatar.glb', async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await page.goto(url);
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.portfolio?.avatar?.getAnimationState?.())
+    )
+    .toMatchObject({ presentation: 'pending', fallbackVisible: false });
+  await page.keyboard.press('Escape');
+  const notice = page.locator('[data-action="continue-safe-immersive"]');
+  if (await notice.isVisible()) await notice.click();
+  await page.evaluate(() =>
+    window.portfolio?.avatar?.setAccessoryEnabled('holo-drone', true)
+  );
+  const before = await page.evaluate(() =>
+    window.portfolio!.world!.getPlayerPosition()
+  );
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'w',
+        code: 'KeyW',
+        modifierCapsLock: true,
+        bubbles: true,
+      })
+    )
+  );
+  await expect
+    .poll(() =>
+      page.evaluate((start) => {
+        const p = window.portfolio!.world!.getPlayerPosition();
+        return Math.hypot(p.x - start.x, p.z - start.z);
+      }, before)
+    )
+    .toBeGreaterThan(0.1);
+  expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
+    'walk'
+  );
+  await page.screenshot({ path: 'test-results/avatar-muted-loading.png' });
+  // Record every frame so a short transition cannot be missed by a slow CI assertion poll.
+  const sequence = page.evaluate(
+    () =>
+      new Promise<
+        Array<{
+          presentation: string;
+          revealProgress: number;
+          fallbackVisible: boolean;
+          position: { x: number; z: number };
+        }>
+      >((resolve) => {
+        const frames: Array<{
+          presentation: string;
+          revealProgress: number;
+          fallbackVisible: boolean;
+          position: { x: number; z: number };
+        }> = [];
+        const sample = () => {
+          const state = window.portfolio!.avatar!
+            .getAnimationState!() as (typeof frames)[number];
+          frames.push({
+            ...state,
+            position: window.portfolio!.world!.getPlayerPosition(),
+          });
+          if (state.presentation === 'ready') resolve(frames);
+          else requestAnimationFrame(sample);
+        };
+        sample();
+      })
+  );
+  release();
+  const frames = await sequence;
+  expect(
+    frames.some(
+      (s) =>
+        s.presentation === 'revealing' &&
+        s.revealProgress > 0 &&
+        s.revealProgress < 1
+    )
+  ).toBe(true);
+  expect(frames.every((s) => !s.fallbackVisible)).toBe(true);
+  const duringReveal = frames.find(
+    (s) => s.presentation === 'revealing'
+  )!.position;
+  const afterReveal = frames[frames.length - 1].position;
+  expect(
+    Math.hypot(afterReveal.x - duringReveal.x, afterReveal.z - duringReveal.z)
+  ).toBeGreaterThan(0.01);
+  await expect
+    .poll(() =>
+      page.evaluate((start) => {
+        const p = window.portfolio!.world!.getPlayerPosition();
+        return Math.hypot(p.x - start.x, p.z - start.z);
+      }, afterReveal)
+    )
+    .toBeGreaterThan(0.1);
+  expect(await page.evaluate(() => window.portfolio?.avatar?.getGait?.())).toBe(
+    'walk'
+  );
+  await page.evaluate(() =>
+    window.dispatchEvent(
+      new KeyboardEvent('keyup', {
+        key: 'w',
+        code: 'KeyW',
+        modifierCapsLock: true,
+        bubbles: true,
+      })
+    )
+  );
+  await page.screenshot({ path: 'test-results/avatar-revealed.png' });
+});

@@ -379,21 +379,21 @@
         "src/systems/movement/avatarGait.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 7,
-      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
-      "sourceFingerprint": "a7e47d2bc8bf1ffec7a442d4e94550180c6d5fb8368669b8afde0cae797f32e2",
+      "syncRevision": 9,
+      "syncNote": "Both avatar handoff shader variants are prepared before display; the faster run cadence, player dimensions, and miniature geometry are unchanged.",
+      "sourceFingerprint": "68979561e2f66fa19f1e680eb590a45ebc8c5035648463ef5e4f6258ca08207d",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "7a79f43596723dbc7a7479bfae709513c06cf28549b7d924ba7c8acf7e6b7374"
+      "metadataFingerprint": "530e4bbae36ff3875bbad7041569e2a381a7a49bf723fe2038b91e08fd9cecc5"
     },
     {
       "id": "avatar:loading-presentation",
       "sourceFiles": ["src/scene/avatar/loadingPresentation.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "The temporary controllable player position marker is excluded from static miniature architecture; its geometry is removed when the rig or fallback becomes visible.",
-      "sourceFingerprint": "e3a90cefe83b9b8c9fb6c610e8587b4e60bc27f8045cf97d38474c0e86b25b1f",
+      "syncRevision": 3,
+      "syncNote": "The muted player cue and opacity-only avatar handoff are transient presentation, excluded from static miniature architecture; building geometry is unchanged.",
+      "sourceFingerprint": "5c55b98c675260cad790b3e83d8352ddf9b08d1588e7e04f85808d88eaaa3645",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "bc3eaef3ad20bd3bc18550b8c008368e41185882a530cb3c578e9c6b8ca6f2d8"
+      "metadataFingerprint": "089b248711449a4dc41b797df590afb450d26b24f08ea2ef75c0ea1c749775f2"
     },
     {
       "id": "avatar:overworld-player",
