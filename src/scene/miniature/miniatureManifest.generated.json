@@ -514,11 +514,11 @@
         "src/scene/structures/residentialStreet.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 10,
-      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
-      "sourceFingerprint": "4159b32e58f3cdedf385f6f3c2e4354fe3dd3eb273da89a3098687cd4759658f",
+      "syncRevision": 11,
+      "syncNote": "Street behavior bounds are named world-space contracts; measured production geometry and the shared miniature snapshot remain unchanged.",
+      "sourceFingerprint": "67ed9aa3b5ac1a8d8aa8db55bf460fb3fc53ce654f9662a32f75bc07832205bb",
       "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "fa2e286d7fbedfc0fdd954e847aa43c4b84df07c7da2bfaae387d64cc05af46a"
+      "metadataFingerprint": "f4d403aab26964821a4aafdfe8a7fdcf445767ed70be54e7d07c4cc95670370a"
     },
     {
       "id": "level:basement-stairs",

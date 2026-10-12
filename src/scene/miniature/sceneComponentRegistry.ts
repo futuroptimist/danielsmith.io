@@ -38,9 +38,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 10,
+    syncRevision: 11,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Street behavior bounds are named world-space contracts; measured production geometry and the shared miniature snapshot remain unchanged.',
   },
   {
     id: 'level:career-museum-layout',

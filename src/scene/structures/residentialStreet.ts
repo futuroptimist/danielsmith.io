@@ -22,7 +22,12 @@ import { assertDebugColliderId } from '../debug/colliderDebugIds';
 import { getDebugHash } from '../debug/debugIds';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import type { FloorDefinition } from '../level/schema';
-import { BUS_STOP, PARKED_EV, STREET_LAMPS } from '../level/streetLayout';
+import {
+  BUS_STOP,
+  PARKED_EV,
+  STREET_LAMPS,
+  STREET_BEHAVIOR_REGIONS,
+} from '../level/streetLayout';
 
 import type { ExteriorSolid } from './residentialExterior';
 
@@ -432,12 +437,13 @@ export function createResidentialStreet(
     policy: SceneDetailPolicy,
     occupant: { x: number; z: number; floorId: string }
   ) {
+    const region = STREET_BEHAVIOR_REGIONS.shelterCutaway;
     const insideShelter =
       occupant.floorId === 'ground' &&
-      occupant.x > 45.5 &&
-      occupant.x < 53 &&
-      occupant.z > 25.5 &&
-      occupant.z < 38.5;
+      occupant.x > region.minX &&
+      occupant.x < region.maxX &&
+      occupant.z > region.minZ &&
+      occupant.z < region.maxZ;
     const opacity = insideShelter ? 0.2 : 1;
     if (materials.roof.opacity !== opacity) {
       materials.roof.opacity = opacity;
@@ -445,7 +451,9 @@ export function createResidentialStreet(
       materials.roof.depthWrite = !insideShelter;
       materials.roof.needsUpdate = true;
     }
-    const nearby = occupant.floorId === 'ground' && occupant.x > 45;
+    const nearby =
+      occupant.floorId === 'ground' &&
+      occupant.x > STREET_BEHAVIOR_REGIONS.lightActivation.minX;
     const dynamic = nearby && policy.effects.dynamicPointLights;
     // Keep the authored downward footprint continuous across the proximity and
     // quality boundary. Realtime light augments it rather than replacing it.

@@ -114,6 +114,34 @@ offsets. The orthographic camera retains its framing bounds and 0.95 m focus.
 
 ## Remaining exterior scope
 
+The exterior audit separates source plan anchors, resolved world anchors,
+metre-authored local dimensions, world-space collider rectangles, and behavioral
+regions. It measures actual vertices through each mesh/instance world matrix.
+Local geometry dimensions are never multiplied by plan scale merely because an
+anchor uses plan coordinates. Source IDs connect measurements to definitions;
+semantic anchors need not equal mesh assembly centers.
+
+The EV's **4.6 x 9.2 m** declaration is its conservative collider, not its body size
+or an approved resize target. The complete visible assembly measures about
+**4.42 x 1.90 x 8.38 m** (X/Y/Z), including mirrors, wheels and lights. The audit
+reports individual meshes/instances and signed collision padding separately.
+Negative padding flags geometry extending outside declared bounds; decorative
+parts are excluded. For multi-solid sources, padding compares solid meshes
+intersecting each declared rectangle, not the whole source union. The complete
+mesh inventory remains available to detect parts outside every solid.
+
+Shelter posts, bench and roof use directly authored world coordinates; the sign's
+Z follows `BUS_STOP.z * FLOOR_PLAN_SCALE + 4.7`. Its semantic anchor and assembly
+center intentionally differ. `STREET_BEHAVIOR_REGIONS` records the existing strict
+ground-floor cutaway bounds and lighting X threshold in world space; neither is
+a collider or mesh footprint. Overhead roof/sign/light elements and flush light
+pools retain their decorative collision classification.
+
+Reserved front-path, sidewalk and driveway bounds are reported separately from
+solid bounds. This inventory does not replace avatar-radius-aware runtime
+traversal, door clearance, wall/headroom checks or hardware qualification.
+Existing traversal, miniature, detail-tier and resource-lifecycle checks remain required.
+
 The property X/Z footprint remains approximately 64 x 64 world units. Plan
 coordinates still convert once through `FLOOR_PLAN_SCALE` (approximately 2).
 Changing that factor alone would move plan-anchored objects while leaving physical
