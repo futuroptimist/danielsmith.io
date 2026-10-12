@@ -4,6 +4,15 @@ Release notes for the immersive danielsmith.io portfolio. The in-app link curren
 this repository Markdown page as a temporary wiki/documentation surface; a native changelog view
 may replace it in a future release.
 
+## v0.3.1 - unreleased
+
+- Increased running speed by 40%, from 3.044872 to 4.262821 metres/second,
+  while preserving walking at 1.116453 metres/second and existing gait controls.
+- Raised the run-animation playback cap proportionally so stride cadence tracks
+  the faster translation. Room geometry and collision clearances are unchanged.
+- Advanced application metadata to `0.3.1` and chart packaging to `0.2.13`.
+  These versions do not imply a tag, release, or deployment.
+
 ## v0.3.0 - unreleased
 
 - Reduced horizontal room area by 50% on all three floors while preserving room

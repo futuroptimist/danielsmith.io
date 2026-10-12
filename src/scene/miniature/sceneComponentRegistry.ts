@@ -260,9 +260,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/units.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'Both avatar handoff shader variants are prepared before display; the faster run cadence, player dimensions, and miniature geometry are unchanged.',
+      'Run speed and its animation cap increase proportionally; walking, player dimensions, and the separately normalized miniature marker geometry are unchanged.',
     reason:
       'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },

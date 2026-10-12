@@ -379,11 +379,11 @@
         "src/systems/movement/avatarGait.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 9,
-      "syncNote": "Both avatar handoff shader variants are prepared before display; the faster run cadence, player dimensions, and miniature geometry are unchanged.",
-      "sourceFingerprint": "68979561e2f66fa19f1e680eb590a45ebc8c5035648463ef5e4f6258ca08207d",
+      "syncRevision": 10,
+      "syncNote": "Run speed and its animation cap increase proportionally; walking, player dimensions, and the separately normalized miniature marker geometry are unchanged.",
+      "sourceFingerprint": "277ca1ebd25ebf4d242b350392fd2fd88647ff844b24ad56fe0e83b7bbd95397",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "530e4bbae36ff3875bbad7041569e2a381a7a49bf723fe2038b91e08fd9cecc5"
+      "metadataFingerprint": "d8cf574a6f768f7b077879cd7ad756c9530c781e6eb26a29997b753a91066934"
     },
     {
       "id": "avatar:loading-presentation",

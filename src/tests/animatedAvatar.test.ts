@@ -51,7 +51,7 @@ describe('approved animated avatar', () => {
     expect(normalizedBounds.max.y).toBeCloseTo(1.9, 6);
     expect(normalizedBounds.getSize(new Vector3()).x).toBeCloseTo(0.95203, 4);
     expect(AVATAR_WALK_SPEED / 1.1).toBeCloseTo(1.9 / 1.872, 8);
-    expect(AVATAR_RUN_SPEED / (2.5 * 1.2)).toBeCloseTo(1.9 / 1.872, 8);
+    expect(AVATAR_RUN_SPEED / (3.0 * (1.9 / 1.872))).toBeCloseTo(1.4, 8);
     const furniture = createLowerFloorFurnishings().group;
     const chair = collectChairAnchors(furniture).find(
       (c) => c.id === 'studio-reading-chair'
@@ -123,7 +123,7 @@ describe('approved animated avatar', () => {
       avatar.update(0.1, AVATAR_RUN_SPEED, 0, false, null, 0);
     expect(avatar.getSnapshot().locomotion.linearState).toBe('run');
     expect(avatar.getSnapshot().locomotion.timeScales.run).toBeCloseTo(
-      3 / 1.57199,
+      4.2 / 1.57199,
       6
     );
     expect(avatar.getSnapshot().locomotion.weights.run).toBeCloseTo(1, 6);

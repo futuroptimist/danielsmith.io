@@ -26,8 +26,8 @@ by approximately 1.014957 (width 0.95203 m, depth 0.40751 m). No model binary ch
 The placeholder and recursive miniature player marker use measured bounds too;
 the miniature's existing world-to-table transform remains separate.
 
-Walking is **1.116453 m/s** (1.1 before body scaling); running is **3.044872 m/s**
-(3.0 before body scaling), a 20% increase over the previous run pace.
+Walking is **1.116453 m/s** (1.1 before body scaling); running is **4.262821 m/s**
+(4.2 before body scaling), a 40% increase over the previous run pace.
 Stride reference speeds, transition thresholds, seated hip retreat and foot-origin
 height use the same ratio. The collision radius remains 0.75 m: the normalized standing body fits inside it with margin.
 This is deliberately a conservative navigation footprint, not shoulder width. Scaling that already-oversized envelope by 1.5% would consume existing tangent route clearances without improving body containment.
@@ -110,7 +110,7 @@ its backsplash; its actual worktop is about 1.02 m, and the island is about 1.04
 These assets must not be halved to compensate for oversized architecture.
 
 The standing player remains 1.90 m after normalization from its measured 1.872 m
-bind pose. Walk/run remain 1.116453 / 3.044872 m/s, with proportional stride and seat
+bind pose. Walk/run remain 1.116453 / 4.262821 m/s, with proportional stride and seat
 offsets. The orthographic camera retains its framing bounds and 0.95 m focus.
 
 ## Exterior coordinate contract
