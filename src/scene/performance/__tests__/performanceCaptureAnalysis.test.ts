@@ -127,7 +127,7 @@ function raw(
     rafTimestampsMs: timestamps,
     longTasks: [] as Array<{ startMs: number; durationMs: number }>,
     markers,
-    snapshots: [],
+    snapshots: [] as Array<ReturnType<typeof snapshot>>,
     checkpointPrefixes: [],
     capabilities: {
       nativeFramePresentation: 'not_collected',
@@ -140,7 +140,22 @@ function raw(
     },
   };
 }
+function snapshot(atMs = 0, appMode = 'immersive') {
+  return {
+    atMs,
+    rendererClass: 'unknown',
+    appMode,
+    quality: 'balanced',
+    devicePixelRatio: 1,
+    calls: 0,
+    triangles: 0,
+    memoryGeometries: 0,
+    memoryTextures: 0,
+  };
+}
 function sync(c: ReturnType<typeof raw>) {
+  c.streams.snapshots.retainedCount = c.snapshots.length;
+  c.streams.snapshots.observedCount = c.snapshots.length;
   c.streams.markers.retainedCount = c.markers.length;
   c.streams.markers.observedCount = c.markers.length;
   return c;
@@ -176,6 +191,65 @@ describe('synthetic supplemental analysis oracles (not hardware evidence)', () =
       'bounds_mismatch'
     );
   });
+  it('carries fallback observations forward until an immersive observation returns', () => {
+    const c = raw([5001, 16, 16, 16, 16, 16]);
+    Object.assign(c.warmth, {
+      state: 'evidence_provided',
+      applicationReadyMs: 0,
+      assetsSettledMs: 0,
+      settleEvidenceSha256: hash,
+    });
+    c.markers.push(marker(0, 'application_ready'), marker(0, 'assets_settled'));
+    c.markers.sort((a, b) => a.atMs - b.atMs);
+    c.snapshots.push(snapshot(), snapshot(5030, 'fallback'), snapshot(5065));
+    const a = analyzeCapture(sync(c));
+    const clean = a.windows.find(
+      (w: { kind: string }) => w.kind === 'steady_foreground_candidate'
+    );
+    expect(clean.eligibleRanges).toEqual([
+      { fromInclusive: 1, toExclusive: 2 },
+      { fromInclusive: 5, toExclusive: 6 },
+    ]);
+    expect(
+      clean.excludedRanges.find(
+        (r: { range: { fromInclusive: number } }) => r.range.fromInclusive === 2
+      )
+    ).toMatchObject({
+      range: { fromInclusive: 2, toExclusive: 5 },
+      reasons: ['renderer_changed'],
+    });
+    expect(a.allIntervals.sampleCount).toBe(6);
+  });
+  it('reuses analysis output after the analyzer changes while preserving original raw bytes', () => {
+    const input = path.join(root, 'old-analyzer'),
+      first = path.join(root, 'new-analysis'),
+      second = path.join(root, 'reanalysis');
+    const op = createOperation(input, 'capture'),
+      c = raw();
+    c.attemptId = op.state.attemptId;
+    c.toolchain = op.hashes;
+    op.running();
+    op.write('route-capture-raw-v1.json', c);
+    op.finish('complete', 'finished');
+    const manifestPath = path.join(input, 'route-capture-manifest-v1.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    manifest.toolchain.analyzerSha256 = 'b'.repeat(64);
+    for (const entry of manifest.files) {
+      const file = path.join(input, entry.name),
+        value = JSON.parse(readFileSync(file, 'utf8'));
+      value.toolchain.analyzerSha256 = 'b'.repeat(64);
+      const bytes = Buffer.from(JSON.stringify(value) + '\n');
+      writeFileSync(file, bytes);
+      entry.byteLength = bytes.length;
+      entry.sha256 = sha256(bytes);
+    }
+    writeFileSync(manifestPath, JSON.stringify(manifest));
+    analyzeDirectory(input, first);
+    analyzeDirectory(first, second);
+    expect(
+      readFileSync(path.join(second, 'route-capture-raw-v1.json'))
+    ).toEqual(readFileSync(path.join(input, 'route-capture-raw-v1.json')));
+  });
   it('refuses modified lifecycle receipts even when the raw hash still matches', () => {
     const input = path.join(root, 'receipt-input'),
       output = path.join(root, 'receipt-output');
@@ -194,6 +268,7 @@ describe('synthetic supplemental analysis oracles (not hardware evidence)', () =
     'requires 121 post-boundary callbacks for a prefix-120 window (%i intervals)',
     (n) => {
       const c = raw([5001, ...Array(n).fill(16)]);
+      c.snapshots.push(snapshot());
       Object.assign(c.warmth, {
         state: 'evidence_provided',
         applicationReadyMs: 0,
@@ -218,6 +293,7 @@ describe('synthetic supplemental analysis oracles (not hardware evidence)', () =
   );
   it('discloses boundary/helper exclusions without treating shared endpoints as overlap', () => {
     const c = raw([5001, 16, 16, 16]);
+    c.snapshots.push(snapshot());
     Object.assign(c.warmth, {
       state: 'evidence_provided',
       applicationReadyMs: 0,

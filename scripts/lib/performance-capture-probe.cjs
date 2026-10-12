@@ -159,6 +159,7 @@ function installRouteCapture(config, validateOnly = false) {
       reject();
   }
   function mark(type, id = null) {
+    if (stopped) throw new Error('capture_stopped');
     if (!types.includes(type) || type === 'span_begin' || type === 'span_end')
       reject();
     label(id);
@@ -167,7 +168,7 @@ function installRouteCapture(config, validateOnly = false) {
   function beginSpan(kind, id = null) {
     if (!kinds.includes(kind)) reject();
     label(id);
-    if (stopped) return null;
+    if (stopped) throw new Error('capture_stopped');
     if (nextSpan >= 4096) {
       capacity('markers', now());
       return null;
@@ -315,14 +316,17 @@ function installRouteCapture(config, validateOnly = false) {
     mark,
     beginSpan,
     endSpan,
-    prefix: () => ({
-      atMs: now(),
-      lastCallbackAtMs: streams.raf.retainedCount
-        ? times[streams.raf.retainedCount - 1]
-        : null,
-      callbackCount: streams.raf.retainedCount,
-      longTaskDeliveryCount: streams.longTasks.retainedCount,
-    }),
+    prefix: () => {
+      if (stopped) throw new Error('capture_stopped');
+      return {
+        atMs: now(),
+        lastCallbackAtMs: streams.raf.retainedCount
+          ? times[streams.raf.retainedCount - 1]
+          : null,
+        callbackCount: streams.raf.retainedCount,
+        longTaskDeliveryCount: streams.longTasks.retainedCount,
+      };
+    },
     stop,
     dispose,
     snapshot(value) {

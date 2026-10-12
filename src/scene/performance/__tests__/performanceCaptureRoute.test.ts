@@ -54,116 +54,133 @@ describe('opt-in capture lifecycle with synthetic pages', () => {
     expect(source).toContain('Bus stop \u00b7 Coming Soon');
     expect(source).not.toContain('Bus stop \u00c2\u00b7 Coming Soon');
   });
-  it('exports the actual probe after stop, retaining checkpoint prefixes and helper gaps', async () => {
-    const directory = path.join(temporary, 'complete');
-    let now = 0;
-    let callback: ((time: number) => void) | null = null;
-    const vm = createContext({
-      performance: { now: () => now },
-      document: {
-        visibilityState: 'visible',
-        addEventListener() {},
-        removeEventListener() {},
-      },
-      requestAnimationFrame(fn: (time: number) => void) {
-        callback = fn;
-        return 1;
-      },
-      cancelAnimationFrame() {
-        callback = null;
-      },
-      setTimeout() {
-        return 1;
-      },
-      clearTimeout() {},
-      PerformanceObserver: { supportedEntryTypes: [] },
-    });
-    runInContext(
-      'window=globalThis;window.top=window;window.addEventListener=()=>{};window.removeEventListener=()=>{};',
-      vm
-    );
-    const evaluate = async (
-      fn: (...args: never[]) => unknown,
-      arg: unknown
-    ) => {
-      const value = await runInContext(
-        `(${fn.toString()})(${JSON.stringify(arg) ?? 'undefined'})`,
+  it.each([false, true])(
+    'exports the actual probe and retains prefixes after capacity stop=%s',
+    async (capacity) => {
+      const directory = path.join(
+        temporary,
+        capacity ? 'capacity' : 'complete'
+      );
+      let now = 0;
+      let callback: ((time: number) => void) | null = null;
+      const vm = createContext({
+        performance: { now: () => now },
+        document: {
+          visibilityState: 'visible',
+          addEventListener() {},
+          removeEventListener() {},
+        },
+        requestAnimationFrame(fn: (time: number) => void) {
+          callback = fn;
+          return 1;
+        },
+        cancelAnimationFrame() {
+          callback = null;
+        },
+        setTimeout() {
+          return 1;
+        },
+        clearTimeout() {},
+        PerformanceObserver: { supportedEntryTypes: [] },
+      });
+      runInContext(
+        'window=globalThis;window.top=window;window.addEventListener=()=>{};window.removeEventListener=()=>{};',
         vm
       );
-      return value === undefined
-        ? undefined
-        : JSON.parse(JSON.stringify(value));
-    };
-    const page = {
-      on: vi.fn(),
-      isClosed: () => false,
-      evaluate,
-      addInitScript: evaluate,
-      screenshot: async () => {
-        now = 1216;
-        callback?.(now);
-      },
-    };
-    const session = createCaptureSession(directory);
-    session.browser = { version: () => 'synthetic', close: vi.fn() };
-    session.context = { close: vi.fn() };
-    const wrapped = session.attach(page);
-    await session.install();
-    await session.mark('application_ready');
-    await session.mark('route_begin');
-    runInContext('window.__routeCapture.mark("checkpoint",0)', vm);
-    callback?.(0);
-    now = 16;
-    callback?.(now);
-    const prefix = await evaluate(
-      () => window.__routeCapture.prefix(),
-      undefined
-    );
-    const record = {
-      stallProbe: prefix,
-      snapshot: {
-        renderer: { isSoftwareRenderer: true },
-        quality: { level: 'balanced' },
-        rendererSize: { pixelRatio: 1 },
-        rendererCounters: {
-          calls: 1,
-          triangles: 2,
-          memoryGeometries: 3,
-          memoryTextures: 4,
+      const evaluate = async (
+        fn: (...args: never[]) => unknown,
+        arg: unknown
+      ) => {
+        const value = await runInContext(
+          `(${fn.toString()})(${JSON.stringify(arg) ?? 'undefined'})`,
+          vm
+        );
+        return value === undefined
+          ? undefined
+          : JSON.parse(JSON.stringify(value));
+      };
+      const page = {
+        on: vi.fn(),
+        isClosed: () => false,
+        evaluate,
+        addInitScript: evaluate,
+        screenshot: async () => {
+          now = 1216;
+          callback?.(now);
         },
-      },
-    };
-    await session.checkpoint('spawn', record);
-    await wrapped.screenshot();
-    await session.mark('route_end');
-    const result = { checkpoints: [record] };
-    await session.finish('finished', result);
-    const raw = JSON.parse(
-      readFileSync(path.join(directory, 'route-capture-raw-v1.json'), 'utf8')
-    );
-    const analysis = JSON.parse(
-      readFileSync(
-        path.join(directory, 'route-capture-analysis-v1.json'),
-        'utf8'
-      )
-    );
-    const terminal = JSON.parse(
-      readFileSync(
-        path.join(directory, 'route-capture-terminal-v1.json'),
-        'utf8'
-      )
-    );
-    expect(terminal).toMatchObject({
-      state: 'complete',
-      reason: 'finished',
-      cleanupState: 'complete',
-    });
-    expect(raw.rafTimestampsMs).toEqual([0, 16, 1216]);
-    expect(raw.checkpointPrefixes[0].callbackCount).toBe(2);
-    expect(result.checkpoints[0].stallProbe.rafMaxMs).toBe(16);
-    expect(analysis.allIntervals.maxMs).toBe(1200);
-    expect(analysis.gaps[0].classification).toBe('overlaps_known_helper');
-  });
+      };
+      const session = createCaptureSession(
+        directory,
+        capacity ? { bounds: { maxRafIntervals: 1 } } : {}
+      );
+      session.browser = { version: () => 'synthetic', close: vi.fn() };
+      session.context = { close: vi.fn() };
+      const wrapped = session.attach(page);
+      await session.install();
+      await session.mark('application_ready');
+      await session.mark('route_begin');
+      runInContext('window.__routeCapture.mark("checkpoint",0)', vm);
+      callback?.(0);
+      now = 16;
+      callback?.(now);
+      const prefix = await evaluate(
+        () => window.__routeCapture.prefix(),
+        undefined
+      );
+      const record = {
+        stallProbe: prefix,
+        snapshot: {
+          renderer: { isSoftwareRenderer: true },
+          quality: { level: 'balanced' },
+          rendererSize: { pixelRatio: 1 },
+          rendererCounters: {
+            calls: 1,
+            triangles: 2,
+            memoryGeometries: 3,
+            memoryTextures: 4,
+          },
+        },
+      };
+      await session.checkpoint('spawn', record);
+      await wrapped.screenshot();
+      if (capacity) {
+        await expect(
+          evaluate(() => window.__routeCapture.prefix(), undefined)
+        ).rejects.toThrow('capture_stopped');
+        await expect(session.mark('route_end')).rejects.toThrow(
+          'capture_stopped'
+        );
+      } else await session.mark('route_end');
+      const result = { checkpoints: [record] };
+      await session.finish(capacity ? 'failure' : 'finished', result);
+      const raw = JSON.parse(
+        readFileSync(path.join(directory, 'route-capture-raw-v1.json'), 'utf8')
+      );
+      const analysis = JSON.parse(
+        readFileSync(
+          path.join(directory, 'route-capture-analysis-v1.json'),
+          'utf8'
+        )
+      );
+      const terminal = JSON.parse(
+        readFileSync(
+          path.join(directory, 'route-capture-terminal-v1.json'),
+          'utf8'
+        )
+      );
+      expect(terminal).toMatchObject({
+        state: capacity ? 'partial' : 'complete',
+        reason: capacity ? 'capacity' : 'finished',
+        cleanupState: 'complete',
+      });
+      expect(raw.rafTimestampsMs).toEqual(capacity ? [0, 16] : [0, 16, 1216]);
+      expect(raw.checkpointPrefixes[0].callbackCount).toBe(2);
+      expect(result.checkpoints[0].stallProbe.rafMaxMs).toBe(16);
+      expect(analysis.allIntervals.maxMs).toBe(capacity ? 16 : 1200);
+      if (!capacity)
+        expect(analysis.gaps[0].classification).toBe('overlaps_known_helper');
+    }
+  );
   it('does not import supplemental modules when merely loading the default runner', () => {
     const imports: string[] = [];
     const requireStub = (id: string) => {

@@ -983,6 +983,25 @@ function createCaptureSession(directory, options = {}) {
           (reason) => window.__routeCapture.stop(reason),
           reason
         );
+        const actualReason = status.stopReason ?? reason;
+        state =
+          actualReason === 'cancelled'
+            ? 'cancelled'
+            : actualReason === 'finished' && reason === 'finished'
+              ? 'complete'
+              : 'partial';
+        terminalReason =
+          {
+            capacity: 'capacity',
+            deadline: 'deadline',
+            pagehide: 'navigation',
+            page_closed: 'page_lost',
+            cancelled: 'cancelled',
+          }[actualReason] ?? terminalReason;
+        if (
+          Object.values(status.streams).some((s) => s.state === 'clock_invalid')
+        )
+          terminalReason = 'invalid_clock';
         operation.state.captureStoppedAtMs = status.captureStoppedAtMs;
         const data = {};
         for (const [name, key] of [

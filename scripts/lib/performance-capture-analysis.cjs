@@ -1607,6 +1607,16 @@ function analyzeCapture(value) {
             )
           )
             reasons.push('renderer_changed');
+          const lastSnapshot = c.snapshots.findLast((s) => s.atMs <= a);
+          if (!lastSnapshot || lastSnapshot.appMode === 'unknown')
+            reasons.push('missing_coverage');
+          else if (
+            lastSnapshot.appMode !== 'immersive' ||
+            lastSnapshot.rendererClass !== c.profile.rendererClass ||
+            lastSnapshot.quality !== c.profile.quality ||
+            lastSnapshot.devicePixelRatio !== c.profile.devicePixelRatio
+          )
+            reasons.push('renderer_changed');
           if (open.size || c.streams.markers.state !== 'complete')
             reasons.push('missing_coverage');
         }

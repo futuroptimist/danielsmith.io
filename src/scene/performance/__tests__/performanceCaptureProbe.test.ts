@@ -215,6 +215,12 @@ describe('serialized supplemental capture with synthetic clocks', () => {
       expect(s.firstUnrecordedAtMs).not.toBeNull();
       expect(s.unrecordedCount).toBeNull();
       expect(f.callbacks.size).toBe(0);
+      f.time(1000);
+      expect(() => f.probe.prefix()).toThrow('capture_stopped');
+      expect(() => f.probe.mark('checkpoint', 0)).toThrow('capture_stopped');
+      expect(() => f.probe.beginSpan('helper_snapshot', 0)).toThrow(
+        'capture_stopped'
+      );
     }
   );
   it('rejects live export, excessive chunks, unmatched spans and unsupported configuration', () => {
