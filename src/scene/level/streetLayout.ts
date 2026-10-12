@@ -13,7 +13,7 @@ export const BUS_STOP = {
   x: 25.6,
   z: 16,
 } as const;
-/** X/Z are plan anchors; width/depth are the world-space conservative collider, not body size. */
+/** X/Z are plan anchors; width/depth declare a world-space collider, not body size. */
 export const PARKED_EV = { x: 33, z: -10, width: 4.6, depth: 9.2 } as const;
 /** World-space behavior regions, independent of semantic anchors and visible solids. */
 export const STREET_BEHAVIOR_REGIONS = {

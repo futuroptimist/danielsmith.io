@@ -40,7 +40,7 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
     syncRevision: 11,
     syncNote:
-      'Street behavior bounds are named world-space contracts; measured production geometry and the shared miniature snapshot remain unchanged.',
+      'Street regions extracted; production and miniature geometry unchanged.',
   },
   {
     id: 'level:career-museum-layout',

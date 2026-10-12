@@ -37,14 +37,20 @@ export function auditExteriorGeometry(scale = FLOOR_PLAN_SCALE) {
     const solids = [...exterior.solids, ...street.solids];
     const declaredColliders = solids.map((solid) => {
       const b = solid.collider;
+      const singleSolidSource =
+        solids.filter(
+          (candidate) =>
+            candidate.definition.sourceId === solid.definition.sourceId
+        ).length === 1;
       const physical = meshes.filter(
         (mesh) =>
           mesh.sourceId === solid.definition.sourceId &&
           mesh.collisionPolicy === 'solid' &&
-          mesh.bounds.max[0] >= b.minX &&
-          mesh.bounds.min[0] <= b.maxX &&
-          mesh.bounds.max[2] >= b.minZ &&
-          mesh.bounds.min[2] <= b.maxZ
+          (singleSolidSource ||
+            (mesh.bounds.max[0] >= b.minX &&
+              mesh.bounds.min[0] <= b.maxX &&
+              mesh.bounds.max[2] >= b.minZ &&
+              mesh.bounds.min[2] <= b.maxZ))
       );
       const bounds = new Box3();
       for (const mesh of physical) {
@@ -80,7 +86,8 @@ export function auditExteriorGeometry(scale = FLOOR_PLAN_SCALE) {
         worldSolids:
           'Declared collider rectangles; distinct from measured mesh bounds.',
         padding:
-          'Signed collider margin against intersecting source-owned solid meshes; decorative parts excluded.',
+          'Signed collider margin against source-owned solids; decorative parts excluded. ' +
+          'Multi-solid sources select intersecting parts per rectangle.',
       },
       anchors: floor
         .sceneObjects!.filter((source) =>

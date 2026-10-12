@@ -24,7 +24,7 @@ const canvas = () =>
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
 
 describe('exterior metric audit', () => {
-  it('measures each instance through its parent world transform, without phantom origin bounds', () => {
+  it('measures instances through parent transforms without phantom origin bounds', () => {
     const root = new Group();
     root.position.set(100, 20, 30);
     root.scale.set(2, 3, 4);

@@ -515,10 +515,10 @@
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
       "syncRevision": 11,
-      "syncNote": "Street behavior bounds are named world-space contracts; measured production geometry and the shared miniature snapshot remain unchanged.",
+      "syncNote": "Street regions extracted; production and miniature geometry unchanged.",
       "sourceFingerprint": "67ed9aa3b5ac1a8d8aa8db55bf460fb3fc53ce654f9662a32f75bc07832205bb",
       "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "f4d403aab26964821a4aafdfe8a7fdcf445767ed70be54e7d07c4cc95670370a"
+      "metadataFingerprint": "c5f89ea84ddb6e9ccb837016d100d3ae7aaa190e73010f32f496fac0012ab2fd"
     },
     {
       "id": "level:basement-stairs",
