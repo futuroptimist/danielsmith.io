@@ -1522,7 +1522,7 @@ function analyzeCapture(value) {
       endMs: fullEnd,
       clean: true,
     });
-    const first = t.findIndex((v) => v > ready + 5000);
+    const first = t.findIndex((v) => v >= ready + 5000);
     definitions.push({
       id: 'prefix-120',
       kind: 'prefix_120',

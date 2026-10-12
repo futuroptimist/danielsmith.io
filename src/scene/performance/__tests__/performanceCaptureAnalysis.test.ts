@@ -315,10 +315,14 @@ describe('synthetic supplemental analysis oracles (not hardware evidence)', () =
     expect(() => analyzeDirectory(input, output)).toThrow('identity_invalid');
     expect(readdirSync(output)).not.toContain('route-capture-raw-v1.json');
   });
-  it.each([119, 120, 121])(
-    'requires 121 post-boundary callbacks for a prefix-120 window (%i intervals)',
-    (n) => {
-      const c = raw([5001, ...Array(n).fill(16)]);
+  it.each(
+    [119, 120, 121].flatMap((n) =>
+      [5000, 5001].map((boundary) => [n, boundary])
+    )
+  )(
+    'requires 121 callbacks for %i intervals starting at %i ms',
+    (n, boundary) => {
+      const c = raw([boundary, ...Array(n).fill(16)]);
       c.snapshots.push(snapshot());
       Object.assign(c.warmth, {
         state: 'evidence_provided',
@@ -339,7 +343,7 @@ describe('synthetic supplemental analysis oracles (not hardware evidence)', () =
       expect(prefix.summary.state).toBe(n < 120 ? 'unavailable' : 'available');
       if (n >= 120) expect(prefix.summary.sampleCount).toBe(120);
       expect(prefix.hardwareQualified).toBe(false);
-      expect(a.allIntervals.maxMs).toBe(5001);
+      expect(a.allIntervals.maxMs).toBe(boundary);
     }
   );
   it('discloses boundary/helper exclusions without treating shared endpoints as overlap', () => {

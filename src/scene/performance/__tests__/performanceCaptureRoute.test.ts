@@ -1,5 +1,11 @@
 // @vitest-environment node
-import { readFileSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import {
+  readFileSync,
+  mkdtempSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+} from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -54,13 +60,12 @@ describe('opt-in capture lifecycle with synthetic pages', () => {
     expect(source).toContain('Bus stop \u00b7 Coming Soon');
     expect(source).not.toContain('Bus stop \u00c2\u00b7 Coming Soon');
   });
-  it.each([false, true])(
-    'exports the actual probe and retains prefixes after capacity stop=%s',
-    async (capacity) => {
-      const directory = path.join(
-        temporary,
-        capacity ? 'capacity' : 'complete'
-      );
+  it.each(['complete', 'capacity', 'write-failure'])(
+    'retains raw evidence and terminal receipts for %s',
+    async (scenario) => {
+      const capacity = scenario === 'capacity',
+        writeFailure = scenario === 'write-failure';
+      const directory = path.join(temporary, scenario);
       let now = 0;
       let callback: ((time: number) => void) | null = null;
       const vm = createContext({
@@ -105,8 +110,10 @@ describe('opt-in capture lifecycle with synthetic pages', () => {
         evaluate,
         addInitScript: evaluate,
         screenshot: async () => {
-          now = 1216;
-          callback?.(now);
+          now = capacity ? 1232 : 1216;
+          if (capacity)
+            runInContext('window.__routeCapture.mark("checkpoint",0)', vm);
+          callback?.(1216);
         },
       };
       const session = createCaptureSession(
@@ -152,6 +159,7 @@ describe('opt-in capture lifecycle with synthetic pages', () => {
         );
       } else await session.mark('route_end');
       const result = { checkpoints: [record] };
+      if (writeFailure) mkdirSync(path.join(directory, 'route.json'));
       await session.finish(capacity ? 'failure' : 'finished', result);
       const raw = JSON.parse(
         readFileSync(path.join(directory, 'route-capture-raw-v1.json'), 'utf8')
@@ -169,12 +177,24 @@ describe('opt-in capture lifecycle with synthetic pages', () => {
         )
       );
       expect(terminal).toMatchObject({
-        state: capacity ? 'partial' : 'complete',
-        reason: capacity ? 'capacity' : 'finished',
+        state: capacity || writeFailure ? 'partial' : 'complete',
+        reason: writeFailure ? 'io_error' : capacity ? 'capacity' : 'finished',
         cleanupState: 'complete',
       });
       expect(raw.rafTimestampsMs).toEqual(capacity ? [0, 16] : [0, 16, 1216]);
       expect(raw.checkpointPrefixes[0].callbackCount).toBe(2);
+      if (capacity) expect(raw.coverage.captureStoppedAtMs).toBe(1232);
+      if (writeFailure) {
+        const {
+          analyzeDirectory,
+        } = require('../../../../scripts/analyze-performance-capture.cjs');
+        expect(() =>
+          analyzeDirectory(
+            directory,
+            path.join(temporary, 'write-failure-reanalysis')
+          )
+        ).not.toThrow();
+      }
       expect(result.checkpoints[0].stallProbe.rafMaxMs).toBe(16);
       expect(analysis.allIntervals.maxMs).toBe(capacity ? 16 : 1200);
       if (!capacity)

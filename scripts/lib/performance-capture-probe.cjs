@@ -129,6 +129,7 @@ function installRouteCapture(config, validateOnly = false) {
     return t;
   }
   function capacity(name, t) {
+    if (t === null) return;
     reason = 'capacity';
     const s = streams[name];
     s.state = 'capacity_stop';
@@ -221,12 +222,12 @@ function installRouteCapture(config, validateOnly = false) {
       return;
     }
     if (s.retainedCount === times.length) {
-      capacity('raf', t);
+      capacity('raf', now());
       return;
     }
     times[s.retainedCount++] = t;
     if (t >= startedAt + bounds.maxDurationMs) {
-      stop('deadline', t);
+      stop('deadline');
       return;
     }
     callback = requestAnimationFrame(tick);

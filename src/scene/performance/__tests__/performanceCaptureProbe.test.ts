@@ -79,8 +79,8 @@ function fixture(overrides = {}, hidden = false, supported = true) {
     get disconnected() {
       return disconnected;
     },
-    tick(time: number) {
-      clock = time;
+    tick(time: number, deliveredAt = time) {
+      clock = deliveredAt;
       const fn = callbacks.values().next().value;
       callbacks.clear();
       fn?.(time);
@@ -172,12 +172,43 @@ describe('serialized supplemental capture with synthetic clocks', () => {
       { startMs: 200, durationMs: 80 },
     ]);
   });
+  it.each(['capacity', 'deadline'])(
+    'uses the delivery clock for a delayed %s stop',
+    (reason) => {
+      const f = fixture(
+        reason === 'capacity' ? { maxRafIntervals: 1 } : { maxDurationMs: 100 }
+      );
+      f.tick(0);
+      f.tick(16);
+      f.time(105);
+      f.probe.mark('checkpoint', 0);
+      f.tick(100, 110);
+      const status = f.probe.stop();
+      expect(status.stopReason).toBe(reason);
+      expect(status.captureStoppedAtMs).toBe(110);
+      expect(f.probe.readChunk('rafTimestampsMs', 0, 10)).toEqual(
+        reason === 'capacity' ? [0, 16] : [0, 16, 100]
+      );
+      const markers = f.probe.readChunk('markers', 0, 4096);
+      expect(markers.at(-1).atMs).toBe(110);
+      expect(markers.map((m: { atMs: number }) => m.atMs)).toEqual(
+        markers
+          .map((m: { atMs: number }) => m.atMs)
+          .sort((a: number, b: number) => a - b)
+      );
+    }
+  );
   it('retains the finite prefix on invalid clocks and whole deadline overshoot', () => {
     const f = fixture();
     f.tick(16);
     f.tick(NaN);
     expect(f.probe.stop().streams.raf.state).toBe('clock_invalid');
     expect(f.probe.readChunk('rafTimestampsMs', 0, 10)).toEqual([16]);
+    const bad = fixture({ maxRafIntervals: 1 });
+    bad.tick(0);
+    bad.tick(16);
+    bad.tick(32, NaN);
+    expect(bad.probe.stop().stopReason).toBe('failure');
     const d = fixture({ maxDurationMs: 100 });
     d.tick(16);
     d.tick(1200);

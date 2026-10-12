@@ -1281,10 +1281,15 @@ function createCaptureSession(directory, options = {}) {
       if (result) {
         // Synchronous host write cannot outlive finalization. Never write from a
         // late continuation of the route after cancellation/page loss.
-        require('node:fs').writeFileSync(
-          path.join(directory, 'route.json'),
-          JSON.stringify(result, null, 2) + '\n'
-        );
+        try {
+          require('node:fs').writeFileSync(
+            path.join(directory, 'route.json'),
+            JSON.stringify(result, null, 2) + '\n'
+          );
+        } catch {
+          state = 'partial';
+          terminalReason = 'io_error';
+        }
       }
       operation.finish(state, terminalReason);
     })();
