@@ -2,8 +2,8 @@
 
 Runtime physical dimensions use **one world unit per metre**, seconds for movement,
 and radians for angles. `src/scene/units.ts` records the target avatar and room
-clearance. The room assemblies and player follow this contract; the exterior layout retains legacy spacing.
-Plan X/Z coordinates use `FLOOR_PLAN_SCALE` (approximately 2) exactly once; elevations
+clearance. The room assemblies and player follow this contract; the exterior anchors follow the same horizontal plan conversion.
+Plan X/Z coordinates use `FLOOR_PLAN_SCALE` (sqrt(2), approximately 1.414214) exactly once; elevations
 are already world coordinates. A plan conversion is not a physical metre conversion.
 Never apply either transform again to generated meshes or colliders.
 
@@ -70,11 +70,11 @@ underside was 5.69 m (the old factory default of 0.30 was not the runtime overri
 | Miniature table top             | 4.35 x 3.90 m; centre 1.32 m                      | 1.40 x 0.90 m; finished surface 1.25 m              |
 | Selfie mirror frame             | 3.40 x 4.10 m                                     | 1.70 x 2.05 m                                       |
 
-The upper flight ends at z=-21.8. Its 9.3 m level corridor connects the existing
-west rooms while retaining the ground crossing at z=-23 with 2.74 m underside
+The upper flight ends at z=-15.414928. Its 6.576093 m level corridor connects the
+west rooms while retaining the ground crossing at z=-16.263456 with 2.74 m underside
 clearance. Keeping the former flight endpoint with normal treads would put that
-crossing under low steps. The basement flight ends at z=-14 and its lower end is
-z=-19.04. Both final treads meet their landing slab tops exactly.
+crossing under low steps. The basement flight ends at z=-9.899495 and its lower end is
+z=-14.939495. Both final treads meet their landing slab tops exactly.
 
 The 0.75 m collision radius is preserved. A 0.9 m single doorway could not pass
 that conservative footprint, so room and sliding entries use generous 2.4 m
@@ -113,13 +113,61 @@ The standing player remains 1.90 m after normalization from its measured 1.872 m
 bind pose. Walk/run remain 1.116453 / 3.044872 m/s, with proportional stride and seat
 offsets. The orthographic camera retains its framing bounds and 0.95 m focus.
 
-## Remaining exterior scope
+## Exterior coordinate contract
 
-The property X/Z footprint remains approximately 64 x 64 world units. Plan
-coordinates still convert once through `FLOOR_PLAN_SCALE` (approximately 2).
-Changing that factor alone would move plan-anchored objects while leaving physical
-furnishings and colliders behind; a global scene scale would shrink the player,
-chairs and aquarium too. Exterior layout, the existing 4.6 x 9.2 m EV envelope,
-yard, street and future neighbourhood need their own coordinated horizontal
-migration. Existing exterior routes must continue to pass during this room change.
-This room correction is not a claim that the entire property is metre-calibrated.
+The former 64 x 64 m house-and-yard envelope now spans approximately
+45.255 x 45.255 m. Exterior plan anchors, including doors, yard, street and
+bus stop, follow the same one-time `FLOOR_PLAN_SCALE` conversion (sqrt(2),
+approximately 1.414214). Their physical assemblies and collision bounds move
+together; the EV retains its 4.6 x 9.2 m envelope, and street furniture keeps
+its metre-authored dimensions. Existing exterior routes pass with the smaller
+plan. Future neighbourhood work must use this coordinate contract and check
+physical fit explicitly. This correction does not claim that every legacy
+exterior asset has been individually metre-calibrated.
+
+## Half-area horizontal footprint
+
+All nine indoor rooms retain their authored aspect ratios and relative layout while
+width and depth use `HOUSE_HORIZONTAL_SCALE = sqrt(0.5)` relative to the previous
+world plan. Each room has exactly half its previous horizontal area. Clear ceiling
+height remains 2.74 m and the avatar remains 1.90 m; no vertical transform is applied.
+
+| Room           | Previous area (m²) | Area (m²) |
+| -------------- | -----------------: | --------: |
+| Career museum  |               3328 |      1664 |
+| Living room    |               1536 |       768 |
+| Studio         |                864 |       432 |
+| Kitchen        |                672 |       336 |
+| Garage         |                432 |       216 |
+| Upper landing  |              268.8 |     134.4 |
+| Creator studio |                768 |       384 |
+| Loft library   |                560 |       280 |
+| Focus pods     |                704 |       352 |
+
+Metre-authored furniture keeps its dimensions and rotates as before. Authored
+positions move with the plan; explicit collider and decorative bounds translate
+with their owner instead of shrinking. Named fit offsets separate the seating,
+kitchen cabinetry, studio rugs and loft ottoman, clear upstairs door approaches,
+and keep garden pieces inside the fence. A 0.8 m plant move and 0.5 m reading-side-table
+move preserve chair approaches and exits. Nothing is removed from the inventory.
+Door openings retain 2.4 m clear width (5 m for the garage gate), and both flights
+retain 2.4 m width, 0.28 m treads and 18 rises. The loft landing doorway moves west
+within its existing shared wall to clear the preserved-width stair rail.
+
+POI positions and interaction anchors follow the same plan transform. Token.place
+and Sugarkube move an additional 1 m and 3.5 m along Z to keep their current-size
+exhibits accessible. This change does not resize any POI. A 2.8 by 1.8 m future
+portfolio tabletop plus a 0.75 m approach envelope is reserved in the kitchen;
+its separate size change keeps the stand at its existing height while enlarging
+the tabletop and miniature. Recursive miniature
+geometry is rebuilt from the transformed world through its existing fitting path.
+
+The denser launch view exposes more of the unchanged Sugarkube installation.
+Its static opaque parts and the repeated basement stair parapets are batched by
+shared material and source identity without changing vertices, materials, LED
+updates, physical dimensions or collider ownership. Authored nodes remain
+available for debug inspection; the miniature copies each retained authored source once, preserving cable shapes. Treads
+retain their individual names. This keeps the existing draw-call budget across
+desktop and phone views without removing visual detail.
+
+Review fit checks place the full-size street shelter and sign together over the scaled stop, with its roof 0.15 m inside the northern property boundary. The studio monstera moves another 0.4 m away from the garage doorway to retain the 0.75 m avatar clearance across the physical approach.

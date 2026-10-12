@@ -13,6 +13,7 @@ import {
 } from 'three';
 
 import { UPPER_FLOOR_TOP_ELEVATION } from '../level/floorElevations';
+import { HOUSE_HORIZONTAL_SCALE } from '../level/horizontalFootprint';
 
 import { DEFAULT_LOWER_FLOOR_FURNISHINGS } from './lowerFloorFurnishings';
 import { WALL_THICKNESS } from './portfolioSceneLayout';
@@ -130,7 +131,11 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'ground',
     room: 'kitchen',
     wallOrientation: 'west',
-    position: { x: -31.92, y: 0.35, z: 2.7 },
+    position: {
+      x: -32 * HOUSE_HORIZONTAL_SCALE + 0.08,
+      y: 0.35,
+      z: 2.7 * HOUSE_HORIZONTAL_SCALE,
+    },
     size: 0.74,
     frame: {
       frameColor: 0x556b4f,
@@ -147,7 +152,10 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'ground',
     room: 'studio',
     wallOrientation: 'north',
-    position: { x: 5.2, z: -7.92 },
+    position: {
+      x: 5.2 * HOUSE_HORIZONTAL_SCALE,
+      z: -8 * HOUSE_HORIZONTAL_SCALE + 0.08,
+    },
     size: 0.8,
     frame: {
       frameColor: 0x25354f,
@@ -165,7 +173,10 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'upper',
     room: 'creators studio',
     wallOrientation: 'west',
-    position: { x: -19.92, z: -12.2 },
+    position: {
+      x: -20 * HOUSE_HORIZONTAL_SCALE + 0.08,
+      z: -12.2 * HOUSE_HORIZONTAL_SCALE,
+    },
     size: 0.9,
     frame: {
       frameColor: 0x6d4c2f,
@@ -184,7 +195,10 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     wallOrientation: 'west',
     surfaceSide: 'positive',
     mountSurfaceOffset: WALL_THICKNESS / 2,
-    position: { x: 4.08, z: -2.0 },
+    position: {
+      x: 4 * HOUSE_HORIZONTAL_SCALE + 0.08,
+      z: -2.0 * HOUSE_HORIZONTAL_SCALE,
+    },
     size: 0.76,
     frame: {
       frameColor: 0x2f3033,
@@ -201,7 +215,10 @@ export const WALL_PAINTING_CONFIGS: readonly WallPaintingConfig[] = [
     floor: 'upper',
     room: 'focus pods',
     wallOrientation: 'west',
-    position: { x: -19.92, z: 20.0 },
+    position: {
+      x: -20 * HOUSE_HORIZONTAL_SCALE + 0.08,
+      z: 20.0 * HOUSE_HORIZONTAL_SCALE,
+    },
     size: 0.84,
     frame: {
       frameColor: 0x6a7258,

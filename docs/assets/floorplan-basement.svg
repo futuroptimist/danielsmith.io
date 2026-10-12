@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg
-          width="1088"
-          height="896"
-          viewBox="0 0 1088 896"
+          width="788"
+          height="652"
+          viewBox="0 0 788 652"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-  <rect x="0" y="0" width="1088" height="896" fill="#0b1428" />
+  <rect x="0" y="0" width="788" height="652" fill="#0b1428" />
   <g>
     <path
-          d="M32.00,864.00 L1056.00,864.00 L1056.00,32.00 L32.00,32.00 Z"
+          d="M32.00,620.00 L756.08,620.00 L756.08,31.69 L32.00,31.69 Z"
           fill="#151d2f"
           stroke="#1e2a3f"
           stroke-width="2"
@@ -19,9 +19,9 @@
       <g>
         <rect
           x="32.00"
-          y="32.00"
-          width="1024.00"
-          height="832.00"
+          y="31.69"
+          width="724.08"
+          height="588.31"
           fill="#e5ba7e"
           fill-opacity="0.22"
           stroke="#e5ba7e"
@@ -29,8 +29,8 @@
           stroke-width="1.5"
         />
         <text
-          x="544.00"
-          y="448.00"
+          x="394.04"
+          y="325.84"
           text-anchor="middle"
           dominant-baseline="middle"
           font-family="'Inter', 'Segoe UI', sans-serif"
@@ -41,93 +41,111 @@
 
     <line
           x1="32.00"
-          y1="864.00"
-          x2="1056.00"
-          y2="864.00"
+          y1="620.00"
+          x2="756.08"
+          y2="620.00"
           stroke="#c5d1ff"
           stroke-width="8.00"
           stroke-linecap="round"
         />
 <line
           x1="32.00"
-          y1="32.00"
-          x2="1056.00"
-          y2="32.00"
+          y1="31.68"
+          x2="756.08"
+          y2="31.68"
           stroke="#c5d1ff"
           stroke-width="8.00"
           stroke-linecap="round"
         />
 <line
-          x1="32.00"
-          y1="864.00"
-          x2="32.00"
-          y2="32.00"
+          x1="32.01"
+          y1="620.00"
+          x2="32.01"
+          y2="31.69"
           stroke="#c5d1ff"
           stroke-width="8.00"
           stroke-linecap="round"
         />
 <line
-          x1="1056.00"
-          y1="864.00"
-          x2="1056.00"
-          y2="32.00"
+          x1="756.07"
+          y1="620.00"
+          x2="756.07"
+          y2="31.69"
           stroke="#c5d1ff"
           stroke-width="8.00"
           stroke-linecap="round"
         />
     <g aria-label="Basement stair connection" fill="none" stroke="#d7b98d" stroke-width="2">
       <rect
-          x="566.40"
-          y="428.80"
-          width="76.80"
-          height="328.00"
+          x="417.83"
+          y="332.70"
+          width="38.40"
+          height="119.04"
         />
-      <line x1="566.40"
-          x2="643.20"
-          y1="729.60" y2="729.60" /><line x1="566.40"
-          x2="643.20"
-          y1="702.40" y2="702.40" /><line x1="566.40"
-          x2="643.20"
-          y1="675.20" y2="675.20" /><line x1="566.40"
-          x2="643.20"
-          y1="648.00" y2="648.00" /><line x1="566.40"
-          x2="643.20"
-          y1="620.80" y2="620.80" /><line x1="566.40"
-          x2="643.20"
-          y1="593.60" y2="593.60" /><line x1="566.40"
-          x2="643.20"
-          y1="566.40" y2="566.40" /><line x1="566.40"
-          x2="643.20"
-          y1="539.20" y2="539.20" /><line x1="566.40"
-          x2="643.20"
-          y1="512.00" y2="512.00" />
-      <text x="604.80"
-        y="774.80"
+      <line x1="417.83"
+          x2="456.23"
+          y1="447.26" y2="447.26" /><line x1="417.83"
+          x2="456.23"
+          y1="442.78" y2="442.78" /><line x1="417.83"
+          x2="456.23"
+          y1="438.30" y2="438.30" /><line x1="417.83"
+          x2="456.23"
+          y1="433.82" y2="433.82" /><line x1="417.83"
+          x2="456.23"
+          y1="429.34" y2="429.34" /><line x1="417.83"
+          x2="456.23"
+          y1="424.86" y2="424.86" /><line x1="417.83"
+          x2="456.23"
+          y1="420.38" y2="420.38" /><line x1="417.83"
+          x2="456.23"
+          y1="415.90" y2="415.90" /><line x1="417.83"
+          x2="456.23"
+          y1="411.42" y2="411.42" /><line x1="417.83"
+          x2="456.23"
+          y1="406.94" y2="406.94" /><line x1="417.83"
+          x2="456.23"
+          y1="402.46" y2="402.46" /><line x1="417.83"
+          x2="456.23"
+          y1="397.98" y2="397.98" /><line x1="417.83"
+          x2="456.23"
+          y1="393.50" y2="393.50" /><line x1="417.83"
+          x2="456.23"
+          y1="389.02" y2="389.02" /><line x1="417.83"
+          x2="456.23"
+          y1="384.54" y2="384.54" /><line x1="417.83"
+          x2="456.23"
+          y1="380.06" y2="380.06" /><line x1="417.83"
+          x2="456.23"
+          y1="375.58" y2="375.58" /><line x1="417.83"
+          x2="456.23"
+          y1="371.10" y2="371.10" />
+      <text x="437.03"
+        y="469.74"
         text-anchor="middle" font-family="sans-serif" font-size="12" fill="#d7b98d"
         stroke="none">Basement stairs</text>
     </g>
     <g>
-        <circle cx="864.00" cy="608.00" r="6" fill="#85e5ff" />
-        <circle cx="864.00" cy="608.00" r="3" fill="#0b1428" />
+        <circle cx="620.31" cy="438.98" r="6" fill="#85e5ff" />
+        <circle cx="620.31" cy="438.98" r="3" fill="#0b1428" />
       </g>
 <g>
-        <circle cx="864.00" cy="256.00" r="6" fill="#85e5ff" />
-        <circle cx="864.00" cy="256.00" r="3" fill="#0b1428" />
+        <circle cx="620.31" cy="190.08" r="6" fill="#85e5ff" />
+        <circle cx="620.31" cy="190.08" r="3" fill="#0b1428" />
       </g>
 <g>
-        <circle cx="256.00" cy="256.00" r="6" fill="#85e5ff" />
-        <circle cx="256.00" cy="256.00" r="3" fill="#0b1428" />
+        <circle cx="190.39" cy="190.08" r="6" fill="#85e5ff" />
+        <circle cx="190.39" cy="190.08" r="3" fill="#0b1428" />
       </g>
 <g>
-        <circle cx="256.00" cy="576.00" r="6" fill="#85e5ff" />
-        <circle cx="256.00" cy="576.00" r="3" fill="#0b1428" />
+        <circle cx="190.39" cy="416.35" r="6" fill="#85e5ff" />
+        <circle cx="190.39" cy="416.35" r="3" fill="#0b1428" />
       </g>
 
 
     <g>
       <rect
-          x="878.00"
-          y="810.00"
+          x="578.00"
+          y="566.00"
           width="200"
           height="76"
           rx="8"
@@ -135,7 +153,7 @@
           stroke="#223559"
           stroke-width="1"
         />
-      <g transform="translate(892.00, 826.00)">
+      <g transform="translate(592.00, 582.00)">
         <circle cx="8" cy="10" r="6" fill="#85e5ff" />
         <circle cx="8" cy="10" r="3" fill="#0b1428" />
         <text

@@ -293,6 +293,7 @@ import {
 } from './scene/structures/axelNavigator';
 import { createBasementLandingCutaway } from './scene/structures/basementLandingCutaway';
 import { createBasementStaircase } from './scene/structures/basementStaircase';
+import { batchStaticMeshes } from './scene/structures/batchStaticMeshes';
 import {
   createCareerMuseum,
   type CareerMuseumBuild,
@@ -1831,6 +1832,9 @@ function buildImmersiveScene(
 
   const basementStaircase = createBasementStaircase(PLAYER_RADIUS);
   scene.add(basementStaircase.group);
+  batchStaticMeshes(basementStaircase.group, (mesh) =>
+    mesh.name.includes('RampRail')
+  );
   const basementFloorGroup = new Group();
   basementFloorGroup.name = 'BasementFloorVisuals';
   const basementStructureGroup = new Group();
@@ -3303,6 +3307,7 @@ function buildImmersiveScene(
     deployment.colliders.forEach((collider) =>
       getPoiColliderTarget(sugarkubePoi).push(collider)
     );
+    batchStaticMeshes(deployment.group);
     sugarkubeDeployment = deployment;
   }
 

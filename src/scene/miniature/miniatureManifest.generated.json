@@ -363,11 +363,11 @@
       "id": "audit:src:scene:structures:triangleCount",
       "sourceFiles": ["src/scene/structures/triangleCount.ts"],
       "proxyFiles": [],
-      "syncRevision": 1,
-      "syncNote": "Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.",
-      "sourceFingerprint": "b25cd48c798393ad02b0cc49954b419bd28e5854250dbad32abd4d7790e36807",
+      "syncRevision": 2,
+      "syncNote": "Triangle metrics exclude superseded batch sources while retaining counts for ordinary hidden models; this helper does not alter visible miniature geometry.",
+      "sourceFingerprint": "f8f84f39d5af40227cf38ce1473783a1ed5a436a7052daf93efdbdf3a034543e",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "ed03775f7767039cc7e46e90167540c16679b8f724e2e8661724ffbb697c0761"
+      "metadataFingerprint": "19e267c115ee148e19ae2ecdd4308e52eff5a522b62305544f52fabdd48e5e95"
     },
     {
       "id": "avatar:animated-player",
@@ -418,7 +418,7 @@
       "syncRevision": 2,
       "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
       "sourceFingerprint": "2441c3af2ec023f08f419906fdcf83ca475d439bcc2dbea9b8325ba642d1ae3c",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "835e7085625871f0024f62785170b751245413f9532a1e860ef3fcb2f86a3793"
     },
     {
@@ -428,7 +428,7 @@
       "syncRevision": 4,
       "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
       "sourceFingerprint": "4af432b6fa3417ac96a84ae7014b4a18334d556e9fc9400339f5bf2d9177cd31",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "4ba79481cc9a0d32e1995e65cf97a908f62091a16b189367ee835191a0f3b840"
     },
     {
@@ -478,21 +478,21 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 37,
-      "syncNote": "Both floor furnishing sets are projected from their existing production geometry and colors.",
-      "sourceFingerprint": "a4f53b8a0ad048ad2ddc39b5cfe4f3731faf81f5b64967302660239fa5d65ad9",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "151aff44774f3cfd6ea6547f11af1eb2e1daa027da24e00d0904c97ffcee0529"
+      "syncRevision": 40,
+      "syncNote": "Stable named reservations preserve fit offsets, and the full-size studio monstera moves 0.4 m from the garage approach to retain player clearance.",
+      "sourceFingerprint": "6f3d25d6b7dda57939643235c04d90667598dfd3270c62b058142f203fc2cc52",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
+      "metadataFingerprint": "8b2906c11eb66569fe4dd63a9238fcae49fa4e54d04d50be18c26ca01cc95734"
     },
     {
       "id": "decor:wall-paintings",
       "sourceFiles": ["src/scene/structures/wallPaintings.ts"],
       "proxyFiles": ["src/scene/miniature/sceneComponentRegistry.ts"],
-      "syncRevision": 12,
-      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
-      "sourceFingerprint": "c7ed6ea313efade6393788cb4ed0c9a70cb230be591b099d7d56d78e8c50429f",
+      "syncRevision": 13,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "406c7f9920794f05bdff5cb1131370442d08fad045fd64ed51625bb46afc6a27",
       "proxyFingerprint": "5386be0067a60fb1d8f8ec045356b9824019e94d03bc2c6bd0db200878b43f4b",
-      "metadataFingerprint": "2d48a2ebf0ebe4733d9bd24e825206a1013c0f2ed57061ca0859f237d6c708d9"
+      "metadataFingerprint": "b9bb19b3b19b41ad8f4100b83b8bf34b5e526c86d095e5364687a5888c3aa02d"
     },
     {
       "id": "environment:backyard",
@@ -501,7 +501,7 @@
       "syncRevision": 3,
       "syncNote": "The full source backyard is projected and its east corner shrub has a separate physical collider.",
       "sourceFingerprint": "2ea41cc8da0c93a48c6c00080c346409f9146543a7dbe4c72084de1ad954e3e6",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "35900627be08724a733d460ae9c7c196aeeff3f1165a9c1f6c0b0ddcb2362f0d"
     },
     {
@@ -514,25 +514,26 @@
         "src/scene/structures/residentialStreet.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 10,
-      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
-      "sourceFingerprint": "4159b32e58f3cdedf385f6f3c2e4354fe3dd3eb273da89a3098687cd4759658f",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "fa2e286d7fbedfc0fdd954e847aa43c4b84df07c7da2bfaae387d64cc05af46a"
+      "syncRevision": 13,
+      "syncNote": "The physical shelter, sign and colliders follow the scaled street together; source snapshots retain original mesh shapes after batching.",
+      "sourceFingerprint": "68289bd4871d0a7cb3a227579c006b3f98bf9fbecb70144e721effba8706f4bf",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
+      "metadataFingerprint": "05f49650e3401c5f2dbf91a0c9f2afdaea7e91364d97612d9446dba73f56b179"
     },
     {
       "id": "level:basement-stairs",
       "sourceFiles": [
         "src/scene/level/basementStair.ts",
         "src/scene/structures/basementLandingCutaway.ts",
-        "src/scene/structures/basementStaircase.ts"
+        "src/scene/structures/basementStaircase.ts",
+        "src/scene/structures/batchStaticMeshes.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 5,
-      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
-      "sourceFingerprint": "460fe744467af1fd84329f22c9310a29115aa1d1d305d94c44f28f9720bd5b0b",
+      "syncRevision": 9,
+      "syncNote": "Static batching keys use an equivalent array join for line length; source geometry, triangle counts and miniature shapes are unchanged.",
+      "sourceFingerprint": "9d05ea205474eec286cec88c0b81dc24a543f929841000ab2925c6d8f454fe38",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "ba8c7eeda770847fdac1fd6d79ac9883273d0581b2f274535f930ad493beed26"
+      "metadataFingerprint": "03d949ec4abfde2f84eb3fd7f4d7c0315792f0f4d0de3cc73e7ba0dac460968d"
     },
     {
       "id": "level:career-museum-layout",
@@ -541,7 +542,7 @@
       "syncRevision": 3,
       "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
       "sourceFingerprint": "ea8e34946f2de872229d639c5442ab07723df41e6e97c08edbca36eda81c74df",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "ca07fae7bd65d25266897933a955c12f2ecf53dcf85fa0be956473911a16a9fc"
     },
     {
@@ -563,15 +564,16 @@
       "id": "level:portfolio-layout",
       "sourceFiles": [
         "src/assets/floorPlan/index.ts",
+        "src/scene/level/horizontalFootprint.ts",
         "src/scene/level/portfolioLevel.ts",
         "src/scene/level/schema.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 11,
-      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
-      "sourceFingerprint": "a78c895702617a079f7521e05567453178d1e0063c98f9ec43e1fae7b136dcea",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
-      "metadataFingerprint": "6ca3f8e7f408516b2885fa1b8cd320276b9401f502c32ea9d600b0ec7533a3b6"
+      "syncRevision": 12,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "a0f0911c74255ee52dfbb9366f580b6b1dfef415c1122d0142e20e7000474f45",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
+      "metadataFingerprint": "ac751cad9fa232bfd74856c54b433069148e7709b7ee5d0fa40ac4135f996352"
     },
     {
       "id": "level:stairs-landing",
@@ -611,11 +613,11 @@
         "src/scene/structures/aquiloopCycle.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 4,
-      "syncNote": "Static aquarium instance bounds are initialized explicitly; the shared production snapshot remains controller-free.",
-      "sourceFingerprint": "6ff1253f40b538a7608521850befd9fe8e964ee156fe59064350fddb26532d32",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "17674fbda38628c4a28d18e47fb188485dbe70b3a522803c3907bf5caaa0a792"
+      "syncRevision": 5,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "70c8d724ae81e49646eb6b5b5f3e596b376a100964a317c8ba9c46355c6ce735",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "ba32027b72bb3ad96df10c1cc0a486f6e84582ccd243fadd214673cbec5ae613"
     },
     {
       "id": "poi:axel-studio-tracker",
@@ -626,11 +628,11 @@
         "src/scene/structures/axelNavigator.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "aa83d343be910aaf7fb7c36037e990c58ca28f072322e751b91823150382f516",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "136eb09e474c1747a905e77abc94b010525bac293a29621b1dc26a2cbf5bf792"
+      "syncRevision": 12,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "b579d47c44ad9449114a1c8d8ae57c74f993a229a4ed62d26c8c7bde5728a748",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "dfd83605df0c1572dc3e27c83f2dbb4bbe8586a8127ea3efee0aed5e016d8e71"
     },
     {
       "id": "poi:danielsmith-portfolio-table",
@@ -647,11 +649,11 @@
         "src/scene/miniature/sourceSnapshot.ts",
         "src/scene/structures/portfolioMiniatureTable.ts"
       ],
-      "syncRevision": 16,
-      "syncNote": "The shared snapshot includes the metric mirror, and recursion-boundary supports derive from the resized tabletop footprint and underside.",
-      "sourceFingerprint": "571388b42705181b65c55bc440a9a0dd05bc0e82270803122fcdf4da2e18088a",
-      "proxyFingerprint": "ee7593910bc8b13cb19200e422a295138e722eb22124b5aec452f77971f629bc",
-      "metadataFingerprint": "69fb471d38dd79b229bfafaee6daf132bf641b941a74f44333a33e2accd9f47f"
+      "syncRevision": 17,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "f48897f19e802bfe2109a435a3a323ac64f6e5fd447b14eafd8343630c413ce5",
+      "proxyFingerprint": "9a2a93ca5b07338bca655317f622eb66fb32770535e1453b0f71e52c350c08da",
+      "metadataFingerprint": "fb552b7deba4757e5cbe634e69885ce89ae5399c3716610a71aee79eb39f5d61"
     },
     {
       "id": "poi:dspace-backyard-rocket",
@@ -662,11 +664,11 @@
         "src/scene/structures/modelRocket.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 13,
-      "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "24a7525bdbff3a92604fd127143450d056dc6eff32077fb57ea3195caa95e2de",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "648068649e4910e20bd1a888de59adec5dac209221caffc162584ea6c9a0f962"
+      "syncRevision": 14,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "3f08d63722c5e9102987590bde504fc8bb406d8a989f328b0f8ade09371e3eb5",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "8028d1ffb74f752a83ad4e56b0613ae6277eaedb6841e7b844b3b7e7cf149c66"
     },
     {
       "id": "poi:f2clipboard-kitchen-console",
@@ -677,11 +679,11 @@
         "src/scene/structures/f2ClipboardConsole.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 13,
-      "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "238b925d85e287137c440314845f60a256ad5dc0abfe48fa8385ecc6c2844551",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "374f1c43bc12155eccbecfbb13f64728105171a61b62a8ea49952588f01c4578"
+      "syncRevision": 14,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "b55304c409134079b6d6f118a48efdf81d432b4ffc77888667ec050d18cc260c",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "ef56b3bddbbec1d84459c12a9e9f0b95bddae277baf990c84a2453ab1b8745fb"
     },
     {
       "id": "poi:flywheel-studio-flywheel",
@@ -694,11 +696,11 @@
         "src/scene/structures/flywheelEnergyNetwork.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 33,
-      "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "90bd5f7ccf106e6b573d1e8281610bc5ed460d5b37a555a5968c990b0bcfb96b",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "9ab72cf220178d2194864823379f6edfa24e399dbc4ded5d46d41102e3a6ea6f"
+      "syncRevision": 34,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "ce58408d670240c670feef2295bcd032c907726b34882e8bdbdf307da6f247d8",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "842dd1c89be847fb1c13b9cc82dacf351e7320c73fa1ee275a36fe7952451cf5"
     },
     {
       "id": "poi:futuroptimist-living-room-tv",
@@ -709,11 +711,11 @@
         "src/scene/structures/mediaWall.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 12,
-      "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
-      "sourceFingerprint": "bde2526bc994dca0169977f88880d4256cb8118f2e2e5d88b5e3569741e93ec4",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "3cd94bb59a8e5401e7554aab1f0ceaf9195beb6bde7fff7d6f40b3cbcb6c5fc7"
+      "syncRevision": 13,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "38dfbd3008f4a67ffab010ed72cb6e52acfb795b3bd83f3594e41e59f399333d",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "776fb200daaa1ccdb4e78e714f9661843e3cc1b19fe1a9b16b6f48e77b158696"
     },
     {
       "id": "poi:gabriel-studio-sentry",
@@ -724,11 +726,11 @@
         "src/scene/structures/gabrielSentry.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 14,
-      "syncNote": "Decorative beacon point lighting follows scene detail policy; emissive beacon and miniature geometry are unchanged.",
-      "sourceFingerprint": "53853072da562c7cb702b5ad616d0789d6f8d2945a210291c18b4fa1e4bacb46",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "de90242a4d0b2f7ae716343c715df8769e57d38b5a8659637e6fc245d7726110"
+      "syncRevision": 15,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "1c144031e01a78e200de412ecddc518c030e15204865543fc36d2aa9320777b4",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "bbfca6e19b1e0c740ac9f331774e23c1f3e5fa9de84d11153c4fff00dd3af5ed"
     },
     {
       "id": "poi:gitshelves-living-room-installation",
@@ -739,11 +741,11 @@
         "src/scene/structures/gitshelves.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 14,
-      "syncNote": "Metre-scaled installations share their production bounds and transforms with the source snapshot.",
-      "sourceFingerprint": "a8069fc9ba23fe5e485ce0c2a1651434c3feec21f4f83ea081cce8b55fea3237",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "d2baf47d7f08a8cac62dd037e0f39022b043f7dd677653ade50ba34d7c0583a3"
+      "syncRevision": 15,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "f3ec55739fffbdeb10d9194a1f4f73d3c0b1a13452b73eabfb8680b00929a91d",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "81730b92590ddcdad52b6add3eb2f3b01e7dccaccfd697aa6c98724861e8d046"
     },
     {
       "id": "poi:jobbot-studio-terminal",
@@ -754,11 +756,11 @@
         "src/scene/structures/jobbotTerminal.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "63f236088633d8c5943f10eea80a2734a7d6b19279dc4ee7f6ab81da076654a5",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "d693522a75866ce43b1ef486ad54b15a4b24c769ba867334dc7b29b2571a07b1"
+      "syncRevision": 12,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "129d28c339cf7abd4fd19125a1e999a0a5fea1ed633a8f66745e3fa827f5d855",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "03021ecf11302fefc89ce5caa2844aea75ac998caaa726d11fc60be6f8b1f833"
     },
     {
       "id": "poi:markers-labels",
@@ -790,11 +792,11 @@
         "src/ui/accessibility/animationPreferences.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 26,
-      "syncNote": "Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.",
-      "sourceFingerprint": "989b7b47f453d199357875e13f02b9f353c3ec00df0d5fdc77c0684237a3b19a",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "fb637ce0b9bdc94b3a3567257e1989c84fd591c2815ff4a7c9dc2ee2e339d62d"
+      "syncRevision": 27,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "5309aded2f1f4ad18d5b01a54221a88e5528546af26d9aa0aec2841d7417da2b",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "6ea09bbe24f8e34cd80f4865539dab11c7c84242c7c29ff2ddbe920ae91d2ca2"
     },
     {
       "id": "poi:sigma-kitchen-workbench",
@@ -805,11 +807,11 @@
         "src/scene/structures/sigmaWorkbench.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 13,
-      "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "0ae6f3da100d34cae0283b59fe041d665a521ec638ebf3802f79d4da609d11ca",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "8a6e1413278abf4faf2787139ea2aa81968d8564f4f291d8a3e6dec69b6f1541"
+      "syncRevision": 14,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "1545c1277b642f59db56c396742faf697f7c0e4f01f377f22b7a123e96c43023",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "342ea00ac1631470bc3e01d0097fae0ac22087bc64f75ff4a408240949563fdc"
     },
     {
       "id": "poi:sugarkube-backyard-greenhouse",
@@ -820,11 +822,11 @@
         "src/scene/structures/sugarkubeDeployment.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
-      "sourceFingerprint": "86871eced5988df75cc7c0caa8d505fbc456dc895f3ab35867c73c7622fd8224",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "00bf5781cc0332f855f58432e3008374ef6b052c3d9e977da420fca4654f5a25"
+      "syncRevision": 14,
+      "syncNote": "Static same-material Sugarkube parts are batched by source identity without changing visible vertices, physical size or pulsing LEDs; the shared snapshot reads the visible batches.",
+      "sourceFingerprint": "5d7c49c64b90ff2199d005f997fa9a768483e7a37e6189043235b9accdd5fe17",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "f890c57a1fe8a463ca49344f52e65906468d15132aa58a21af20466ff0e3a2b5"
     },
     {
       "id": "poi:tight-collider-bounds",
@@ -845,11 +847,11 @@
         "src/scene/structures/tokenPlaceWorkstation.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "The miniature retains its original house/backyard envelope and omits new exterior zones while sharing the actual front entrance wall opening.",
-      "sourceFingerprint": "0e42ef0b58fb53fef908bbabd5e66f9b9b6c7981f3d7becbfe33d2be11f5c131",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "7bde1b48aef0533fca21c7ba5e7d09638bab6d52bead6e2f63da43794a09b915"
+      "syncRevision": 12,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "77c4fc2f79a93b523fef4325c7f95f3743f29b455b7cbbda684fd3f5acaed7b9",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "04e1b7cee8ccafe3b187e06406406b78d51438d4c555d6f99460a9d417d6a21d"
     },
     {
       "id": "poi:wove-kitchen-loom",
@@ -860,11 +862,11 @@
         "src/scene/structures/woveLoom.ts"
       ],
       "proxyFiles": ["src/scene/miniature/poiProxyRegistry.ts"],
-      "syncRevision": 11,
-      "syncNote": "Career entries are separate from the ground-floor project miniature; existing project placement and proxy geometry remain unchanged.",
-      "sourceFingerprint": "19d288ae3e8791a7db81f2bad5bfa2e16b965c3ef2af2091590dc56b23a2adab",
-      "proxyFingerprint": "87f805c57819d57cb6d65264598edd4a679628ab0dd7f452bc44ee77cfcc3c72",
-      "metadataFingerprint": "ac2c82ede22b4cb450492ef5e53d2b9d3007d3af542887fe3609b758ad916d02"
+      "syncRevision": 12,
+      "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
+      "sourceFingerprint": "98067de04d16973e2a3a957287563dfe3c9b245162883518f45661ff9832af0b",
+      "proxyFingerprint": "d6d53c09852da4b1abc6c5cfafc8754756ec5c7649ae6e3f2e65f415349a2ee1",
+      "metadataFingerprint": "e2551675a8307d68024845a69258bfbd32e5c5e440a7ffe8aba89d20a461463c"
     },
     {
       "id": "structure:greenhouse",
@@ -873,7 +875,7 @@
       "syncRevision": 2,
       "syncNote": "The open aluminum solar frame, leaning panels and containers are projected from the same production build.",
       "sourceFingerprint": "605d14901ca0e2c3ac9d91cf27701232350e5ab725a31e8957b692cf02cc0d96",
-      "proxyFingerprint": "0e316cc9592b27eeb61ad0413a731c7636777dab3d544ca9d7d782ae64332b11",
+      "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
       "metadataFingerprint": "dc56ad49bf76678620c322c0cea2d9942ec6a43d9a3975c9fdb3dab80699acde"
     },
     {

@@ -123,7 +123,10 @@ for (const mode of ['throw-cleanup', 'async-cleanup'] as const) {
 }
 
 async function ensureFrontDoorOpen(page: Page) {
-  await walkExteriorTo(page, { x: 29, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 - 3,
+    z: -15 * Math.SQRT1_2,
+  });
   // Proximity updates run on the next scene frame after collision stepping.
   await expect
     .poll(() =>
@@ -139,11 +142,11 @@ async function ensureFrontDoorOpen(page: Page) {
 }
 async function exitHouse(page: Page) {
   await ensureFrontDoorOpen(page);
-  await walkExteriorTo(page, { x: 55, z: -15 });
+  await walkExteriorTo(page, { x: 55 * Math.SQRT1_2, z: -15 * Math.SQRT1_2 });
 }
 async function reachStop(page: Page) {
   await exitHouse(page);
-  await walkExteriorTo(page, { x: 55, z: 32 });
+  await walkExteriorTo(page, { x: 55 * Math.SQRT1_2, z: 32 * Math.SQRT1_2 });
   await expect(page.locator('[data-bus-stop-description]')).toHaveCount(1);
 }
 async function nativeZ(page: Page, target: number, positive: boolean) {
@@ -238,7 +241,7 @@ test(streetCaseTitle2, async ({ page }) => {
   test.setTimeout(150000);
   await readyExterior(page);
   await exitHouse(page);
-  await walkExteriorTo(page, { x: 61, z: -20 });
+  await walkExteriorTo(page, { x: 61 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 });
   const before = await page.evaluate(() =>
     window.portfolio!.world!.getPlayerPosition()
   );
@@ -249,12 +252,12 @@ test(streetCaseTitle2, async ({ page }) => {
     window.portfolio!.world!.getPlayerPosition()
   );
   expect(stopped.x).toBeGreaterThan(before.x);
-  expect(stopped.x).toBeLessThan(63.05);
+  expect(stopped.x).toBeLessThan(63.05 * Math.SQRT1_2);
   expect(
     await page.evaluate(() =>
       window.portfolio!.world!.canOccupyPosition({
-        x: 66,
-        z: -20,
+        x: 66 * Math.SQRT1_2,
+        z: -20 * Math.SQRT1_2,
         floorId: 'ground',
       })
     )
@@ -262,13 +265,13 @@ test(streetCaseTitle2, async ({ page }) => {
   await page.screenshot({
     path: test.info().outputPath('parked-original-ev.png'),
   });
-  await walkExteriorTo(page, { x: 72, z: -14 });
+  await walkExteriorTo(page, { x: 72 * Math.SQRT1_2, z: -14 * Math.SQRT1_2 });
   const boundaries = await page.evaluate(() =>
     [
-      { x: 80, z: 0 },
-      { x: 70, z: 40 },
-      { x: 70, z: -36 },
-      { x: 45, z: 40 },
+      { x: 80 * Math.SQRT1_2, z: 0 * Math.SQRT1_2 },
+      { x: 70 * Math.SQRT1_2, z: 40 * Math.SQRT1_2 },
+      { x: 70 * Math.SQRT1_2, z: -36 * Math.SQRT1_2 },
+      { x: 45 * Math.SQRT1_2, z: 40 * Math.SQRT1_2 },
     ].map((point) => ({
       point,
       canOccupy: window.portfolio!.world!.canOccupyPosition({
@@ -288,17 +291,20 @@ test(streetCaseTitle2, async ({ page }) => {
     expect(boundary.blockers.length).toBeGreaterThan(0);
   }
 
-  await walkExteriorTo(page, { x: 55, z: 23 });
-  await nativeZ(page, 31.8, true);
+  await walkExteriorTo(page, { x: 55 * Math.SQRT1_2, z: 23 * Math.SQRT1_2 });
+  await nativeZ(page, 31.8 * Math.SQRT1_2, true);
   // Start the native return from the verified sidewalk coordinate.
-  await walkExteriorTo(page, { x: 55, z: 32 });
+  await walkExteriorTo(page, { x: 55 * Math.SQRT1_2, z: 32 * Math.SQRT1_2 });
   await expect(page.locator(stop)).toHaveText('Bus stop: Coming Soon');
-  await nativeZ(page, 23, false);
-  await walkExteriorTo(page, { x: 55, z: -15 });
+  await nativeZ(page, 23 * Math.SQRT1_2, false);
+  await walkExteriorTo(page, { x: 55 * Math.SQRT1_2, z: -15 * Math.SQRT1_2 });
   // Re-approach the automatically closed entrance before planning through it.
-  await walkExteriorTo(page, { x: 35, z: -15 });
+  await walkExteriorTo(page, {
+    x: 32 * Math.SQRT1_2 + 3,
+    z: -15 * Math.SQRT1_2,
+  });
   await waitDoor(page, 'front-door', 'open');
-  await walkExteriorTo(page, { x: 0, z: -20 });
+  await walkExteriorTo(page, { x: 0 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 });
   expect(
     await page.evaluate(() => window.portfolio!.world!.getActiveFloor())
   ).toBe('ground');
@@ -363,7 +369,7 @@ test('checks street lighting and shelter at normal, minimum and maximum zoom', a
     path: test.info().outputPath('street-maximum-zoom.png'),
   });
   for (let i = 0; i < 9; i++) await page.keyboard.press('Shift+Minus');
-  await walkExteriorTo(page, { x: 50, z: 32 });
+  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2, z: 32 * Math.SQRT1_2 });
   await page.screenshot({
     path: test.info().outputPath('shelter-interior-cutaway.png'),
   });
@@ -409,7 +415,7 @@ test('keeps downward lamp pools visible on approach, passing and departure', asy
     ['return', 55, -15],
     ['departure-boundary', 44.9, -15],
   ] as const) {
-    await walkExteriorTo(page, { x, z });
+    await walkExteriorTo(page, { x: x * Math.SQRT1_2, z: z * Math.SQRT1_2 });
     await expect
       .poll(() =>
         page.evaluate(() =>
@@ -518,7 +524,7 @@ test(streetCaseTitle3, async ({ page }) => {
     ).violations.map((v) => v.id)
   );
   expect(violations).toEqual([]);
-  await walkExteriorTo(page, { x: 55, z: 22 });
+  await walkExteriorTo(page, { x: 55 * Math.SQRT1_2, z: 22 * Math.SQRT1_2 });
   await expect(
     page.locator(`${stop} button, ${stop} a, .exterior-bus-stop-control`)
   ).toHaveCount(0);
@@ -597,6 +603,7 @@ for (const viewport of [
     });
     if (viewport.width === 390) {
       const session = await context.newCDPSession(page);
+      // HUD touch coordinates are pixels and do not follow the world footprint.
       const origin = { x: 120, y: 620 };
       await session.send('Input.dispatchTouchEvent', {
         type: 'touchStart',
@@ -608,7 +615,8 @@ for (const viewport of [
       });
       try {
         await page.waitForFunction(
-          () => window.portfolio!.world!.getPlayerPosition().z < 26,
+          () =>
+            window.portfolio!.world!.getPlayerPosition().z < 26 * Math.SQRT1_2,
           undefined,
           { timeout: 15000 }
         );

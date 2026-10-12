@@ -207,7 +207,12 @@ describe('upper stair ground passage', () => {
     const controller = makeController();
     const start = new Vector3(config.basePosition.x, 0, -23);
     walk(controller, start, 0, 9);
-    expect(start.z).toBeLessThanOrEqual(-21.55);
+    expect(start.z).toBeLessThanOrEqual(
+      config.basePosition.z -
+        config.step.run * Math.ceil(groundActor.height / config.step.rise) -
+        radius +
+        0.01
+    );
     expect(start.y).toBe(0);
     expect(controller.getState().activeConnectionId).toBeNull();
     start.set(config.basePosition.x, 0, config.basePosition.z + 0.2);
@@ -222,7 +227,7 @@ describe('upper stair ground passage', () => {
 
   it('connects the underpass to the basement landing without crossing either physical rail', () => {
     const controller = makeController();
-    const position = new Vector3(23, 0, -23);
+    const position = new Vector3(23 * Math.SQRT1_2, 0, -23 * Math.SQRT1_2);
     for (const [x, z] of [
       [8, -23],
       [8, -11],
@@ -233,9 +238,11 @@ describe('upper stair ground passage', () => {
       [8, -23],
       [23, -23],
     ]) {
-      walk(controller, position, x - position.x, z - position.z);
-      expect(position.x).toBeCloseTo(x);
-      expect(position.z).toBeCloseTo(z);
+      const targetX = x * Math.SQRT1_2;
+      const targetZ = z * Math.SQRT1_2;
+      walk(controller, position, targetX - position.x, targetZ - position.z);
+      expect(position.x).toBeCloseTo(targetX);
+      expect(position.z).toBeCloseTo(targetZ);
       expect(position.y).toBe(
         z === -32.5 ? getFloorTopElevation('basement') : 0
       );

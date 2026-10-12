@@ -4,6 +4,17 @@ Release notes for the immersive danielsmith.io portfolio. The in-app link curren
 this repository Markdown page as a temporary wiki/documentation surface; a native changelog view
 may replace it in a future release.
 
+## v0.3.0 - unreleased
+
+- Reduced horizontal room area by 50% on all three floors while preserving room
+  proportions, 2.74 m ceiling clearance, avatar height and furniture sizes.
+  Repositioned furnishings and adjusted door approaches so the smaller house
+  retains its stair connections and accessible exhibits.
+- Preserved the faster running speed and smooth avatar loading introduced in
+  `0.2.1` and `0.2.2`. Exhibit size changes remain separate.
+- Advanced application metadata to `0.3.0` for the substantial house layout change
+  and chart packaging to `0.2.12`; these versions do not imply a tag or deployment.
+
 ## v0.2.2 - unreleased
 
 - Smoothed the animated avatar's arrival with a muted position cue and a short fade,

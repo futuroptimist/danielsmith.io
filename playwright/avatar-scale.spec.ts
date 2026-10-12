@@ -65,8 +65,8 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
         await page.evaluate(
           ({ caps, shifted }) => {
             window.portfolio!.world!.movePlayerTo({
-              x: 40,
-              z: -22,
+              x: 40 * Math.SQRT1_2,
+              z: -22 * Math.SQRT1_2,
               floorId: 'ground',
             });
             window.dispatchEvent(
@@ -83,17 +83,26 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
         );
         try {
           const speed = caps ? AVATAR_WALK_SPEED : AVATAR_RUN_SPEED;
-          // Sample speed and blend together: slow software rendering can let the
-          // player reach an obstacle between separate browser round trips.
+          // Read speed, animation and selected gait in one browser task. Slow
+          // software WebGL can reach the corridor wall between separate calls.
           await expect(async () => {
-            const { locomotion } = await snapshot();
-            expect(locomotion.linearSpeed).toBeGreaterThan(speed * 0.95);
-            expect(locomotion.linearSpeed).toBeLessThan(speed * 1.01);
-            expect(locomotion.linearState).toBe(caps ? 'walk' : 'run');
+            const sample = await page.evaluate(() => ({
+              state: window.portfolio!.avatar!.getAnimationState!() as {
+                locomotion: { linearState: string; linearSpeed: number };
+              },
+              gait: window.portfolio!.avatar!.getGait!(),
+            }));
+            expect(sample.state.locomotion.linearSpeed).toBeGreaterThan(
+              speed * 0.95
+            );
+            expect(sample.state.locomotion.linearSpeed).toBeLessThan(
+              speed * 1.01
+            );
+            expect(sample.state.locomotion.linearState).toBe(
+              caps ? 'walk' : 'run'
+            );
+            expect(sample.gait).toBe(caps ? 'walk' : 'run');
           }).toPass({ timeout: 30_000 });
-          expect(
-            await page.evaluate(() => window.portfolio!.avatar!.getGait!())
-          ).toBe(caps ? 'walk' : 'run');
         } finally {
           await page.evaluate(
             (caps) =>

@@ -1,5 +1,6 @@
 import { FLOOR_PLAN_SCALE } from '../../assets/floorPlan';
 import { getFloorTopElevation } from '../level/floorElevations';
+import { scaleLayoutPosition } from '../level/horizontalFootprint';
 import { PORTFOLIO_LEVEL } from '../level/portfolioLevel';
 import type { SceneObjectDefinition } from '../level/schema';
 
@@ -160,8 +161,36 @@ export function applyManualPoiPlacements(
     // Careers are constructed directly from their level-backed placement contract.
     if (d.category === 'career') return d;
     const override =
-      getSceneObjectPoiPlacementOverride(d.id) ?? MANUAL_POI_PLACEMENTS[d.id];
-    if (!override) return d;
+      getSceneObjectPoiPlacementOverride(d.id) ??
+      (() => {
+        const manual = MANUAL_POI_PLACEMENTS[d.id];
+        if (!manual) return undefined;
+        const dz =
+          d.id === 'sugarkube-backyard-greenhouse'
+            ? 3.5
+            : d.id === 'tokenplace-studio-cluster'
+              ? 1
+              : 0;
+        const move = <T extends { x: number; z: number }>(value: T): T => {
+          const result = scaleLayoutPosition(value);
+          return { ...result, z: result.z + dz };
+        };
+        return {
+          ...manual,
+          position: move(manual.position),
+          interactionAnchorPosition:
+            manual.interactionAnchorPosition &&
+            move(manual.interactionAnchorPosition),
+        };
+      })();
+    if (!override)
+      return {
+        ...d,
+        position: scaleLayoutPosition(d.position),
+        interactionAnchorPosition:
+          d.interactionAnchorPosition &&
+          scaleLayoutPosition(d.interactionAnchorPosition),
+      };
     return {
       ...d,
       roomId: override.roomId ?? d.roomId,

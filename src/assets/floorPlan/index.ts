@@ -1,4 +1,5 @@
 import { compileLegacyFloorPlan } from '../../scene/level/compileLegacyFloorPlan';
+import { PLAN_TO_WORLD_SCALE } from '../../scene/level/horizontalFootprint';
 import { PORTFOLIO_LEVEL } from '../../scene/level/portfolioLevel';
 
 export type RoomWall = 'north' | 'south' | 'east' | 'west';
@@ -32,7 +33,7 @@ export interface FloorPlanDefinition {
   rooms: RoomDefinition[];
 }
 
-export const FLOOR_PLAN_SCALE = Math.SQRT2 * Math.SQRT2;
+export const FLOOR_PLAN_SCALE = PLAN_TO_WORLD_SCALE;
 
 const scaleValue = (value: number): number => value * FLOOR_PLAN_SCALE;
 

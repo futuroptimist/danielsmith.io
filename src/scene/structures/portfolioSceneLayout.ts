@@ -5,6 +5,7 @@ import {
   GROUND_FLOOR_TOP_ELEVATION,
   UPPER_FLOOR_TOP_ELEVATION,
 } from '../level/floorElevations';
+import { HOUSE_HORIZONTAL_SCALE } from '../level/horizontalFootprint';
 import { FLOOR_SLAB_THICKNESS, TARGET_ROOM_CLEAR_HEIGHT } from '../units';
 
 import type { StaircaseConfig } from './staircase';
@@ -23,8 +24,8 @@ export const STAIRCASE_STEP_RISE =
   (UPPER_FLOOR_TOP_ELEVATION - GROUND_FLOOR_TOP_ELEVATION) /
   STAIRCASE_STEP_COUNT;
 export const STAIRCASE_STEP_RUN = 0.28;
-// The level corridor retains west-room access and the ground crossing at z=-23.
-export const STAIRCASE_TOP_Z = -21.8;
+// The level corridor retains west-room access and a full-height ground underpass.
+export const STAIRCASE_TOP_Z = -21.8 * HOUSE_HORIZONTAL_SCALE;
 
 export const STAIRCASE_CONFIG = {
   name: 'LivingRoomStaircase',
@@ -47,7 +48,7 @@ export const STAIRCASE_CONFIG = {
     colliderInset: toWorldUnits(0.05),
   },
   landing: {
-    depth: 9.3,
+    depth: 9.3 * HOUSE_HORIZONTAL_SCALE,
     topRise: UPPER_FLOOR_TOP_ELEVATION - GROUND_FLOOR_TOP_ELEVATION,
     thickness: STAIRCASE_LANDING_THICKNESS,
     material: {

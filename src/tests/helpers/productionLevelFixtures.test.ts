@@ -50,20 +50,20 @@ describe('production level fixture helpers', () => {
     expectBoundsToBeCloseTo(
       getProductionRoomBounds('ground', 'livingRoom', fixtureLevel),
       {
-        minX: -2,
-        maxX: 6,
-        minZ: -4,
-        maxZ: 2,
+        minX: -2 * Math.SQRT1_2,
+        maxX: 6 * Math.SQRT1_2,
+        minZ: -4 * Math.SQRT1_2,
+        maxZ: 2 * Math.SQRT1_2,
       }
     );
   });
 
   it('looks up floor bounds by floor ID', () => {
     expectBoundsToBeCloseTo(getProductionFloorBounds('ground', fixtureLevel), {
-      minX: -2,
-      maxX: 6,
-      minZ: -4,
-      maxZ: 8,
+      minX: -2 * Math.SQRT1_2,
+      maxX: 6 * Math.SQRT1_2,
+      minZ: -4 * Math.SQRT1_2,
+      maxZ: 8 * Math.SQRT1_2,
     });
   });
 
@@ -78,7 +78,7 @@ describe('production level fixture helpers', () => {
 
     expect(
       getProductionRoomBounds('ground', 'livingRoom', fixtureLevel).minX
-    ).toBeCloseTo(-2);
+    ).toBeCloseTo(-2 * Math.SQRT1_2);
   });
 
   it('throws for missing floors', () => {

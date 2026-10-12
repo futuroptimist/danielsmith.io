@@ -7,6 +7,10 @@ import {
   GARAGE_OBJECTS,
   createGarageDoorDefinitions,
 } from './garageLayout';
+import {
+  HOUSE_HORIZONTAL_SCALE,
+  PLAN_TO_WORLD_SCALE,
+} from './horizontalFootprint';
 import type {
   FloorSurfaceDefinition,
   SceneObjectDefinition,
@@ -31,7 +35,7 @@ export const HOUSE_CAMERA_OUTLINE: Array<[number, number]> = [
 export const FRONT_ENTRY = {
   x: 16,
   z: -7.5,
-  width: 1.2,
+  width: 1.2 / HOUSE_HORIZONTAL_SCALE,
   height: DOOR_CLEAR_HEIGHT,
 } as const;
 // A distinct interior approach east of the existing solid stair guard.
@@ -175,7 +179,9 @@ export const EXTERIOR_WALLS: WallDefinition[] = [
 ];
 
 /** Only plan X/Z are scaled. Heights, travel headroom and timing stay in world units. */
-export function createExteriorDoorDefinitions(scale: number): DoorDefinition[] {
+export function createExteriorDoorDefinitions(
+  scale: number = PLAN_TO_WORLD_SCALE
+): DoorDefinition[] {
   const x = FRONT_ENTRY.x * scale;
   const z = FRONT_ENTRY.z * scale;
   const width = FRONT_ENTRY.width * scale;

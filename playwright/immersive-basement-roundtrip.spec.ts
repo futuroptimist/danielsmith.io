@@ -10,16 +10,16 @@ import {
 } from '../src/scene/level/floorElevations';
 
 const URL = '/?mode=immersive&disablePerformanceFailover=1';
-const SPAWN = { x: 0, z: -20 };
-const LANDING = { x: 3.8, z: -11 };
-const TOE = { x: 3.8, z: -32.5 };
+const SPAWN = { x: 0 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 };
+const LANDING = { x: 3.8 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 };
+const TOE = { x: 3.8 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 };
 const GROUND_TO_UPPER = [
   SPAWN,
-  { x: 0, z: -23 },
-  { x: 23, z: -23 },
-  { x: 23, z: -14 },
-  { x: 12.4, z: -14 },
-  { x: 12.4, z: -16.5 },
+  { x: 0 * Math.SQRT1_2, z: -18 },
+  { x: 23 * Math.SQRT1_2, z: -18 },
+  { x: 23 * Math.SQRT1_2, z: -9 },
+  { x: 12.4 * Math.SQRT1_2, z: -9 },
+  { x: 12.4 * Math.SQRT1_2, z: -16.5 * Math.SQRT1_2 },
 ];
 
 async function ready(page: Page) {
@@ -233,9 +233,9 @@ test('walks fresh spawn through basement and every upper room, then reverses the
   test.setTimeout(180_000);
   await ready(page);
   const spawn = await checkpoint(page, 'fresh-spawn');
-  expect(spawn.position).toMatchObject({ x: 0, y: 0 });
+  expect(spawn.position).toMatchObject({ x: 0 * Math.SQRT1_2, y: 0 });
   expect(spawn.camera.cutawaySourceIds).toEqual([]);
-  await walk(page, [{ x: 0, z: -11 }, LANDING]);
+  await walk(page, [{ x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 }, LANDING]);
   const landing = await checkpoint(page, 'ground-landing-cutaway');
   expect(landing.camera.cutawaySourceIds).toEqual([
     'ground.living_room.north_wall',
@@ -248,23 +248,27 @@ test('walks fresh spawn through basement and every upper room, then reverses the
   expect(down.coordinates.currentRoomId).toBe('careerMuseum');
   await checkpoint(page, 'basement-lower-toe');
   const museumLoop = [
-    { x: -3, z: -32.5 },
-    { x: -29, z: -32.5 },
-    { x: -29, z: -15.5 },
-    { x: -18, z: -15.5 },
-    { x: -29, z: -15.5 },
-    { x: -29, z: 4.5 },
-    { x: -18, z: 4.5 },
-    { x: 20, z: 4.5 },
-    { x: 26, z: 4.5 },
-    { x: 26, z: -17.5 },
-    { x: 20, z: -17.5 },
-    { x: 26, z: -17.5 },
-    { x: 26, z: -32.5 },
+    { x: -3 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+    { x: -29 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
+    { x: -29 * Math.SQRT1_2, z: -15.5 * Math.SQRT1_2 },
+    { x: -18 * Math.SQRT1_2, z: -15.5 * Math.SQRT1_2 },
+    { x: -29 * Math.SQRT1_2, z: -15.5 * Math.SQRT1_2 },
+    { x: -29 * Math.SQRT1_2, z: 4.5 * Math.SQRT1_2 },
+    { x: -18 * Math.SQRT1_2, z: 4.5 * Math.SQRT1_2 },
+    { x: 20 * Math.SQRT1_2, z: 4.5 * Math.SQRT1_2 },
+    { x: 26 * Math.SQRT1_2, z: 4.5 * Math.SQRT1_2 },
+    { x: 26 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
+    { x: 20 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
+    { x: 26 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
+    { x: 26 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
     TOE,
   ];
   await walk(page, museumLoop, 0.12, 'basement');
-  await walk(page, [LANDING, { x: 0, z: -11 }, SPAWN]);
+  await walk(page, [
+    LANDING,
+    { x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+    SPAWN,
+  ]);
   await walk(page, GROUND_TO_UPPER, 0.12, 'ground');
   const m = await page.evaluate(() =>
     window.portfolio!.world!.getStairMetrics()
@@ -273,10 +277,10 @@ test('walks fresh spawn through basement and every upper room, then reverses the
   const lane = m.stairCenterX - m.stairHalfWidth + 0.75 * 0.75;
   const egress = [
     { x: lane, z: m.stairTopZ - 0.05 },
-    { x: lane, z: -29 },
-    { x: 3.25, z: -29 },
-    { x: -8, z: -29 },
-    { x: -8, z: -16 },
+    { x: lane, z: -29 * Math.SQRT1_2 },
+    { x: 3.25 * Math.SQRT1_2, z: -29 * Math.SQRT1_2 },
+    { x: -8 * Math.SQRT1_2, z: -29 * Math.SQRT1_2 },
+    { x: -8 * Math.SQRT1_2, z: -16 * Math.SQRT1_2 },
   ];
   await walk(page, egress, 0.12, 'upper');
   for (const id of ['loftLibrary', 'focusPods', 'creatorsStudio']) {
@@ -288,7 +292,7 @@ test('walks fresh spawn through basement and every upper room, then reverses the
     expect(route.coordinates.currentRoomId).toBe(id);
     await checkpoint(page, `upper-${id}`);
   }
-  await upperRoomPath(page, { x: -8, z: -16 });
+  await upperRoomPath(page, { x: -8 * Math.SQRT1_2, z: -16 * Math.SQRT1_2 });
   await walk(page, [...egress].reverse(), 0.12, 'upper');
   await walk(page, [
     { x: m.stairCenterX, z: m.stairTopZ - 0.05 },
@@ -308,16 +312,25 @@ test('walks fresh spawn through basement and every upper room, then reverses the
     });
     expect(route.coordinates.currentRoomId).toBe(id);
   }
-  await upperRoomPath(page, { x: -8, z: -16 });
+  await upperRoomPath(page, { x: -8 * Math.SQRT1_2, z: -16 * Math.SQRT1_2 });
   await walk(page, [...egress].reverse(), 0.12, 'upper');
   await walk(page, [
     { x: m.stairCenterX, z: m.stairTopZ - 0.05 },
     GROUND_TO_UPPER.at(-1)!,
   ]);
   await walk(page, [...GROUND_TO_UPPER].reverse(), 0.12, 'ground');
-  await walk(page, [{ x: 0, z: -11 }, LANDING, TOE]);
+  await walk(page, [
+    { x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+    LANDING,
+    TOE,
+  ]);
   await walk(page, [...museumLoop].reverse(), 0.12, 'basement');
-  await walk(page, [TOE, LANDING, { x: 0, z: -11 }, SPAWN]);
+  await walk(page, [
+    TOE,
+    LANDING,
+    { x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+    SPAWN,
+  ]);
   const returned = await checkpoint(page, 'returned-spawn');
   expect(returned.floor).toBe('ground');
   expect(returned.position.y).toBe(0);
@@ -330,27 +343,35 @@ test('completes ten consecutive round trips with slow diagonal lips, stops and r
 }) => {
   test.setTimeout(180_000);
   await ready(page);
-  await walk(page, [{ x: 0, z: -11 }, LANDING]);
+  await walk(page, [{ x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 }, LANDING]);
   for (let trip = 0; trip < 10; trip++) {
     await walk(
       page,
       [
-        { x: 3.8, z: -14.1 },
-        { x: 4, z: -14.75 },
+        { x: 3.8 * Math.SQRT1_2, z: -14.1 * Math.SQRT1_2 },
+        { x: 4 * Math.SQRT1_2, z: -14.75 * Math.SQRT1_2 },
       ],
       0.035
     );
     await page.waitForTimeout(40);
-    await walk(page, [{ x: 3.8, z: -14.1 }], 0.035);
-    const down = await walk(page, [{ x: 3.7, z: -14.8 }, TOE], 0.07);
+    await walk(
+      page,
+      [{ x: 3.8 * Math.SQRT1_2, z: -14.1 * Math.SQRT1_2 }],
+      0.035
+    );
+    const down = await walk(
+      page,
+      [{ x: 3.7 * Math.SQRT1_2, z: -14.8 * Math.SQRT1_2 }, TOE],
+      0.07
+    );
     expect(down.floor).toBe('basement');
     expect(down.position.y).toBe(getFloorTopElevation('basement'));
     expect(down.maxHeightChange).toBeLessThan(0.55);
     await walk(
       page,
       [
-        { x: 3.9, z: -29.2 },
-        { x: 3.8, z: -29.6 },
+        { x: 3.9 * Math.SQRT1_2, z: -29.2 * Math.SQRT1_2 },
+        { x: 3.8 * Math.SQRT1_2, z: -29.6 * Math.SQRT1_2 },
       ],
       0.03,
       'basement'
@@ -467,12 +488,48 @@ test('blocks coarse displacements through side and back stair rails', async ({
 }) => {
   await ready(page);
   const fixtures = [
-    { floorId: 'ground' as const, x: 1.2, z: -16.5, dx: 12, dz: 0 },
-    { floorId: 'ground' as const, x: 6.4, z: -16.5, dx: -12, dz: 0 },
-    { floorId: 'basement' as const, x: 1.2, z: -16.5, dx: 12, dz: 0 },
-    { floorId: 'basement' as const, x: 6.4, z: -16.5, dx: -12, dz: 0 },
-    { floorId: 'ground' as const, x: 3.8, z: -21, dx: 0, dz: 12 },
-    { floorId: 'basement' as const, x: 3.8, z: -10, dx: 0, dz: -12 },
+    {
+      floorId: 'ground' as const,
+      x: 3.8 * Math.SQRT1_2 - 2.6,
+      z: -16.5 * Math.SQRT1_2,
+      dx: 12,
+      dz: 0,
+    },
+    {
+      floorId: 'ground' as const,
+      x: 3.8 * Math.SQRT1_2 + 2.6,
+      z: -16.5 * Math.SQRT1_2,
+      dx: -12,
+      dz: 0,
+    },
+    {
+      floorId: 'basement' as const,
+      x: 3.8 * Math.SQRT1_2 - 2.6,
+      z: -16.5 * Math.SQRT1_2,
+      dx: 12,
+      dz: 0,
+    },
+    {
+      floorId: 'basement' as const,
+      x: 3.8 * Math.SQRT1_2 + 2.6,
+      z: -16.5 * Math.SQRT1_2,
+      dx: -12,
+      dz: 0,
+    },
+    {
+      floorId: 'ground' as const,
+      x: 3.8 * Math.SQRT1_2,
+      z: -7 * Math.SQRT2 - 5.04 - 2,
+      dx: 0,
+      dz: 12,
+    },
+    {
+      floorId: 'basement' as const,
+      x: 3.8 * Math.SQRT1_2,
+      z: -6.2,
+      dx: 0,
+      dz: -12,
+    },
   ];
   for (const fixture of fixtures) {
     const result = await page.evaluate((fixture) => {
@@ -493,13 +550,55 @@ test('blocks genuine side and back attempts without floor hopping on either loca
 }) => {
   await ready(page);
   const cases = [
-    { floorId: 'ground' as const, x: 1.2, z: -16.5, dx: 0.1, dz: 0 },
-    { floorId: 'ground' as const, x: 6.4, z: -16.5, dx: -0.1, dz: 0 },
-    { floorId: 'ground' as const, x: 3.8, z: -21, dx: 0, dz: 0.1 },
-    { floorId: 'basement' as const, x: 1.2, z: -16.5, dx: 0.1, dz: 0 },
-    { floorId: 'basement' as const, x: 6.4, z: -16.5, dx: -0.1, dz: 0 },
-    { floorId: 'basement' as const, x: 3.8, z: -10, dx: 0, dz: -0.1 },
-    { floorId: 'basement' as const, x: 1.2, z: -12.5, dx: 0.1, dz: 0 },
+    {
+      floorId: 'ground' as const,
+      x: 3.8 * Math.SQRT1_2 - 2.6,
+      z: -16.5 * Math.SQRT1_2,
+      dx: 0.1,
+      dz: 0,
+    },
+    {
+      floorId: 'ground' as const,
+      x: 3.8 * Math.SQRT1_2 + 2.6,
+      z: -16.5 * Math.SQRT1_2,
+      dx: -0.1,
+      dz: 0,
+    },
+    {
+      floorId: 'ground' as const,
+      x: 3.8 * Math.SQRT1_2,
+      z: -7 * Math.SQRT2 - 5.04 - 2,
+      dx: 0,
+      dz: 0.1,
+    },
+    {
+      floorId: 'basement' as const,
+      x: 3.8 * Math.SQRT1_2 - 2.6,
+      z: -16.5 * Math.SQRT1_2,
+      dx: 0.1,
+      dz: 0,
+    },
+    {
+      floorId: 'basement' as const,
+      x: 3.8 * Math.SQRT1_2 + 2.6,
+      z: -16.5 * Math.SQRT1_2,
+      dx: -0.1,
+      dz: 0,
+    },
+    {
+      floorId: 'basement' as const,
+      x: 3.8 * Math.SQRT1_2,
+      z: -6.2,
+      dx: 0,
+      dz: -0.1,
+    },
+    {
+      floorId: 'basement' as const,
+      x: 3.8 * Math.SQRT1_2 - 2.6,
+      z: -12.5 * Math.SQRT1_2,
+      dx: 0.1,
+      dz: 0,
+    },
   ];
   for (const fixture of cases) {
     const result = await page.evaluate((fixture) => {
@@ -559,13 +658,17 @@ test('uses genuine keyboard controls through the basement stairs in both directi
   // Isolated landing fixture, matching the touch case. Both full stair crossings
   // use browser keyboard input; the separate integrated journey starts at fresh spawn.
   await page.evaluate(() =>
-    window.portfolio!.world!.movePlayerTo({ x: 3.8, z: -11, floorId: 'ground' })
+    window.portfolio!.world!.movePlayerTo({
+      x: 3.8 * Math.SQRT1_2,
+      z: -11 * Math.SQRT1_2,
+      floorId: 'ground',
+    })
   );
-  await keyboardAxis(page, ['KeyW', 'KeyD'], 'z', -32);
+  await keyboardAxis(page, ['KeyW', 'KeyD'], 'z', -32 * Math.SQRT1_2);
   const bottom = await checkpoint(page, 'keyboard-basement');
   expect(bottom.floor).toBe('basement');
   expect(bottom.position.y).toBe(getFloorTopElevation('basement'));
-  await keyboardAxis(page, ['KeyS', 'KeyA'], 'z', -11);
+  await keyboardAxis(page, ['KeyS', 'KeyA'], 'z', -11 * Math.SQRT1_2);
   expect((await checkpoint(page, 'keyboard-ground')).floor).toBe('ground');
 });
 
@@ -583,13 +686,13 @@ test('uses genuine touch joystick input for a phone basement stair round trip', 
   // Start-only fixture isolates joystick alignment; both crossings are real touch input.
   await page.evaluate(() =>
     window.portfolio!.world!.movePlayerTo({
-      ...{ x: 3.8, z: -11 },
+      ...{ x: 3.8 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
       floorId: 'ground',
     })
   );
   const session = await context.newCDPSession(page);
   for (const direction of [-1, 1]) {
-    const target = direction === -1 ? -32 : -11;
+    const target = direction === -1 ? -32 * Math.SQRT1_2 : -11 * Math.SQRT1_2;
     const origin = { x: 100, y: 500 };
     await session.send('Input.dispatchTouchEvent', {
       type: 'touchStart',
@@ -639,66 +742,66 @@ test('measures radius-adjusted circulation lanes and turning pads against live c
       {
         name: 'workshop west perimeter',
         floorId: 'basement' as const,
-        minX: -30,
-        maxX: -28,
-        minZ: -34,
-        maxZ: -22,
+        minX: -30 * Math.SQRT1_2,
+        maxX: -28 * Math.SQRT1_2,
+        minZ: -34 * Math.SQRT1_2,
+        maxZ: -22 * Math.SQRT1_2,
       },
       {
         name: 'workshop south route to stairs',
         floorId: 'basement' as const,
-        minX: -30,
-        maxX: 5.3,
-        minZ: -34,
-        maxZ: -32,
+        minX: -30 * Math.SQRT1_2,
+        maxX: 5.3 * Math.SQRT1_2,
+        minZ: -34 * Math.SQRT1_2,
+        maxZ: -32 * Math.SQRT1_2,
       },
       {
         name: 'workshop front route to museum',
         floorId: 'basement' as const,
-        minX: -29,
-        maxX: -16,
-        minZ: -23,
-        maxZ: -22,
+        minX: -29 * Math.SQRT1_2,
+        maxX: -16 * Math.SQRT1_2,
+        minZ: -23 * Math.SQRT1_2,
+        maxZ: -22 * Math.SQRT1_2,
       },
       {
         name: 'ground west circulation',
         floorId: 'ground' as const,
-        minX: -3,
-        maxX: 0.1,
-        minZ: -21,
-        maxZ: -13.1,
+        minX: -3 * Math.SQRT1_2,
+        maxX: 0.1 * Math.SQRT1_2,
+        minZ: -21 * Math.SQRT1_2,
+        maxZ: -13.1 * Math.SQRT1_2,
       },
       {
         name: 'ground landing turn',
         floorId: 'ground' as const,
-        minX: 2.3,
-        maxX: 5.3,
-        minZ: -12.5,
-        maxZ: -9.5,
+        minX: 2.3 * Math.SQRT1_2,
+        maxX: 5.3 * Math.SQRT1_2,
+        minZ: -7 * Math.SQRT2 + 1.2,
+        maxZ: -9.5 * Math.SQRT1_2,
       },
       {
         name: 'ground west landing entry',
         floorId: 'ground' as const,
-        minX: -0.5,
-        maxX: 2.5,
-        minZ: -12.5,
-        maxZ: -9.5,
+        minX: -0.5 * Math.SQRT1_2,
+        maxX: 2.5 * Math.SQRT1_2,
+        minZ: -7 * Math.SQRT2 + 1.2,
+        maxZ: -9.5 * Math.SQRT1_2,
       },
       {
         name: 'basement lower turn',
         floorId: 'basement' as const,
-        minX: 2.3,
-        maxX: 5.3,
-        minZ: -34.5,
-        maxZ: -31.5,
+        minX: 2.3 * Math.SQRT1_2,
+        maxX: 5.3 * Math.SQRT1_2,
+        minZ: -34.5 * Math.SQRT1_2,
+        maxZ: -31.5 * Math.SQRT1_2,
       },
       {
         name: 'basement stair clear width',
         floorId: 'basement' as const,
-        minX: 3.4,
-        maxX: 4.2,
-        minZ: -18.8,
-        maxZ: -14.8,
+        minX: 3.4 * Math.SQRT1_2,
+        maxX: 4.2 * Math.SQRT1_2,
+        minZ: -18.8 * Math.SQRT1_2,
+        maxZ: -14.8 * Math.SQRT1_2,
       },
     ];
     return regions.map((region) => {
@@ -755,12 +858,20 @@ for (const profile of [
     });
     const page = await context.newPage();
     await ready(page);
-    await walk(page, [{ x: 0, z: -11 }, LANDING, TOE]);
+    await walk(page, [
+      { x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+      LANDING,
+      TOE,
+    ]);
     expect(
       (await checkpoint(page, `basement-${profile.width}x${profile.height}`))
         .floor
     ).toBe('basement');
-    await walk(page, [LANDING, { x: 0, z: -11 }, SPAWN]);
+    await walk(page, [
+      LANDING,
+      { x: 0 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 },
+      SPAWN,
+    ]);
     expect(
       (await checkpoint(page, `ground-${profile.width}x${profile.height}`))
         .floor

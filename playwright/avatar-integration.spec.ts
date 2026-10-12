@@ -77,8 +77,8 @@ test('approved avatar loads, gait toggles and nearby lounge seating exits safely
   await reportLock(false);
   await page.evaluate(() =>
     window.portfolio?.world?.movePlayerTo({
-      x: -30.13,
-      z: -22.8,
+      x: -28.5 * Math.SQRT1_2 + 0.3 - 1.63,
+      z: -22.8 * Math.SQRT1_2 - 0.9,
       floorId: 'ground',
     })
   );
@@ -124,8 +124,8 @@ test('changing quality while seated reloads at a clear standing position', async
   await page.keyboard.press('Escape');
   await page.evaluate(() =>
     window.portfolio!.world!.movePlayerTo({
-      x: -30.13,
-      z: -22.8,
+      x: -28.5 * Math.SQRT1_2 + 0.3 - 1.63,
+      z: -22.8 * Math.SQRT1_2 - 0.9,
       floorId: 'ground',
     })
   );
@@ -358,8 +358,8 @@ test('reduced motion supports the other lounge and reading chair without trappin
   );
   await page.keyboard.press('Escape');
   for (const point of [
-    { x: -27.73, z: -15.9 },
-    { x: 20.68, z: 11.5 },
+    { x: -26.1 * Math.SQRT1_2 - 1.63, z: -15.9 * Math.SQRT1_2 + 0.55 },
+    { x: 22.2 * Math.SQRT1_2 - 1.52, z: 12.6 * Math.SQRT1_2 - 1.1 },
   ]) {
     await page.evaluate(
       (p) => window.portfolio?.world?.movePlayerTo({ ...p, floorId: 'ground' }),
