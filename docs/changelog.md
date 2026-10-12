@@ -4,6 +4,16 @@ Release notes for the immersive danielsmith.io portfolio. The in-app link curren
 this repository Markdown page as a temporary wiki/documentation surface; a native changelog view
 may replace it in a future release.
 
+## v0.2.1 - unreleased
+
+- Increased the character's running speed by 20%, from 2.537393 to 3.044872 metres/second,
+  while preserving walking at 1.116453 metres/second and the Caps Lock controls
+  (off runs by default; on walks).
+- Matched the running animation cadence to the faster movement and retained camera-relative
+  movement, collision-safe traversal, door timing, and reduced-motion behavior.
+- Advanced application metadata to `0.2.1` for this compatible movement adjustment and chart
+  packaging to `0.2.10`. These versions do not imply a tag, release, or deployment.
+
 ## v0.2.0 - unreleased
 
 This application version reconciles the substantial merged changes since `v0.1.3`.
