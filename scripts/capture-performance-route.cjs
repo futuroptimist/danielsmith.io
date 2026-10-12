@@ -1177,7 +1177,10 @@ function createCaptureSession(directory, options = {}) {
             });
             parentPort.postMessage({ analysis, prefixes });
           } catch (error) {
-            parentPort.postMessage({ error: ['output_limit','invalid_input','input_limit'].includes(error.code) ? error.code : 'internal_error' });
+            const allowed = ['output_limit', 'invalid_input', 'input_limit'];
+            parentPort.postMessage({
+              error: allowed.includes(error.code) ? error.code : 'internal_error'
+            });
           }
         `,
           {

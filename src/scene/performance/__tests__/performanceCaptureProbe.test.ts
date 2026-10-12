@@ -58,7 +58,14 @@ function fixture(overrides = {}, hidden = false, supported = true) {
     bounds: { ...DEFAULT_BOUNDS, ...overrides },
     labels: ['synthetic'],
   };
-  const source = `window = globalThis; window.top = window; window.addEventListener = (k,f)=>hostListeners.set(k,f); window.removeEventListener=k=>hostListeners.delete(k); (${installRouteCapture.toString()})(${JSON.stringify(config)}); window.__routeCapture;`;
+  const source = `
+    window = globalThis;
+    window.top = window;
+    window.addEventListener = (k,f)=>hostListeners.set(k,f);
+    window.removeEventListener=k=>hostListeners.delete(k);
+    (${installRouteCapture.toString()})(${JSON.stringify(config)});
+    window.__routeCapture;
+  `;
   const sandbox = {
     ...context,
     hostListeners: listeners,
@@ -135,7 +142,7 @@ describe('serialized supplemental capture with synthetic clocks', () => {
     f.probe.dispose();
     f.probe.dispose();
   });
-  it('preserves hidden initialization and ignores synthetic pagehide before and after 120 intervals', () => {
+  it('retains hidden init and synthetic pagehide around 120 intervals', () => {
     const f = fixture({}, true);
     f.event('pagehide');
     for (let i = 0; i <= 120; i++) f.tick(i * 16);
@@ -205,7 +212,10 @@ describe('serialized supplemental capture with synthetic clocks', () => {
       if (stream === 'snapshots') {
         // Construct the approved primitive snapshot in the same VM realm.
         const make = f.probe.snapshot.constructor(
-          'return {atMs:0,rendererClass:"unknown",appMode:"unknown",quality:"unknown",devicePixelRatio:1,calls:0,triangles:0,memoryGeometries:0,memoryTextures:0}'
+          `return {
+            atMs:0, rendererClass:'unknown', appMode:'unknown', quality:'unknown',
+            devicePixelRatio:1, calls:0, triangles:0, memoryGeometries:0, memoryTextures:0
+          }`
         );
         f.probe.snapshot(make());
         f.probe.snapshot(make());
