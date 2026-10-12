@@ -1389,6 +1389,32 @@ function summary(values) {
   };
 }
 const overlap = (a, b, c, d) => Math.max(a, c) < Math.min(b, d);
+// Binary indexes avoid rescanning every retained marker/span for each callback.
+function firstAfter(records, time, key) {
+  let low = 0,
+    high = records.length;
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    if (key(records[mid]) <= time) low = mid + 1;
+    else high = mid;
+  }
+  return low;
+}
+function overlapIndex(ranges) {
+  const merged = [];
+  for (const range of ranges
+    .filter((r) => r.endMs > r.atMs)
+    .sort((a, b) => a.atMs - b.atMs)) {
+    const last = merged.at(-1);
+    if (last && range.atMs <= last.endMs)
+      last.endMs = Math.max(last.endMs, range.endMs);
+    else merged.push({ atMs: range.atMs, endMs: range.endMs });
+  }
+  return (a, b) => {
+    const index = firstAfter(merged, a, (r) => r.endMs);
+    return index < merged.length && merged[index].atMs < b;
+  };
+}
 function analyzeCapture(value) {
   const c = parseCapture(value),
     t = c.rafTimestampsMs;
@@ -1446,6 +1472,31 @@ function analyzeCapture(value) {
     coverage.captureStoppedAtMs ??
     t.at(-1) ??
     fullStart;
+  const helperOverlap = overlapIndex(
+    spans.filter((s) => s.spanKind.startsWith('helper_'))
+  );
+  const interruptionOverlap = overlapIndex(
+    spans.filter((s) => s.spanKind === 'interruption')
+  );
+  const hiddenOverlap = overlapIndex(
+    visibility.flatMap((m, j) =>
+      m.type === 'visibility_hidden'
+        ? [{ atMs: m.atMs, endMs: visibility[j + 1]?.atMs ?? fullEnd }]
+        : []
+    )
+  );
+  const hiddenMarkers = visibility.filter(
+    (m) => m.type === 'visibility_hidden'
+  );
+  const badSnapshots = c.snapshots.filter(
+    (s) =>
+      s.rendererClass !== c.profile.rendererClass || s.appMode !== 'immersive'
+  );
+  const sortedSpans = spans
+    .map((s, order) => ({ ...s, order }))
+    .sort((a, b) => a.atMs - b.atMs);
+  let spanCursor = 0,
+    activeSpans = [];
   const ready = c.warmth.applicationReadyMs;
   const definitions = [
     {
@@ -1490,8 +1541,16 @@ function analyzeCapture(value) {
   if (!invalid)
     for (let i = 0; i < durations.length; i++)
       if (durations[i] > 100) {
-        const intersections = spans.filter((s) =>
-          overlap(t[i], t[i + 1], s.atMs, s.endMs)
+        while (
+          spanCursor < sortedSpans.length &&
+          sortedSpans[spanCursor].atMs < t[i + 1]
+        )
+          activeSpans.push(sortedSpans[spanCursor++]);
+        activeSpans = activeSpans.filter(
+          (s) => s.endMs > t[i] && s.endMs > s.atMs
+        );
+        const intersections = [...activeSpans].sort(
+          (a, b) => a.order - b.order
         );
         budget(220 + intersections.length * 6);
         const helper = intersections.some((s) =>
@@ -1500,17 +1559,7 @@ function analyzeCapture(value) {
         const interruption =
           intersections.some((s) =>
             ['interruption', 'visibility'].includes(s.spanKind)
-          ) ||
-          visibility.some(
-            (m, j) =>
-              m.type === 'visibility_hidden' &&
-              overlap(
-                t[i],
-                t[i + 1],
-                m.atMs,
-                visibility[j + 1]?.atMs ?? fullEnd
-              )
-          );
+          ) || hiddenOverlap(t[i], t[i + 1]);
         gaps.push({
           intervalIndex: i,
           startMs: t[i],
@@ -1567,47 +1616,30 @@ function analyzeCapture(value) {
           if (a < w.startMs || b > w.endMs) reasons.push('boundary_crossing');
           const visible =
             visibilityKnown &&
-            visibility.findLast((m) => m.atMs <= a)?.type ===
+            visibility[firstAfter(visibility, a, (m) => m.atMs) - 1]?.type ===
               'visibility_visible';
           if (!visibilityKnown) reasons.push('missing_coverage');
           else if (
             !visible ||
-            visibility.some(
-              (m) => m.atMs > a && m.atMs < b && m.type === 'visibility_hidden'
-            )
+            hiddenMarkers[firstAfter(hiddenMarkers, a, (m) => m.atMs)]?.atMs < b
           )
             reasons.push('hidden');
-          if (
-            spans.some(
-              (s) =>
-                s.spanKind.startsWith('helper_') &&
-                overlap(a, b, s.atMs, s.endMs)
-            )
-          )
-            reasons.push('helper_overlap');
-          if (
-            spans.some(
-              (s) =>
-                s.spanKind === 'interruption' && overlap(a, b, s.atMs, s.endMs)
-            )
-          )
-            reasons.push('missing_coverage');
+          if (helperOverlap(a, b)) reasons.push('helper_overlap');
+          if (interruptionOverlap(a, b)) reasons.push('missing_coverage');
           if (
             c.warmth.state !== 'evidence_provided' ||
             a < c.warmth.assetsSettledMs + 5000
           )
             reasons.push('warmth_unqualified');
+          // The snapshot test intentionally includes both interval endpoints.
+          const badIndex = firstAfter(badSnapshots, a, (s) => s.atMs);
           if (
-            c.snapshots.some(
-              (s) =>
-                s.atMs >= a &&
-                s.atMs <= b &&
-                (s.rendererClass !== c.profile.rendererClass ||
-                  s.appMode !== 'immersive')
-            )
+            badSnapshots[badIndex - 1]?.atMs === a ||
+            badSnapshots[badIndex]?.atMs <= b
           )
             reasons.push('renderer_changed');
-          const lastSnapshot = c.snapshots.findLast((s) => s.atMs <= a);
+          const lastSnapshot =
+            c.snapshots[firstAfter(c.snapshots, a, (s) => s.atMs) - 1];
           if (!lastSnapshot || lastSnapshot.appMode === 'unknown')
             reasons.push('missing_coverage');
           else if (

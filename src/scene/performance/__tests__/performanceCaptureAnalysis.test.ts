@@ -191,6 +191,57 @@ describe('synthetic supplemental analysis oracles (not hardware evidence)', () =
       'bounds_mismatch'
     );
   });
+  it('preserves gap span order and strict overlap boundaries with indexed ranges', () => {
+    const c = raw([150, 150, 150]);
+    c.markers.push(
+      marker(50, 'span_begin', 0, 'helper_screenshot'),
+      marker(320, 'span_end', 0, 'helper_screenshot'),
+      marker(150, 'span_begin', 1, 'interruption'),
+      marker(300, 'span_end', 1, 'interruption'),
+      marker(100, 'span_begin', 2, 'helper_snapshot'),
+      marker(100, 'span_end', 2, 'helper_snapshot'),
+      marker(320, 'visibility_hidden'),
+      marker(400, 'visibility_visible')
+    );
+    c.markers.sort((a, b) => a.atMs - b.atMs);
+    const a = analyzeCapture(sync(c));
+    expect(
+      a.gaps.map(
+        (g: { intersectingSpanIds: number[] }) => g.intersectingSpanIds
+      )
+    ).toEqual([[0], [1, 0], [0]]);
+    expect(
+      a.gaps.map((g: { classification: string }) => g.classification)
+    ).toEqual([
+      'overlaps_known_helper',
+      'overlaps_helper_and_interruption',
+      'overlaps_helper_and_interruption',
+    ]);
+  });
+  it('analyzes near-limit callback and span counts without Cartesian scans', () => {
+    const c = raw(Array(300000).fill(4));
+    c.snapshots.push(snapshot());
+    Object.assign(c.warmth, {
+      state: 'evidence_provided',
+      applicationReadyMs: 0,
+      assetsSettledMs: 0,
+      settleEvidenceSha256: hash,
+    });
+    c.markers.push(marker(0, 'application_ready'), marker(0, 'assets_settled'));
+    for (let id = 0; id < 2000; id++)
+      c.markers.push(
+        marker(0, 'span_begin', id, 'helper_snapshot'),
+        marker(1200000, 'span_end', id, 'helper_snapshot')
+      );
+    c.markers.sort((a, b) => a.atMs - b.atMs);
+    const a = analyzeCapture(sync(c));
+    expect(a.allIntervals.sampleCount).toBe(300000);
+    expect(
+      a.windows.find(
+        (w: { kind: string }) => w.kind === 'steady_foreground_candidate'
+      ).summary.state
+    ).toBe('unavailable');
+  }, 10000);
   it('carries fallback observations forward until an immersive observation returns', () => {
     const c = raw([5001, 16, 16, 16, 16, 16]);
     Object.assign(c.warmth, {
