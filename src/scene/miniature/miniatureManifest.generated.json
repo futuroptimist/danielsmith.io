@@ -379,11 +379,11 @@
         "src/systems/movement/avatarGait.ts"
       ],
       "proxyFiles": [],
-      "syncRevision": 10,
-      "syncNote": "Run speed and its animation cap increase proportionally; walking, player dimensions, and the separately normalized miniature marker geometry are unchanged.",
-      "sourceFingerprint": "277ca1ebd25ebf4d242b350392fd2fd88647ff844b24ad56fe0e83b7bbd95397",
+      "syncRevision": 11,
+      "syncNote": "Footstep audio retains its fixed speed calibration independently of faster running; player dimensions and the separately normalized miniature marker geometry are unchanged.",
+      "sourceFingerprint": "033337b5b9dcb2872d365c24bf990cebf8b8035cad2e78673cbaa334f8438419",
       "proxyFingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "metadataFingerprint": "d8cf574a6f768f7b077879cd7ad756c9530c781e6eb26a29997b753a91066934"
+      "metadataFingerprint": "a1723e796a3856217afb43355f6c9503d9fa0aee6c03ba045f6867a1b5498e3a"
     },
     {
       "id": "avatar:loading-presentation",

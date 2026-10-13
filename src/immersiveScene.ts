@@ -483,6 +483,7 @@ import {
   createAnalyticsGlowRhythm,
   type AnalyticsGlowRhythmHandle,
 } from './systems/hud/analyticsGlowRhythm';
+import { AVATAR_FOOTSTEP_REFERENCE_SPEED } from './systems/movement/avatarGait';
 import { getCameraRelativeMovementVector } from './systems/movement/cameraRelativeMovement';
 import {
   computeCameraRelativeYaw,
@@ -3706,7 +3707,7 @@ function buildImmersiveScene(
       stop: stopFootstepAudio,
     },
     initialEnabled: ambientAudioPreference?.isEnabled() ?? false,
-    maxLinearSpeed: AVATAR_RUN_SPEED,
+    maxLinearSpeed: AVATAR_FOOTSTEP_REFERENCE_SPEED,
     minActivationSpeed: AVATAR_WALK_SPEED * 0.12,
     intervalRange: { min: 0.26, max: 0.58 },
     volumeRange: { min: 0.32, max: 0.7 },

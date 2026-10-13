@@ -10,6 +10,22 @@ const readImmersiveSceneSource = () =>
   readFileSync(immersiveScenePath, 'utf-8');
 
 describe('immersive scene module imports', () => {
+  it('keeps footstep calibration independent of the movement run maximum', () => {
+    const source = readImmersiveSceneSource();
+    const audioSetup = source.slice(
+      source.indexOf(
+        'footstepAudioController = createFootstepAudioController({'
+      ),
+      source.indexOf('const mannequinMixer = new AnimationMixer(player);')
+    );
+    expect(audioSetup).toContain(
+      'maxLinearSpeed: AVATAR_FOOTSTEP_REFERENCE_SPEED,'
+    );
+    expect(audioSetup).toContain(
+      'minActivationSpeed: AVATAR_WALK_SPEED * 0.12,'
+    );
+  });
+
   it('keeps camera-relative yaw helpers wired in', () => {
     const source = readImmersiveSceneSource();
     expect(source).toMatch(

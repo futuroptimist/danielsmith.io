@@ -260,9 +260,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/units.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 10,
+    syncRevision: 11,
     syncNote:
-      'Run speed and its animation cap increase proportionally; walking, player dimensions, and the separately normalized miniature marker geometry are unchanged.',
+      'Footstep audio retains its fixed speed calibration independently of faster running; player dimensions and the separately normalized miniature marker geometry are unchanged.',
     reason:
       'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
