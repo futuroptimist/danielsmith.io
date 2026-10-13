@@ -11,6 +11,8 @@ may replace it in a future release.
   and pitch, and existing gait controls.
 - Raised the run-animation playback cap proportionally so stride cadence tracks
   the faster translation. Room geometry and collision clearances are unchanged.
+- Batched animated flywheel packet connectors and equal-opacity node pairs to reduce
+  draw calls without changing packet geometry, timing, or transparency.
 - Advanced application metadata to `0.3.2` and chart packaging to `0.2.14`.
   These versions do not imply a tag, release, or deployment.
 

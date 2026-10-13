@@ -69,8 +69,11 @@ visible geometry, preventing an all-target spiderweb.
 ## Arc rendering, pooling, and performance
 
 All Flywheel geometry, materials, packet nodes, and packet connectors are built
-at setup time. Per-frame work reuses vectors, packet meshes, connector meshes,
-and materials. No `TubeGeometry`, transfer material, gear geometry, or canvas is
+at setup time. Connectors share one instanced draw with the same geometry, opacity,
+and segment transforms. Symmetric nodes share an instanced draw per equal-opacity pair;
+their matching unlit color preserves alpha blending. Moving instance bounds are
+refreshed for correct frustum culling.
+Per-frame work reuses vectors, packet meshes, instance matrices, and materials. No `TubeGeometry`, transfer material, gear geometry, or canvas is
 created in `update(...)`. `getDebugState()` returns cloned snapshots and is the
 only intentionally allocation-friendly diagnostic path.
 

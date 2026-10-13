@@ -137,9 +137,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     poiId: 'flywheel-studio-flywheel',
     id: 'poi:flywheel-studio-flywheel',
     displayName: 'Flywheel proxy',
-    syncRevision: 34,
+    syncRevision: 35,
     syncNote:
-      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
+      'Runtime energy-packet connectors and equal-opacity node pairs use instanced draws with unchanged geometry and transfer semantics; the static miniature proxy is unchanged.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/flywheel.ts',
