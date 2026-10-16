@@ -288,6 +288,56 @@ async function captureCounters(page: Page, name: string) {
   return snapshot;
 }
 
+async function assertLandscapeLaunchCycleBudget(page: Page) {
+  const result = await page.evaluate(async () => {
+    const api = window.portfolio!.performance!;
+    if (!('getSnapshot' in api))
+      throw new Error('Performance diagnostics unavailable');
+    const peak = { ...api.getSnapshot().rendererCounters };
+    let samples = 0;
+    // Cover five incoming transfers (2.8s each) and one outgoing transfer (2.35s).
+    // Sample the entire interval, never wait for a favorable frame below the ceiling.
+    const deadline = performance.now() + 18_000;
+    await new Promise<void>((resolve) => {
+      const sample = () => {
+        const counters = api.getSnapshot().rendererCounters;
+        peak.calls = Math.max(peak.calls, counters.calls);
+        peak.triangles = Math.max(peak.triangles, counters.triangles);
+        peak.memoryGeometries = Math.max(
+          peak.memoryGeometries,
+          counters.memoryGeometries
+        );
+        peak.memoryTextures = Math.max(
+          peak.memoryTextures,
+          counters.memoryTextures
+        );
+        samples += 1;
+        if (performance.now() >= deadline) resolve();
+        else requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    return { peak, samples };
+  });
+  await writeFile(
+    test.info().outputPath('spawn-cycle-counters.json'),
+    JSON.stringify(result, null, 2)
+  );
+  expect(result.samples).toBeGreaterThan(1);
+  expect(result.peak.calls).toBeLessThanOrEqual(
+    IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.maxDrawCalls
+  );
+  expect(result.peak.triangles).toBeLessThanOrEqual(
+    IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.maxTriangles
+  );
+  expect(result.peak.memoryGeometries).toBeLessThanOrEqual(
+    IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.maxGeometries
+  );
+  expect(result.peak.memoryTextures).toBeLessThanOrEqual(
+    IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET.maxTextures
+  );
+}
+
 async function selectByKeyboard(page: Page, id: string) {
   for (let index = 0; index < 5; index += 1) {
     await page.keyboard.press('KeyE');
@@ -346,6 +396,8 @@ for (const profile of [
     page.on('pageerror', (error) => errors.push(error.message));
     await ready(page);
     await captureCounters(page, 'spawn-counters');
+    if (profile.name === 'phone-landscape')
+      await assertLandscapeLaunchCycleBudget(page);
     const hidden = await page.evaluate(() =>
       window.portfolio!.poi!.getCareerMuseumState()
     );
