@@ -1,0 +1,353 @@
+{
+  "schema": 1,
+  "captureCommit": "17a0af210df87d602f11fae25565df18a32b63e3",
+  "acceptedBaseCommit": "2af9b2b8861b7be16d816b1025329b26e5720f1f",
+  "repositoryWorkingTreeDirty": false,
+  "cleanlinessScope": "All tracked and untracked nonignored repository files, checked before and after measurement.",
+  "prototypeHashes": {
+    "rectangularNeighborhood.ts": "4d4a8b643052b9081d8f709abd9546914e02fd78c81cd60367231be992e3db57",
+    "neighborhoodFixtures.ts": "744f0e814ff669994e8df9e00d508df36b9f76aff3700c1e1fc4df70538b70c0",
+    "measureNeighborhood.ts": "6792c77f8dacdde13f66faed064a6870da4a5fa0493dc2a88c3bd49fcf91d8c6"
+  },
+  "environment": {
+    "node": "v18.17.1",
+    "platform": "win32",
+    "arch": "x64",
+    "cpu": "13th Gen Intel(R) Core(TM) i9-13900K"
+  },
+  "scope": "Synthetic, test-only feasibility; no live scene or low-end hardware qualification.",
+  "parameters": {
+    "cellSize": 0.125,
+    "maxCells": 262144,
+    "maxRectangles": 512,
+    "overlap": 0.001,
+    "actorRadius": 0.75,
+    "physicalClearWidthRequirement": 3,
+    "collisionAllowance": "Unconfirmed; sweep only, no acceptance claim"
+  },
+  "curve": {
+    "authoredWidth": 6,
+    "walkableRectangleCount": 154,
+    "conservativeRadialCenterStrip": 4.1407897551572335,
+    "ends": "Actor-eroded sector endcaps; later route joins need independent union validation."
+  },
+  "fixtureSolidRectangleCount": 204,
+  "maxSolidBoundaryDeviation": 0.17720331368161624,
+  "openings": [
+    {
+      "angle": 0,
+      "authoredGap": 3,
+      "minimumPhysicalClearWidth": 2.9980000000000047,
+      "guaranteedActorCenterStrip": 1.4980000000000047,
+      "maxBoundaryDeviation": 0.026019223662515554,
+      "rectangleCount": 4
+    },
+    {
+      "angle": 0.4487989505128276,
+      "authoredGap": 3,
+      "minimumPhysicalClearWidth": 2.68363620365957,
+      "guaranteedActorCenterStrip": 1.18363620365957,
+      "maxBoundaryDeviation": 0.16892843420773726,
+      "rectangleCount": 60
+    },
+    {
+      "angle": 0.7853981633974483,
+      "authoredGap": 3,
+      "minimumPhysicalClearWidth": 2.64882200232481,
+      "guaranteedActorCenterStrip": 1.1488220023248101,
+      "maxBoundaryDeviation": 0.17558899883759693,
+      "rectangleCount": 96
+    },
+    {
+      "angle": 0,
+      "authoredGap": 3.2,
+      "minimumPhysicalClearWidth": 2.9980000000000047,
+      "guaranteedActorCenterStrip": 1.4980000000000047,
+      "maxBoundaryDeviation": 0.10429285689825461,
+      "rectangleCount": 4
+    },
+    {
+      "angle": 0.4487989505128276,
+      "authoredGap": 3.2,
+      "minimumPhysicalClearWidth": 2.9088784206351748,
+      "guaranteedActorCenterStrip": 1.4088784206351748,
+      "maxBoundaryDeviation": 0.16892843420773992,
+      "rectangleCount": 62
+    },
+    {
+      "angle": 0.7853981633974483,
+      "authoredGap": 3.2,
+      "minimumPhysicalClearWidth": 3.002375392918084,
+      "guaranteedActorCenterStrip": 1.502375392918084,
+      "maxBoundaryDeviation": 0.1665792565073326,
+      "rectangleCount": 94
+    },
+    {
+      "angle": 0,
+      "authoredGap": 3.4,
+      "minimumPhysicalClearWidth": 3.2480000000000047,
+      "guaranteedActorCenterStrip": 1.7480000000000047,
+      "maxBoundaryDeviation": 0.08032434251209329,
+      "rectangleCount": 4
+    },
+    {
+      "angle": 0.4487989505128276,
+      "authoredGap": 3.4,
+      "minimumPhysicalClearWidth": 3.125820290193954,
+      "guaranteedActorCenterStrip": 1.6258202901939538,
+      "maxBoundaryDeviation": 0.16892843420773704,
+      "rectangleCount": 60
+    },
+    {
+      "angle": 0.7853981633974483,
+      "authoredGap": 3.4,
+      "minimumPhysicalClearWidth": 3.179152088214721,
+      "guaranteedActorCenterStrip": 1.679152088214721,
+      "maxBoundaryDeviation": 0.16657925650733515,
+      "rectangleCount": 94
+    },
+    {
+      "angle": 0,
+      "authoredGap": 3.8,
+      "minimumPhysicalClearWidth": 3.7480000000000047,
+      "guaranteedActorCenterStrip": 2.2480000000000047,
+      "maxBoundaryDeviation": 0.10429285689825461,
+      "rectangleCount": 4
+    },
+    {
+      "angle": 0.4487989505128276,
+      "authoredGap": 3.8,
+      "minimumPhysicalClearWidth": 3.4678337893657742,
+      "guaranteedActorCenterStrip": 1.9678337893657742,
+      "maxBoundaryDeviation": 0.17141550820703588,
+      "rectangleCount": 62
+    },
+    {
+      "angle": 0.7853981633974483,
+      "authoredGap": 3.8,
+      "minimumPhysicalClearWidth": 3.532705478807995,
+      "guaranteedActorCenterStrip": 2.032705478807995,
+      "maxBoundaryDeviation": 0.1776858454706769,
+      "rectangleCount": 94
+    }
+  ],
+  "cpu": [
+    {
+      "colliders": 32,
+      "walkableRectangles": 16,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.060200005769729614,
+          "p95": 0.10359999537467957,
+          "p99": 0.11919999122619629,
+          "max": 0.1462000012397766,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.05849999189376831,
+          "p95": 0.10109999775886536,
+          "p99": 0.1199999749660492,
+          "max": 0.1412999927997589,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.05750000476837158,
+          "p95": 0.09889999032020569,
+          "p99": 0.10700002312660217,
+          "max": 0.1362999975681305,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 128,
+      "walkableRectangles": 64,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.20020002126693726,
+          "p95": 0.25440001487731934,
+          "p99": 0.26729997992515564,
+          "max": 0.2867000102996826,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.20090001821517944,
+          "p95": 0.2542000114917755,
+          "p99": 0.2619999945163727,
+          "max": 0.26930001378059387,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.20120000839233398,
+          "p95": 0.25870001316070557,
+          "p99": 0.28450000286102295,
+          "max": 0.34150001406669617,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 256,
+      "walkableRectangles": 128,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.41749998927116394,
+          "p95": 0.4934999942779541,
+          "p99": 0.5253000259399414,
+          "max": 0.5842999815940857,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.41530001163482666,
+          "p95": 0.48500001430511475,
+          "p99": 0.5085999965667725,
+          "max": 0.5449999868869781,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.4113999903202057,
+          "p95": 0.4712999761104584,
+          "p99": 0.4973999857902527,
+          "max": 0.5216000080108643,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 256,
+      "walkableRectangles": 256,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.49379998445510864,
+          "p95": 0.5639999806880951,
+          "p99": 0.598800003528595,
+          "max": 0.6371000111103058,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.4926999807357788,
+          "p95": 0.5587999820709229,
+          "p99": 0.6006999909877777,
+          "max": 0.7134000062942505,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.4710000157356262,
+          "p95": 0.5559999942779541,
+          "p99": 0.5866000056266785,
+          "max": 0.6915000081062317,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 512,
+      "walkableRectangles": 256,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.8662000000476837,
+          "p95": 0.931300014257431,
+          "p99": 0.9555999934673309,
+          "max": 1.0216000080108643,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.8662999868392944,
+          "p95": 0.9505999982357025,
+          "p99": 1.0367999970912933,
+          "max": 1.190999984741211,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.8638000190258026,
+          "p95": 0.9144000113010406,
+          "p99": 0.93299999833107,
+          "max": 0.9763000011444092,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 1024,
+      "walkableRectangles": 512,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 1.7110999822616577,
+          "p95": 1.8818999826908112,
+          "p99": 1.9778999984264374,
+          "max": 2.155900001525879,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 1.7198000252246857,
+          "p95": 1.8844000101089478,
+          "p99": 1.9988999962806702,
+          "max": 2.0338999927043915,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 1.731000006198883,
+          "p95": 1.8957000076770782,
+          "p99": 2.0266000032424927,
+          "max": 2.1676999926567078,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 2048,
+      "walkableRectangles": 1024,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 3.5035000145435333,
+          "p95": 3.754700005054474,
+          "p99": 3.9095999896526337,
+          "max": 4.381300002336502,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 3.5015000104904175,
+          "p95": 3.6926999986171722,
+          "p99": 3.914799988269806,
+          "max": 4.02690002322197,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 3.537000000476837,
+          "p95": 3.8700999915599823,
+          "p99": 4.225199997425079,
+          "max": 4.747200012207031,
+          "hits": 0
+        }
+      ]
+    }
+  ]
+}
