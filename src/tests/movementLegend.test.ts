@@ -459,6 +459,17 @@ describe('createMovementLegend', () => {
     stubWindow.dispatchEvent(new Event('gamepadconnected'));
     expect(legend.getActiveMethod()).toBe('gamepad');
 
+    // A secondary disconnect must not change guidance for the remaining pad,
+    // even while that pad is neutral and produces no fresh activity.
+    stubWindow.dispatchEvent(new Event('gamepaddisconnected'));
+    expect(legend.getActiveMethod()).toBe('gamepad');
+    stubWindow.gamepads[0].connected = false;
+    stubWindow.gamepads.push({
+      mapping: '',
+      connected: true,
+      buttons: [],
+      axes: [],
+    });
     stubWindow.dispatchEvent(new Event('gamepaddisconnected'));
     expect(legend.getActiveMethod()).toBe('pointer');
 

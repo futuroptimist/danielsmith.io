@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 
 interface SyntheticWindow extends Window {
   syntheticPad: {
+    id: string;
+    index: number;
     mapping: string;
     connected: boolean;
     axes: number[];
@@ -20,6 +22,8 @@ test('synthetic standard gamepad moves and zooms; HUD and disconnect remain safe
   await page.addInitScript(() => {
     const win = window as unknown as SyntheticWindow;
     win.syntheticPad = {
+      id: 'Synthetic generic standard controller',
+      index: 0,
       mapping: 'standard',
       connected: true,
       axes: [0, 0, 0, 0],
@@ -29,8 +33,6 @@ test('synthetic standard gamepad moves and zooms; HUD and disconnect remain safe
       value: () => [
         {
           ...win.syntheticPad,
-          id: 'Synthetic generic standard controller',
-          index: 0,
         },
       ],
     });
@@ -72,7 +74,7 @@ test('synthetic standard gamepad moves and zooms; HUD and disconnect remain safe
     .toBeGreaterThan(0.05);
   await expect.poll(zoom).toBeLessThan(initialZoom);
   await page.evaluate(() => {
-    (window as unknown as SyntheticWindow).syntheticPad.connected = false;
+    // Keep the polled pad connected and held here: only the event can stop input.
     window.dispatchEvent(
       Object.assign(new Event('gamepaddisconnected'), {
         gamepad: (window as unknown as SyntheticWindow).syntheticPad,
@@ -88,6 +90,10 @@ test('synthetic standard gamepad moves and zooms; HUD and disconnect remain safe
     Math.hypot(stopped.x - disconnected.x, stopped.z - disconnected.z)
   ).toBeLessThan(0.03);
   expect(await zoom()).toBe(stoppedZoom);
+
+  await page.evaluate(() => {
+    (window as unknown as SyntheticWindow).syntheticPad.connected = false;
+  });
 
   await page.locator('[data-role="controls-button"]').click();
   const category = page.locator('[data-role="gamepad-controls"]');

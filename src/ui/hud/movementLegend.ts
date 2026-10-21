@@ -657,7 +657,11 @@ export function createMovementLegend(
     });
 
     addListener('gamepaddisconnected', () => {
-      if (activeMethod === 'gamepad') {
+      const pads = createGamepadReader(windowTarget)?.() ?? [];
+      const hasStandardPad = pads.some(
+        (pad) => pad?.mapping === 'standard' && pad.connected !== false
+      );
+      if (activeMethod === 'gamepad' && !hasStandardPad) {
         applyMethod(lastNonGamepadMethod);
       }
     });
