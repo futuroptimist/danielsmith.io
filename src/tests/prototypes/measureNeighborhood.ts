@@ -1,4 +1,4 @@
-/** Read-only runtime probe: writes only a review report/overlay to its explicit output directory. */
+/** Read-only probe: writes a report/overlay only to its explicit output directory. */
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -126,7 +126,10 @@ const escape = (s: string) =>
 function overlay() {
   const { walkable, solids } = fixture();
   const rect = (p: Piece, color: string) =>
-    `<rect x="${p.bounds.minX}" y="${p.bounds.minZ}" width="${p.bounds.maxX - p.bounds.minX}" height="${p.bounds.maxZ - p.bounds.minZ}" fill="${color}" fill-opacity=".15" stroke="${color}" stroke-width=".035"><title>${escape(p.pieceId)}</title></rect>`;
+    `<rect x="${p.bounds.minX}" y="${p.bounds.minZ}" width="` +
+    `${p.bounds.maxX - p.bounds.minX}" height="${p.bounds.maxZ - p.bounds.minZ}" fill="` +
+    `${color}" fill-opacity=".15" stroke="${color}" stroke-width=".035"><title>` +
+    `${escape(p.pieceId)}</title></rect>`;
   const poly = (s: RotatedSolid) =>
     `<polygon points="${solidCorners(s)
       .map((p) => `${p.x},${p.z}`)
@@ -139,9 +142,39 @@ function overlay() {
   }).join(' ');
   const actor = Array.from({ length: 8 }, (_, i) => {
     const a = ((10 + i * 10) * Math.PI) / 180;
-    return `<circle cx="${18 * Math.cos(a)}" cy="${18 * Math.sin(a)}" r="${R}" fill="none" stroke="#047857" stroke-width=".08"/>`;
+    return (
+      `<circle cx="${18 * Math.cos(a)}" cy="${18 * Math.sin(a)}" r="${R}" fill="none" ` +
+      `stroke="#047857" stroke-width=".08"/>`
+    );
   }).join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 -10 78 74" width="1014" height="962" role="img" aria-labelledby="title desc"><title id="title">Synthetic rectangular collision feasibility</title><desc id="desc">Blue rectangles are actor-center walkable zones. Orange rectangles conservatively cover grey solids. Green circles show the 0.75 metre actor. Coordinates are synthetic, not a site layout.</desc><rect x="-3" y="-10" width="78" height="74" fill="#f8fafc"/><g font-family="sans-serif" font-size="1.1" fill="#172554"><text x="0" y="-7">Synthetic feasibility — not neighborhood activation</text><text x="0" y="-5">Blue: walkable center zones · Orange: solids · Green: actor radius</text><text x="0" y="25">Inner curve: 6.0 m authored width</text><text x="44" y="11">Rotated fence / 3.8 m opening</text><text x="40" y="61">Rotated closed-house frontage</text></g><polyline points="${arc}" fill="none" stroke="#cbd5e1" stroke-width="6"/>${[ROTATED_FRONTAGE, ...fenceOpening(Math.PI / 4)].map(poly).join('')}${walkable.map((p) => rect(p, '#2563eb')).join('')}${solids.map((p) => rect(p, '#c2410c')).join('')}${actor}<g transform="translate(52 26)"><path d="M-9 0 H14 M0-9 V9" fill="none" stroke="#cbd5e1" stroke-width="3.8"/><path d="M-9 0 H14 M0-9 V9" fill="none" stroke="#2563eb" stroke-opacity=".25" stroke-width="2.3"/><rect x="8" y="-4" width="6" height="8" fill="none" stroke="#7c3aed" stroke-dasharray=".3 .2" stroke-width=".08"/><rect x="8" y="1.9" width="6" height="1.1" fill="#c2410c" fill-opacity=".25"/><rect x="8" y="-3" width="6" height="1.1" fill="#c2410c" fill-opacity=".25"/><circle cx="12" cy="0" r=".75" fill="none" stroke="#047857" stroke-width=".08"/></g><text x="39" y="38" font-family="sans-serif" font-size="1.1" fill="#172554">Intersection / synthetic protected-stop approach</text></svg>`;
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 -10 78 74" width="1014" ` +
+    `height="962" role="img" aria-labelledby="title desc"><title id="title">Synthetic ` +
+    `rectangular collision feasibility</title><desc id="desc">Blue rectangles are ` +
+    `actor-center walkable zones. Orange rectangles conservatively cover grey solids. ` +
+    `Green circles show the 0.75 metre actor. Coordinates are synthetic, not a site ` +
+    `layout.</desc><rect x="-3" y="-10" width="78" height="74" fill="#f8fafc"/><g ` +
+    `font-family="sans-serif" font-size="1.1" fill="#172554"><text x="0" y="-7">` +
+    `Synthetic feasibility — not neighborhood activation</text><text x="0" y="-5">` +
+    `Blue: walkable center zones · Orange: solids · Green: actor radius</text><text ` +
+    `x="0" y="25">Inner curve: 6.0 m authored width</text><text x="44" y="11">Rotated ` +
+    `fence / 3.8 m opening</text><text x="40" y="61">Rotated closed-house ` +
+    `frontage</text></g><polyline points="${arc}" fill="none" stroke="#cbd5e1" ` +
+    `stroke-width="6"/>` +
+    `${[ROTATED_FRONTAGE, ...fenceOpening(Math.PI / 4)].map(poly).join('')}` +
+    `${walkable.map((p) => rect(p, '#2563eb')).join('')}` +
+    `${solids.map((p) => rect(p, '#c2410c')).join('')}${actor}<g ` +
+    `transform="translate(52 26)"><path d="M-9 0 H14 M0-9 V9" fill="none" ` +
+    `stroke="#cbd5e1" stroke-width="3.8"/><path d="M-9 0 H14 M0-9 V9" fill="none" ` +
+    `stroke="#2563eb" stroke-opacity=".25" stroke-width="2.3"/><rect x="8" y="-4" ` +
+    `width="6" height="8" fill="none" stroke="#7c3aed" stroke-dasharray=".3 .2" ` +
+    `stroke-width=".08"/><rect x="8" y="1.9" width="6" height="1.1" fill="#c2410c" ` +
+    `fill-opacity=".25"/><rect x="8" y="-3" width="6" height="1.1" fill="#c2410c" ` +
+    `fill-opacity=".25"/><circle cx="12" cy="0" r=".75" fill="none" stroke="#047857" ` +
+    `stroke-width=".08"/></g><text x="39" y="38" font-family="sans-serif" ` +
+    `font-size="1.1" fill="#172554">Intersection / synthetic protected-stop ` +
+    `approach</text></svg>`
+  );
 }
 function cleanCaptureCommit() {
   const dirty = execFileSync(
@@ -170,7 +203,8 @@ export function run(output: string) {
     ).trim(),
     repositoryWorkingTreeDirty: false,
     cleanlinessScope:
-      'All tracked and untracked nonignored repository files, checked before and after measurement.',
+      'All tracked and untracked nonignored repository files, ' +
+      'checked before and after measurement.',
     prototypeHashes: Object.fromEntries(
       [
         'rectangularNeighborhood.ts',
