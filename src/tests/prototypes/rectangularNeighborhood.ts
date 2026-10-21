@@ -116,6 +116,9 @@ function rasterize(
   if (![x0, x1, z0, z1].every(Number.isSafeInteger)) {
     throw new Error('Unsafe grid index range.');
   }
+  if (x1 <= x0 || z1 <= z0) {
+    throw new Error('Collapsed grid extent.');
+  }
   if ((x1 - x0) * (z1 - z0) > maxCells)
     throw new Error('Candidate cell budget exceeded.');
   const pieces: Piece[] = [];

@@ -88,6 +88,18 @@ describe('isolated rectangular neighborhood feasibility', () => {
       decomposeSolid(ROTATED_FRONTAGE, { ...GRID, cellSize: 0 })
     ).toThrow();
   });
+  it.each([
+    { axis: 'x', center: { x: 1e14, z: 0 }, width: 1e-6, depth: 1 },
+    { axis: 'z', center: { x: 0, z: 1e14 }, width: 1, depth: 1e-6 },
+  ])(
+    'rejects precision-collapsed $axis extents before iteration',
+    ({ center, width, depth }) => {
+      // Keep the other axis small so a regression fails quickly rather than hanging a worker.
+      expect(() =>
+        decomposeSolid({ ...ROTATED_FRONTAGE, center, width, depth, angle: 0 })
+      ).toThrow('Collapsed grid extent');
+    }
+  );
   it('keeps the full actor disk inside the curve, including inner concave edges', () => {
     const pieces = decomposeArc(INNER_CURVE);
     for (const piece of pieces) {
