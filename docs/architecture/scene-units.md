@@ -26,8 +26,8 @@ by approximately 1.014957 (width 0.95203 m, depth 0.40751 m). No model binary ch
 The placeholder and recursive miniature player marker use measured bounds too;
 the miniature's existing world-to-table transform remains separate.
 
-Walking is **1.116453 m/s** (1.1 before body scaling); running is **3.044872 m/s**
-(3.0 before body scaling), a 20% increase over the previous run pace.
+Walking is **1.116453 m/s** (1.1 before body scaling); running is **4.262821 m/s**
+(4.2 before body scaling), a 40% increase over the previous run pace.
 Stride reference speeds, transition thresholds, seated hip retreat and foot-origin
 height use the same ratio. The collision radius remains 0.75 m: the normalized standing body fits inside it with margin.
 This is deliberately a conservative navigation footprint, not shoulder width. Scaling that already-oversized envelope by 1.5% would consume existing tangent route clearances without improving body containment.
@@ -110,10 +110,36 @@ its backsplash; its actual worktop is about 1.02 m, and the island is about 1.04
 These assets must not be halved to compensate for oversized architecture.
 
 The standing player remains 1.90 m after normalization from its measured 1.872 m
-bind pose. Walk/run remain 1.116453 / 3.044872 m/s, with proportional stride and seat
+bind pose. Walk/run remain 1.116453 / 4.262821 m/s, with proportional stride and seat
 offsets. The orthographic camera retains its framing bounds and 0.95 m focus.
 
 ## Exterior coordinate contract
+
+The scale audit separates source plan anchors, resolved world anchors,
+metre-authored local dimensions, collider rectangles and behavioral regions.
+It measures actual vertices through every mesh/instance world matrix. Source IDs
+connect measurements to definitions; semantic anchors need not equal mesh centers.
+
+The EV's **4.6 x 9.2 m** declaration is its conservative collider, not its body size
+or a resize target. Its visible assembly measures about **4.42 x 1.90 x 8.38 m**
+(X/Y/Z), including mirrors, wheels and lights. Individual mesh/instance bounds and
+signed collision padding are reported separately. Margins within the reported
+0.00001 m tolerance are zeroed to suppress Float32 transform noise; raw vertex
+bounds remain available. Negative padding beyond that tolerance indicates visible
+solid geometry outside the declaration. Decorative parts are excluded. Multi-solid
+sources compare intersecting parts per rectangle; their full inventory remains
+available to inspect parts outside every solid.
+
+Shelter geometry and the sign share the builder's resolved assembly center, with
+the roof constrained inside the northern street boundary. Dimensions and local
+offsets remain metre-authored. The builder exposes copies of its resolved strict
+ground-floor cutaway bounds and lighting X threshold for the audit. These behavior
+regions are distinct from semantic anchors and collider or mesh footprints.
+Overhead roof/sign/light elements and flush pools retain their decorative policy.
+
+Front-path, sidewalk and driveway room bounds are reported separately from solids.
+This inventory does not replace radius-aware runtime traversal, door/headroom
+checks, miniature parity or hardware qualification.
 
 The former 64 x 64 m house-and-yard envelope now spans approximately
 45.255 x 45.255 m. Exterior plan anchors, including doors, yard, street and

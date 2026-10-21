@@ -5,6 +5,11 @@ import {
   type FootstepAudioControllerHandle,
   type FootstepPlaybackOptions,
 } from '../systems/audio/footstepController';
+import {
+  AVATAR_FOOTSTEP_REFERENCE_SPEED,
+  AVATAR_RUN_SPEED,
+  AVATAR_WALK_SPEED,
+} from '../systems/movement/avatarGait';
 
 class StubFootstepPlayer {
   public readonly calls: FootstepPlaybackOptions[] = [];
@@ -21,6 +26,63 @@ class StubFootstepPlayer {
 }
 
 describe('footstep audio controller', () => {
+  const createAvatarController = (player: StubFootstepPlayer) =>
+    createFootstepAudioController({
+      player,
+      maxLinearSpeed: AVATAR_FOOTSTEP_REFERENCE_SPEED,
+      minActivationSpeed: AVATAR_WALK_SPEED * 0.12,
+      intervalRange: { min: 0.26, max: 0.58 },
+      volumeRange: { min: 0.32, max: 0.7 },
+      pitchRange: { min: 0.88, max: 1.18 },
+      random: () => 0.5,
+    });
+
+  it('preserves calibrated walking cadence, volume, and pitch', () => {
+    const player = new StubFootstepPlayer();
+    const controller = createAvatarController(player);
+    // Original calibration: (1.1 - 1.1 * 0.12) / (3.0 - 1.1 * 0.12).
+    const normalizedWalk = 0.968 / 2.868;
+    const interval = 0.58 + (0.26 - 0.58) * normalizedWalk;
+    const advance = (delta: number) =>
+      controller.update({ delta, linearSpeed: AVATAR_WALK_SPEED });
+
+    advance(interval - 0.001);
+    expect(player.calls).toHaveLength(0);
+    advance(0.002);
+    expect(player.calls).toHaveLength(1);
+    expect(player.calls[0].volume).toBeCloseTo(0.32 + 0.38 * normalizedWalk, 8);
+    expect(player.calls[0].playbackRate).toBeCloseTo(
+      0.88 + 0.3 * normalizedWalk,
+      8
+    );
+    advance(interval - 0.002);
+    expect(player.calls).toHaveLength(1);
+    advance(0.002);
+    expect(player.calls).toHaveLength(2);
+
+    controller.notifyFootfall('left');
+    expect(player.calls[2].volume).toBeCloseTo(player.calls[0].volume, 8);
+    expect(player.calls[2].playbackRate).toBeCloseTo(
+      player.calls[0].playbackRate,
+      8
+    );
+  });
+
+  it('clamps the faster run to the calibrated audio maximum', () => {
+    const player = new StubFootstepPlayer();
+    const controller = createAvatarController(player);
+    expect(AVATAR_RUN_SPEED / AVATAR_FOOTSTEP_REFERENCE_SPEED).toBeCloseTo(
+      1.4,
+      8
+    );
+    controller.update({ delta: 0.259, linearSpeed: AVATAR_RUN_SPEED });
+    expect(player.calls).toHaveLength(0);
+    controller.update({ delta: 0.002, linearSpeed: AVATAR_RUN_SPEED });
+    expect(player.calls).toHaveLength(1);
+    expect(player.calls[0].volume).toBeCloseTo(0.7, 8);
+    expect(player.calls[0].playbackRate).toBeCloseTo(1.18, 8);
+  });
+
   const makeSequenceRandom = (sequence: number[]): (() => number) => {
     let index = 0;
     return () => {

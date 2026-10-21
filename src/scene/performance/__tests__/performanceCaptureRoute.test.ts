@@ -1,9 +1,17 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs';
+import {
+  readFileSync,
+  mkdtempSync,
+  mkdirSync,
+  readdirSync,
+  rmSync,
+} from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { runInNewContext } from 'node:vm';
+import { createContext, runInContext, runInNewContext } from 'node:vm';
 
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 
 type Position = { x: number; z: number };
 type DoorState = 'closed' | 'opening' | 'open';
@@ -11,7 +19,262 @@ type DoorState = 'closed' | 'opening' | 'open';
 const source = readFileSync(
   path.resolve('scripts/capture-performance-route.cjs'),
   'utf8'
+).replace(/\r\n/g, '\n');
+
+const require = createRequire(import.meta.url);
+const {
+  createCaptureSession,
+} = require('../../../../scripts/capture-performance-route.cjs');
+const temporary = mkdtempSync(
+  path.join(tmpdir(), 'synthetic-route-orchestration-')
 );
+afterAll(() => rmSync(temporary, { recursive: true, force: true }));
+
+describe('opt-in capture lifecycle with synthetic pages', () => {
+  it('never stitches a replacement document into the original attempt', async () => {
+    const directory = path.join(temporary, 'navigation');
+    const session = createCaptureSession(directory);
+    const handlers = new Map<string, (frame: object) => void>();
+    const frame = {};
+    const evaluate = vi.fn();
+    session.attach({
+      on: (name: string, fn: (frame: object) => void) => handlers.set(name, fn),
+      mainFrame: () => frame,
+      isClosed: () => false,
+      evaluate,
+    });
+    handlers.get('framenavigated')!(frame);
+    handlers.get('framenavigated')!(frame);
+    await session.finish('failure');
+    expect(evaluate).not.toHaveBeenCalled();
+    expect(
+      JSON.parse(
+        readFileSync(
+          path.join(directory, 'route-capture-terminal-v1.json'),
+          'utf8'
+        )
+      )
+    ).toMatchObject({ reason: 'navigation', captureStoppedAtMs: null });
+  });
+  it('preserves the exact scene bus-stop separator', () => {
+    expect(source).toContain('Bus stop \u00b7 Coming Soon');
+    expect(source).not.toContain('Bus stop \u00c2\u00b7 Coming Soon');
+  });
+  it.each(['complete', 'capacity', 'write-failure'])(
+    'retains raw evidence and terminal receipts for %s',
+    async (scenario) => {
+      const capacity = scenario === 'capacity',
+        writeFailure = scenario === 'write-failure';
+      const directory = path.join(temporary, scenario);
+      let now = 0;
+      let callback: ((time: number) => void) | null = null;
+      const vm = createContext({
+        performance: { now: () => now },
+        document: {
+          visibilityState: 'visible',
+          addEventListener() {},
+          removeEventListener() {},
+        },
+        requestAnimationFrame(fn: (time: number) => void) {
+          callback = fn;
+          return 1;
+        },
+        cancelAnimationFrame() {
+          callback = null;
+        },
+        setTimeout() {
+          return 1;
+        },
+        clearTimeout() {},
+        PerformanceObserver: { supportedEntryTypes: [] },
+      });
+      runInContext(
+        'window=globalThis;window.top=window;window.addEventListener=()=>{};window.removeEventListener=()=>{};',
+        vm
+      );
+      const evaluate = async (
+        fn: (...args: never[]) => unknown,
+        arg: unknown
+      ) => {
+        const value = await runInContext(
+          `(${fn.toString()})(${JSON.stringify(arg) ?? 'undefined'})`,
+          vm
+        );
+        return value === undefined
+          ? undefined
+          : JSON.parse(JSON.stringify(value));
+      };
+      const page = {
+        on: vi.fn(),
+        isClosed: () => false,
+        evaluate,
+        addInitScript: evaluate,
+        screenshot: async () => {
+          now = capacity ? 1232 : 1216;
+          if (capacity)
+            runInContext('window.__routeCapture.mark("checkpoint",0)', vm);
+          callback?.(1216);
+        },
+      };
+      const session = createCaptureSession(
+        directory,
+        capacity ? { bounds: { maxRafIntervals: 1 } } : {}
+      );
+      session.browser = { version: () => 'synthetic', close: vi.fn() };
+      session.context = { close: vi.fn() };
+      const wrapped = session.attach(page);
+      await session.install();
+      await session.mark('application_ready');
+      await session.mark('route_begin');
+      runInContext('window.__routeCapture.mark("checkpoint",0)', vm);
+      callback?.(0);
+      now = 16;
+      callback?.(now);
+      const prefix = await evaluate(
+        () => window.__routeCapture.prefix(),
+        undefined
+      );
+      const record = {
+        stallProbe: prefix,
+        snapshot: {
+          renderer: { isSoftwareRenderer: true },
+          quality: { level: 'balanced' },
+          rendererSize: { pixelRatio: 1 },
+          rendererCounters: {
+            calls: 1,
+            triangles: 2,
+            memoryGeometries: 3,
+            memoryTextures: 4,
+          },
+        },
+      };
+      await session.checkpoint('spawn', record);
+      await wrapped.screenshot();
+      if (capacity) {
+        await expect(
+          evaluate(() => window.__routeCapture.prefix(), undefined)
+        ).rejects.toThrow('capture_stopped');
+        await expect(session.mark('route_end')).rejects.toThrow(
+          'capture_stopped'
+        );
+      } else await session.mark('route_end');
+      const result = { checkpoints: [record] };
+      if (writeFailure) mkdirSync(path.join(directory, 'route.json'));
+      await session.finish(capacity ? 'failure' : 'finished', result);
+      const raw = JSON.parse(
+        readFileSync(path.join(directory, 'route-capture-raw-v1.json'), 'utf8')
+      );
+      const analysis = JSON.parse(
+        readFileSync(
+          path.join(directory, 'route-capture-analysis-v1.json'),
+          'utf8'
+        )
+      );
+      const terminal = JSON.parse(
+        readFileSync(
+          path.join(directory, 'route-capture-terminal-v1.json'),
+          'utf8'
+        )
+      );
+      expect(terminal).toMatchObject({
+        state: capacity || writeFailure ? 'partial' : 'complete',
+        reason: writeFailure ? 'io_error' : capacity ? 'capacity' : 'finished',
+        cleanupState: 'complete',
+      });
+      expect(raw.rafTimestampsMs).toEqual(capacity ? [0, 16] : [0, 16, 1216]);
+      expect(raw.checkpointPrefixes[0].callbackCount).toBe(2);
+      if (capacity) expect(raw.coverage.captureStoppedAtMs).toBe(1232);
+      if (writeFailure) {
+        const {
+          analyzeDirectory,
+        } = require('../../../../scripts/analyze-performance-capture.cjs');
+        expect(() =>
+          analyzeDirectory(
+            directory,
+            path.join(temporary, 'write-failure-reanalysis')
+          )
+        ).not.toThrow();
+      }
+      expect(result.checkpoints[0].stallProbe.rafMaxMs).toBe(16);
+      expect(analysis.allIntervals.maxMs).toBe(capacity ? 16 : 1200);
+      if (!capacity)
+        expect(analysis.gaps[0].classification).toBe('overlaps_known_helper');
+    }
+  );
+  it('does not import supplemental modules when merely loading the default runner', () => {
+    const imports: string[] = [];
+    const requireStub = (id: string) => {
+      imports.push(id);
+      return require(id);
+    };
+    runInNewContext(source, {
+      require: requireStub,
+      module: { exports: {} },
+      process: { argv: [], cwd: () => process.cwd() },
+    });
+    expect(imports.some((id) => id.includes('performance-capture'))).toBe(
+      false
+    );
+    expect(source.replace(/\s/g, '')).toContain(
+      "if(!process.argv.includes('--capture-evidence'))returnrunRoute();"
+    );
+  });
+  it('preserves initial/running receipts on a lost page and refuses reuse', async () => {
+    const directory = path.join(temporary, 'lost');
+    const session = createCaptureSession(directory);
+    expect(readdirSync(directory).sort()).toEqual([
+      'route-capture-initial-v1.json',
+      'route-capture-running-v1.json',
+    ]);
+    const initial = readFileSync(
+      path.join(directory, 'route-capture-initial-v1.json')
+    );
+    await session.finish('page_closed');
+    await session.finish('cancelled');
+    const terminal = JSON.parse(
+      readFileSync(
+        path.join(directory, 'route-capture-terminal-v1.json'),
+        'utf8'
+      )
+    );
+    expect(terminal.reason).toBe('page_lost');
+    expect(terminal.captureStoppedAtMs).toBeNull();
+    expect(
+      readFileSync(path.join(directory, 'route-capture-initial-v1.json'))
+    ).toEqual(initial);
+    expect(() => createCaptureSession(directory)).toThrow();
+  });
+  it('bounds a never-resolving page call and owned cleanup by one finalization grace', async () => {
+    vi.useFakeTimers();
+    try {
+      const directory = path.join(temporary, 'timeout');
+      const session = createCaptureSession(directory, {
+        bounds: { maxFinalizationGraceMs: 2500 },
+      });
+      const evaluate = vi.fn(() => new Promise(() => {}));
+      session.attach({ on: vi.fn(), isClosed: () => false, evaluate });
+      session.context = { close: () => new Promise(() => {}) };
+      const finished = session.finish('finished');
+      await vi.advanceTimersByTimeAsync(2500);
+      await finished;
+      const terminal = JSON.parse(
+        readFileSync(
+          path.join(directory, 'route-capture-terminal-v1.json'),
+          'utf8'
+        )
+      );
+      expect(terminal).toMatchObject({
+        reason: 'export_timeout',
+        captureStoppedAtMs: null,
+        cleanupState: 'incomplete',
+      });
+      expect(evaluate).toHaveBeenCalledTimes(1);
+      expect(readdirSync(directory)).not.toContain('route-capture-raw-v1.json');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
 
 function extension(flag: string) {
   const start = source.indexOf(`    if (${flag}) {`);

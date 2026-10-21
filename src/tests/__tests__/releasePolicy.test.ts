@@ -1,6 +1,6 @@
-import { createRequire } from 'node:module';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -27,6 +27,22 @@ const fixture = (
 });
 
 describe('release metadata policy with synthetic snapshots', () => {
+  it('exempts only the three standalone supplemental diagnostic tools', () => {
+    const paths = [
+      'scripts/lib/performance-capture-probe.cjs',
+      'scripts/lib/performance-capture-analysis.cjs',
+      'scripts/analyze-performance-capture.cjs',
+    ];
+    for (const file of paths) {
+      expect(runtimePath(file)).toBe(false);
+      expect(runtimePath(`${file}.extra`)).toBe(true);
+    }
+    expect(runtimePath('scripts/lib/other-runtime.cjs')).toBe(true);
+    expect(runtimePath('scripts/analyze-performance-other.cjs')).toBe(true);
+    expect(() =>
+      validate(fixture(paths, '0.2.0', '0.2.9', notes()))
+    ).not.toThrow();
+  });
   const releaseFiles = ['src/main.ts', chartPath, changelogPath];
   it('accepts coordinated runtime, app, chart and changelog updates', () => {
     expect(() => validate(fixture(releaseFiles))).not.toThrow();

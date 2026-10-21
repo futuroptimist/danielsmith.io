@@ -62,8 +62,18 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
     }
     for (const caps of [false, true]) {
       for (const shifted of [false, true]) {
-        await page.evaluate(
-          ({ caps, shifted }) => {
+        const speed = caps ? AVATAR_WALK_SPEED : AVATAR_RUN_SPEED;
+        // Capture in browser animation frames so slow protocol/trace snapshots
+        // cannot leave the faster avatar running into a wall before sampling.
+        const sample = await page.evaluate(
+          async ({ caps, shifted, speed }) => {
+            const avatar = window.portfolio!.avatar!;
+            const read = () => ({
+              state: avatar.getAnimationState!() as {
+                locomotion: { linearState: string; linearSpeed: number };
+              },
+              gait: avatar.getGait!(),
+            });
             window.portfolio!.world!.movePlayerTo({
               x: 40 * Math.SQRT1_2,
               z: -22 * Math.SQRT1_2,
@@ -78,44 +88,40 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
                 bubbles: true,
               })
             );
-          },
-          { caps, shifted }
-        );
-        try {
-          const speed = caps ? AVATAR_WALK_SPEED : AVATAR_RUN_SPEED;
-          // Read speed, animation and selected gait in one browser task. Slow
-          // software WebGL can reach the corridor wall between separate calls.
-          await expect(async () => {
-            const sample = await page.evaluate(() => ({
-              state: window.portfolio!.avatar!.getAnimationState!() as {
-                locomotion: { linearState: string; linearSpeed: number };
-              },
-              gait: window.portfolio!.avatar!.getGait!(),
-            }));
-            expect(sample.state.locomotion.linearSpeed).toBeGreaterThan(
-              speed * 0.95
-            );
-            expect(sample.state.locomotion.linearSpeed).toBeLessThan(
-              speed * 1.01
-            );
-            expect(sample.state.locomotion.linearState).toBe(
-              caps ? 'walk' : 'run'
-            );
-            expect(sample.gait).toBe(caps ? 'walk' : 'run');
-          }).toPass({ timeout: 30_000 });
-        } finally {
-          await page.evaluate(
-            (caps) =>
+            try {
+              const deadline = performance.now() + 30_000;
+              let sample = read();
+              do {
+                await new Promise<void>((resolve) =>
+                  requestAnimationFrame(() => resolve())
+                );
+                sample = read();
+                if (
+                  sample.state.locomotion.linearSpeed > speed * 0.95 &&
+                  sample.state.locomotion.linearState ===
+                    (caps ? 'walk' : 'run')
+                )
+                  break;
+              } while (performance.now() < deadline);
+              return sample;
+            } finally {
               window.dispatchEvent(
                 new KeyboardEvent('keyup', {
                   key: 'w',
                   code: 'KeyW',
                   modifierCapsLock: caps,
                 })
-              ),
-            caps
-          );
-        }
+              );
+            }
+          },
+          { caps, shifted, speed }
+        );
+        expect(sample.state.locomotion.linearSpeed).toBeGreaterThan(
+          speed * 0.95
+        );
+        expect(sample.state.locomotion.linearSpeed).toBeLessThan(speed * 1.01);
+        expect(sample.state.locomotion.linearState).toBe(caps ? 'walk' : 'run');
+        expect(sample.gait).toBe(caps ? 'walk' : 'run');
         await expect
           .poll(async () => (await snapshot()).locomotion.linearState, {
             timeout: 30_000,

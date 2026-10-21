@@ -736,7 +736,22 @@ test('continues native controls from focused door and dismissed settings buttons
       page,
       fromDoorButton ? 'remapped-door-button' : 'dismissed-settings-button'
     );
-    await page.waitForTimeout(300);
+    // The next manual-close setup must begin stationary. A fixed delay can
+    // retain inward damping drift after routing back from the faster run.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () =>
+              (
+                window.portfolio!.avatar!.getAnimationState!() as {
+                  locomotion: { linearSpeed: number };
+                }
+              ).locomotion.linearSpeed
+          ),
+        { timeout: 10_000 }
+      )
+      .toBeLessThan(0.00001);
   }
   await walkExteriorTo(page, {
     x: 32 * Math.SQRT1_2 + 3,

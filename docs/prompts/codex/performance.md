@@ -34,6 +34,14 @@ Summaries must include metrics and test evidence.
 - Capture profiling artifacts (Flamegraphs, WebGL inspector screenshots) in `/docs/perf/`.
 - Coordinate with feature prompts to avoid regressions.
 - Prefer data-driven toggles for experimental optimizations.
+- For authorized synthetic route diagnostics, follow
+  [supplemental capture guidance](../../ops/performance-capture.md). Use fresh output directories:
+  `node scripts/capture-performance-route.cjs ./capture-attempt --capture-evidence`, then
+  `node scripts/analyze-performance-capture.cjs ./capture-attempt ./analysis-attempt`.
+  Capture requires an already authorized local preview; offline analysis starts no browser.
+  Preserve raw evidence, hashes, receipts, gaps and exclusions. These synthetic callback results
+  cannot qualify hardware or establish native frame, GPU, input-latency or physical-device targets.
+  Device qualification and staging/production actions require separate human authorization.
 
 ## Upgrade Prompt
 

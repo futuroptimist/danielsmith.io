@@ -197,7 +197,7 @@ export function createAnimatedAvatar(asset: AvatarImportResult) {
       runReferenceSpeed: 1.57199 * AVATAR_BODY_SCALE,
       min: 0.3,
       // Allow the faster run stride to track translation without hitting the clamp.
-      max: 2.0,
+      max: 2.8,
     },
   });
   let activeSeat: SeatAnimation | null = null;

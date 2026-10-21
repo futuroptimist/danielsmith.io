@@ -38,9 +38,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 13,
+    syncRevision: 14,
     syncNote:
-      'The physical shelter, sign and colliders follow the scaled street together; source snapshots retain original mesh shapes after batching.',
+      'Expose resolved street regions; production and miniature geometry unchanged.',
   },
   {
     id: 'level:career-museum-layout',
@@ -260,9 +260,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/units.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 9,
+    syncRevision: 11,
     syncNote:
-      'Both avatar handoff shader variants are prepared before display; the faster run cadence, player dimensions, and miniature geometry are unchanged.',
+      'Footstep audio retains its fixed speed calibration independently of faster running; player dimensions and the separately normalized miniature marker geometry are unchanged.',
     reason:
       'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },

@@ -4,6 +4,26 @@ Release notes for the immersive danielsmith.io portfolio. The in-app link curren
 this repository Markdown page as a temporary wiki/documentation surface; a native changelog view
 may replace it in a future release.
 
+## v0.3.2 - unreleased
+
+- Increased running speed by 40%, from 3.044872 to 4.262821 metres/second,
+  while preserving walking at 1.116453 metres/second, its footstep cadence, volume
+  and pitch, and existing gait controls.
+- Raised the run-animation playback cap proportionally so stride cadence tracks
+  the faster translation. Room geometry and collision clearances are unchanged.
+- Batched animated flywheel packet connectors and equal-opacity node pairs to reduce
+  draw calls without changing packet geometry, timing, or transparency.
+- Advanced application metadata to `0.3.2` and chart packaging to `0.2.14`.
+  These versions do not imply a tag, release, or deployment.
+
+## v0.3.1 - unreleased
+
+- Added source-linked exterior measurements that distinguish actual street meshes,
+  conservative colliders, anchors and activation regions without changing appearance
+  or movement. Corrected garage scale documentation and added geometry regressions.
+- Advanced application metadata to `0.3.1` and chart packaging to `0.2.13`.
+  These versions do not imply a tag, release or deployment.
+
 ## v0.3.0 - unreleased
 
 - Reduced horizontal room area by 50% on all three floors while preserving room

@@ -3,7 +3,9 @@ import {
   BufferGeometry,
   Color,
   CylinderGeometry,
+  DynamicDrawUsage,
   Group,
+  InstancedMesh,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -516,15 +518,31 @@ export function createFlywheelShowpiece(
   const packetConnectorGeometry = own(
     new CylinderGeometry(0.018, 0.018, 1, Math.max(5, cylSeg / 2))
   );
-  const packetMaterials = Array.from({ length: detailNodeCount }, (_, index) =>
-    mat(
-      new MeshBasicMaterial({
-        color: MATERIALS.glow,
-        transparent: true,
-        opacity: index === 0 ? 0.7 : 0.5,
-        depthWrite: false,
-      })
-    )
+  // Symmetric packet samples have equal opacity and the same unlit color. Their
+  // alpha blends commute, so pairing them retains the translucent appearance.
+  const packetNodePairs = Array.from(
+    { length: Math.ceil(detailNodeCount / 2) },
+    (_, index) => {
+      const material = mat(
+        new MeshBasicMaterial({
+          color: MATERIALS.glow,
+          transparent: true,
+          opacity: 0.5,
+          depthWrite: false,
+        })
+      );
+      const pair = new InstancedMesh(
+        packetNodeGeometry,
+        material,
+        Math.min(2, detailNodeCount - index * 2)
+      );
+      pair.name = `FlywheelEnergyNodePair-${index}`;
+      pair.instanceMatrix.setUsage(DynamicDrawUsage);
+      pair.count = 0;
+      pair.visible = false;
+      energyPacket.add(pair);
+      return pair;
+    }
   );
   const connectorMaterial = mat(
     new MeshBasicMaterial({
@@ -534,23 +552,25 @@ export function createFlywheelShowpiece(
       depthWrite: false,
     })
   );
-  const packetNodes = packetMaterials.map((material, index) => {
-    const node = new Mesh(packetNodeGeometry, material);
+  const packetNodes = Array.from({ length: detailNodeCount }, (_, index) => {
+    const node = new Object3D();
     node.name = `FlywheelEnergyPacketNode-${index}`;
     node.visible = false;
     energyPacket.add(node);
     return node;
   });
-  const packetConnectors = Array.from(
-    { length: connectorCount },
-    (_, index) => {
-      const connector = new Mesh(packetConnectorGeometry, connectorMaterial);
-      connector.name = `FlywheelEnergyPacketConnector-${index}`;
-      connector.visible = false;
-      energyPacket.add(connector);
-      return connector;
-    }
+  // Identical translucent connectors share one draw; keep their segment transforms pooled.
+  const packetConnectors = new InstancedMesh(
+    packetConnectorGeometry,
+    connectorMaterial,
+    connectorCount
   );
+  packetConnectors.name = 'FlywheelEnergyPacketConnectors';
+  packetConnectors.instanceMatrix.setUsage(DynamicDrawUsage);
+  packetConnectors.count = 0;
+  packetConnectors.visible = false;
+  energyPacket.add(packetConnectors);
+  const connectorTransform = new Object3D();
 
   const colliders = createFlywheelColliders(group);
   const planetGearAngles = planetGears.map(() => 0);
@@ -604,9 +624,12 @@ export function createFlywheelShowpiece(
     for (let i = 0; i < packetNodes.length; i += 1) {
       packetNodes[i].visible = false;
     }
-    for (let i = 0; i < packetConnectors.length; i += 1) {
-      packetConnectors[i].visible = false;
+    for (const pair of packetNodePairs) {
+      pair.count = 0;
+      pair.visible = false;
     }
+    packetConnectors.count = 0;
+    packetConnectors.visible = false;
   };
 
   const clonePoint = (point: Vector3) => ({
@@ -700,6 +723,7 @@ export function createFlywheelShowpiece(
     group.worldToLocal(sourceLocalPosition);
     destinationLocalPosition.copy(destinationWorldPosition);
     group.worldToLocal(destinationLocalPosition);
+    for (const pair of packetNodePairs) pair.count = 0;
     for (let i = 0; i < packetNodes.length; i += 1) {
       const node = packetNodes[i];
       if (i >= activeNodeCount) {
@@ -722,31 +746,46 @@ export function createFlywheelShowpiece(
         (0.75 + edgeFade * 0.45) * strength * (0.75 + pulseScale * 0.25);
       node.scale.setScalar(scale);
       node.visible = true;
-      const material = node.material as MeshBasicMaterial;
-      material.opacity = (0.18 + edgeFade * 0.54 * flickerScale) * strength;
-    }
-    for (let i = 0; i < packetConnectors.length; i += 1) {
-      const connector = packetConnectors[i];
-      if (i >= activeNodeCount - 1) {
-        connector.visible = false;
-        continue;
+      node.updateMatrix();
+      const pair = packetNodePairs[Math.min(i, activeNodeCount - 1 - i)];
+      if (pair.count === 0) {
+        pair.material.opacity =
+          (0.18 + edgeFade * 0.54 * flickerScale) * strength;
       }
+      pair.setMatrixAt(pair.count++, node.matrix);
+    }
+    for (const pair of packetNodePairs) {
+      pair.visible = pair.count > 0;
+      if (!pair.visible) continue;
+      pair.instanceMatrix.needsUpdate = true;
+      pair.computeBoundingSphere();
+    }
+    packetConnectors.count = 0;
+    for (let i = 0; i < activeNodeCount - 1; i += 1) {
+      if (detailPolicy.level === 'micro') break;
       vectorA.copy(packetNodes[i].position);
       vectorB.copy(packetNodes[i + 1].position);
       vectorMid.copy(vectorA).add(vectorB).multiplyScalar(0.5);
       vectorDirection.copy(vectorB).sub(vectorA);
       const segmentLength = vectorDirection.length();
-      if (segmentLength < 1e-6) {
-        connector.visible = false;
-        continue;
-      }
-      connector.position.copy(vectorMid);
-      connector.scale.set(strength, segmentLength, strength);
-      connector.quaternion.setFromUnitVectors(
+      if (segmentLength < 1e-6) continue;
+      connectorTransform.position.copy(vectorMid);
+      connectorTransform.scale.set(strength, segmentLength, strength);
+      connectorTransform.quaternion.setFromUnitVectors(
         vectorUp,
         vectorDirection.multiplyScalar(1 / segmentLength)
       );
-      connector.visible = detailPolicy.level !== 'micro';
+      connectorTransform.updateMatrix();
+      packetConnectors.setMatrixAt(
+        packetConnectors.count++,
+        connectorTransform.matrix
+      );
+    }
+    packetConnectors.visible = packetConnectors.count > 0;
+    if (packetConnectors.visible) {
+      packetConnectors.instanceMatrix.needsUpdate = true;
+      // The packet moves between targets; never reuse a previous segment's culling bounds.
+      packetConnectors.computeBoundingSphere();
     }
     return {
       targetCount: networkDebug.targetCount,
@@ -835,6 +874,8 @@ export function createFlywheelShowpiece(
     dispose() {
       if (disposed) return;
       disposed = true;
+      packetConnectors.dispose();
+      packetNodePairs.forEach((pair) => pair.dispose());
       ownedGeometries.forEach((g) => g.dispose());
       ownedMaterials.forEach((m) => m.dispose());
     },
@@ -872,7 +913,11 @@ function countTriangles(root: Object3D): number {
     const index = geometry.index;
     const position = geometry.getAttribute('position');
     if (!index && !position) return;
-    count += index ? index.count / 3 : position.count / 3;
+    const triangles = index ? index.count / 3 : position.count / 3;
+    // Report pooled capacity consistently, including currently hidden packet segments.
+    count +=
+      triangles *
+      (mesh instanceof InstancedMesh ? mesh.instanceMatrix.count : 1);
   });
   return count;
 }

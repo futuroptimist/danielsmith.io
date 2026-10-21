@@ -1,4 +1,12 @@
-import { Box3, Mesh, Object3D, Vector3 } from 'three';
+import {
+  Box3,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  Object3D,
+  Vector3,
+} from 'three';
 import { describe, expect, it } from 'vitest';
 
 import { SCENE_DETAIL_POLICIES } from '../scene/graphics/sceneDetailPolicy';
@@ -256,6 +264,122 @@ describe('createFlywheelShowpiece', () => {
     expect(build.getDebugState().flywheelAngle).toBeCloseTo(afterBoost);
     build.dispose();
   });
+
+  it.each(Object.values(SCENE_DETAIL_POLICIES))(
+    'preserves batched node opacity and segment transforms across a full $level energy cycle',
+    (detailPolicy) => {
+      const build = createFlywheelShowpiece({ roomBounds, detailPolicy });
+      build.setEnergyTargets([
+        { poiId: 'left', label: 'Left', worldPosition: { x: -8, y: 0, z: 3 } },
+        {
+          poiId: 'right',
+          label: 'Right',
+          worldPosition: { x: 9, y: 0, z: -5 },
+        },
+      ]);
+      const packet = build.group.getObjectByName(
+        'FlywheelEnergyTransferPacket'
+      )!;
+      const connectors = packet.getObjectByName(
+        'FlywheelEnergyPacketConnectors'
+      );
+      expect(connectors).toBeInstanceOf(InstancedMesh);
+      const batch = connectors as InstancedMesh;
+      expect(batch.material).toMatchObject({
+        transparent: true,
+        opacity: 0.34,
+        depthWrite: false,
+      });
+      const pairs = packet.children.filter((child) =>
+        child.name.startsWith('FlywheelEnergyNodePair-')
+      ) as InstancedMesh[];
+      expect(pairs.length).toBeGreaterThan(0);
+      const matrix = new Matrix4();
+      const start = new Vector3();
+      const end = new Vector3();
+      const directions = new Set<string | null>();
+      const counts = new Set<number>();
+      let disposals = 0;
+      [batch, ...pairs].forEach((mesh) =>
+        mesh.addEventListener('dispose', () => {
+          disposals += 1;
+        })
+      );
+      // Five 2.8-second incoming transfers and a 2.35-second outgoing transfer,
+      // sampled through both clipped ends and the full-width middle of each packet.
+      for (let frame = 0; frame < 600; frame += 1) {
+        build.update({ elapsed: frame / 30, delta: 1 / 30, emphasis: 0 });
+        const state = build.getDebugState().energy;
+        directions.add(state.direction);
+        const nodes = packet.children.filter(
+          (child) =>
+            child.name.startsWith('FlywheelEnergyPacketNode') && child.visible
+        );
+        counts.add(nodes.length);
+        expect(pairs.filter((pair) => pair.visible)).toHaveLength(
+          Math.ceil(nodes.length / 2)
+        );
+        for (const [pairIndex, pair] of pairs.entries()) {
+          const expectedCount = Math.max(
+            0,
+            Math.min(2, nodes.length - pairIndex * 2)
+          );
+          expect(pair.count).toBe(expectedCount);
+          expect(pair.visible).toBe(expectedCount > 0);
+          const material = pair.material as MeshBasicMaterial;
+          expect(material).toMatchObject({
+            transparent: true,
+            depthWrite: false,
+          });
+          for (let instance = 0; instance < pair.count; instance += 1) {
+            const nodeIndex =
+              instance === 0 ? pairIndex : nodes.length - 1 - pairIndex;
+            const node = nodes[nodeIndex];
+            pair.getMatrixAt(instance, matrix);
+            start.setFromMatrixPosition(matrix);
+            end.setFromMatrixScale(matrix);
+            expect(start.distanceTo(node.position)).toBeLessThan(1e-5);
+            expect(end.distanceTo(node.scale)).toBeLessThan(1e-5);
+            expect(pair.boundingSphere!.containsPoint(start)).toBe(true);
+            const fade = Math.sin((nodeIndex / (nodes.length - 1)) * Math.PI);
+            const strength = state.direction === 'outgoing' ? 1.65 : 1;
+            expect(material.opacity).toBeCloseTo(
+              (0.18 + fade * 0.54) * strength,
+              12
+            );
+          }
+        }
+        expect(batch.count).toBe(
+          detailPolicy.level === 'micro' ? 0 : nodes.length - 1
+        );
+        expect(batch.visible).toBe(batch.count > 0);
+        for (let index = 0; index < batch.count; index += 1) {
+          batch.getMatrixAt(index, matrix);
+          start.set(0, -0.5, 0).applyMatrix4(matrix);
+          end.set(0, 0.5, 0).applyMatrix4(matrix);
+          expect(start.distanceTo(nodes[index].position)).toBeLessThan(1e-5);
+          expect(end.distanceTo(nodes[index + 1].position)).toBeLessThan(1e-5);
+          expect(batch.boundingSphere!.containsPoint(start)).toBe(true);
+          expect(batch.boundingSphere!.containsPoint(end)).toBe(true);
+        }
+      }
+      expect(directions).toEqual(new Set(['incoming', 'outgoing']));
+      expect(
+        build.getDebugState().energy.outgoingCompletedCount
+      ).toBeGreaterThan(0);
+      expect(counts.size).toBeGreaterThan(1);
+      build.setEnergyTargets([]);
+      build.update({ elapsed: 20, delta: 0, emphasis: 0 });
+      expect(batch.count).toBe(0);
+      expect(batch.visible).toBe(false);
+      build.dispose();
+      build.dispose();
+      expect(pairs.every((pair) => !pair.visible && pair.count === 0)).toBe(
+        true
+      );
+      expect(disposals).toBe(1 + pairs.length);
+    }
+  );
 
   it('accepts runtime energy targets and renders one bounded packet subsection', () => {
     const build = createFlywheelShowpiece({

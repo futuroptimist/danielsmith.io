@@ -3,9 +3,8 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { createRequire } = require('node:module');
 const requireFromRepo = createRequire(path.join(process.cwd(), 'package.json'));
-const { chromium } = requireFromRepo('@playwright/test');
 const output = process.argv[2];
-if (!output)
+if (require.main === module && !output)
   throw new Error(
     'Usage: node scripts/capture-performance-route.cjs OUTPUT_DIRECTORY'
   );
@@ -14,18 +13,22 @@ const includeStreet = process.argv.includes('--street');
 const includeGarage = process.argv.includes('--garage') || includeStreet;
 const includeExterior = process.argv.includes('--exterior') || includeGarage;
 const includeBasement = process.argv.includes('--basement') || includeExterior;
-(async () => {
+async function runRoute(evidence = null) {
+  const { chromium } = requireFromRepo('@playwright/test');
   // Refuse to overwrite an earlier attempt, including failed or unsupported runs.
   await fs.mkdir(path.dirname(path.resolve(output)), { recursive: true });
-  await fs.mkdir(output);
+  if (!evidence) await fs.mkdir(output);
   const browser = await chromium.launch();
+  if (evidence) evidence.browser = browser;
   const context = await browser.newContext({
     viewport: { width: 1280, height: 720 },
     deviceScaleFactor: 1,
     locale: 'en-US',
     reducedMotion: 'no-preference',
   });
-  const page = await context.newPage();
+  if (evidence) evidence.context = context;
+  const originalPage = await context.newPage();
+  const page = evidence ? evidence.attach(originalPage) : originalPage;
   const result = {
     schemaVersion: 1,
     profile: includeStreet
@@ -54,7 +57,8 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
             : ['basement', 'exterior'],
     state: 'running',
   };
-  await page.addInitScript(() => {
+  if (evidence) await evidence.install();
+  await page.addInitScript((captureEvidence) => {
     localStorage.clear();
     sessionStorage.clear();
     for (const [key, value] of Object.entries({
@@ -72,6 +76,16 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
           /* Reported overrides match existing suite. */
         }
       }
+    }
+    if (captureEvidence) {
+      window.__routeProbe = {
+        read: () => ({
+          ...window.__routeCapture.prefix(),
+          rafP95Ms: null,
+          rafMaxMs: null,
+        }),
+      };
+      return;
     }
     const times = [];
     let previous;
@@ -111,9 +125,9 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
         };
       },
     };
-  });
+  }, Boolean(evidence));
   async function exteriorPath(target) {
-    return page.evaluate((target) => {
+    return page.evaluate(function searchPath(target) {
       const w = window.portfolio.world;
       const start = w.getPlayerPosition();
       const grid = 0.2;
@@ -214,6 +228,7 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
     await waitForDoor(id, state);
   }
   async function checkpoint(name, expectedDoor = null) {
+    if (evidence) await evidence.mark('checkpoint', name);
     const assertDoorState = (doors) => {
       if (!expectedDoor) return;
       const door = doors.find((candidate) => candidate.id === expectedDoor.id);
@@ -267,11 +282,21 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
           debugCoordinatesEnabled: p.debugCoordinates.getState().enabled,
         },
         stallProbe: window.__routeProbe.read(),
+        ...(window.__routeCapture
+          ? {
+              captureAppMode: ['immersive', 'fallback'].includes(
+                document.documentElement.dataset.appMode
+              )
+                ? document.documentElement.dataset.appMode
+                : 'unknown',
+            }
+          : {}),
         locale: document.documentElement.lang,
         reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
       };
     });
     assertDoorState(record.doors);
+    if (evidence) await evidence.checkpoint(name, record);
     result.checkpoints.push({
       name,
       expectedDoor,
@@ -284,14 +309,14 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
       ...record,
     });
     await page.screenshot({ path: path.join(output, `${name}.png`) });
-    await fs.writeFile(
+    await writeRouteFile(
       path.join(output, 'route.json'),
-      `${JSON.stringify(result, null, 2)}\n`
+      () => `${JSON.stringify(result, null, 2)}\n`
     );
   }
   async function walk(name, waypoints, requiredFloor) {
     const leg = await page.evaluate(
-      async ({ name, waypoints, requiredFloor }) => {
+      async function stepRoute({ name, waypoints, requiredFloor }) {
         const w = window.portfolio.world;
         const startMs = performance.now();
         const start = {
@@ -366,12 +391,19 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
       { name, waypoints, requiredFloor }
     );
     result.legs.push(leg);
-    await fs.writeFile(
+    await writeRouteFile(
       path.join(output, 'route.json'),
-      `${JSON.stringify(result, null, 2)}\n`
+      () => `${JSON.stringify(result, null, 2)}\n`
     );
     if (leg.state !== 'completed')
       throw new Error(`Route blocked: ${JSON.stringify(leg)}`);
+  }
+  async function writeRouteFile(file, serialize) {
+    if (evidence) {
+      const data = await evidence.span('helper_serialization', serialize);
+      return evidence.span('helper_file_io', () => fs.writeFile(file, data));
+    }
+    return fs.writeFile(file, serialize());
   }
   try {
     await page.goto(
@@ -386,6 +418,10 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
       null,
       { timeout: 45000 }
     );
+    if (evidence) {
+      await evidence.mark('application_ready');
+      await evidence.mark('route_begin');
+    }
     result.servedBuild = await (
       await page.request.get('http://127.0.0.1:5173/runtime/build-info.json')
     ).json();
@@ -695,6 +731,7 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
       await checkpoint('street-returned-spawn');
     }
     result.state = 'completed';
+    if (evidence) await evidence.mark('route_end');
     result.wholeRouteStallProbe = await page.evaluate(() =>
       window.__routeProbe.read()
     );
@@ -707,12 +744,20 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
     process.exitCode = 1;
   } finally {
     result.finishedAt = new Date().toISOString();
-    await fs.writeFile(
-      path.join(output, 'route.json'),
-      `${JSON.stringify(result, null, 2)}\n`
-    );
-    await context.close();
-    await browser.close();
+    if (evidence)
+      await evidence.finish(
+        result.state === 'completed' ? 'finished' : 'failure',
+        result
+      );
+    if (!evidence)
+      await fs.writeFile(
+        path.join(output, 'route.json'),
+        `${JSON.stringify(result, null, 2)}\n`
+      );
+    if (!evidence) {
+      await context.close();
+      await browser.close();
+    }
   }
   console.log(
     JSON.stringify(
@@ -735,4 +780,563 @@ const includeBasement = process.argv.includes('--basement') || includeExterior;
       2
     )
   );
-})();
+}
+
+// Supplemental support is loaded only for explicit opt-in. The legacy runner and
+// history path neither import nor install the bounded probe.
+function createCaptureSession(directory, options = {}) {
+  const { createOperation } = require('./analyze-performance-capture.cjs');
+  const {
+    installRouteCapture,
+    validateRouteCaptureConfig,
+    DEFAULT_BOUNDS,
+  } = require('./lib/performance-capture-probe.cjs');
+  const {
+    parseCapture,
+    sha256,
+  } = require('./lib/performance-capture-analysis.cjs');
+  const labels = [
+    'spawn',
+    'basement-ground-landing',
+    'basement-lower-toe',
+    'career-southern-mississippi',
+    'career-naval-research',
+    'career-youtube',
+    'career-muon-space',
+    'basement-museum-loop-complete',
+    'upper-landing',
+    'upper-creators-studio',
+    'returned-spawn',
+    'front-entry-closed',
+    'front-entry-open',
+    'front-sidewalk',
+    'front-entry-outside-closed',
+    'exterior-returned-spawn',
+    'garage-interior',
+    'garage-door-closed',
+    'garage-door-open',
+    'garage-driveway',
+    'garage-returned-spawn',
+    'street-parked-ev',
+    'street-bus-stop-coming-soon',
+    'street-shelter-interior',
+    'street-returned-spawn',
+  ];
+  const bounds = { ...DEFAULT_BOUNDS, ...options.bounds };
+  validateRouteCaptureConfig({ bounds, labels });
+  const operation = createOperation(directory, 'capture');
+  const startedAt = new Date().toISOString();
+  operation.running();
+  const checkpoints = [];
+  let page = null,
+    finalization = null,
+    deadline = null,
+    timedOut = false,
+    installed = false;
+  const error = (code) => Object.assign(new Error(code), { code });
+  const session = { browser: null, context: null };
+  async function bounded(work) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) throw error('export_timeout');
+    let timeout;
+    try {
+      return await Promise.race([
+        Promise.resolve().then(work),
+        new Promise((_, reject) => {
+          timeout = setTimeout(
+            () => {
+              timedOut = true;
+              reject(error('export_timeout'));
+            },
+            Math.min(remaining, bounds.maxPageCallMs)
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  const call = (fn, arg) => {
+    if (timedOut) return Promise.reject(error('export_timeout'));
+    if (!page || page.isClosed()) return Promise.reject(error('page_lost'));
+    return deadline === null
+      ? page.evaluate(fn, arg)
+      : bounded(() => page.evaluate(fn, arg));
+  };
+  session.mark = async (type, name = null) => {
+    if (finalization) throw error('cancelled');
+    const labelId = name === null ? null : labels.indexOf(name);
+    if (labelId === -1) throw error('invalid_input');
+    return call(
+      ({ type, labelId }) => window.__routeCapture.mark(type, labelId),
+      { type, labelId }
+    );
+  };
+  session.span = async (kind, work) => {
+    if (finalization) throw error('cancelled');
+    if (!installed) return work();
+    const id = await call(
+      (kind) => window.__routeCapture?.beginSpan(kind) ?? null,
+      kind
+    );
+    try {
+      return await work();
+    } finally {
+      if (!finalization && id !== null)
+        await call((id) => window.__routeCapture.endSpan(id), id);
+    }
+  };
+  session.attach = (p) => {
+    page = p;
+    let navigationCount = 0;
+    p.on('framenavigated', (frame) => {
+      if (frame !== p.mainFrame()) return;
+      if (++navigationCount > 1 && !finalization) {
+        // A new document has a different clock. Never export it as the original
+        // attempt or stitch its samples to already retained checkpoint prefixes.
+        page = null;
+        void session.finish('pagehide');
+      }
+    });
+    p.on('close', () => {
+      if (!finalization) void session.finish('page_closed');
+    });
+    return new Proxy(p, {
+      get(target, key) {
+        if (key === 'evaluate')
+          return (fn, arg) =>
+            session.span(
+              fn.name === 'searchPath'
+                ? 'helper_path_search'
+                : fn.name === 'stepRoute'
+                  ? 'route'
+                  : 'helper_snapshot',
+              () => target.evaluate(fn, arg)
+            );
+        if (key === 'screenshot')
+          return (...args) =>
+            session.span('helper_screenshot', () => target.screenshot(...args));
+        const value = Reflect.get(target, key);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    });
+  };
+  session.install = async () => {
+    await page.addInitScript(installRouteCapture, { bounds, labels });
+    installed = true;
+  };
+  session.checkpoint = async (name, record) => {
+    if (checkpoints.length >= bounds.maxSnapshots) throw error('capacity');
+    const p = record.stallProbe;
+    if (p.atMs === null) throw error('invalid_clock');
+    checkpoints.push({
+      labelId: labels.indexOf(name),
+      atMs: p.atMs,
+      callbackCount: p.callbackCount,
+      longTaskDeliveryCount: p.longTaskDeliveryCount,
+    });
+    const s = record.snapshot;
+    const snapshot = {
+      atMs: p.atMs,
+      rendererClass: s.renderer.isSoftwareRenderer ? 'software' : 'unknown',
+      appMode: record.captureAppMode ?? 'unknown',
+      quality: ['performance', 'balanced', 'cinematic'].includes(
+        s.quality.level
+      )
+        ? s.quality.level
+        : 'unknown',
+      devicePixelRatio: s.rendererSize.pixelRatio,
+      calls: s.rendererCounters.calls,
+      triangles: s.rendererCounters.triangles,
+      memoryGeometries: s.rendererCounters.memoryGeometries,
+      memoryTextures: s.rendererCounters.memoryTextures,
+    };
+    await call(
+      (snapshot) => window.__routeCapture.snapshot(snapshot),
+      snapshot
+    );
+  };
+  session.finish = (reason, result = null) => {
+    if (finalization) return finalization;
+    deadline = Date.now() + bounds.maxFinalizationGraceMs;
+    finalization = (async () => {
+      let terminalReason =
+        reason === 'finished'
+          ? 'finished'
+          : reason === 'cancelled'
+            ? 'cancelled'
+            : reason === 'deadline'
+              ? 'deadline'
+              : reason === 'pagehide'
+                ? 'navigation'
+                : reason === 'page_closed'
+                  ? 'page_lost'
+                  : 'internal_error';
+      let state =
+        reason === 'finished'
+          ? 'complete'
+          : reason === 'cancelled'
+            ? 'cancelled'
+            : 'partial';
+      try {
+        const status = await call(
+          (reason) => window.__routeCapture.stop(reason),
+          reason
+        );
+        const actualReason = status.stopReason ?? reason;
+        state =
+          actualReason === 'cancelled'
+            ? 'cancelled'
+            : actualReason === 'finished' && reason === 'finished'
+              ? 'complete'
+              : 'partial';
+        terminalReason =
+          {
+            capacity: 'capacity',
+            deadline: 'deadline',
+            pagehide: 'navigation',
+            page_closed: 'page_lost',
+            cancelled: 'cancelled',
+          }[actualReason] ?? terminalReason;
+        if (
+          Object.values(status.streams).some((s) => s.state === 'clock_invalid')
+        )
+          terminalReason = 'invalid_clock';
+        operation.state.captureStoppedAtMs = status.captureStoppedAtMs;
+        const data = {};
+        for (const [name, key] of [
+          ['rafTimestampsMs', 'raf'],
+          ['longTasks', 'longTasks'],
+          ['markers', 'markers'],
+          ['snapshots', 'snapshots'],
+        ]) {
+          data[name] = [];
+          for (
+            let offset = 0;
+            offset < status.streams[key].retainedCount;
+            offset += bounds.maxChunkRecords
+          ) {
+            const chunk = await call(
+              ({ name, offset, limit }) =>
+                window.__routeCapture.readChunk(name, offset, limit),
+              { name, offset, limit: bounds.maxChunkRecords }
+            );
+            if (
+              chunk.length !==
+              Math.min(
+                bounds.maxChunkRecords,
+                status.streams[key].retainedCount - offset
+              )
+            )
+              throw error('invalid_input');
+            data[name].push(...chunk);
+          }
+        }
+        const t = data.rafTimestampsMs,
+          stop = status.captureStoppedAtMs;
+        const reasons = [];
+        if (!t.length) reasons.push('no_callbacks');
+        if (t.length && t[0] - status.captureStartedAtMs > 100)
+          reasons.push('unobserved_start');
+        if (stop === null || (t.length && stop - t.at(-1) > 100))
+          reasons.push('open_tail');
+        if (status.unfinishedSpanIds.length) reasons.push('unmatched_span');
+        if (
+          Object.values(status.streams).some((s) => s.state === 'capacity_stop')
+        )
+          reasons.push('capacity');
+        if (
+          Object.values(status.streams).some((s) => s.state === 'clock_invalid')
+        )
+          reasons.push('invalid_clock');
+        if (status.stopReason === 'deadline') reasons.push('deadline');
+        if (status.stopReason === 'pagehide') reasons.push('navigation');
+        if (reason === 'cancelled') reasons.push('cancelled');
+        if (reasons.length && state === 'complete') {
+          state = 'partial';
+          terminalReason = reasons.includes('capacity')
+            ? 'capacity'
+            : reasons.includes('deadline')
+              ? 'deadline'
+              : reasons.includes('invalid_clock')
+                ? 'invalid_clock'
+                : 'invalid_input';
+        }
+        const build = result?.servedBuild;
+        const servedBuild =
+          build &&
+          ['dev', 'staging', 'prod'].includes(build.environment) &&
+          typeof build.tag === 'string' &&
+          /^[A-Za-z0-9._:-]{1,80}$/.test(build.tag)
+            ? { environment: build.environment, tag: build.tag }
+            : null;
+        const ready =
+          data.markers.find((m) => m.type === 'application_ready')?.atMs ??
+          null;
+        const raw = {
+          kind: 'route_capture_raw',
+          captureSchemaVersion: 1,
+          attemptId: operation.state.attemptId,
+          startedAt,
+          finishedAt: new Date().toISOString(),
+          captureState: state,
+          stopReason: status.stopReason ?? reason,
+          source: {
+            repository: 'futuroptimist/danielsmith.io',
+            commit: null,
+            servedBuild,
+            artifactId: null,
+            artifactReceiptState: 'unbound',
+            routeContractSha256: operation.hashes.helperSha256,
+          },
+          toolchain: operation.hashes,
+          profile: {
+            method: 'raf_callback_cadence_v1',
+            harness: 'synthetic_route_helper',
+            browserFamily: 'chromium',
+            browserVersion: session.browser?.version() ?? 'unknown',
+            viewportWidth: 1280,
+            viewportHeight: 720,
+            devicePixelRatio: 1,
+            orientation: 'landscape',
+            quality: data.snapshots.at(-1)?.quality ?? 'unknown',
+            qualitySource: 'unknown',
+            rendererClass: data.snapshots.at(-1)?.rendererClass ?? 'unknown',
+            rendererContinuity: 'sampled_only',
+            deviceReceiptState: 'unverified',
+            displayRefreshHz: null,
+            headless: true,
+            navigatorHintsOverridden: true,
+            storageClearedInTestContext: true,
+            movement: 'runtime_collision_stepping',
+            normalLaunch: false,
+            failoverBypassed: true,
+          },
+          bounds,
+          warmth: {
+            state: ready === null ? 'unqualified' : 'readiness_delay_only',
+            applicationReadyMs: ready,
+            assetsSettledMs: null,
+            minimumDelayMs: 5000,
+            settleEvidenceSha256: null,
+          },
+          streams: status.streams,
+          coverage: {
+            state: reasons.length ? 'incomplete' : 'complete',
+            captureStartedAtMs: status.captureStartedAtMs,
+            captureStoppedAtMs: stop,
+            firstCallbackAtMs: t[0] ?? null,
+            lastCallbackAtMs: t.at(-1) ?? null,
+            leftCensoredMs: t.length ? t[0] - status.captureStartedAtMs : null,
+            rightCensoredMs: t.length && stop !== null ? stop - t.at(-1) : null,
+            plannedDeadlineAtMs: status.plannedDeadlineAtMs,
+            deadlineOvershootMs:
+              stop === null
+                ? null
+                : Math.max(0, stop - status.plannedDeadlineAtMs),
+            reasons,
+          },
+          labels,
+          ...data,
+          checkpointPrefixes: checkpoints,
+          capabilities: {
+            nativeFramePresentation: 'not_collected',
+            inputToNextPaint: 'not_collected',
+            gpuTiming: 'not_collected',
+            wholeFramePassTotals: 'not_collected',
+            geometryTextureBytes: 'not_collected',
+            retainedHeap: 'not_collected',
+            longTaskTiming:
+              status.streams.longTasks.state === 'unsupported'
+                ? 'unsupported'
+                : status.streams.longTasks.state === 'complete'
+                  ? 'supported'
+                  : 'partial',
+          },
+        };
+        const validated = parseCapture(raw),
+          bytes = Buffer.from(JSON.stringify(validated) + '\n');
+        operation.write(
+          'route-capture-raw-v1.json',
+          validated,
+          bounds.maxRawBytes,
+          bytes
+        );
+        // Keep the pure CPU work off the page/host event loop so a pathological
+        // bounded input cannot prevent the absolute finalization timer firing.
+        const { Worker } = require('node:worker_threads');
+        const worker = new Worker(
+          `
+          const { parentPort, workerData } = require('node:worker_threads');
+          const api = require(workerData.modulePath);
+          try {
+            const analysis = api.analyzeCapture(workerData.raw);
+            const prefixes = workerData.prefixes.map(prefix => {
+              try { return api.projectLegacyProbe(workerData.raw, prefix); }
+              catch { return null; }
+            });
+            parentPort.postMessage({ analysis, prefixes });
+          } catch (error) {
+            const allowed = ['output_limit', 'invalid_input', 'input_limit'];
+            parentPort.postMessage({
+              error: allowed.includes(error.code) ? error.code : 'internal_error'
+            });
+          }
+        `,
+          {
+            eval: true,
+            workerData: {
+              modulePath: path.join(
+                __dirname,
+                'lib/performance-capture-analysis.cjs'
+              ),
+              raw: validated,
+              prefixes: [
+                ...checkpoints,
+                {
+                  atMs: stop,
+                  callbackCount: t.length,
+                  longTaskDeliveryCount: data.longTasks.length,
+                },
+              ],
+            },
+          }
+        );
+        let analysisResult;
+        let analysisTimer;
+        try {
+          analysisResult = await Promise.race([
+            new Promise((resolve, reject) => {
+              worker.once('message', (value) =>
+                value.error ? reject(error(value.error)) : resolve(value)
+              );
+              worker.once('error', () => reject(error('internal_error')));
+              worker.once('exit', (code) => {
+                if (code !== 0) reject(error('internal_error'));
+              });
+            }),
+            new Promise((_, reject) => {
+              analysisTimer = setTimeout(
+                () => reject(error('export_timeout')),
+                Math.max(0, deadline - Date.now())
+              );
+            }),
+          ]);
+        } finally {
+          clearTimeout(analysisTimer);
+          void worker.terminate();
+        }
+        if (Date.now() >= deadline) throw error('export_timeout');
+        const analysis = analysisResult.analysis;
+        analysis.rawSha256 = sha256(bytes);
+        operation.write(
+          'route-capture-analysis-v1.json',
+          analysis,
+          bounds.maxAnalysisBytes
+        );
+        if (analysis.analysisState === 'rejected' && state !== 'cancelled') {
+          state = 'partial';
+          terminalReason = 'invalid_clock';
+        }
+        if (result) {
+          for (let i = 0; i < checkpoints.length; i++)
+            result.checkpoints[i].stallProbe = analysisResult.prefixes[i];
+          result.wholeRouteStallProbe = analysisResult.prefixes.at(-1);
+        }
+        await call(() => window.__routeCapture.dispose());
+      } catch (error) {
+        state = state === 'cancelled' ? 'cancelled' : 'partial';
+        terminalReason =
+          reason === 'pagehide'
+            ? 'navigation'
+            : state === 'cancelled'
+              ? 'cancelled'
+              : [
+                    'export_timeout',
+                    'page_lost',
+                    'output_limit',
+                    'input_limit',
+                    'invalid_input',
+                    'invalid_clock',
+                    'internal_error',
+                    'capacity',
+                  ].includes(error.code)
+                ? error.code
+                : 'page_lost';
+      }
+      // Cleanup shares the original absolute grace. A timed-out page request is
+      // never followed by another page request, but owned resources may close.
+      operation.state.cleanupState = 'complete';
+      for (const resource of [session.context, session.browser])
+        if (resource)
+          try {
+            await bounded(() => resource.close());
+          } catch {
+            operation.state.cleanupState = 'incomplete';
+            if (terminalReason === 'finished') {
+              terminalReason = 'cleanup_timeout';
+              state = 'partial';
+            }
+          }
+      if (result) {
+        // Synchronous host write cannot outlive finalization. Never write from a
+        // late continuation of the route after cancellation/page loss.
+        try {
+          require('node:fs').writeFileSync(
+            path.join(directory, 'route.json'),
+            JSON.stringify(result, null, 2) + '\n'
+          );
+        } catch {
+          state = 'partial';
+          terminalReason = 'io_error';
+        }
+      }
+      operation.finish(state, terminalReason);
+    })();
+    return finalization;
+  };
+  return session;
+}
+async function main() {
+  if (!process.argv.includes('--capture-evidence')) return runRoute();
+  const evidence = createCaptureSession(output);
+  let timer;
+  let rejectCancellation;
+  const cancellation = new Promise((_, reject) => {
+    rejectCancellation = reject;
+  });
+  const cancel = () => {
+    void evidence.finish('cancelled');
+    rejectCancellation(new Error('cancelled'));
+  };
+  process.once('SIGINT', cancel);
+  process.once('SIGTERM', cancel);
+  try {
+    await Promise.race([
+      runRoute(evidence),
+      cancellation,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          void evidence.finish('deadline');
+          reject(new Error('deadline'));
+        }, 1200000);
+      }),
+    ]);
+  } catch {
+    process.exitCode = 1;
+    await evidence.finish('failure');
+  } finally {
+    clearTimeout(timer);
+    process.removeListener('SIGINT', cancel);
+    process.removeListener('SIGTERM', cancel);
+  }
+}
+module.exports = { createCaptureSession };
+if (require.main === module) {
+  if (process.argv.includes('--capture-evidence'))
+    main().then(
+      () => process.exit(process.exitCode || 0),
+      () => process.exit(1)
+    );
+  else void runRoute();
+}
