@@ -52,6 +52,31 @@ describe('release metadata policy with synthetic snapshots', () => {
       'appVersion increase'
     );
   });
+  it('allows new notes in the same unreleased version without changing chart metadata', () => {
+    const check = fixture(
+      ['src/main.ts', changelogPath],
+      '0.2.0',
+      '0.2.9',
+      notes() + '\n- Another feature.'
+    );
+    expect(() => validate(check)).not.toThrow();
+    for (const status of ['released', 'unreleased - staging passed']) {
+      const before = check.before;
+      expect(() =>
+        validate({
+          ...check,
+          before: (file: string) => before(file).replace('unreleased', status),
+        })
+      ).toThrow('appVersion increase');
+      expect(() =>
+        validate({
+          ...check,
+          read: (file: string) =>
+            check.read(file).replace('unreleased', status),
+        })
+      ).toThrow('appVersion increase');
+    }
+  });
   it('rejects appVersion changes without a new chart package', () => {
     expect(() => validate(fixture(releaseFiles, '0.2.1', '0.2.9'))).toThrow(
       'chart version increase'

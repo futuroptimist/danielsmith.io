@@ -39,7 +39,6 @@ export class GamepadControls {
 
   readonly reset = () => {
     this.clear();
-    this.identity = null;
     this.armed = false;
     this.held = false;
   };
@@ -85,6 +84,7 @@ export class GamepadControls {
     const pad =
       supported.find((item) => id(item) === this.identity) ?? supported[0];
     if (!pad) {
+      this.identity = null;
       this.reset();
       return;
     }

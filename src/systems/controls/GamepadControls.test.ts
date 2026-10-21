@@ -118,6 +118,36 @@ describe('standard gamepad controls (synthetic devices)', () => {
     }
   );
 
+  it.each(['blur', 'visibilitychange', 'focusin', 'blocked'])(
+    'retains the selected controller after %s until it disconnects',
+    (event) => {
+      Object.assign(pad, { index: 1 });
+      controls.update();
+      const other = fixture('Second controller');
+      pads = [other, pad];
+      if (event === 'blocked') controls.update(true);
+      else
+        (event === 'blur' ? window : document).dispatchEvent(new Event(event));
+      axes([1, 0, 0, 0]);
+      controls.update();
+      expect(controls.movement.x).toBe(0);
+      axes([0, 0, 0, 0]);
+      controls.update();
+      axes([1, 0, 0, 0]);
+      controls.update();
+      expect(controls.movement.x).toBe(1);
+      pads = [other];
+      Object.assign(other, { axes: [-1, 0, 0, 0] });
+      controls.update();
+      expect(controls.movement.x).toBe(0);
+      Object.assign(other, { axes: [0, 0, 0, 0] });
+      controls.update();
+      Object.assign(other, { axes: [-1, 0, 0, 0] });
+      controls.update();
+      expect(controls.movement.x).toBe(-1);
+    }
+  );
+
   it('clears disconnected, unknown and missing devices and catches denied API access', () => {
     axes([1, 0, 0, 0]);
     controls.update();
