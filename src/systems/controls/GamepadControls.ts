@@ -21,6 +21,7 @@ export class GamepadControls {
   private armed = false;
   private held = false;
   private disposed = false;
+  private accessDenied = false;
 
   constructor(private readonly target: Window = window) {
     target.addEventListener('blur', this.reset);
@@ -50,6 +51,7 @@ export class GamepadControls {
     const active = doc.activeElement;
     if (
       this.disposed ||
+      this.accessDenied ||
       blocked ||
       doc.hidden ||
       !doc.hasFocus() ||
@@ -63,7 +65,11 @@ export class GamepadControls {
     let pads: (Gamepad | null)[];
     try {
       pads = Array.from(this.target.navigator.getGamepads?.() ?? []);
-    } catch {
+    } catch (error) {
+      // Permissions Policy cannot change during this document's lifetime.
+      if (error instanceof DOMException && error.name === 'SecurityError') {
+        this.accessDenied = true;
+      }
       this.reset();
       return;
     }

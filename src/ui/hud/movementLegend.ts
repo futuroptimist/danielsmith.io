@@ -6,6 +6,7 @@ import {
   getMovementLegendStrings,
   resolveLocale,
 } from '../../assets/i18n';
+import { gamepadStick } from '../../systems/controls/GamepadControls';
 
 export type InputMethod = 'keyboard' | 'pointer' | 'touch' | 'gamepad';
 
@@ -157,8 +158,6 @@ function resolvePointerMethod(event: PointerEvent | MouseEvent): InputMethod {
   return 'pointer';
 }
 
-const GAMEPAD_ACTIVITY_THRESHOLD = 0.3;
-
 interface GamepadButtonLike {
   pressed?: boolean;
   value?: number;
@@ -186,10 +185,15 @@ const createGamepadReader = (windowTarget?: Window): GamepadReader | null => {
   ) {
     return null;
   }
+  let accessDenied = false;
   return () => {
+    if (accessDenied) return [];
     try {
       return Array.from(navigatorCandidate.getGamepads?.() ?? []);
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'SecurityError') {
+        accessDenied = true;
+      }
       return [];
     }
   };
@@ -202,32 +206,17 @@ const hasGamepadActivity = (
     if (!pad || pad.connected === false || pad.mapping !== 'standard') {
       continue;
     }
-    if (
-      pad.buttons &&
-      pad.buttons.some((button) => {
-        if (!button) {
-          return false;
-        }
-        if (button.pressed) {
-          return true;
-        }
-        const value = button.value ?? 0;
-        return Math.abs(value) > GAMEPAD_ACTIVITY_THRESHOLD;
-      })
-    ) {
+    const pressed = (index: number) => {
+      const button = pad.buttons?.[index];
+      return Boolean(button?.pressed || (button?.value ?? 0) > 0.5);
+    };
+    if ([0, 12, 13, 14, 15].some(pressed)) return true;
+    if ([6, 7].some((index) => (pad.buttons?.[index]?.value ?? 0) > 0.1))
       return true;
-    }
-    if (
-      pad.axes &&
-      pad.axes.some((axis) => {
-        if (axis === null || axis === undefined) {
-          return false;
-        }
-        return Math.abs(axis) > GAMEPAD_ACTIVITY_THRESHOLD;
-      })
-    ) {
-      return true;
-    }
+    const axes = pad.axes ?? [];
+    const left = gamepadStick(axes[0] ?? 0, axes[1] ?? 0);
+    const right = gamepadStick(axes[2] ?? 0, axes[3] ?? 0);
+    if (left.x || left.y || right.x || right.y) return true;
   }
   return false;
 };

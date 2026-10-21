@@ -403,9 +403,31 @@ describe('createMovementLegend', () => {
     stubWindow.flushFrame();
     expect(legend.getActiveMethod()).toBe('keyboard');
     vi.spyOn(stubWindow.navigator, 'getGamepads').mockImplementation(() => {
-      throw new Error('Denied');
+      throw new DOMException('Denied', 'SecurityError');
     });
     expect(() => stubWindow.flushFrame()).not.toThrow();
+    stubWindow.flushFrame();
+    expect(stubWindow.navigator.getGamepads).toHaveBeenCalledTimes(1);
+    legend.dispose();
+  });
+
+  it('recognizes the same radial dead zone and trigger threshold as gameplay', () => {
+    const container = createOverlayContainer();
+    const stubWindow = new GamepadStubWindow();
+    const legend = createMovementLegend({
+      container,
+      windowTarget: stubWindow as unknown as Window,
+    });
+    stubWindow.gamepads[0].axes = [0.15, 0.15];
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('gamepad');
+    legend.setActiveMethod('keyboard');
+    stubWindow.gamepads[0].axes = [0.1, 0.1];
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('keyboard');
+    stubWindow.gamepads[0].buttons[6] = { pressed: false, value: 0.2 };
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('gamepad');
     legend.dispose();
   });
 

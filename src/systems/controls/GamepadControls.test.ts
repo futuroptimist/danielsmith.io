@@ -133,9 +133,13 @@ describe('standard gamepad controls (synthetic devices)', () => {
     expect(controls.movement.x).toBe(0);
     expect(controls.interact).toBe(false);
     vi.spyOn(navigator, 'getGamepads').mockImplementation(() => {
-      throw new DOMException('Denied');
+      throw new DOMException('Denied', 'SecurityError');
     });
     expect(() => controls.update()).not.toThrow();
+    controls.update();
+    controls.reset();
+    controls.update();
+    expect(navigator.getGamepads).toHaveBeenCalledTimes(1);
   });
 
   it.each(['input', 'textarea', 'select', 'button', 'a', 'div'])(
