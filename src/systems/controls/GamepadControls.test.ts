@@ -102,7 +102,7 @@ describe('standard gamepad controls (synthetic devices)', () => {
       press(7);
       controls.update();
       (event === 'visibilitychange' ? document : window).dispatchEvent(
-        new Event(event)
+        Object.assign(new Event(event), { gamepad: pad })
       );
       expect(controls.movement.x).toBe(0);
       expect(controls.camera.x).toBe(0);
@@ -147,6 +147,28 @@ describe('standard gamepad controls (synthetic devices)', () => {
       expect(controls.movement.x).toBe(-1);
     }
   );
+
+  it('ignores secondary disconnects while the selected controller is held', () => {
+    const secondary = fixture('Secondary');
+    Object.assign(secondary, { index: 1 });
+    pads = [pad, secondary];
+    axes([1, 0, 1, 0]);
+    press(0);
+    controls.update();
+    window.dispatchEvent(
+      Object.assign(new Event('gamepaddisconnected'), { gamepad: secondary })
+    );
+    controls.update();
+    expect(controls.movement.x).toBe(1);
+    expect(controls.camera.x).toBe(1);
+    expect(controls.interact).toBe(false);
+    window.dispatchEvent(
+      Object.assign(new Event('gamepaddisconnected'), { gamepad: pad })
+    );
+    expect(controls.movement.x).toBe(0);
+    controls.update();
+    expect(controls.movement.x).toBe(0);
+  });
 
   it('clears disconnected, unknown and missing devices and catches denied API access', () => {
     axes([1, 0, 0, 0]);

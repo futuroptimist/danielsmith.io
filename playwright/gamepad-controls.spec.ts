@@ -73,7 +73,11 @@ test('synthetic standard gamepad moves and zooms; HUD and disconnect remain safe
   await expect.poll(zoom).toBeLessThan(initialZoom);
   await page.evaluate(() => {
     (window as unknown as SyntheticWindow).syntheticPad.connected = false;
-    window.dispatchEvent(new Event('gamepaddisconnected'));
+    window.dispatchEvent(
+      Object.assign(new Event('gamepaddisconnected'), {
+        gamepad: (window as unknown as SyntheticWindow).syntheticPad,
+      })
+    );
   });
   await page.waitForTimeout(500);
   const disconnected = await position();

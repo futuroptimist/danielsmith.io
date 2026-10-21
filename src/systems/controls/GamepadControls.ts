@@ -25,10 +25,16 @@ export class GamepadControls {
 
   constructor(private readonly target: Window = window) {
     target.addEventListener('blur', this.reset);
-    target.addEventListener('gamepaddisconnected', this.reset);
+    target.addEventListener('gamepaddisconnected', this.onDisconnect);
     target.document.addEventListener('visibilitychange', this.reset);
     target.document.addEventListener('focusin', this.reset);
   }
+
+  private readonly onDisconnect = (event: GamepadEvent) => {
+    if (`${event.gamepad.index}:${event.gamepad.id}` !== this.identity) return;
+    this.identity = null;
+    this.reset();
+  };
 
   private clear() {
     this.movement = { x: 0, y: 0 };
@@ -145,7 +151,7 @@ export class GamepadControls {
     this.disposed = true;
     this.reset();
     this.target.removeEventListener('blur', this.reset);
-    this.target.removeEventListener('gamepaddisconnected', this.reset);
+    this.target.removeEventListener('gamepaddisconnected', this.onDisconnect);
     this.target.document.removeEventListener('visibilitychange', this.reset);
     this.target.document.removeEventListener('focusin', this.reset);
   }
