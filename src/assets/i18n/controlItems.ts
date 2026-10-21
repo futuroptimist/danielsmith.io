@@ -12,6 +12,11 @@ export const CONTROL_ITEM_IDS = [
   'toggleTextMode',
   'interact',
   'lightingDebug',
+  'gamepadMove',
+  'gamepadCamera',
+  'gamepadZoom',
+  'gamepadInteract',
+  'gamepadActivate',
 ] as const;
 
 export type ControlItemId = (typeof CONTROL_ITEM_IDS)[number];

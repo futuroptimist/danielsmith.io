@@ -97,3 +97,6 @@ the related assets. `npm run launch:screenshot` is review-only because
 
 When in doubt, review the related projects in the Futur Optimist org for canonical patterns.
 Keep trunk green.
+
+Site changes may also join the existing unreleased appVersion with substantive new
+changelog notes, as defined in the release policy; unchanged chart metadata needs no bump.

@@ -6,6 +6,10 @@ may replace it in a future release.
 
 ## v0.3.2 - unreleased
 
+- Added standard-mapped gamepad movement, camera pan, trigger zoom and nearby interaction,
+  with a dedicated Gamepad controls HUD category and safe neutralization after focus loss.
+- Keyboard, pointer, touch and accessible text alternatives remain available.
+
 - Increased running speed by 40%, from 3.044872 to 4.262821 metres/second,
   while preserving walking at 1.116453 metres/second, its footstep cadence, volume
   and pitch, and existing gait controls.

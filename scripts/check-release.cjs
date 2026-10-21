@@ -152,7 +152,25 @@ function validate({ read, changed = [], before }) {
     }
     return runtimePath(file);
   });
-  if (runtimeChanged && !greater(current.app, previous.app)) {
+  // An existing unreleased version may accumulate independently reviewed changes.
+  // Both snapshots must agree on its status, with a substantive new note.
+  const previousEntryForApp = !appChanged
+    ? releaseEntry(before(CHANGELOG), current.app)
+    : '';
+  const unreleasedHeading = `v${current.app} - unreleased`;
+  const extendsUnreleased =
+    !appChanged &&
+    entry.split('\n')[0].trim() === unreleasedHeading &&
+    previousEntryForApp.split('\n')[0].trim() === unreleasedHeading &&
+    changed.includes(CHANGELOG) &&
+    changeBullets(entry).some(
+      (bullet) => !changeBullets(previousEntryForApp).includes(bullet)
+    );
+  if (
+    runtimeChanged &&
+    !greater(current.app, previous.app) &&
+    !extendsUnreleased
+  ) {
     throw new Error(
       'Site changes require an appVersion increase and a matching changelog entry.'
     );

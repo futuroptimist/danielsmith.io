@@ -224,3 +224,6 @@ When Copilot suggests commit messages:
 - Keep trunk green
 - Make small, composable changes
 - Add clarifying comments or update docs for complex refactors
+
+Site changes may also join the existing unreleased appVersion with substantive new
+changelog notes, as defined in the release policy; unchanged chart metadata needs no bump.

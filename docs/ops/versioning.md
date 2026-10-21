@@ -1,6 +1,7 @@
 # Application versions and changelog policy
 
-Every change to the shipped site must advance `appVersion` in
+Every change to the shipped site must either extend the existing unreleased version
+with a substantive changelog bullet, or advance `appVersion` in
 `charts/danielsmith/Chart.yaml` and add a concrete, user-facing entry to
 [`docs/changelog.md`](../changelog.md) in the same PR. This includes behavior, content,
 assets, runtime dependencies, and build/container inputs. Use stable SemVer:
@@ -41,10 +42,13 @@ and the resume README remain test/documentation tooling.
 
 1. Keep each feature in its own PR. Draft its changelog wording while it is unmerged;
    do not describe another open PR's functionality as part of the current application.
-2. Before integration, update the candidate branch from current `main`. Select its next
-   appVersion against that base, add its version section, and increment chart `version`.
+2. Before integration, update the candidate branch from current `main`. Changes may join
+   its existing unreleased version with new notes and unchanged chart metadata. Otherwise,
+   select the next appVersion, add its version section, and increment chart `version`.
    Do not reserve arbitrary version numbers across parallel branches.
-3. A candidate must exceed the latest base version. If another PR advances main first,
+3. A candidate must exceed the latest base version or extend that same unreleased version.
+   Both base and candidate must label the shared version exactly `unreleased`.
+   If another PR advances main first,
    update the candidate's metadata, rerun the guard and CI, and review the new head.
    Maintainers must require an up-to-date branch before merging: a green check on an
    older base cannot detect a subsequently merged competing version.
@@ -69,7 +73,8 @@ npm run release:check -- --base origin/main
 
 The first command checks the current appVersion has exactly one populated changelog
 section. The second also compares the working tree to the given base, rejects runtime
-changes without an application bump, rejects any chart-content change without a chart
+changes without an application bump or substantive notes extending the same unreleased
+version in both snapshots, rejects any chart-content change without a chart
 bump, and requires a new or changed bullet in the current version's notes, ignoring
 whitespace/reflow. Reviewers still verify that the bullet explains the actual change.
 New application sections must

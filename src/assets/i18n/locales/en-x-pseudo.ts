@@ -1,5 +1,7 @@
 import type { LocaleOverrides } from '../types';
 
+import { EN_LOCALE_STRINGS } from './en';
+
 const wrap = (value: string) => `⟦${value}⟧`;
 
 export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
@@ -152,7 +154,35 @@ export const EN_X_PSEUDO_OVERRIDES: LocaleOverrides = {
   hud: {
     controlOverlay: {
       heading: wrap('Controls'),
+      gamepadHeading: wrap('Gamepad controls'),
       items: {
+        gamepadMove: {
+          description: wrap(
+            EN_LOCALE_STRINGS.hud.controlOverlay.items.gamepadMove.description
+          ),
+        },
+        gamepadCamera: {
+          description: wrap(
+            EN_LOCALE_STRINGS.hud.controlOverlay.items.gamepadCamera.description
+          ),
+        },
+        gamepadZoom: {
+          description: wrap(
+            EN_LOCALE_STRINGS.hud.controlOverlay.items.gamepadZoom.description
+          ),
+        },
+        gamepadInteract: {
+          description: wrap(
+            EN_LOCALE_STRINGS.hud.controlOverlay.items.gamepadInteract
+              .description
+          ),
+        },
+        gamepadActivate: {
+          description: wrap(
+            EN_LOCALE_STRINGS.hud.controlOverlay.items.gamepadActivate
+              .description
+          ),
+        },
         keyboardMove: { description: wrap('Move') },
         toggleGait: {
           description: wrap(

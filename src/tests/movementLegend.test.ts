@@ -91,11 +91,13 @@ class GamepadStubWindow extends EventTarget {
   readonly cancelled: number[] = [];
 
   gamepads: Array<{
+    mapping: string;
     connected: boolean;
     buttons: Array<{ pressed: boolean; value?: number }>;
     axes: number[];
   }> = [
     {
+      mapping: 'standard',
       connected: true,
       buttons: [{ pressed: false, value: 0 }],
       axes: [0, 0],
@@ -128,8 +130,11 @@ function createVisibilityMockWindow() {
   let activeId: number | null = null;
   let nextId = 1;
   let visibility: Document['visibilityState'] = 'visible';
-  let gamepads: Array<{ connected: boolean; buttons: [{ pressed: boolean }] }> =
-    [{ connected: true, buttons: [{ pressed: true }] }];
+  let gamepads: Array<{
+    mapping: string;
+    connected: boolean;
+    buttons: [{ pressed: boolean }];
+  }> = [{ mapping: 'standard', connected: true, buttons: [{ pressed: true }] }];
 
   const visibilityListeners = new Set<EventListener>();
   const listenerMap = new Map<
@@ -385,6 +390,47 @@ describe('createMovementLegend', () => {
     );
   });
 
+  it('does not advertise unknown mappings or throw when API access is denied', () => {
+    const container = createOverlayContainer();
+    const stubWindow = new GamepadStubWindow();
+    stubWindow.gamepads[0].mapping = '';
+    stubWindow.gamepads[0].buttons[0].pressed = true;
+    const legend = createMovementLegend({
+      container,
+      windowTarget: stubWindow as unknown as Window,
+    });
+    stubWindow.dispatchEvent(new Event('gamepadconnected'));
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('keyboard');
+    vi.spyOn(stubWindow.navigator, 'getGamepads').mockImplementation(() => {
+      throw new DOMException('Denied', 'SecurityError');
+    });
+    expect(() => stubWindow.flushFrame()).not.toThrow();
+    stubWindow.flushFrame();
+    expect(stubWindow.navigator.getGamepads).toHaveBeenCalledTimes(1);
+    legend.dispose();
+  });
+
+  it('recognizes the same radial dead zone and trigger threshold as gameplay', () => {
+    const container = createOverlayContainer();
+    const stubWindow = new GamepadStubWindow();
+    const legend = createMovementLegend({
+      container,
+      windowTarget: stubWindow as unknown as Window,
+    });
+    stubWindow.gamepads[0].axes = [0.15, 0.15];
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('gamepad');
+    legend.setActiveMethod('keyboard');
+    stubWindow.gamepads[0].axes = [0.1, 0.1];
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('keyboard');
+    stubWindow.gamepads[0].buttons[6] = { pressed: false, value: 0.2 };
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('gamepad');
+    legend.dispose();
+  });
+
   it('switches to gamepad mode when the gamepadconnected event fires', () => {
     const container = createOverlayContainer();
     const stubWindow = new GamepadStubWindow();
@@ -413,6 +459,17 @@ describe('createMovementLegend', () => {
     stubWindow.dispatchEvent(new Event('gamepadconnected'));
     expect(legend.getActiveMethod()).toBe('gamepad');
 
+    // A secondary disconnect must not change guidance for the remaining pad,
+    // even while that pad is neutral and produces no fresh activity.
+    stubWindow.dispatchEvent(new Event('gamepaddisconnected'));
+    expect(legend.getActiveMethod()).toBe('gamepad');
+    stubWindow.gamepads[0].connected = false;
+    stubWindow.gamepads.push({
+      mapping: '',
+      connected: true,
+      buttons: [],
+      axes: [],
+    });
     stubWindow.dispatchEvent(new Event('gamepaddisconnected'));
     expect(legend.getActiveMethod()).toBe('pointer');
 
@@ -436,7 +493,9 @@ describe('createMovementLegend', () => {
     expect(mockWindow.cancelAnimationFrame).toHaveBeenCalled();
     expect(mockWindow.hasScheduledFrame()).toBe(false);
 
-    mockWindow.setGamepads([{ connected: true, buttons: [{ pressed: true }] }]);
+    mockWindow.setGamepads([
+      { mapping: 'standard', connected: true, buttons: [{ pressed: true }] },
+    ]);
     mockWindow.setVisibility('visible');
     expect(mockWindow.requestAnimationFrame.mock.calls.length).toBeGreaterThan(
       initialCalls
