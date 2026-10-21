@@ -47,7 +47,7 @@ clearance tests when accepted layout data exists.
 ## Measured evidence and proposed limits
 
 The [machine-readable report](../qa/performance/neighborhood-collision-prototype.json)
-records capture commit `17a0af21`, accepted base `2af9b2b8`, a clean repository
+records capture commit `8edadf38`, accepted base `83f741d6`, a clean repository
 working tree, prototype source hashes, environment, all three timing
 attempt summaries and the opening-width sweep. The
 [read-only overlay](../assets/neighborhood-collision-prototype.svg) shows physical
@@ -87,13 +87,13 @@ at unrelated corners or at joins to a future site layout.
 
 | Collision / navigation candidates | Observed batch p95 range, three attempts |
 | --------------------------------- | ---------------------------------------- |
-| 32 / 16                           | 0.098-0.104 ms                           |
-| 128 / 64                          | 0.254-0.259 ms                           |
-| 256 / 128                         | 0.471-0.494 ms                           |
-| 256 / 256                         | 0.555-0.564 ms                           |
-| 512 / 256                         | 0.914-0.951 ms                           |
-| 1,024 / 512                       | 1.881-1.896 ms                           |
-| 2,048 / 1,024                     | 3.692-3.871 ms                           |
+| 32 / 16                           | 0.107-0.114 ms                           |
+| 128 / 64                          | 0.271-0.282 ms                           |
+| 256 / 128                         | 0.545-0.598 ms                           |
+| 256 / 256                         | 0.592-0.610 ms                           |
+| 512 / 256                         | 1.039-1.075 ms                           |
+| 1,024 / 512                       | 1.999-2.052 ms                           |
+| 2,048 / 1,024                     | 4.071-4.148 ms                           |
 
 Ambient host load was uncontrolled. The [prior committed capture](https://github.com/futuroptimist/danielsmith.io/blob/459e0481b580a36c164ac8548d214cc051f0fb77/docs/qa/performance/neighborhood-collision-prototype.json)
 retains a 256/128 attempt with a 2.326 ms p95 and 4.692 ms p99 spike. The newer lower
@@ -104,15 +104,18 @@ Recommended **review targets**, not accepted runtime budgets:
 
 - Keep the 0.125 m grid, 1 mm seam overlap and <=0.18 m boundary-deviation ceiling.
   Generation fails closed above 262,144 candidate cells or 512 emitted rectangles per
-  source. Unsafe integer grid indices and overrides above those ceilings are rejected.
+  source. Unsafe integer grid indices, collapsed axis ranges and overrides above those ceilings
+  are rejected. Requiring at least one cell per axis makes the product cap also bound
+  the outer row loop when floating-point precision collapses a thin extent. Two bounded
+  regression cases check early rejection without risking a hung test worker.
   These are preprocessing bounds; reaching one is not permission to enlarge it.
 - Use <=256 solid candidates and <=256 walkable rectangles per occupancy query for the
   next synthetic slice. The present fixture fits; this says nothing about 24 full lots.
   At that cap, propose <=1.0 ms p95 and <=1.3 ms p99 for this exact host probe. Its three
-  attempts measured 0.555-0.564 ms p95 and <=0.601 ms p99. The prior smaller-count spike
+  attempts measured 0.592-0.610 ms p95 and <=0.684 ms p99. The prior smaller-count spike
   means this is a target requiring controlled repetition, not an established guarantee.
-  The prior 512-candidate capture exceeded the proposed p95 ceiling; the current 1,024+
-  cases also exceed it. Retain the lower candidate cap until a controlled qualification.
+  The current 512+ candidate cases exceed the proposed p95 ceiling. Retain the lower
+  candidate cap until a controlled qualification.
 - The live scene must still meet the design's matched <=10% frame regression gate and
   real low-end qualification. The standalone CPU ceiling does not establish either.
 - Preserve at least 3.0 m physical clear width **plus the separately agreed collision

@@ -94,9 +94,12 @@ describe('isolated rectangular neighborhood feasibility', () => {
   ])(
     'rejects precision-collapsed $axis extents before iteration',
     ({ center, width, depth }) => {
-      // Keep the other axis small so a regression fails quickly rather than hanging a worker.
+      // Eight cells on the other axis exceed this one-cell budget, but keep a regression fast.
       expect(() =>
-        decomposeSolid({ ...ROTATED_FRONTAGE, center, width, depth, angle: 0 })
+        decomposeSolid(
+          { ...ROTATED_FRONTAGE, center, width, depth, angle: 0 },
+          { ...GRID, maxCells: 1 }
+        )
       ).toThrow('Collapsed grid extent');
     }
   );
