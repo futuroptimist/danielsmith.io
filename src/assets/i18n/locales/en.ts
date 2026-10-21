@@ -144,6 +144,7 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
   hud: {
     controlOverlay: {
       heading: 'Controls',
+      gamepadHeading: 'Gamepad controls',
       avatar: {
         walking: 'Walking - switch to run',
         running: 'Running - switch to walk',
@@ -152,6 +153,27 @@ export const EN_LOCALE_STRINGS: LocaleStrings = {
         transition: 'Moving into position…',
       },
       items: {
+        gamepadMove: {
+          keys: 'Left stick / D-pad',
+          description: 'Move relative to the camera',
+        },
+        gamepadCamera: {
+          keys: 'Right stick',
+          description: 'Pan camera; release to recenter',
+        },
+        gamepadZoom: {
+          keys: 'Left / right trigger (L2 / R2)',
+          description: 'Zoom out / in',
+        },
+        gamepadInteract: {
+          keys: 'Bottom face button (A / Cross)',
+          description: 'Interact with nearby doors, seats and exhibits',
+        },
+        gamepadActivate: {
+          keys: 'Standard-mapped gamepad',
+          description:
+            'Focus the scene and press a button, then release buttons and center sticks. Bluetooth or USB support depends on your browser and OS. Unknown mappings stay inactive. Use keyboard, mouse or touch for menus.',
+        },
         toggleGait: {
           keys: 'Caps Lock',
           description:

@@ -442,6 +442,7 @@ import {
 import { createAvatarAccessoryControl } from './systems/controls/avatarAccessoryControl';
 import { createAvatarVariantControl } from './systems/controls/avatarVariantControl';
 import { createGaitToggle } from './systems/controls/gaitToggle';
+import { GamepadControls } from './systems/controls/GamepadControls';
 import {
   createGraphicsQualityControl,
   type GraphicsQualityControlHandle,
@@ -4743,7 +4744,12 @@ function buildImmersiveScene(
   let interactablePoi: PoiInstance | null = null;
 
   const controls = new KeyboardControls();
-  const keyPressSource = createKeyBindingAwareSource(controls);
+  const gamepadControls = new GamepadControls();
+  movementLegend?.setInteractLabel(
+    'gamepad',
+    controlOverlayStrings.items.gamepadInteract.keys
+  );
+  const keyPressSource = createKeyBindingAwareSource(controls, gamepadControls);
   const joystick = new VirtualJoystick(renderer.domElement);
   const clock = new Clock();
   const targetVelocity = new Vector3();
@@ -5104,6 +5110,10 @@ function buildImmersiveScene(
     updateTutorialButtonLabel();
     responsiveControlOverlay?.refresh();
     movementLegend?.setLocale(locale);
+    movementLegend?.setInteractLabel(
+      'gamepad',
+      controlOverlayStrings.items.gamepadInteract.keys
+    );
     if (movementLegend) {
       const keyboardLabel =
         formatKeyLabel(keyBindings.getPrimaryBinding('interact')) ||
@@ -6937,11 +6947,11 @@ function buildImmersiveScene(
     }
     const yawBefore = player.rotation.y;
     const rightInput =
-      Number(keyBindings.isActionActive('moveRight', keyPressSource)) -
-      Number(keyBindings.isActionActive('moveLeft', keyPressSource));
+      keyBindings.getActionValue('moveRight', keyPressSource) -
+      keyBindings.getActionValue('moveLeft', keyPressSource);
     const forwardInput =
-      Number(keyBindings.isActionActive('moveForward', keyPressSource)) -
-      Number(keyBindings.isActionActive('moveBackward', keyPressSource));
+      keyBindings.getActionValue('moveForward', keyPressSource) -
+      keyBindings.getActionValue('moveBackward', keyPressSource);
 
     const joystickMovement = joystick.getMovement();
     const combinedRight = rightInput + joystickMovement.x;
@@ -7090,8 +7100,12 @@ function buildImmersiveScene(
       });
     }
 
-    const cameraInput =
+    const pointerCamera =
       mouseCameraPointerId !== null ? mouseCameraInput : joystick.getCamera();
+    const cameraInput = {
+      x: MathUtils.clamp(pointerCamera.x + gamepadControls.camera.x, -1, 1),
+      y: MathUtils.clamp(pointerCamera.y + gamepadControls.camera.y, -1, 1),
+    };
     cameraPanTarget.set(
       cameraInput.x * cameraPanLimitX,
       0,
@@ -7354,7 +7368,10 @@ function buildImmersiveScene(
       !interactKeyWasPressed &&
       hudPanelCoordinator?.getActivePanel() !== 'settings'
     ) {
-      if (
+      if (gamepadControls.interact && selectedDoor && !isDoorUiBlocked()) {
+        if (selectedDoor.isInRange(doorOccupant()))
+          selectedDoor.toggle(doorOccupant());
+      } else if (
         !selectedDoor &&
         animatedAvatar &&
         (chairController.isActive() || chairController.nearest(activeFloorId))
@@ -7652,6 +7669,7 @@ function buildImmersiveScene(
     disposeOwnedScope(exteriorCleanup, 'exterior');
     joystick.reset();
     controls.dispose();
+    gamepadControls.dispose();
     if (livingRoomMediaWall) {
       livingRoomMediaWall.controller.dispose();
       mediaWallStarBridge.detach();
@@ -7825,6 +7843,17 @@ function buildImmersiveScene(
         return;
       }
       let phaseStart = performance.now();
+      gamepadControls.update(
+        (Boolean(hudPanelCoordinator?.getActivePanel()) &&
+          hudPanelCoordinator?.getActivePanel() !== 'tutorial') ||
+          currentSelectedPoi !== null
+      );
+      if (gamepadControls.zoom) {
+        setCameraZoomTarget(
+          cameraZoomTarget *
+            Math.exp(gamepadControls.zoom * Math.min(delta, 0.1))
+        );
+      }
       updateMovement(delta);
       avatarLoadingPresentation.update(delta, prefersReducedAvatarMotion());
       animatedAvatar?.update(

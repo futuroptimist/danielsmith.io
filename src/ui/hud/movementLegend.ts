@@ -165,6 +165,7 @@ interface GamepadButtonLike {
 }
 
 interface GamepadLike {
+  mapping?: string;
   connected?: boolean;
   buttons?: ReadonlyArray<GamepadButtonLike | null | undefined>;
   axes?: ReadonlyArray<number | null | undefined>;
@@ -186,11 +187,11 @@ const createGamepadReader = (windowTarget?: Window): GamepadReader | null => {
     return null;
   }
   return () => {
-    const pads = navigatorCandidate.getGamepads?.();
-    if (!pads) {
+    try {
+      return Array.from(navigatorCandidate.getGamepads?.() ?? []);
+    } catch {
       return [];
     }
-    return Array.from(pads);
   };
 };
 
@@ -198,7 +199,7 @@ const hasGamepadActivity = (
   gamepads: ReadonlyArray<GamepadLike | null>
 ): boolean => {
   for (const pad of gamepads) {
-    if (!pad || pad.connected === false) {
+    if (!pad || pad.connected === false || pad.mapping !== 'standard') {
       continue;
     }
     if (
@@ -656,7 +657,14 @@ export function createMovementLegend(
     }
 
     addListener('gamepadconnected', () => {
-      applyMethod('gamepad');
+      const pads = createGamepadReader(windowTarget)?.() ?? [];
+      if (
+        pads.some(
+          (pad) => pad?.mapping === 'standard' && pad.connected !== false
+        )
+      ) {
+        applyMethod('gamepad');
+      }
     });
 
     addListener('gamepaddisconnected', () => {

@@ -85,6 +85,7 @@ export interface TutorialPanelStrings {
 
 export interface ControlOverlayStrings {
   heading: string;
+  gamepadHeading: string;
   avatar: {
     walking: string;
     running: string;
@@ -93,6 +94,11 @@ export interface ControlOverlayStrings {
     transition: string;
   };
   items: {
+    gamepadMove: ControlOverlayItemStrings;
+    gamepadCamera: ControlOverlayItemStrings;
+    gamepadZoom: ControlOverlayItemStrings;
+    gamepadInteract: ControlOverlayItemStrings;
+    gamepadActivate: ControlOverlayItemStrings;
     keyboardMove: ControlOverlayItemStrings;
     toggleGait: ControlOverlayItemStrings;
     pointerDrag: ControlOverlayItemStrings;

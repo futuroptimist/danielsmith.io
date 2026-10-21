@@ -16,6 +16,7 @@ export type KeyBindingConfig = Partial<
 
 export interface KeyPressSource {
   isPressed(key: string): boolean;
+  getActionValue?(action: KeyBindingAction): number;
 }
 
 export type KeyBindingListener = (
@@ -104,11 +105,14 @@ export class KeyBindings {
   }
 
   isActionActive(action: KeyBindingAction, source: KeyPressSource): boolean {
-    const bindings = this.bindings.get(action);
-    if (!bindings || bindings.length === 0) {
-      return false;
-    }
-    return bindings.some((binding) => source.isPressed(binding));
+    return this.getActionValue(action, source) > 0;
+  }
+
+  getActionValue(action: KeyBindingAction, source: KeyPressSource): number {
+    const keyboard = (this.bindings.get(action) ?? []).some((key) =>
+      source.isPressed(key)
+    );
+    return Math.max(Number(keyboard), source.getActionValue?.(action) ?? 0);
   }
 
   update(config: KeyBindingConfig): void {
@@ -191,9 +195,11 @@ export function formatKeyLabel(key: string | null | undefined): string {
 }
 
 export function createKeyBindingAwareSource(
-  controls: KeyboardControls
+  controls: KeyboardControls,
+  actions?: Pick<KeyPressSource, 'getActionValue'>
 ): KeyPressSource {
   return {
+    getActionValue: (action) => actions?.getActionValue?.(action) ?? 0,
     isPressed(key: string) {
       return controls.isPressed(key);
     },

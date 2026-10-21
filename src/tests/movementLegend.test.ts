@@ -91,11 +91,13 @@ class GamepadStubWindow extends EventTarget {
   readonly cancelled: number[] = [];
 
   gamepads: Array<{
+    mapping: string;
     connected: boolean;
     buttons: Array<{ pressed: boolean; value?: number }>;
     axes: number[];
   }> = [
     {
+      mapping: 'standard',
       connected: true,
       buttons: [{ pressed: false, value: 0 }],
       axes: [0, 0],
@@ -128,8 +130,11 @@ function createVisibilityMockWindow() {
   let activeId: number | null = null;
   let nextId = 1;
   let visibility: Document['visibilityState'] = 'visible';
-  let gamepads: Array<{ connected: boolean; buttons: [{ pressed: boolean }] }> =
-    [{ connected: true, buttons: [{ pressed: true }] }];
+  let gamepads: Array<{
+    mapping: string;
+    connected: boolean;
+    buttons: [{ pressed: boolean }];
+  }> = [{ mapping: 'standard', connected: true, buttons: [{ pressed: true }] }];
 
   const visibilityListeners = new Set<EventListener>();
   const listenerMap = new Map<
@@ -385,6 +390,25 @@ describe('createMovementLegend', () => {
     );
   });
 
+  it('does not advertise unknown mappings or throw when API access is denied', () => {
+    const container = createOverlayContainer();
+    const stubWindow = new GamepadStubWindow();
+    stubWindow.gamepads[0].mapping = '';
+    stubWindow.gamepads[0].buttons[0].pressed = true;
+    const legend = createMovementLegend({
+      container,
+      windowTarget: stubWindow as unknown as Window,
+    });
+    stubWindow.dispatchEvent(new Event('gamepadconnected'));
+    stubWindow.flushFrame();
+    expect(legend.getActiveMethod()).toBe('keyboard');
+    vi.spyOn(stubWindow.navigator, 'getGamepads').mockImplementation(() => {
+      throw new Error('Denied');
+    });
+    expect(() => stubWindow.flushFrame()).not.toThrow();
+    legend.dispose();
+  });
+
   it('switches to gamepad mode when the gamepadconnected event fires', () => {
     const container = createOverlayContainer();
     const stubWindow = new GamepadStubWindow();
@@ -436,7 +460,9 @@ describe('createMovementLegend', () => {
     expect(mockWindow.cancelAnimationFrame).toHaveBeenCalled();
     expect(mockWindow.hasScheduledFrame()).toBe(false);
 
-    mockWindow.setGamepads([{ connected: true, buttons: [{ pressed: true }] }]);
+    mockWindow.setGamepads([
+      { mapping: 'standard', connected: true, buttons: [{ pressed: true }] },
+    ]);
     mockWindow.setVisibility('visible');
     expect(mockWindow.requestAnimationFrame.mock.calls.length).toBeGreaterThan(
       initialCalls

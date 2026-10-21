@@ -49,6 +49,11 @@ export function applyControlOverlayStrings(
     strings.heading
   );
 
+  setTextContent(
+    container.querySelector('[data-control-text="gamepad-heading"]'),
+    strings.gamepadHeading
+  );
+
   for (const { id, keys, description } of getControlItemRows(strings)) {
     const item = container.querySelector<HTMLElement>(
       `[data-control-item="${id}"]`

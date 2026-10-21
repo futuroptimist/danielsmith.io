@@ -79,7 +79,7 @@ const matchActiveMethod = (
   if (methods.includes(active)) {
     return true;
   }
-  return active === 'gamepad' && methods.includes('keyboard');
+  return false;
 };
 
 const ensureId = (element: HTMLElement, fallback: string): string => {
@@ -169,7 +169,7 @@ export function createResponsiveControlOverlay(
   }
 
   const controlItems = Array.from(
-    list.querySelectorAll<HTMLElement>(CONTROL_ITEM_SELECTOR)
+    popover.querySelectorAll<HTMLElement>(CONTROL_ITEM_SELECTOR)
   );
   const initialHiddenStates = new WeakMap<HTMLElement, boolean>();
   controlItems.forEach((item) => {

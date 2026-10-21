@@ -545,6 +545,71 @@
             </span>
           </li>
         </ul>
+        <section
+          aria-labelledby="gamepad-controls-heading"
+          data-role="gamepad-controls"
+        >
+          <h2
+            id="gamepad-controls-heading"
+            class="overlay__heading"
+            data-control-text="gamepad-heading"
+          >
+            Gamepad controls
+          </h2>
+          <ul class="overlay__list">
+            <li
+              class="overlay__item"
+              data-input-methods="gamepad"
+              data-control-item="gamepadMove"
+            >
+              <span class="overlay__keys">Left stick / D-pad</span
+              ><span class="overlay__description"
+                >Move relative to the camera</span
+              >
+            </li>
+            <li
+              class="overlay__item"
+              data-input-methods="gamepad"
+              data-control-item="gamepadCamera"
+            >
+              <span class="overlay__keys">Right stick</span
+              ><span class="overlay__description"
+                >Pan camera; release to recenter</span
+              >
+            </li>
+            <li
+              class="overlay__item"
+              data-input-methods="gamepad"
+              data-control-item="gamepadZoom"
+            >
+              <span class="overlay__keys">Left / right trigger (L2 / R2)</span
+              ><span class="overlay__description">Zoom out / in</span>
+            </li>
+            <li
+              class="overlay__item"
+              data-input-methods="gamepad"
+              data-control-item="gamepadInteract"
+            >
+              <span class="overlay__keys">Bottom face button (A / Cross)</span
+              ><span class="overlay__description"
+                >Interact with nearby doors, seats and exhibits</span
+              >
+            </li>
+            <li
+              class="overlay__item"
+              data-input-methods="gamepad"
+              data-control-item="gamepadActivate"
+            >
+              <span class="overlay__keys">Standard-mapped gamepad</span
+              ><span class="overlay__description"
+                >Focus the scene and press a button, then release buttons and
+                center sticks. Bluetooth or USB support depends on your browser
+                and OS. Unknown mappings stay inactive. Use keyboard, mouse or
+                touch for menus.</span
+              >
+            </li>
+          </ul>
+        </section>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
