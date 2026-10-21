@@ -347,16 +347,74 @@ test('operates both garage doors by touch and preserves reduced-motion occupancy
   await closeApproachingDoor(page, 'garage-door');
   await page.locator('[data-exterior-door-control]').tap();
   await waitDoor(page, 'garage-door', 'open');
+  const button = page.locator('[data-exterior-door-control]');
+  const approachBox = await button.boundingBox();
+  expect(approachBox).not.toBeNull();
   await walkExteriorTo(page, { x: 50 * Math.SQRT1_2, z: 4 * Math.SQRT1_2 });
-  await page.locator('[data-exterior-door-control]').tap();
+  // The route helper advances the player without awaiting a rendered frame.
+  // Safe rendering can leave the camera and projected button at their old pose;
+  // tapping then wakes rendering and moves the target during the gesture.
+  let previousBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null = null;
+  let stableSince = 0;
+  await expect
+    .poll(
+      async () => {
+        const cameraReady = await page.evaluate(() => {
+          const world = window.portfolio!.world!;
+          const player = world.getPlayerPosition();
+          const focus = world.getCameraState().focus;
+          return Math.hypot(focus.x - player.x, focus.z - player.z) < 0.01;
+        });
+        const box = await button.boundingBox();
+        const movedFromApproach =
+          box && Math.hypot(box.x - approachBox!.x, box.y - approachBox!.y) > 1;
+        const unchanged =
+          box &&
+          previousBox &&
+          ['x', 'y', 'width', 'height'].every(
+            (key) =>
+              Math.abs(
+                box[key as keyof typeof box] -
+                  previousBox![key as keyof typeof box]
+              ) < 0.5
+          );
+        if (!cameraReady || !movedFromApproach || !unchanged)
+          stableSince = Date.now();
+        previousBox = box;
+        // Observe a settled box across several 12 Hz software-safe scene updates,
+        // not merely two browser RAFs that may skip the scene's render callback.
+        return (
+          cameraReady && movedFromApproach && Date.now() - stableSince >= 250
+        );
+      },
+      { timeout: 10000 }
+    )
+    .toBe(true);
+  await button.evaluate((element) => {
+    element.setAttribute('data-test-activations', '0');
+    element.addEventListener('click', (event) => {
+      if (event.isTrusted)
+        element.setAttribute(
+          'data-test-activations',
+          String(Number(element.getAttribute('data-test-activations')) + 1)
+        );
+    });
+  });
+  await button.tap();
+  await expect(button).toHaveAttribute('data-test-activations', '1');
   expect(
     await page.evaluate(
       () =>
         window
           .portfolio!.world!.getDoorSnapshots()
-          .find((door) => door.id === 'garage-door')!.blocked
+          .find((door) => door.id === 'garage-door')!
     )
-  ).toBe(false);
+  ).toMatchObject({ occupied: true, target: 1, blocked: false });
   const doorStatus = page.locator(
     '[data-exterior-door-control] + [aria-live="polite"]'
   );
