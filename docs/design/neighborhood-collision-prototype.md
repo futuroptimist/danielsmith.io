@@ -47,7 +47,7 @@ clearance tests when accepted layout data exists.
 ## Measured evidence and proposed limits
 
 The [machine-readable report](../qa/performance/neighborhood-collision-prototype.json)
-records capture commit `8edadf38`, accepted base `83f741d6`, a clean repository
+records capture commit `c7dc668b`, accepted base `83f741d6`, a clean repository
 working tree, prototype source hashes, environment, all three timing
 attempt summaries and the opening-width sweep. The
 [read-only overlay](../assets/neighborhood-collision-prototype.svg) shows physical
@@ -87,13 +87,13 @@ at unrelated corners or at joins to a future site layout.
 
 | Collision / navigation candidates | Observed batch p95 range, three attempts |
 | --------------------------------- | ---------------------------------------- |
-| 32 / 16                           | 0.107-0.114 ms                           |
-| 128 / 64                          | 0.271-0.282 ms                           |
-| 256 / 128                         | 0.545-0.598 ms                           |
-| 256 / 256                         | 0.592-0.610 ms                           |
-| 512 / 256                         | 1.039-1.075 ms                           |
-| 1,024 / 512                       | 1.999-2.052 ms                           |
-| 2,048 / 1,024                     | 4.071-4.148 ms                           |
+| 32 / 16                           | 0.106-0.109 ms                           |
+| 128 / 64                          | 0.273-0.287 ms                           |
+| 256 / 128                         | 0.519-0.547 ms                           |
+| 256 / 256                         | 0.579-0.585 ms                           |
+| 512 / 256                         | 0.999-1.028 ms                           |
+| 1,024 / 512                       | 1.993-2.088 ms                           |
+| 2,048 / 1,024                     | 4.123-4.142 ms                           |
 
 Ambient host load was uncontrolled. The [prior committed capture](https://github.com/futuroptimist/danielsmith.io/blob/459e0481b580a36c164ac8548d214cc051f0fb77/docs/qa/performance/neighborhood-collision-prototype.json)
 retains a 256/128 attempt with a 2.326 ms p95 and 4.692 ms p99 spike. The newer lower
@@ -112,7 +112,7 @@ Recommended **review targets**, not accepted runtime budgets:
 - Use <=256 solid candidates and <=256 walkable rectangles per occupancy query for the
   next synthetic slice. The present fixture fits; this says nothing about 24 full lots.
   At that cap, propose <=1.0 ms p95 and <=1.3 ms p99 for this exact host probe. Its three
-  attempts measured 0.592-0.610 ms p95 and <=0.684 ms p99. The prior smaller-count spike
+  attempts measured 0.579-0.585 ms p95 and <=0.629 ms p99. The prior smaller-count spike
   means this is a target requiring controlled repetition, not an established guarantee.
   The current 512+ candidate cases exceed the proposed p95 ceiling. Retain the lower
   candidate cap until a controlled qualification.
