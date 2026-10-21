@@ -1,0 +1,353 @@
+{
+  "schema": 1,
+  "captureCommit": "c7dc668b927558a522c19584e47449d1fe08aa16",
+  "acceptedBaseCommit": "83f741d623f5feddce9f0c0493c71c7a445f74ae",
+  "repositoryWorkingTreeDirty": false,
+  "cleanlinessScope": "All tracked and untracked nonignored repository files, checked before and after measurement.",
+  "prototypeHashes": {
+    "rectangularNeighborhood.ts": "4d5df239c7dc3719c74491335107f8a2fcfa3085f07201d32db0dde7a8c68cb1",
+    "neighborhoodFixtures.ts": "744f0e814ff669994e8df9e00d508df36b9f76aff3700c1e1fc4df70538b70c0",
+    "measureNeighborhood.ts": "bdbaf31a05f6f8cbf277ee60c0e577ef256c38a17ed0ad90b52960bc7f50be89"
+  },
+  "environment": {
+    "node": "v18.17.1",
+    "platform": "win32",
+    "arch": "x64",
+    "cpu": "13th Gen Intel(R) Core(TM) i9-13900K"
+  },
+  "scope": "Synthetic, test-only feasibility; no live scene or low-end hardware qualification.",
+  "parameters": {
+    "cellSize": 0.125,
+    "maxCells": 262144,
+    "maxRectangles": 512,
+    "overlap": 0.001,
+    "actorRadius": 0.75,
+    "physicalClearWidthRequirement": 3,
+    "collisionAllowance": "Unconfirmed; sweep only, no acceptance claim"
+  },
+  "curve": {
+    "authoredWidth": 6,
+    "walkableRectangleCount": 154,
+    "conservativeRadialCenterStrip": 4.1407897551572335,
+    "ends": "Actor-eroded sector endcaps; later route joins need independent union validation."
+  },
+  "fixtureSolidRectangleCount": 204,
+  "maxSolidBoundaryDeviation": 0.17720331368161624,
+  "openings": [
+    {
+      "angle": 0,
+      "authoredGap": 3,
+      "minimumPhysicalClearWidth": 2.9980000000000047,
+      "guaranteedActorCenterStrip": 1.4980000000000047,
+      "maxBoundaryDeviation": 0.026019223662515554,
+      "rectangleCount": 4
+    },
+    {
+      "angle": 0.4487989505128276,
+      "authoredGap": 3,
+      "minimumPhysicalClearWidth": 2.68363620365957,
+      "guaranteedActorCenterStrip": 1.18363620365957,
+      "maxBoundaryDeviation": 0.16892843420773726,
+      "rectangleCount": 60
+    },
+    {
+      "angle": 0.7853981633974483,
+      "authoredGap": 3,
+      "minimumPhysicalClearWidth": 2.64882200232481,
+      "guaranteedActorCenterStrip": 1.1488220023248101,
+      "maxBoundaryDeviation": 0.17558899883759693,
+      "rectangleCount": 96
+    },
+    {
+      "angle": 0,
+      "authoredGap": 3.2,
+      "minimumPhysicalClearWidth": 2.9980000000000047,
+      "guaranteedActorCenterStrip": 1.4980000000000047,
+      "maxBoundaryDeviation": 0.10429285689825461,
+      "rectangleCount": 4
+    },
+    {
+      "angle": 0.4487989505128276,
+      "authoredGap": 3.2,
+      "minimumPhysicalClearWidth": 2.9088784206351748,
+      "guaranteedActorCenterStrip": 1.4088784206351748,
+      "maxBoundaryDeviation": 0.16892843420773992,
+      "rectangleCount": 62
+    },
+    {
+      "angle": 0.7853981633974483,
+      "authoredGap": 3.2,
+      "minimumPhysicalClearWidth": 3.002375392918084,
+      "guaranteedActorCenterStrip": 1.502375392918084,
+      "maxBoundaryDeviation": 0.1665792565073326,
+      "rectangleCount": 94
+    },
+    {
+      "angle": 0,
+      "authoredGap": 3.4,
+      "minimumPhysicalClearWidth": 3.2480000000000047,
+      "guaranteedActorCenterStrip": 1.7480000000000047,
+      "maxBoundaryDeviation": 0.08032434251209329,
+      "rectangleCount": 4
+    },
+    {
+      "angle": 0.4487989505128276,
+      "authoredGap": 3.4,
+      "minimumPhysicalClearWidth": 3.125820290193954,
+      "guaranteedActorCenterStrip": 1.6258202901939538,
+      "maxBoundaryDeviation": 0.16892843420773704,
+      "rectangleCount": 60
+    },
+    {
+      "angle": 0.7853981633974483,
+      "authoredGap": 3.4,
+      "minimumPhysicalClearWidth": 3.179152088214721,
+      "guaranteedActorCenterStrip": 1.679152088214721,
+      "maxBoundaryDeviation": 0.16657925650733515,
+      "rectangleCount": 94
+    },
+    {
+      "angle": 0,
+      "authoredGap": 3.8,
+      "minimumPhysicalClearWidth": 3.7480000000000047,
+      "guaranteedActorCenterStrip": 2.2480000000000047,
+      "maxBoundaryDeviation": 0.10429285689825461,
+      "rectangleCount": 4
+    },
+    {
+      "angle": 0.4487989505128276,
+      "authoredGap": 3.8,
+      "minimumPhysicalClearWidth": 3.4678337893657742,
+      "guaranteedActorCenterStrip": 1.9678337893657742,
+      "maxBoundaryDeviation": 0.17141550820703588,
+      "rectangleCount": 62
+    },
+    {
+      "angle": 0.7853981633974483,
+      "authoredGap": 3.8,
+      "minimumPhysicalClearWidth": 3.532705478807995,
+      "guaranteedActorCenterStrip": 2.032705478807995,
+      "maxBoundaryDeviation": 0.1776858454706769,
+      "rectangleCount": 94
+    }
+  ],
+  "cpu": [
+    {
+      "colliders": 32,
+      "walkableRectangles": 16,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.06229999661445618,
+          "p95": 0.10760000348091125,
+          "p99": 0.13089999556541443,
+          "max": 0.1785999834537506,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.062099993228912354,
+          "p95": 0.10849997401237488,
+          "p99": 0.13249999284744263,
+          "max": 0.1825999915599823,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.0625,
+          "p95": 0.10679998993873596,
+          "p99": 0.11730000376701355,
+          "max": 0.125,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 128,
+      "walkableRectangles": 64,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.21389999985694885,
+          "p95": 0.2806999981403351,
+          "p99": 0.3222000002861023,
+          "max": 0.4081000089645386,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.21239998936653137,
+          "p95": 0.2738000154495239,
+          "p99": 0.2928999960422516,
+          "max": 0.38609999418258667,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.21530002355575562,
+          "p95": 0.2866000235080719,
+          "p99": 0.3142000138759613,
+          "max": 0.43550002574920654,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 256,
+      "walkableRectangles": 128,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.4439000189304352,
+          "p95": 0.5330000221729279,
+          "p99": 0.5703999996185303,
+          "max": 0.6825999915599823,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.4355999827384949,
+          "p95": 0.5191999971866608,
+          "p99": 0.565200001001358,
+          "max": 0.6444000005722046,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.44769999384880066,
+          "p95": 0.5468999743461609,
+          "p99": 0.5697000026702881,
+          "max": 0.615200012922287,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 256,
+      "walkableRectangles": 256,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.4966999888420105,
+          "p95": 0.5812000036239624,
+          "p99": 0.6237999796867371,
+          "max": 0.6687999963760376,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.4952000081539154,
+          "p95": 0.5841000080108643,
+          "p99": 0.6287999749183655,
+          "max": 0.6848999857902527,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.4974000155925751,
+          "p95": 0.5792999863624573,
+          "p99": 0.6035000085830688,
+          "max": 0.6290000081062317,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 512,
+      "walkableRectangles": 256,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 0.917600005865097,
+          "p95": 1.0009999871253967,
+          "p99": 1.098800003528595,
+          "max": 1.1462000012397766,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.9163999855518341,
+          "p95": 0.9995999932289124,
+          "p99": 1.0388000011444092,
+          "max": 1.1500000059604645,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 0.9186000227928162,
+          "p95": 1.027400016784668,
+          "p99": 1.0773999989032745,
+          "max": 1.3109999895095825,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 1024,
+      "walkableRectangles": 512,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 1.8528999984264374,
+          "p95": 2.016600012779236,
+          "p99": 2.1306999921798706,
+          "max": 2.3747000098228455,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 1.8481000065803528,
+          "p95": 1.993499994277954,
+          "p99": 2.083999991416931,
+          "max": 2.25560000538826,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 1.902400016784668,
+          "p95": 2.087999999523163,
+          "p99": 2.2222000062465668,
+          "max": 2.2912999987602234,
+          "hits": 0
+        }
+      ]
+    },
+    {
+      "colliders": 2048,
+      "walkableRectangles": 1024,
+      "queriesPerBatch": 128,
+      "attempts": [
+        {
+          "samples": 300,
+          "p50": 3.785199999809265,
+          "p95": 4.141699999570847,
+          "p99": 4.5329999923706055,
+          "max": 4.754000008106232,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 3.7966000139713287,
+          "p95": 4.135999977588654,
+          "p99": 4.267599999904633,
+          "max": 4.613900005817413,
+          "hits": 0
+        },
+        {
+          "samples": 300,
+          "p50": 3.7863999903202057,
+          "p95": 4.123199999332428,
+          "p99": 4.322200000286102,
+          "max": 4.52539998292923,
+          "hits": 0
+        }
+      ]
+    }
+  ]
+}
