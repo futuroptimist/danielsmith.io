@@ -444,9 +444,10 @@ function run(output: string) {
       encoding: 'utf8',
     }).trim(),
     capturedAt: new Date().toISOString(),
-    sourceHashes: Object.fromEntries(
-      sourceFiles.sort().map((file) => [file, hash(readFileSync(file))])
-    ),
+    sourceHashes: sourceFiles.sort().map((file) => ({
+      path: file,
+      sha256: hash(readFileSync(file)),
+    })),
   };
   mkdirSync(output, { recursive: true });
   writeFileSync(
