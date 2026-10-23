@@ -61,6 +61,24 @@ describe('review-only scaled neighborhood', () => {
     expect(a.b.x).toBeCloseTo(b.a.x);
     expect(qualifyRoute(layout, [a.a, a.b]).qualified).toBe(true);
   });
+  it('reports preserved sidewalk end gates as failed home connections', () => {
+    expect(layout.boundaryGates.map((wall) => wall.sourceId).sort()).toEqual([
+      'ground.sidewalk.end0',
+      'ground.sidewalk.end1',
+    ]);
+    const x = layout.lines[0].a.x;
+    const stop = layout.audit.anchors.find(
+      (a) => a.sourceId === 'ground.busStop.shelter'
+    )!;
+    for (const z of [-125, 125]) {
+      expect(
+        qualifyRoute(layout, [
+          { x, z: stop.world.z },
+          { x, z },
+        ]).qualified
+      ).toBe(false);
+    }
+  });
   for (const loop of layout.loops)
     for (const offset of [-0.85, 0.85]) {
       it(`keeps a passing lane across ${loop.id} seams at offset ${offset}`, () => {

@@ -168,6 +168,11 @@ export function measurement(layout: Graybox) {
       joins,
       paths,
       approaches,
+      boundaryGates: layout.boundaryGates.map((wall) => ({
+        sourceId: wall.sourceId,
+        bounds: wall.collider,
+      })),
+      homeConnectionQualified: approaches.every((route) => route.qualified),
       overlapViolations: overlapViolations(layout),
       integratedRuntime: false,
       lowEndHardware: false,
@@ -198,6 +203,7 @@ export function measurement(layout: Graybox) {
       attempts: probeWholeLayout(layout),
     },
     remainingGates: [
+      'Existing sidewalk end walls block both home connections; retained without runtime edits.',
       'Global arrays exceed provisional query targets; engine expansion not attempted.',
       'No rendering/FPS, low-end hardware, normal-scene traversal or visual production acceptance.',
     ],
@@ -310,6 +316,7 @@ export function renderGraybox(layout: Graybox, isometric = false) {
     `<text x="${box.x + 6}" y="${box.y + 16}" font-size="3">`,
     'REVIEW ONLY · world metres · no live scene changes</text>',
     ...layout.protectedRooms.map((r) => rect(r.bounds, '#dbeafe')),
+    ...layout.walls.map((wall) => rect(wall.collider, '#647b9b')),
     ...layout.lots.map((l) => rect(l.parcel, '#e5e7eb')),
     ...layout.physicalLines.map((b) => rect(b, '#d1d5db')),
     ...layout.loops.flatMap((loop, i) => {
@@ -357,6 +364,17 @@ export function renderGraybox(layout: Graybox, isometric = false) {
       text({ x: l.house.center.x - 6, z: l.house.center.z + 12 }, l.id)
     ),
     rect(stopBounds, '#fbbf24'),
+    ...layout.boundaryGates.map((wall) => rect(wall.collider, '#dc2626')),
+    text(
+      { x: layout.sidewalk.maxX + 1, z: layout.sidewalk.minZ - 2 },
+      'Blocked exit',
+      2.5
+    ),
+    text(
+      { x: layout.sidewalk.maxX + 1, z: layout.sidewalk.maxZ + 3 },
+      'Blocked exit',
+      2.5
+    ),
     text(
       { x: layout.protectedBounds.minX, z: layout.protectedBounds.minZ - 4 },
       'Protected existing home'

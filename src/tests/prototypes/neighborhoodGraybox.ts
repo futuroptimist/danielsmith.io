@@ -230,6 +230,14 @@ export function buildGraybox() {
     ...audit.declaredColliders.map((s) => s.bounds),
     ...walls.map((wall) => wall.collider),
   ];
+  const boundaryGates = walls.filter((wall) =>
+    collidesWithColliders(
+      west,
+      (wall.collider.minZ + wall.collider.maxZ) / 2,
+      R,
+      [wall.collider]
+    )
+  );
   const housePieces = lots.flatMap((lot) => decomposeSolid(lot.house));
   const fencePieces = lots.flatMap((lot) =>
     lot.fences.flatMap((fence) => decomposeSolid(fence))
@@ -267,6 +275,7 @@ export function buildGraybox() {
     zones,
     baseZones,
     walls,
+    boundaryGates,
     solids: [
       ...existingSolids,
       ...housePieces.map((p) => p.bounds),
@@ -327,6 +336,7 @@ export function qualifyRoute(
     runSpeed: AVATAR_RUN_SPEED,
     frameRate,
     maxError,
+    lastPosition: p,
     blocked,
     qualified: blocked === 0,
   };
