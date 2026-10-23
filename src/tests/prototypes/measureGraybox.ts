@@ -227,6 +227,8 @@ export function renderGraybox(layout: Graybox, isometric = false) {
     w: bounds.maxX - bounds.minX + 50,
     h: bounds.maxZ - bounds.minZ + 65,
   };
+  const projectedPoints = (ps: Point[]) =>
+    ps.map((p) => `${number(p.x)},${number(p.z)}`).join(' ');
   const points = (ps: Point[], height = 0) =>
     ps
       .map((p) => {
@@ -251,7 +253,7 @@ export function renderGraybox(layout: Graybox, isometric = false) {
     );
   const text = (p: Point, s: string, size = 2.7) => {
     const q = project(p);
-    return `<text x="${q.x}" y="${q.z}" font-size="${size}">${s}</text>`;
+    return `<text x="${number(q.x)}" y="${number(q.z)}" font-size="${size}">${s}</text>`;
   };
   const house = (s: RotatedSolid, height: number) => {
     const corners = solidCorners(s);
@@ -266,7 +268,7 @@ export function renderGraybox(layout: Graybox, isometric = false) {
               project(p, height),
             ];
             return (
-              `<polygon points="${polygonPoints.map((p) => `${p.x},${p.z}`).join(' ')}" ` +
+              `<polygon points="${projectedPoints(polygonPoints)}" ` +
               'fill="#a7adb4" stroke="#64748b" stroke-width=".25"/>'
             );
           })
@@ -277,7 +279,7 @@ export function renderGraybox(layout: Graybox, isometric = false) {
       { x: s.center.x, z: s.center.z + s.depth / 2 },
     ];
     const face = (ps: Point[], fill: string) =>
-      `<polygon points="${ps.map((p) => `${p.x},${p.z}`).join(' ')}" ` +
+      `<polygon points="${projectedPoints(ps)}" ` +
       `fill="${fill}" stroke="#64748b" stroke-width=".25"/>`;
     const r = ridge.map((p) => project(p, height + (isometric ? 1.5 : 0)));
     const e = corners.map((p) => project(p, height));
