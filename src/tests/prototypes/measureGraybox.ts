@@ -20,6 +20,8 @@ import {
   solidCorners,
   type Graybox,
   EXTRA_CLEARANCE_TARGET,
+  REVIEW_WIDTH,
+  REVIEW_RADIUS,
 } from './neighborhoodGraybox';
 import { type Point, type RotatedSolid } from './rectangularNeighborhood';
 
@@ -180,8 +182,8 @@ export function measurement(layout: Graybox) {
     },
     clearance: {
       actorRadius: R,
-      authoredCurveWidth: 6,
-      curveRadius: 18,
+      authoredCurveWidth: REVIEW_WIDTH,
+      curveRadius: REVIEW_RADIUS,
       conservativeCurvePhysicalWidth: layout.conservativeCurveWidth,
       twoActorPhysicalWidth: 4 * R,
       provisionalTwoActorWidthWithAllowance: 4 * R + EXTRA_CLEARANCE_TARGET,
