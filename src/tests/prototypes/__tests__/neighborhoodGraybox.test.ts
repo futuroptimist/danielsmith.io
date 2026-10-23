@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../../assets/floorPlan';
+import { withStableCapture, type CaptureIdentity } from '../measureGraybox';
 import { maximumSolidDeviation } from '../measureNeighborhood';
 import {
   buildGraybox,
@@ -105,10 +106,10 @@ describe('review-only scaled neighborhood', () => {
       qualifyRoute({ ...layout, zones: [] }, [line.a, line.b]).qualified
     ).toBe(false);
   });
-  it('keeps both passing lanes through every fenced lot opening', () => {
-    for (const lot of layout.lots.filter((l) => l.fences.length)) {
+  it('keeps the centre and both passing lanes through all 24 lot approaches', () => {
+    for (const lot of layout.lots) {
       const sign = Math.sign(lot.path.b.x - lot.path.a.x);
-      for (const offset of [-0.85, 0.85]) {
+      for (const offset of [-0.85, 0, 0.85]) {
         const points = [
           { x: lot.door.x + sign * 0.95, z: lot.door.z + offset },
           { ...lot.path.b, z: lot.path.b.z + offset },
@@ -116,6 +117,30 @@ describe('review-only scaled neighborhood', () => {
         expect(qualifyRoute(layout, points, false, 4).qualified).toBe(true);
       }
     }
+  });
+  it('binds capture identity before measurement and rejects changes before output', () => {
+    const stable: CaptureIdentity = {
+      base: 'revision-a',
+      dirty: '',
+      sourceHashes: [{ path: 'fixture.ts', sha256: 'hash-a' }],
+    };
+    const action = vi.fn(() => 42);
+    expect(withStableCapture(() => stable, action).result).toBe(42);
+    for (const changed of [
+      { ...stable, base: 'revision-b' },
+      { ...stable, dirty: ' M fixture.ts' },
+      { ...stable, sourceHashes: [{ path: 'fixture.ts', sha256: 'hash-b' }] },
+    ]) {
+      let reads = 0;
+      expect(() =>
+        withStableCapture(() => (reads++ === 0 ? stable : changed), action)
+      ).toThrow('changed during measurement');
+    }
+    action.mockClear();
+    expect(() =>
+      withStableCapture(() => ({ ...stable, dirty: '?? fixture.ts' }), action)
+    ).toThrow('clean repository');
+    expect(action).not.toHaveBeenCalled();
   });
   it('measures full fence strips and every solid against the provisional allowance', () => {
     const pieces = [...layout.housePieces, ...layout.fencePieces];

@@ -403,7 +403,7 @@ export function renderGraybox(layout: Graybox, isometric = false) {
     '</g></svg>\n',
   ].join('');
 }
-function run(output: string) {
+function captureGeometry() {
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
   // The audit needs only canvas creation. Null context suppresses sign text paint,
   // not geometry, matching the existing geometry audit tests.
@@ -424,7 +424,35 @@ function run(output: string) {
     'Geometry built; qualifying routes and measuring global queries.\n'
   );
   const report = measurement(layout);
-  process.stderr.write('Measurements complete; writing evidence.\n');
+  return {
+    report,
+    overhead: renderGraybox(layout),
+    isometric: renderGraybox(layout, true),
+  };
+}
+export interface CaptureIdentity {
+  base: string;
+  dirty: string;
+  sourceHashes: Array<{ path: string; sha256: string }>;
+}
+/** Fail closed before any output if sources or repository state change. */
+export function withStableCapture<T>(
+  snapshot: () => CaptureIdentity,
+  measure: () => T
+) {
+  const before = snapshot();
+  if (before.dirty) throw new Error('Capture requires a clean repository.');
+  const result = measure();
+  const after = snapshot();
+  if (JSON.stringify(before) !== JSON.stringify(after)) {
+    throw new Error('Capture sources or revision changed during measurement.');
+  }
+  return {
+    result,
+    provenance: { ...before, capturedAt: new Date().toISOString() },
+  };
+}
+function captureIdentity(): CaptureIdentity {
   const sourceFiles = execFileSync(
     'git',
     ['ls-files', 'src', 'scripts/exteriorGeometryAudit.ts'],
@@ -436,32 +464,33 @@ function run(output: string) {
     const file = `src/tests/prototypes/${name}`;
     if (!sourceFiles.includes(file)) sourceFiles.push(file);
   }
-  const provenance = {
+  return {
     base: execFileSync('git', ['rev-parse', 'HEAD'], {
       encoding: 'utf8',
     }).trim(),
     dirty: execFileSync('git', ['status', '--porcelain'], {
       encoding: 'utf8',
     }).trim(),
-    capturedAt: new Date().toISOString(),
     sourceHashes: sourceFiles.sort().map((file) => ({
       path: file,
       sha256: hash(readFileSync(file)),
     })),
   };
+}
+function run(output: string) {
+  const { result, provenance } = withStableCapture(
+    captureIdentity,
+    captureGeometry
+  );
+  const { report, overhead, isometric } = result;
+  process.stderr.write('Stable capture verified; writing evidence.\n');
   mkdirSync(output, { recursive: true });
   writeFileSync(
     join(output, 'neighborhood-graybox.json'),
     JSON.stringify({ provenance, ...report }, null, 2) + '\n'
   );
-  writeFileSync(
-    join(output, 'neighborhood-graybox-overhead.svg'),
-    renderGraybox(layout)
-  );
-  writeFileSync(
-    join(output, 'neighborhood-graybox-isometric.svg'),
-    renderGraybox(layout, true)
-  );
+  writeFileSync(join(output, 'neighborhood-graybox-overhead.svg'), overhead);
+  writeFileSync(join(output, 'neighborhood-graybox-isometric.svg'), isometric);
   process.stdout.write(
     JSON.stringify({
       counts: report.counts,

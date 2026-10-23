@@ -89,10 +89,12 @@ npx --no-install vitest run src/tests/prototypes/__tests__/neighborhoodGraybox.t
 npx --no-install tsx src/tests/prototypes/measureGraybox.ts /absolute/review-output
 ```
 
-The capture tool requires an explicit output directory and writes only the JSON
+The capture tool requires a clean repository and an explicit output directory and writes only the JSON
 and two SVGs there. It substitutes a null canvas context while running the actual
 exterior builders, matching the existing geometry audit tests; sign paint is
 omitted, geometry is measured. Capture provenance records the checked-out commit,
-working-tree state and input hashes. A source commit followed by a separate
+working-tree state and input hashes before building or measuring. It verifies the
+same identity again after generating the measurements and drawings, and rejects
+any intervening change before writing output. A source commit followed by a separate
 artifact commit avoids circular capture identities. Inspect the JSON's dirty
 state and hashes before treating a capture as evidence for a later revision.
