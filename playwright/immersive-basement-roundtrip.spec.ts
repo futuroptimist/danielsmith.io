@@ -4,11 +4,13 @@ import { expect, test, type Page } from '@playwright/test';
 
 import type { PortfolioApi } from '../src/app/portfolioApi';
 import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
+import { getNormalizedDoorways } from '../src/assets/floorPlan/doorways';
 import { CAREER_EXHIBIT_FOOTPRINT } from '../src/scene/level/careerMuseumLayout';
 import {
   getFloorTopElevation,
   type FloorId,
 } from '../src/scene/level/floorElevations';
+import { getBasementStairLayout } from '../src/scene/structures/basementStaircase';
 import {
   TARGET_AVATAR_HEIGHT,
   AVATAR_COLLISION_RADIUS,
@@ -17,6 +19,9 @@ import {
 const URL = '/?mode=immersive&disablePerformanceFailover=1';
 const SPAWN = { x: 0 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 };
 const LANDING = { x: 3.8 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 };
+const BASEMENT_GEOMETRY = getBasementStairLayout().geometry;
+const STAIR_CENTER_OFFSET =
+  (BASEMENT_GEOMETRY.halfWidth - AVATAR_COLLISION_RADIUS) * 0.8;
 const TOE = { x: 3.8 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 };
 const GROUND_TO_UPPER = [
   SPAWN,
@@ -151,35 +156,51 @@ async function walk(
 }
 
 async function upperRoomPath(page: Page, target: { x: number; z: number }) {
+  // The 0.15m center corridor can fall between coarse grid lines. Add exact
+  // source-derived portal samples; every connecting segment still uses collision checks.
+  const portals = getNormalizedDoorways(UPPER_FLOOR_PLAN).flatMap((door) =>
+    [-1.5, -1, -0.5, 0, 0.5, 1, 1.5].map((offset) => ({
+      x: door.center.x + (door.axis === 'vertical' ? offset : 0),
+      z: door.center.z + (door.axis === 'horizontal' ? offset : 0),
+    }))
+  );
   const path = await page.evaluate(
-    ({ target }) => {
+    ({ target, portals }) => {
       const w = (window.portfolio as PortfolioApi).world!;
       const start = w.getPlayerPosition();
-      const grid = 0.5;
+      const grid = 0.1;
       const queue = [{ x: start.x, z: start.z, parent: -1 }];
-      const visited = new Set(['0,0']);
+      const keyOf = (p: { x: number; z: number }) =>
+        `${p.x.toFixed(4)},${p.z.toFixed(4)}`;
+      const visited = new Set([keyOf(start)]);
       let found = -1;
-      for (let index = 0; index < queue.length && index < 20000; index++) {
+      for (let index = 0; index < queue.length && index < 200000; index++) {
         const point = queue[index];
         if (Math.hypot(point.x - target.x, point.z - target.z) < 0.6) {
           found = index;
           break;
         }
-        for (const [dx, dz] of [
+        const candidates = [
           [grid, 0],
           [-grid, 0],
           [0, grid],
           [0, -grid],
-        ]) {
+        ];
+        for (const portal of portals) {
+          const dx = portal.x - point.x,
+            dz = portal.z - point.z;
+          if (Math.hypot(dx, dz) < 3.1) candidates.push([dx, dz]);
+        }
+        for (const [dx, dz] of candidates) {
           const next = { x: point.x + dx, z: point.z + dz, parent: index };
-          const key = `${Math.round((next.x - start.x) / grid)},${Math.round((next.z - start.z) / grid)}`;
+          const key = keyOf(next);
           if (visited.has(key)) continue;
-          visited.add(key);
           let clear = true;
-          for (let sub = 1; sub <= 5; sub++) {
+          const subdivisions = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.1));
+          for (let sub = 1; sub <= subdivisions; sub++) {
             const sample = {
-              x: point.x + (dx * sub) / 5,
-              z: point.z + (dz * sub) / 5,
+              x: point.x + (dx * sub) / subdivisions,
+              z: point.z + (dz * sub) / subdivisions,
               floorId: 'upper' as const,
             };
             if (
@@ -190,17 +211,24 @@ async function upperRoomPath(page: Page, target: { x: number; z: number }) {
               break;
             }
           }
-          if (clear) queue.push(next);
+          if (clear) {
+            visited.add(key);
+            queue.push(next);
+          }
         }
       }
-      if (found < 0)
-        throw new Error(`No upper route to ${JSON.stringify(target)}`);
+      if (found < 0) {
+        const details = { target, start, visited: queue.length };
+        throw new Error(
+          `No collision-free upper route: ${JSON.stringify(details)}`
+        );
+      }
       const path = [];
       for (let index = found; index >= 0; index = queue[index].parent)
         path.push(queue[index]);
       return path.reverse();
     },
-    { target }
+    { target, portals }
   );
   return walk(page, path, 0.1, 'upper');
 }
@@ -362,7 +390,10 @@ test('completes ten consecutive round trips with slow diagonal lips, stops and r
       page,
       [
         { x: 3.8 * Math.SQRT1_2, z: -14.1 * Math.SQRT1_2 },
-        { x: 4 * Math.SQRT1_2, z: -14.75 * Math.SQRT1_2 },
+        {
+          x: BASEMENT_GEOMETRY.centerX + STAIR_CENTER_OFFSET,
+          z: -14.75 * Math.SQRT1_2,
+        },
       ],
       0.035
     );
@@ -374,7 +405,13 @@ test('completes ten consecutive round trips with slow diagonal lips, stops and r
     );
     const down = await walk(
       page,
-      [{ x: 3.7 * Math.SQRT1_2, z: -14.8 * Math.SQRT1_2 }, TOE],
+      [
+        {
+          x: BASEMENT_GEOMETRY.centerX - STAIR_CENTER_OFFSET,
+          z: -14.8 * Math.SQRT1_2,
+        },
+        TOE,
+      ],
       0.07
     );
     expect(down.floor).toBe('basement');
@@ -383,7 +420,10 @@ test('completes ten consecutive round trips with slow diagonal lips, stops and r
     await walk(
       page,
       [
-        { x: 3.9 * Math.SQRT1_2, z: -29.2 * Math.SQRT1_2 },
+        {
+          x: BASEMENT_GEOMETRY.centerX + STAIR_CENTER_OFFSET,
+          z: -29.2 * Math.SQRT1_2,
+        },
         { x: 3.8 * Math.SQRT1_2, z: -29.6 * Math.SQRT1_2 },
       ],
       0.03,
@@ -408,7 +448,7 @@ test('preserves both stair handoffs through coarse slow-frame displacements', as
     for (const connection of w.getFloorConnectionSnapshot().connections) {
       for (const delta of [0.15, 0.16, 0.35]) {
         const g = connection.geometry;
-        const upperZ = g.topZ + g.direction * 3;
+        const upperZ = g.topZ + g.direction * 2;
         const lowerZ = g.bottomZ - g.direction * 2;
         // Each isolated fixture starts at a real landing. All crossings below
         // use the same runtime collision path as keyboard and touch movement.
@@ -435,7 +475,7 @@ test('preserves both stair handoffs through coarse slow-frame displacements', as
             const before = w.getPlayerPosition();
             const remaining = Math.abs(target - before.z);
             if (remaining < 0.0001) break;
-            // Match the runtime's speed and damped acceleration. At 150/160 ms,
+            // Stress above the runtime run speed with damped acceleration. At 150/160 ms,
             // endpoint-only movement skipped the entire intentional descent lip.
             velocity += (12 - velocity) * (1 - Math.exp(-8 * delta));
             const step = w.stepPlayerForTest({
@@ -532,14 +572,14 @@ test('blocks coarse displacements through side and back stair rails', async ({
     {
       floorId: 'ground' as const,
       x: 3.8 * Math.SQRT1_2,
-      z: -7 * Math.SQRT2 - 5.04 - 2,
+      z: BASEMENT_GEOMETRY.bottomZ - 1.2 - AVATAR_COLLISION_RADIUS - 0.075,
       dx: 0,
       dz: 12,
     },
     {
       floorId: 'basement' as const,
       x: 3.8 * Math.SQRT1_2,
-      z: -6.2,
+      z: BASEMENT_GEOMETRY.landingMaxZ + 0.24 + AVATAR_COLLISION_RADIUS + 0.02,
       dx: 0,
       dz: -12,
     },
@@ -580,7 +620,7 @@ test('blocks genuine side and back attempts without floor hopping on either loca
     {
       floorId: 'ground' as const,
       x: 3.8 * Math.SQRT1_2,
-      z: -7 * Math.SQRT2 - 5.04 - 2,
+      z: BASEMENT_GEOMETRY.bottomZ - 1.2 - AVATAR_COLLISION_RADIUS - 0.075,
       dx: 0,
       dz: 0.1,
     },
@@ -601,7 +641,7 @@ test('blocks genuine side and back attempts without floor hopping on either loca
     {
       floorId: 'basement' as const,
       x: 3.8 * Math.SQRT1_2,
-      z: -6.2,
+      z: BASEMENT_GEOMETRY.landingMaxZ + 0.24 + AVATAR_COLLISION_RADIUS + 0.02,
       dx: 0,
       dz: -0.1,
     },
@@ -749,87 +789,90 @@ test('measures radius-adjusted circulation lanes and turning pads against live c
   page,
 }) => {
   await ready(page);
-  const result = await page.evaluate(() => {
-    const w = window.portfolio!.world!;
-    const regions = [
-      {
-        name: 'workshop west perimeter',
-        floorId: 'basement' as const,
-        minX: -30 * Math.SQRT1_2,
-        maxX: -28 * Math.SQRT1_2,
-        minZ: -34 * Math.SQRT1_2,
-        maxZ: -22 * Math.SQRT1_2,
-      },
-      {
-        name: 'workshop south route to stairs',
-        floorId: 'basement' as const,
-        minX: -30 * Math.SQRT1_2,
-        maxX: 5.3 * Math.SQRT1_2,
-        minZ: -34 * Math.SQRT1_2,
-        maxZ: -32 * Math.SQRT1_2,
-      },
-      {
-        name: 'workshop front route to museum',
-        floorId: 'basement' as const,
-        minX: -29 * Math.SQRT1_2,
-        maxX: -16 * Math.SQRT1_2,
-        minZ: -23 * Math.SQRT1_2,
-        maxZ: -22 * Math.SQRT1_2,
-      },
-      {
-        name: 'ground west circulation',
-        floorId: 'ground' as const,
-        minX: -3 * Math.SQRT1_2,
-        maxX: 0.1 * Math.SQRT1_2,
-        minZ: -21 * Math.SQRT1_2,
-        maxZ: -13.1 * Math.SQRT1_2,
-      },
-      {
-        name: 'ground landing turn',
-        floorId: 'ground' as const,
-        minX: 2.3 * Math.SQRT1_2,
-        maxX: 5.3 * Math.SQRT1_2,
-        minZ: -7 * Math.SQRT2 + 1.2,
-        maxZ: -9.5 * Math.SQRT1_2,
-      },
-      {
-        name: 'ground west landing entry',
-        floorId: 'ground' as const,
-        minX: -0.5 * Math.SQRT1_2,
-        maxX: 2.5 * Math.SQRT1_2,
-        minZ: -7 * Math.SQRT2 + 1.2,
-        maxZ: -9.5 * Math.SQRT1_2,
-      },
-      {
-        name: 'basement lower turn',
-        floorId: 'basement' as const,
-        minX: 2.3 * Math.SQRT1_2,
-        maxX: 5.3 * Math.SQRT1_2,
-        minZ: -34.5 * Math.SQRT1_2,
-        maxZ: -31.5 * Math.SQRT1_2,
-      },
-      {
-        name: 'basement stair clear width',
-        floorId: 'basement' as const,
-        minX: 3.4 * Math.SQRT1_2,
-        maxX: 4.2 * Math.SQRT1_2,
-        minZ: -18.8 * Math.SQRT1_2,
-        maxZ: -14.8 * Math.SQRT1_2,
-      },
-    ];
-    return regions.map((region) => {
-      const blocked = [];
-      let samples = 0;
-      for (let x = region.minX; x <= region.maxX + 0.001; x += 0.1) {
-        for (let z = region.minZ; z <= region.maxZ + 0.001; z += 0.1) {
-          samples++;
-          if (!w.canOccupyPosition({ x, z, floorId: region.floorId }))
-            blocked.push({ x, z });
+  const result = await page.evaluate(
+    ({ radius, stair }) => {
+      const w = window.portfolio!.world!;
+      const regions = [
+        {
+          name: 'workshop west perimeter',
+          floorId: 'basement' as const,
+          minX: -30 * Math.SQRT1_2,
+          maxX: -28 * Math.SQRT1_2,
+          minZ: -34 * Math.SQRT1_2,
+          maxZ: -22 * Math.SQRT1_2,
+        },
+        {
+          name: 'workshop south route to stairs',
+          floorId: 'basement' as const,
+          minX: -30 * Math.SQRT1_2,
+          maxX: 5.3 * Math.SQRT1_2,
+          minZ: -34 * Math.SQRT1_2,
+          maxZ: -32 * Math.SQRT1_2,
+        },
+        {
+          name: 'workshop front route to museum',
+          floorId: 'basement' as const,
+          minX: -29 * Math.SQRT1_2,
+          maxX: -16 * Math.SQRT1_2,
+          minZ: -23 * Math.SQRT1_2,
+          maxZ: -22 * Math.SQRT1_2,
+        },
+        {
+          name: 'ground west circulation',
+          floorId: 'ground' as const,
+          minX: -3 * Math.SQRT1_2,
+          maxX: 0.1 * Math.SQRT1_2,
+          minZ: -21 * Math.SQRT1_2,
+          maxZ: -13.1 * Math.SQRT1_2,
+        },
+        {
+          name: 'ground landing turn',
+          floorId: 'ground' as const,
+          minX: 2.3 * Math.SQRT1_2,
+          maxX: 5.3 * Math.SQRT1_2,
+          minZ: stair.topZ + 0.4 + radius + 0.05,
+          maxZ: -8 * Math.SQRT1_2 - 0.25 - radius - 0.05,
+        },
+        {
+          name: 'ground west landing entry',
+          floorId: 'ground' as const,
+          minX: -0.5 * Math.SQRT1_2,
+          maxX: 2.5 * Math.SQRT1_2,
+          minZ: stair.topZ + 0.4 + radius + 0.05,
+          maxZ: -8 * Math.SQRT1_2 - 0.25 - radius - 0.05,
+        },
+        {
+          name: 'basement lower turn',
+          floorId: 'basement' as const,
+          minX: 2.3 * Math.SQRT1_2,
+          maxX: 5.3 * Math.SQRT1_2,
+          minZ: -36 * Math.SQRT1_2 + radius + 0.05,
+          maxZ: -31.5 * Math.SQRT1_2,
+        },
+        {
+          name: 'basement stair clear width',
+          floorId: 'basement' as const,
+          minX: stair.centerX - (stair.halfWidth - radius) * 0.8,
+          maxX: stair.centerX + (stair.halfWidth - radius) * 0.8,
+          minZ: -18.8 * Math.SQRT1_2,
+          maxZ: -14.8 * Math.SQRT1_2,
+        },
+      ];
+      return regions.map((region) => {
+        const blocked = [];
+        let samples = 0;
+        for (let x = region.minX; x <= region.maxX + 0.001; x += 0.1) {
+          for (let z = region.minZ; z <= region.maxZ + 0.001; z += 0.1) {
+            samples++;
+            if (!w.canOccupyPosition({ x, z, floorId: region.floorId }))
+              blocked.push({ x, z });
+          }
         }
-      }
-      return { ...region, samples, blocked };
-    });
-  });
+        return { ...region, samples, blocked };
+      });
+    },
+    { radius: AVATAR_COLLISION_RADIUS, stair: BASEMENT_GEOMETRY }
+  );
   await mkdir(test.info().outputDir, { recursive: true });
   await writeFile(
     test.info().outputPath('runtime-clearances.json'),

@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { source as axeSource } from 'axe-core';
 
+import { AVATAR_COLLISION_RADIUS } from '../src/scene/units';
+
 import { injectEarlyInitializationFailure } from './helpers/earlyInitializationFailure';
 import {
   injectExteriorInitializationFailure,
@@ -470,7 +472,10 @@ test('routes from a valid fractional pose beside a solid planter without snappin
   await closeFrontDoorForManualTest(page);
   await page.locator(button).click();
   await waitDoor(page, 'front-door', 'open');
-  const edge = { x: 45 * Math.SQRT1_2 - 3.28, z: -10 * Math.SQRT1_2 - 0.4 };
+  const edge = {
+    x: 45 * Math.SQRT1_2 - 2.5 - AVATAR_COLLISION_RADIUS - 0.01,
+    z: -10 * Math.SQRT1_2 - 0.4,
+  };
   const rounded = {
     x: Math.round(edge.x / 0.2) * 0.2,
     z: Math.round(edge.z / 0.2) * 0.2,

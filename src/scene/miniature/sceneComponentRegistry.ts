@@ -172,9 +172,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'shared-source',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 40,
+    syncRevision: 41,
     syncNote:
-      'Stable named reservations preserve fit offsets, and the full-size studio monstera moves 0.4 m from the garage approach to retain player clearance.',
+      'The upper landing bench moves 0.34 m south with its visible and collision footprint to preserve the enlarged player doorway approach.',
   },
   {
     id: 'avatar:overworld-player',

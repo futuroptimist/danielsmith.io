@@ -1,3 +1,4 @@
+import { Box3 } from 'three';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -41,4 +42,66 @@ describe('upper doorways with actual furniture footprints', () => {
       )
     ).toBe(false);
   });
+});
+
+it('moves the landing bench with its collider and preserves the wall-side gap', () => {
+  const bench = furnishings.colliders.find(
+    (c) => c.furnishingId === 'upper-landing-bench'
+  )!;
+  const mesh = furnishings.group.getObjectByName(
+    'Furnishing:upper-landing-bench'
+  )!;
+  const bounds = new Box3().setFromObject(mesh);
+  expect(bounds.min.x).toBeCloseTo(bench.minX, 6);
+  expect(bounds.max.x).toBeCloseTo(bench.maxX, 6);
+  expect(bounds.min.z).toBeCloseTo(bench.minZ, 6);
+  expect(bounds.max.z).toBeCloseTo(bench.maxZ, 6);
+  const southWall = walls
+    .map((w) => w.collider)
+    .find(
+      (c) => c.maxZ < bench.minZ && c.minX < bench.maxX && c.maxX > bench.minX
+    )!;
+  expect(bench.minZ - southWall.maxZ).toBeGreaterThan(0.07);
+  const door = getNormalizedDoorways(UPPER_FLOOR_PLAN).find(
+    (d) => d.axis === 'vertical' && d.center.z < -15
+  )!;
+  const oldBench = {
+    ...bench,
+    minZ: bench.minZ + 0.34,
+    maxZ: bench.maxZ + 0.34,
+  };
+  expect(
+    collidesWithColliders(
+      door.center.x,
+      door.center.z,
+      AVATAR_COLLISION_RADIUS,
+      [oldBench]
+    )
+  ).toBe(true);
+  for (let offset = -1.5; offset <= 1.5; offset += 0.05) {
+    expect(
+      collidesWithColliders(
+        door.center.x + offset,
+        door.center.z,
+        AVATAR_COLLISION_RADIUS,
+        colliders
+      )
+    ).toBe(false);
+  }
+  for (const other of colliders.filter((c) => c !== bench)) {
+    if (
+      bench.minX < other.maxX &&
+      bench.maxX > other.minX &&
+      bench.minZ < other.maxZ &&
+      bench.maxZ > other.minZ
+    ) {
+      // The fitted bench already intersects the west wall slightly; add no new contacts.
+      expect(
+        oldBench.minX < other.maxX &&
+          oldBench.maxX > other.minX &&
+          oldBench.minZ < other.maxZ &&
+          oldBench.maxZ > other.minZ
+      ).toBe(true);
+    }
+  }
 });

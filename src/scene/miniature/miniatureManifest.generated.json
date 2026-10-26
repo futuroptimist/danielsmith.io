@@ -478,11 +478,11 @@
       "id": "decor:lower-floor-furnishings",
       "sourceFiles": ["src/scene/structures/lowerFloorFurnishings.ts"],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 40,
-      "syncNote": "Stable named reservations preserve fit offsets, and the full-size studio monstera moves 0.4 m from the garage approach to retain player clearance.",
-      "sourceFingerprint": "6f3d25d6b7dda57939643235c04d90667598dfd3270c62b058142f203fc2cc52",
+      "syncRevision": 41,
+      "syncNote": "The upper landing bench moves 0.34 m south with its visible and collision footprint to preserve the enlarged player doorway approach.",
+      "sourceFingerprint": "9c8f81bb07d0b481c4aaeceac214a58757a7b45d5d432935b7b6a7bdb28bcb24",
       "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
-      "metadataFingerprint": "8b2906c11eb66569fe4dd63a9238fcae49fa4e54d04d50be18c26ca01cc95734"
+      "metadataFingerprint": "70e7cd29d8ebeaf9d3f3c6e0feead8ae79680c13e5c632d4b7880538d4e45fa7"
     },
     {
       "id": "decor:wall-paintings",

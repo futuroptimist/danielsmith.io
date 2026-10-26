@@ -63,27 +63,42 @@ gates; this change does not claim those gates are complete.
 
 ## Qualification status
 
-The source changes are not ready for merge. The enlarged player exposes a concrete
-furnished-doorway conflict: the upper landing bench ends at z = -21.4167568262,
-while the adjacent doorway wall begins at z = -19.3555941291. Their 2.0611626971 m
-gap is 0.1888373029 m narrower than the 2.25 m collision diameter. The focused
-`playerFurnishedDoorways` regression intentionally remains failing at that opening.
-The other three upper doorway centers pass with actual furniture colliders.
+The source changes are not ready for merge. The upper landing bench now moves
+0.34 m south with its visible and collision footprint. The doorway approach gap
+increases from 2.0611626971 m to 2.4011626971 m, leaving 0.1511626971 m total
+margin for the 2.25 m capsule. Its south-wall gap remains about 0.070 m.
+The existing slight west-wall contact remains; no additional furniture or wall
+contact is introduced. Regression coverage checks visible/collider alignment,
+the full center crossing, and rejection of the previous bench position.
 
-A 0.34 m southward bench move would leave approximately 0.151 m total diameter
-margin, but furniture relocation is outside the current fixed-layout scope and
-has not been applied. The full browser journey confirms the same obstruction
-after successfully traversing the basement and climbing to the upper floor.
+The integrated journey still exposes library approach obstructions. The sectional
+leaves about 1.579 m between its south edge and the doorway wall; the round table
+and reading lamp leave about 1.994 m diagonally. Both are below the 2.25 m capsule
+diameter. These furniture positions remain unchanged pending a bounded layout
+correction. Doorway-center checks alone do not establish room accessibility.
 
-Existing browser fixtures also need current-radius approach samples and final
-qualification. Passing unit geometry checks alone do not establish complete house
-traversability. Hardware acceptance, final-head CI and reviewer feedback remain
-required. No deployment, release or neighborhood activation is implied.
+The basement suite passes ten consecutive round trips, coarse-frame handoffs,
+side/back rail rejection, native keyboard/touch traversal and radius-adjusted
+circulation samples. Stair/door test samples use the current full radius; collision
+envelopes and pass/fail thresholds remain intact. Final browser qualification,
+final-head CI, reviewer feedback and hardware acceptance remain outstanding.
 
-Local checkpoint (before review qualification): full unit suite 2,259 passed,
-14 failed. One failure is the new furnished-doorway acceptance regression; the
-other 13 are Windows Python-script execution and symlink limitations. The scoped
-browser run completed 87 passed / 15 failed, so traversal is not qualified.
-Typecheck, lint, documentation/release checks, static build smoke and miniature
-manifest validation passed. Browser failures beyond the confirmed bench conflict
-still require fixture/current-radius triage and rechecks; no FPS claim is made.
+The exact baseline commit reproduces all 13 local Windows failures in Python
+script execution and symlink creation (47 tests passed in those three files).
+They are distinct from the new traversal failures. No FPS, complete house
+traversability, deployment or neighborhood activation is claimed.
+
+The unchanged chair controller requires its authored front approach to be clear.
+All three current source-derived approaches fail live full-radius occupancy:
+the north lounge chair meets the west wall/pothos, the east lounge chair meets
+the floor lamp, and the reading chair meets its side table. Seating therefore
+remains unqualified; no alternate-approach runtime behavior is included in this
+checkpoint. Enlarging or ignoring collision envelopes is not a proposed remedy.
+
+Current local checkpoint: 2,261 unit tests pass; the 13 remaining failures match
+the exact Windows baseline. Furniture checks pass 64/64. Typecheck, lint,
+formatting, documentation/release checks, miniature manifest and static smoke
+pass. The collider redundancy gate inspects 272 colliders with no failures and
+117 warnings. Performance diagnostics pass four tests, with one software-renderer
+skip; this is not a hardware frame-rate acceptance result. Full traversal remains
+blocked by the library and chair approaches described above.
