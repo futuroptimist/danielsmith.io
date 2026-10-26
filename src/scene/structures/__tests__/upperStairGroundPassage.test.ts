@@ -11,7 +11,10 @@ import { computeStairLayout } from '../../../systems/movement/stairLayout';
 import { getFloorTopElevation } from '../../level/floorElevations';
 import { AVATAR_COLLISION_RADIUS, AVATAR_TRAVERSAL_HEIGHT } from '../../units';
 import { createBasementStaircase } from '../basementStaircase';
-import { STAIRCASE_CONFIG } from '../portfolioSceneLayout';
+import {
+  STAIRCASE_CONFIG,
+  STAIRCASE_TRANSITION_MARGIN,
+} from '../portfolioSceneLayout';
 import { createStaircase } from '../staircase';
 import { createUpperStairGroundPassage } from '../upperStairGroundPassage';
 
@@ -46,7 +49,7 @@ const upstairs: StairConnection = {
     direction: -1,
   },
   behavior: {
-    transitionMargin: 1.2,
+    transitionMargin: STAIRCASE_TRANSITION_MARGIN,
     landingTriggerMargin: 0.4,
     stepRise: config.step.rise,
     descentCorridorInset: radius,
@@ -107,6 +110,20 @@ function walk(
 }
 
 describe('upper stair ground passage', () => {
+  it('admits the full capsule before first-tread contact during small steps', () => {
+    const controller = makeController();
+    const start = new Vector3(
+      config.basePosition.x,
+      0,
+      config.basePosition.z + radius + 0.2
+    );
+    const expectedZ = start.z - 1.7;
+    for (let i = 0; i < 17; i++) walk(controller, start, 0, -0.1);
+    expect(start.z).toBeCloseTo(expectedZ, 8);
+    expect(start.y).toBeGreaterThan(0);
+    expect(controller.getState().activeConnectionId).toBe(upstairs.id);
+  });
+
   it('derives exact solid underside bounds from the rendered treads and landing', () => {
     const stair = createStaircase(config);
     stair.group.updateMatrixWorld(true);
@@ -193,7 +210,9 @@ describe('upper stair ground passage', () => {
       const controller = makeController();
       const start = new Vector3(dx < 0 ? 23 : 8, 0, -23);
       const samples = walk(controller, start, dx, 0);
-      expect(samples.length).toBeGreaterThan(30);
+      expect(samples.length).toBe(
+        planMovementSubsteps(dx, 0, radius / 2).count
+      );
       expect(start.x).toBeCloseTo(dx < 0 ? 8 : 23);
       expect(samples.every(({ y }) => y === 0)).toBe(true);
       expect(controller.getState()).toMatchObject({

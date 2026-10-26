@@ -428,7 +428,7 @@ async function walkStairCenterlineToUpperLanding(page: Page) {
     lowerFloorId: 'ground',
     upperFloorId: 'upper',
     lowerFloorElevation: 0,
-    upperFloorElevation: 3.04,
+    upperFloorElevation: 4.41,
     visible: true,
     adjacent: true,
   });

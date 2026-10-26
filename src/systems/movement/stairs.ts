@@ -104,7 +104,9 @@ const getDescentCorridorHalfWidth = (
 ): number => {
   const inset =
     behavior.descentCorridorInset ?? behavior.transitionMargin * 0.25;
-  return Math.max(geometry.halfWidth - inset, geometry.halfWidth * 0.55);
+  // This region describes player centers, so it must honor the full inset.
+  // A percentage floor can admit centers whose capsule overhangs the stair edge.
+  return Math.max(0, geometry.halfWidth - inset);
 };
 
 const isWithinDescentCorridorWidth = (

@@ -68,11 +68,11 @@ describe('front entry declarative topology', () => {
     expect(23.5 + 0.75 - (22.18 + 0.75)).toBeGreaterThan(1);
     expect(29.5 - 0.75 - (23.5 + 0.75)).toBeGreaterThanOrEqual(3);
   });
-  it('scales horizontal coordinates once and keeps door headroom unscaled', () => {
+  it('scales horizontal coordinates once and keeps vertical headroom independent of plan scale', () => {
     const door = createExteriorDoorDefinitions(FLOOR_PLAN_SCALE)[0];
     expect(door.center.x).toBeCloseTo(32 * Math.SQRT1_2);
     expect(door.center.z).toBeCloseTo(-15 * Math.SQRT1_2);
-    expect(door.height).toBe(2.1);
+    expect(door.height).toBeCloseTo(3.15);
     expect(door.width).toBeCloseTo(2.4);
   });
   it('provides continuous navigable path and a clear planter-free threshold', () => {

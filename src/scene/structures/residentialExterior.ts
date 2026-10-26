@@ -160,14 +160,14 @@ export function createResidentialExterior(
     const d = door.definition;
     if (d.kind === 'sliding') {
       // The lateral pocket sits within the existing solid wall, never in the walking lane.
-      // Keep its sides inside the wall faces and its base below the floor plane.
+      // Recess its sides and aperture-facing end inside the wall to avoid coplanar faces.
       // The small vertical overhang still encloses the moving panel at either endpoint.
       const pocketClearance = 0.02;
       add(
         'slate',
         d.center.x,
         d.height / 2,
-        d.center.z + d.width + 0.22,
+        d.center.z + d.width + 0.22 + pocketClearance,
         d.depth + 0.14 - pocketClearance * 2,
         d.height + pocketClearance * 2,
         d.width + 0.44,

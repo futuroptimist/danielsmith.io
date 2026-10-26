@@ -16,7 +16,7 @@ import {
 
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import { getSceneDetailPolicy } from '../graphics/sceneDetailPolicy';
-import { TARGET_AVATAR_HEIGHT } from '../units';
+import { AVATAR_COLLISION_RADIUS, TARGET_AVATAR_HEIGHT } from '../units';
 
 // Deterministic floor-to-crest height used by initial camera framing before assets load.
 export const PORTFOLIO_MANNEQUIN_VISUAL_HEIGHT = TARGET_AVATAR_HEIGHT;
@@ -91,7 +91,7 @@ function createStandardMaterial(
 export function createPortfolioMannequin(
   options: PortfolioMannequinOptions = {}
 ): PortfolioMannequinBuild {
-  const collisionRadius = options.collisionRadius ?? 0.75;
+  const collisionRadius = options.collisionRadius ?? AVATAR_COLLISION_RADIUS;
   const detailPolicy = options.detailPolicy ?? getSceneDetailPolicy('balanced');
   const cylinderSegments = detailPolicy.geometry.cylinderSegments;
   const sphereWidthSegments = detailPolicy.geometry.sphereWidthSegments;

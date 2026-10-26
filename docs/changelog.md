@@ -6,6 +6,12 @@ may replace it in a future release.
 
 ## v0.3.2 - unreleased
 
+- Enlarged the player uniformly by 50% and increased both walking and running speed
+  by 50%, preserving their stride playback ratios. Raised doorways, room ceilings,
+  storeys and the bus shelter vertically while retaining horizontal room layouts.
+- Kept rendered doorway trim and wall seam overlap outside authored openings, and
+  made stair descent admission honor the full player radius. Added clearance regressions.
+
 - Added standard-mapped gamepad movement, camera pan, trigger zoom and nearby interaction,
   with a dedicated Gamepad controls HUD category and safe neutralization after focus loss.
 - Keyboard, pointer, touch and accessible text alternatives remain available.

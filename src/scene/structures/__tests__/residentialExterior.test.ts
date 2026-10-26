@@ -61,7 +61,7 @@ describe('original front entry exterior geometry', () => {
       doors
     );
     const door = doors[0];
-    const occupant = { x: 28, z: -15, radius: 0.75, floorId: 'ground' };
+    const occupant = { x: 28, z: -15, radius: 1.125, floorId: 'ground' };
     door.request(1, occupant);
     door.update(door.definition.duration / 2, occupant);
     build.update();
@@ -81,7 +81,7 @@ describe('attached garage overhead visuals', () => {
       doors
     );
     const door = doors.find((door) => door.definition.id === 'garage-door')!;
-    const outside = { x: 46, z: 4, radius: 0.75, floorId: 'ground' };
+    const outside = { x: 46, z: 4, radius: 1.125, floorId: 'ground' };
     door.request(1, outside);
     const panel = build.group.getObjectByName('DoorPanel:garage-door')!;
     for (const delta of [0.2, 0.3, 0.7, 0.6]) {
@@ -94,7 +94,7 @@ describe('attached garage overhead visuals', () => {
         expect(lowerEdge).toBeCloseTo(
           door.snapshot().progress * door.definition.height
         );
-      expect(door.snapshot().blocked).toBe(lowerEdge + 0.001 < 2.05);
+      expect(door.snapshot().blocked).toBe(lowerEdge + 0.001 < 3.075);
     }
     expect(panel.visible).toBe(false);
     build.dispose();

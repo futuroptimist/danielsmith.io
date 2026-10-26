@@ -4,10 +4,15 @@ import { expect, test, type Page } from '@playwright/test';
 
 import type { PortfolioApi } from '../src/app/portfolioApi';
 import { UPPER_FLOOR_PLAN } from '../src/assets/floorPlan';
+import { CAREER_EXHIBIT_FOOTPRINT } from '../src/scene/level/careerMuseumLayout';
 import {
   getFloorTopElevation,
   type FloorId,
 } from '../src/scene/level/floorElevations';
+import {
+  TARGET_AVATAR_HEIGHT,
+  AVATAR_COLLISION_RADIUS,
+} from '../src/scene/units';
 
 const URL = '/?mode=immersive&disablePerformanceFailover=1';
 const SPAWN = { x: 0 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 };
@@ -15,8 +20,8 @@ const LANDING = { x: 3.8 * Math.SQRT1_2, z: -11 * Math.SQRT1_2 };
 const TOE = { x: 3.8 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 };
 const GROUND_TO_UPPER = [
   SPAWN,
-  { x: 0 * Math.SQRT1_2, z: -18 },
-  { x: 23 * Math.SQRT1_2, z: -18 },
+  { x: 0 * Math.SQRT1_2, z: -17.45 },
+  { x: 23 * Math.SQRT1_2, z: -17.45 },
   { x: 23 * Math.SQRT1_2, z: -9 },
   { x: 12.4 * Math.SQRT1_2, z: -9 },
   { x: 12.4 * Math.SQRT1_2, z: -16.5 * Math.SQRT1_2 },
@@ -222,8 +227,11 @@ async function checkpoint(page: Page, name: string) {
     contentType: 'application/json',
   });
   await page.screenshot({ path: test.info().outputPath(`${name}.png`) });
-  // Focus follows half the 1.90 m body, independently of the collision radius.
-  expect(snapshot.camera.focus.y).toBeCloseTo(snapshot.position.y + 0.95, 1);
+  // Focus follows half the current body height, independently of the collision radius.
+  expect(snapshot.camera.focus.y).toBeCloseTo(
+    snapshot.position.y + TARGET_AVATAR_HEIGHT / 2,
+    1
+  );
   return snapshot;
 }
 
@@ -247,19 +255,23 @@ test('walks fresh spawn through basement and every upper room, then reverses the
   expect(down.maxHeightChange).toBeLessThan(0.55);
   expect(down.coordinates.currentRoomId).toBe('careerMuseum');
   await checkpoint(page, 'basement-lower-toe');
+  // Keep the same exhibits and furniture; sample outside their full physical
+  // footprint plus the current capsule radius, including a 0.15m approach margin.
+  const exhibitApproach =
+    CAREER_EXHIBIT_FOOTPRINT.depth / 2 + AVATAR_COLLISION_RADIUS + 0.15;
   const museumLoop = [
     { x: -3 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
     { x: -29 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
-    { x: -29 * Math.SQRT1_2, z: -15.5 * Math.SQRT1_2 },
-    { x: -18 * Math.SQRT1_2, z: -15.5 * Math.SQRT1_2 },
-    { x: -29 * Math.SQRT1_2, z: -15.5 * Math.SQRT1_2 },
-    { x: -29 * Math.SQRT1_2, z: 4.5 * Math.SQRT1_2 },
-    { x: -18 * Math.SQRT1_2, z: 4.5 * Math.SQRT1_2 },
-    { x: 20 * Math.SQRT1_2, z: 4.5 * Math.SQRT1_2 },
-    { x: 26 * Math.SQRT1_2, z: 4.5 * Math.SQRT1_2 },
-    { x: 26 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
-    { x: 20 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
-    { x: 26 * Math.SQRT1_2, z: -17.5 * Math.SQRT1_2 },
+    { x: -29 * Math.SQRT1_2, z: -9 * Math.SQRT2 + exhibitApproach },
+    { x: -18 * Math.SQRT1_2, z: -9 * Math.SQRT2 + exhibitApproach },
+    { x: -29 * Math.SQRT1_2, z: -9 * Math.SQRT2 + exhibitApproach },
+    { x: -29 * Math.SQRT1_2, z: Math.SQRT2 + exhibitApproach },
+    { x: -18 * Math.SQRT1_2, z: Math.SQRT2 + exhibitApproach },
+    { x: 20 * Math.SQRT1_2, z: Math.SQRT2 + exhibitApproach },
+    { x: 26 * Math.SQRT1_2, z: Math.SQRT2 + exhibitApproach },
+    { x: 26 * Math.SQRT1_2, z: -10 * Math.SQRT2 + exhibitApproach },
+    { x: 20 * Math.SQRT1_2, z: -10 * Math.SQRT2 + exhibitApproach },
+    { x: 26 * Math.SQRT1_2, z: -10 * Math.SQRT2 + exhibitApproach },
     { x: 26 * Math.SQRT1_2, z: -32.5 * Math.SQRT1_2 },
     TOE,
   ];
@@ -274,7 +286,8 @@ test('walks fresh spawn through basement and every upper room, then reverses the
     window.portfolio!.world!.getStairMetrics()
   );
   await walk(page, [{ x: m.stairCenterX, z: m.stairTopZ - 0.05 }]);
-  const lane = m.stairCenterX - m.stairHalfWidth + 0.75 * 0.75;
+  const lane =
+    m.stairCenterX - m.stairHalfWidth + AVATAR_COLLISION_RADIUS * 0.75;
   const egress = [
     { x: lane, z: m.stairTopZ - 0.05 },
     { x: lane, z: -29 * Math.SQRT1_2 },
