@@ -14,7 +14,7 @@ import { AVATAR_COLLISION_RADIUS, TARGET_AVATAR_HEIGHT } from '../scene/units';
 
 describe('metre-scaled room assemblies', () => {
   it.each(Object.entries(FLOOR_TOP_ELEVATIONS))(
-    'provides 2.74m clear height on %s with an open stair aperture',
+    'provides 4.11m clear height on %s with an open stair aperture',
     (_floor, elevation) => {
       const opening = { minX: 2, maxX: 4, minZ: 3, maxZ: 7 };
       const ceiling = createRoomCeilingPanels(
@@ -27,7 +27,7 @@ describe('metre-scaled room assemblies', () => {
           },
         ],
         {
-          height: elevation + 2.89,
+          height: elevation + 4.26,
           thickness: 0.3,
           inset: 0,
           cutouts: [opening],
@@ -36,8 +36,8 @@ describe('metre-scaled room assemblies', () => {
       expect(ceiling.panels.length).toBeGreaterThan(1);
       for (const { mesh } of ceiling.panels) {
         const bounds = new Box3().setFromObject(mesh);
-        expect(bounds.min.y - elevation).toBeCloseTo(2.74);
-        expect(bounds.max.y - elevation).toBeCloseTo(3.04);
+        expect(bounds.min.y - elevation).toBeCloseTo(4.11);
+        expect(bounds.max.y - elevation).toBeCloseTo(4.41);
         expect(
           bounds.min.x < opening.maxX &&
             bounds.max.x > opening.minX &&
@@ -63,29 +63,28 @@ describe('metre-scaled room assemblies', () => {
         const bounds = new Box3().setFromObject(
           build.group.getObjectByName(`StaircaseStep-${i}`)!
         );
-        expect(bounds.max.y - previous).toBeCloseTo(3.04 / 18);
+        expect(bounds.max.y - previous).toBeCloseTo(4.41 / 18);
         previous = bounds.max.y;
       }
       const landing = new Box3().setFromObject(
         build.group.getObjectByName('StaircaseLanding')!
       );
       expect(landing.max.y).toBeCloseTo(previous);
-      expect(landing.max.y - config.basePosition.y).toBeCloseTo(3.04);
+      expect(landing.max.y - config.basePosition.y).toBeCloseTo(4.41);
       expect(landing.max.y - landing.min.y).toBeCloseTo(0.3);
     }
   });
 
-  it('fits the preserved player footprint through doors with physical head clearance', () => {
+  it('retains authored aperture widths and fits the taller player through doors with physical head clearance', () => {
     const doors = [
       ...createExteriorDoorDefinitions(FLOOR_PLAN_SCALE),
       ...createGarageDoorDefinitions(FLOOR_PLAN_SCALE),
     ];
     for (const door of doors) {
-      expect(door.width - 2 * AVATAR_COLLISION_RADIUS).toBeGreaterThanOrEqual(
-        0.89
-      );
+      expect(door.width).toBe(door.id === 'garage-door' ? 5 : 2.4);
+      expect(AVATAR_COLLISION_RADIUS).toBe(1.125);
       expect(door.height).toBeGreaterThan(TARGET_AVATAR_HEIGHT);
-      expect(door.height).toBeLessThan(2.74);
+      expect(door.height).toBeLessThan(4.11);
     }
   });
 

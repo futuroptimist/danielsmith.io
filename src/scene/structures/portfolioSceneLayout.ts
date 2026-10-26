@@ -6,7 +6,11 @@ import {
   UPPER_FLOOR_TOP_ELEVATION,
 } from '../level/floorElevations';
 import { HOUSE_HORIZONTAL_SCALE } from '../level/horizontalFootprint';
-import { FLOOR_SLAB_THICKNESS, TARGET_ROOM_CLEAR_HEIGHT } from '../units';
+import {
+  AVATAR_COLLISION_RADIUS,
+  FLOOR_SLAB_THICKNESS,
+  TARGET_ROOM_CLEAR_HEIGHT,
+} from '../units';
 
 import type { StaircaseConfig } from './staircase';
 
@@ -24,6 +28,11 @@ export const STAIRCASE_STEP_RISE =
   (UPPER_FLOOR_TOP_ELEVATION - GROUND_FLOOR_TOP_ELEVATION) /
   STAIRCASE_STEP_COUNT;
 export const STAIRCASE_STEP_RUN = 0.28;
+/** Admit the full capsule before its leading edge reaches the first tread. */
+export const STAIRCASE_TRANSITION_MARGIN = Math.max(
+  toWorldUnits(0.6),
+  AVATAR_COLLISION_RADIUS
+);
 // The level corridor retains west-room access and a full-height ground underpass.
 export const STAIRCASE_TOP_Z = -21.8 * HOUSE_HORIZONTAL_SCALE;
 

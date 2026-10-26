@@ -28,6 +28,10 @@ import {
 } from '../scene/avatar/chairController';
 import { createAvatarImporter } from '../scene/avatar/importer';
 import { createLowerFloorFurnishings } from '../scene/structures/lowerFloorFurnishings';
+import {
+  AVATAR_FOOT_ORIGIN_HEIGHT,
+  TARGET_AVATAR_HEIGHT,
+} from '../scene/units';
 
 describe('approved animated avatar', () => {
   it('keeps grounded knees clear of the actual tall reading-chair cushion', async () => {
@@ -48,10 +52,24 @@ describe('approved animated avatar', () => {
     const avatar = createAnimatedAvatar(asset);
     const normalizedBounds = new Box3().setFromObject(avatar.model, true);
     expect(normalizedBounds.min.y).toBeCloseTo(0, 6);
-    expect(normalizedBounds.max.y).toBeCloseTo(1.9, 6);
-    expect(normalizedBounds.getSize(new Vector3()).x).toBeCloseTo(0.95203, 4);
-    expect(AVATAR_WALK_SPEED / 1.1).toBeCloseTo(1.9 / 1.872, 8);
-    expect(AVATAR_RUN_SPEED / (3.0 * (1.9 / 1.872))).toBeCloseTo(1.4, 8);
+    expect(normalizedBounds.max.y).toBeCloseTo(2.85, 6);
+    expect(normalizedBounds.getSize(new Vector3()).x).toBeCloseTo(
+      0.95203 * 1.5,
+      4
+    );
+    expect(normalizedBounds.getSize(new Vector3()).z).toBeCloseTo(
+      0.4075052959249418 * 1.5,
+      6
+    );
+    expect(AVATAR_WALK_SPEED).toBeCloseTo(1.1164529914529915 * 1.5, 10);
+    expect(AVATAR_RUN_SPEED).toBeCloseTo(4.262820512820513 * 1.5, 10);
+    expect(AVATAR_WALK_SPEED / 1.1).toBeCloseTo(
+      TARGET_AVATAR_HEIGHT / 1.872,
+      8
+    );
+    expect(
+      AVATAR_RUN_SPEED / (3.0 * (TARGET_AVATAR_HEIGHT / 1.872))
+    ).toBeCloseTo(1.4, 8);
     const furniture = createLowerFloorFurnishings().group;
     const chair = collectChairAnchors(furniture).find(
       (c) => c.id === 'studio-reading-chair'
@@ -84,7 +102,7 @@ describe('approved animated avatar', () => {
       );
       expect(
         asset.bones.get(`Foot${side}`)!.getWorldPosition(new Vector3()).y
-      ).toBeCloseTo(chair.floorY + 0.12, 2);
+      ).toBeCloseTo(chair.floorY + AVATAR_FOOT_ORIGIN_HEIGHT, 2);
     }
     avatar.dispose();
   });
@@ -142,7 +160,10 @@ describe('approved animated avatar', () => {
       { clip: 'Seated', progress: 0, offsetY: 0.07 },
       0
     );
-    expect(foot.getWorldPosition(new Vector3()).y).toBeCloseTo(0.12, 2);
+    expect(foot.getWorldPosition(new Vector3()).y).toBeCloseTo(
+      AVATAR_FOOT_ORIGIN_HEIGHT,
+      2
+    );
     avatar.update(0.1, AVATAR_WALK_SPEED, 0, false, null, 0);
     const resumed = foot.getWorldPosition(new Vector3());
     avatar.update(0.25, AVATAR_WALK_SPEED, 0, false, null, 0);
@@ -199,6 +220,9 @@ describe('approved animated avatar', () => {
     groundSeatedLeg(hip, knee, foot, 0);
     expect(knee.position.length()).toBeCloseTo(0.4);
     expect(foot.position.length()).toBeCloseTo(0.42);
-    expect(foot.getWorldPosition(new Vector3()).y).toBeCloseTo(0.121794872, 6);
+    expect(foot.getWorldPosition(new Vector3()).y).toBeCloseTo(
+      AVATAR_FOOT_ORIGIN_HEIGHT,
+      6
+    );
   });
 });

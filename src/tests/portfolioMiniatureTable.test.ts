@@ -86,13 +86,13 @@ function build() {
 }
 
 describe('source-backed recursive property table', () => {
-  it('applies the table transform once to a grounded 1.90 metre player marker', () => {
+  it('applies the table transform once to a grounded 2.85 metre player marker', () => {
     const table = build();
     table.group.updateWorldMatrix(true, true);
     const bounds = new Box3().setFromObject(table.miniaturePlayer, true);
     expect(
       bounds.getSize(new Vector3()).y / table.transform.uniformScale
-    ).toBeCloseTo(1.9, 6);
+    ).toBeCloseTo(2.85, 6);
     const feet = table.miniaturePlayer.getWorldPosition(new Vector3());
     expect(bounds.min.y).toBeCloseTo(feet.y, 6);
     table.dispose();

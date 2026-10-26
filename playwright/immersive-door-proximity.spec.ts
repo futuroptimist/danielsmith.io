@@ -86,9 +86,13 @@ for (const door of approaches) {
           });
           await waitForApproachOpen(page, 'house-garage-door');
         }
-        await walkExteriorTo(page, { x: door.x - 3, z: door.z });
+        await walkExteriorTo(page, { x: door.x - 3, z: door.z + side * 0.05 });
         await waitForApproachOpen(page, door.id);
-        if (side > 0) await walkExteriorTo(page, { x: door.x + 3, z: door.z });
+        if (side > 0)
+          await walkExteriorTo(page, {
+            x: door.x + 3,
+            z: door.z + side * 0.05,
+          });
         // Close from a valid approach, then retreat through real movement. The
         // measured crossing starts with a closed door and never uses Interact.
         await page
@@ -99,7 +103,10 @@ for (const door of approaches) {
           await page.screenshot({
             path: test.info().outputPath('garage-closed-panel-cutaway.png'),
           });
-        await walkExteriorTo(page, { x: door.x + side * 6, z: door.z });
+        await walkExteriorTo(page, {
+          x: door.x + side * 6,
+          z: door.z + side * 0.05,
+        });
         await waitDoor(page, door.id, 'closed');
         await page.locator('#app canvas').focus();
         await selectNativeRunGait(page);

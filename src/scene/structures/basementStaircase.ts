@@ -10,6 +10,7 @@ import { getDebugHash } from '../debug/debugIds';
 import { BASEMENT_STAIR_CONNECTION } from '../level/basementStair';
 import { assertLevelSourceId } from '../level/sourceIds';
 import type { LevelSafetyCollider } from '../level/stairSafetyColliders';
+import { AVATAR_COLLISION_RADIUS } from '../units';
 
 import { createStaircase, type StaircaseConfig } from './staircase';
 
@@ -17,7 +18,7 @@ const world = (value: number) => value * FLOOR_PLAN_SCALE;
 const GROUND_RAIL_TRIM_THICKNESS = 0.12;
 
 /** One descriptor owns the treads, opening, rails, navigation and safety bounds. */
-export function getBasementStairLayout(playerRadius = 0.75) {
+export function getBasementStairLayout(playerRadius = AVATAR_COLLISION_RADIUS) {
   const definition = BASEMENT_STAIR_CONNECTION;
   // Anchor the upper landing to the plan, but preserve the original metre run
   // and clearance dimensions (the descriptor uses the former 2:1 plan units).
@@ -176,7 +177,9 @@ export function getBasementStairLayout(playerRadius = 0.75) {
   };
 }
 
-export function createBasementStaircase(playerRadius = 0.75) {
+export function createBasementStaircase(
+  playerRadius = AVATAR_COLLISION_RADIUS
+) {
   const metrics = getBasementStairLayout(playerRadius);
   const { config, geometry, definition } = metrics;
   const staircase = createStaircase(config);

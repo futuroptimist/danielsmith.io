@@ -254,7 +254,9 @@ it('moves the physical shelter, sign and colliders together inside the street bo
     'Street:ground.busStop.shelter:roof:overhead'
   ) as InstancedMesh;
   const part = roof.userData.parts[0];
-  expect(part.size).toEqual([6.2, 0.25, 12.1]);
+  expect(part.size).toEqual([6.2, 0.375, 12.1]);
+  expect(part.position[1]).toBeCloseTo(4.5 * 1.5);
+  expect(part.position[1] - part.size[1] / 2 - 2.85).toBeGreaterThan(3.7);
   expect(part.position[0]).toBeCloseTo(24.5 * FLOOR_PLAN_SCALE);
   expect(part.position[2] + 6.05).toBeLessThanOrEqual(20 * FLOOR_PLAN_SCALE);
   const posts = build.solids.filter((solid) =>
@@ -270,6 +272,8 @@ it('moves the physical shelter, sign and colliders together inside the street bo
     ).toBeCloseTo(5.6);
   }
   const sign = build.group.getObjectByName('BusStopComingSoonSign')!;
+  expect(sign.position.y).toBeCloseTo(3.72 * 1.5);
+  expect(sign.scale.toArray()).toEqual([1, 1.5, 1]);
   expect(sign.position.x - part.position[0]).toBeCloseTo(2.85);
   expect(sign.position.z - part.position[2]).toBeCloseTo(4.7);
   build.update(getSceneDetailPolicy('performance'), {

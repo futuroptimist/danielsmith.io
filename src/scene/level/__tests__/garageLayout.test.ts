@@ -52,7 +52,7 @@ describe('attached garage topology and safety', () => {
       (door) => door.kind === 'overhead'
     )!;
     expect(definition.width).toBeCloseTo(5);
-    expect(definition.height).toBe(2.4);
+    expect(definition.height).toBeCloseTo(3.6);
     expect(definition.clearanceProgress * definition.height).toBeCloseTo(
       GARAGE_DOOR.minimumHeadroom
     );
@@ -60,7 +60,7 @@ describe('attached garage topology and safety', () => {
     const outside = {
       x: definition.center.x - 4,
       z: definition.center.z,
-      radius: 0.75,
+      radius: 1.125,
       floorId: 'ground',
     };
     door.request(1, outside);
@@ -85,7 +85,7 @@ describe('attached garage topology and safety', () => {
     const outside = {
       x: definition.center.x + 3,
       z: definition.center.z,
-      radius: 0.75,
+      radius: 1.125,
       floorId: 'ground',
     };
     door.request(1, outside);
@@ -112,7 +112,7 @@ describe('attached garage topology and safety', () => {
       const far = {
         x: definition.center.x - 4,
         z: definition.center.z,
-        radius: 0.75,
+        radius: 1.125,
         floorId: 'ground',
       };
       door.request(1, far);

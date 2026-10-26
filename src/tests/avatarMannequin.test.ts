@@ -15,7 +15,7 @@ describe('createPortfolioMannequin', () => {
   it('creates a mannequin with a hidden collision proxy aligned to the controller radius', () => {
     const build = createPortfolioMannequin();
 
-    expect(build.collisionRadius).toBeCloseTo(0.75);
+    expect(build.collisionRadius).toBeCloseTo(1.125);
     expect(build.height).toBeGreaterThan(1.5);
     expect(build.group.name).toBe('PortfolioMannequin');
     expect(build.group.userData.boundingRadius).toBeCloseTo(
@@ -45,7 +45,7 @@ describe('createPortfolioMannequin', () => {
     }
     const bounds = new Box3().setFromObject(visualRoot, true);
     expect(bounds.min.y).toBeCloseTo(0, 6);
-    expect(bounds.max.y).toBeCloseTo(1.9, 6);
+    expect(bounds.max.y).toBeCloseTo(2.85, 6);
 
     const crest = build.group.getObjectByName('PortfolioMannequinCrest');
     expect(crest).toBeInstanceOf(Mesh);

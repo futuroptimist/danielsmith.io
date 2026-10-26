@@ -1841,8 +1841,8 @@ describe('upper floor furnishings foundation', () => {
       'upper-landing-bench': {
         minX: 2.884062043356595,
         maxX: 5.884062043356595,
-        minZ: -22.216756826189698,
-        maxZ: -21.4167568261897,
+        minZ: -22.556756826189698,
+        maxZ: -21.7567568261897,
       },
       'upper-landing-console': {
         minX: 13.600714267493641,

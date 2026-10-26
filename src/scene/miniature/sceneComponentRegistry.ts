@@ -38,9 +38,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 14,
+    syncRevision: 15,
     syncNote:
-      'Expose resolved street regions; production and miniature geometry unchanged.',
+      'Door headroom and the shelter vertical assembly follow the enlarged player; ' +
+      'shared source keeps the horizontal footprint unchanged.',
   },
   {
     id: 'level:career-museum-layout',
@@ -95,9 +96,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/wallSegmentsMesh.ts',
       'src/scene/structures/floorTiles.ts',
     ],
-    syncRevision: 3,
+    syncRevision: 4,
     syncNote:
-      'Metre-scaled room assemblies and installations follow the production geometry; the miniature keeps one world-to-table transform.',
+      'Wall seam overlap stops at authored doorway edges in both rendered and collision' +
+      ' geometry; shared source preserves aperture widths.',
   },
   {
     id: 'level:stairs-landing',
@@ -121,9 +123,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/batchStaticMeshes.ts',
       'src/scene/structures/basementLandingCutaway.ts',
     ],
-    syncRevision: 9,
+    syncRevision: 10,
     syncNote:
-      'Static batching keys use an equivalent array join for line length; source geometry, triangle counts and miniature shapes are unchanged.',
+      'Basement stairs derive the raised storey elevation and current player radius; ' +
+      'the shared source retains tread run and width.',
   },
   {
     id: 'environment:backyard',
@@ -169,9 +172,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     kind: 'shared-source',
     sourceFiles: ['src/scene/structures/lowerFloorFurnishings.ts'],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 40,
+    syncRevision: 41,
     syncNote:
-      'Stable named reservations preserve fit offsets, and the full-size studio monstera moves 0.4 m from the garage approach to retain player clearance.',
+      'The upper landing bench moves 0.34 m south with its visible and collision footprint to preserve the enlarged player doorway approach.',
   },
   {
     id: 'avatar:overworld-player',
@@ -180,7 +183,9 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/avatar/mannequin.ts',
       'src/scene/avatar/accessories.ts',
     ],
-    syncRevision: 5,
+    syncRevision: 6,
+    syncNote:
+      'Fallback mannequin uses the current scaled collision radius and standing height.',
     reason:
       'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
@@ -260,9 +265,11 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/units.ts',
       'src/systems/movement/avatarGait.ts',
     ],
-    syncRevision: 11,
+    syncRevision: 12,
     syncNote:
-      'Footstep audio retains its fixed speed calibration independently of faster running; player dimensions and the separately normalized miniature marker geometry are unchanged.',
+      'Player dimensions and walk/run speeds scale together by 1.5; normalized ' +
+      'miniature marker follows the same height and gait cadence ratios remain ' +
+      'unchanged.',
     reason:
       'The player uses metre-normalized bounds and one selected gait; static architecture excludes animation, while the separate moving miniature marker is normalized before its world-to-table transform.',
   },
@@ -555,10 +562,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
     id: 'audit:src:scene:structures:doorwayOpenings',
     kind: 'excluded',
     sourceFiles: ['src/scene/structures/doorwayOpenings.ts'],
-    syncRevision: 2,
+    syncRevision: 3,
     syncNote:
-      'Operable apertures declare their frame factory ownership so generic trim ' +
-      'cannot overlap moving panels or walking clearance.',
+      'Generic trim sits outside the authored aperture so visible clearance agrees with' +
+      ' wall collision and navigation geometry.',
     reason:
       'Audited support or non-miniature runtime source; visible geometry impact is covered by POI or shared component entries.',
   },

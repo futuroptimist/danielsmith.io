@@ -23,6 +23,7 @@ import { getDebugHash } from '../debug/debugIds';
 import type { SceneDetailPolicy } from '../graphics/sceneDetailPolicy';
 import type { FloorDefinition } from '../level/schema';
 import { BUS_STOP, PARKED_EV, STREET_LAMPS } from '../level/streetLayout';
+import { PLAYER_SIZE_MULTIPLIER } from '../units';
 
 import type { ExteriorSolid } from './residentialExterior';
 
@@ -130,8 +131,17 @@ export function createResidentialStreet(
     h: number,
     d: number,
     high = false
-  ) =>
-    parts.push({ palette, source, position: [x, y, z], size: [w, h, d], high });
+  ) => {
+    const heightScale =
+      source === shelter.sourceId ? PLAYER_SIZE_MULTIPLIER : 1;
+    parts.push({
+      palette,
+      source,
+      position: [x, y * heightScale, z],
+      size: [w, h * heightScale, d],
+      high,
+    });
+  };
   const annotate = (mesh: Mesh, sourceId: string, high = false) => {
     mesh.userData.levelSourceId = sourceId;
     mesh.userData.levelSource = { sourceId, sourceType: 'sceneObject' };
@@ -321,7 +331,7 @@ export function createResidentialStreet(
     mesh.computeBoundingSphere();
     group.add(mesh);
   }
-  // Translate the shelter as one physical assembly; retain its metre dimensions.
+  // Preserve the shelter's horizontal dimensions and scale its vertical assembly.
   const shelterX = 24.5 * scale;
   const roofDepth = 12.1;
   const streetNorth =
@@ -418,7 +428,8 @@ export function createResidentialStreet(
   const sign = new Mesh(signGeometry, signMaterial);
   sign.name = 'BusStopComingSoonSign';
   sign.rotation.y = Math.PI / 2;
-  sign.position.set(shelterX + 2.85, 3.72, signZ);
+  sign.position.set(shelterX + 2.85, 3.72 * PLAYER_SIZE_MULTIPLIER, signZ);
+  sign.scale.y = PLAYER_SIZE_MULTIPLIER;
   annotate(sign, shelter.sourceId, true);
   group.add(sign);
   let signText = '';

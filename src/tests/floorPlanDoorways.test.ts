@@ -12,6 +12,7 @@ import {
   getNormalizedDoorways,
 } from '../assets/floorPlan/doorways';
 import { createWallSegmentInstances } from '../assets/floorPlan/wallSegments';
+import { AVATAR_COLLISION_RADIUS as PLAYER_RADIUS } from '../scene/units';
 import { collidesWithColliders } from '../systems/collision';
 import { createNavMesh } from '../systems/navigation/navMesh';
 
@@ -21,7 +22,6 @@ import {
   resolveNormalizedDoorway,
 } from './helpers/doorwayTestHelpers';
 
-const PLAYER_RADIUS = 0.75;
 const WALL_HEIGHT = 6;
 const FENCE_HEIGHT = 2.4;
 const FENCE_THICKNESS = 0.28;

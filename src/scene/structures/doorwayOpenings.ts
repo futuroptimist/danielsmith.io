@@ -76,15 +76,16 @@ export function createDoorwayOpenings(
     doorGroup.name = `${DOOR_NAME}-${doorway.axis}-${index}`;
     doorGroup.position.set(doorway.center.x, baseElevation, doorway.center.z);
 
+    // Keep trim outside the source-authored clear aperture, matching wall colliders.
     const lintelSpan = Math.max(
-      doorway.width - jambThickness * 0.6,
+      doorway.width + jambThickness * 2,
       jambThickness
     );
     const lintelHeight = doorHeight + lintelThickness / 2;
 
     if (doorway.axis === 'horizontal') {
       const halfWidth = doorway.width / 2;
-      const jambOffset = Math.max(halfWidth - jambThickness / 2, 0);
+      const jambOffset = halfWidth + jambThickness / 2;
       const jambGeometry = new BoxGeometry(
         jambThickness,
         doorHeight,
@@ -112,7 +113,7 @@ export function createDoorwayOpenings(
       doorGroup.add(lintel);
     } else {
       const halfWidth = doorway.width / 2;
-      const jambOffset = Math.max(halfWidth - jambThickness / 2, 0);
+      const jambOffset = halfWidth + jambThickness / 2;
       const jambGeometry = new BoxGeometry(
         trimDepth,
         doorHeight,

@@ -566,9 +566,10 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 17,
+    syncRevision: 18,
     syncNote:
-      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
+      'Shared source adds radius-aware stair admission; table proxy dimensions and ' +
+      'the recursion boundary remain unchanged.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

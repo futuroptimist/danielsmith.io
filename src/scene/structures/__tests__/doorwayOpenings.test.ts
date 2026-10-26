@@ -71,8 +71,8 @@ describe('createDoorwayOpenings', () => {
       const rightGeometry = rightMesh.geometry as THREE.BoxGeometry;
       expect(leftGeometry.parameters.width).toBeCloseTo(0.32, 5);
       expect(rightGeometry.parameters.width).toBeCloseTo(0.32, 5);
-      expect(leftMesh.position.x).toBeCloseTo(-1.04, 2);
-      expect(rightMesh.position.x).toBeCloseTo(1.04, 2);
+      expect(leftMesh.position.x).toBeCloseTo(-1.36, 2);
+      expect(rightMesh.position.x).toBeCloseTo(1.36, 2);
       expect(leftMesh.position.y).toBeCloseTo(2.2, 5);
       expect(rightMesh.position.y).toBeCloseTo(2.2, 5);
     }
@@ -91,8 +91,8 @@ describe('createDoorwayOpenings', () => {
       if (near && far) {
         const geometry = near.geometry as THREE.BoxGeometry;
         expect(geometry.parameters.depth).toBeCloseTo(0.32, 5);
-        expect(near.position.z).toBeCloseTo(-1.04, 2);
-        expect(far.position.z).toBeCloseTo(1.04, 2);
+        expect(near.position.z).toBeCloseTo(-1.36, 2);
+        expect(far.position.z).toBeCloseTo(1.36, 2);
       }
     }
 
