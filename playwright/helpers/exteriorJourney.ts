@@ -1,7 +1,10 @@
 import { expect, type Page } from '@playwright/test';
 
-export async function readyExterior(page: Page) {
-  await page.goto('/?mode=immersive&disablePerformanceFailover=1', {
+export async function readyExterior(
+  page: Page,
+  url = '/?mode=immersive&disablePerformanceFailover=1'
+) {
+  await page.goto(url, {
     waitUntil: 'domcontentloaded',
   });
   await page.waitForFunction(

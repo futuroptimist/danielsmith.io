@@ -102,3 +102,53 @@ pass. The collider redundancy gate inspects 272 colliders with no failures and
 117 warnings. Performance diagnostics pass four tests, with one software-renderer
 skip; this is not a hardware frame-rate acceptance result. Full traversal remains
 blocked by the library and chair approaches described above.
+
+## Off-axis access and usability
+
+The production-wall regression samples all 13 authored openings in both
+directions, with 0.025 m spacing: centered, 0.05 m lateral offsets, and
+centered +/-10 degree approaches. These geometric checks pass with the full
+1.125 m radius. They do not establish arbitrary-angle usability. At a 2.40 m
+opening, combining a 10 degree approach and 0.05 m lateral error collides.
+For a circular capsule crossing a 0.50 m-thick wall on a straight line, the
+minimum geometric aperture is
+`2 * 1.125 / cos(10 degrees) + 0.50 * tan(10 degrees) + 2 * 0.05`,
+or 2.4728733671 m: about 0.073 m wider than the current opening. This is a
+wall-only lower bound, not a verified whole-scene widening recommendation.
+No doorway width has changed.
+
+Native keyboard maximum-speed checks pass from both directions at all three
+exterior doors with 0.05 m offsets, including reduced-motion variants (12 tests).
+The phone joystick round trip also passes with a nonzero approach offset.
+Eight additional gamepad tests distinguish a closed automatic door from a
+naturally preopened door. They derive the stick direction from the actual
+camera pose, use real input and controller collisions, and retain motion/door
+state JSON even on failure. Their initial placement does not cross a wall;
+the preopened comparison moves sideways through the actual collision controller.
+
+The four preopened-front-door cases pass at +/-10 degrees, across walking and
+running and both directions. The four closed-door cases fail: their initial
+motion follows the intended line, but the panel is still closed at first
+contact. The player slides sideways until entering the narrow approach lane,
+then the opened door leaves the displaced player against a jamb. Live blocking
+metadata identifies `ground.living_room.east_wall`. The automatic controller
+tests only the imminent movement segment against the aperture's center lane,
+now just 0.15 m wide. This is an unresolved practical approach regression;
+centered passability must not be reported as comfortable access. The same four closed-door tests pass against the exact baseline commit
+`6345ce07cab168c94b9b65bf397bb7533290c679`, confirming a regression. The failing
+acceptance tests remain enabled. No sensor, collision or movement behavior was
+changed to make this checkpoint pass.
+
+CI on implementation checkpoint `74b8131d147803e22dbeb21226fbe7f96e58a251`
+passes all 2,274 unit tests, the miniature guard, collider redundancy gate,
+performance diagnostics and smoke. The full local browser run on that checkpoint
+passes 136 of 142 tests; three library and three seating journeys remain blocked.
+The off-axis tests above are additional qualification, not included in that count.
+Codex and Greptile found no additional blocking issue at that checkpoint;
+Copilot's optional shared wall-seam-helper extraction is deferred while access
+defects remain unresolved. Final-head CI/reviews and post-ready reviews remain
+required before handoff as ready.
+
+The test-only extension passes 2,262 local unit tests, with the same 13 reproduced
+Windows baseline failures. All 14 production-wall clearance cases pass. Typecheck,
+lint, targeted formatting, documentation/release checks and build/static smoke pass.

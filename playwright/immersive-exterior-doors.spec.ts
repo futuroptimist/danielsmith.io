@@ -903,7 +903,7 @@ test('opens once by touch and crosses both ways using the phone joystick', async
   await readyExterior(page);
   await walkExteriorTo(page, {
     x: 32 * Math.SQRT1_2 - 3,
-    z: -15 * Math.SQRT1_2,
+    z: -15 * Math.SQRT1_2 + 0.05,
   });
   await closeFrontDoorForManualTest(page);
   await page.locator(button).tap();
