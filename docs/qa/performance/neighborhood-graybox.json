@@ -1,6 +1,6 @@
 {
   "provenance": {
-    "base": "327622b356c6fed5b0688068dfdcbdd244d67ff6",
+    "base": "745cca9282f47885a0143164482e55c3bbd5f8ee",
     "dirty": "",
     "sourceHashes": [
       {
@@ -1729,15 +1729,19 @@
       },
       {
         "path": "src/tests/prototypes/__tests__/neighborhoodGraybox.test.ts",
-        "sha256": "a6b72e2168bf1ea7ed68d06b324e7274a35ea89429d285119bc3e0e6642a355d"
+        "sha256": "7a874943ca070a92fdf167bac38de71b4168adf7a1679c54cfe52578876f9bfa"
       },
       {
         "path": "src/tests/prototypes/__tests__/rectangularNeighborhood.test.ts",
         "sha256": "182f84ccfcb343a8e3b5439fc07dc1f94a8407af6f7a32b65f34f1af540644e4"
       },
       {
+        "path": "src/tests/prototypes/grayboxMassing.ts",
+        "sha256": "318cf7080b11b4f9f237c53b5595928a2c1b39a1a4dcb90b6db5e61d45f57efe"
+      },
+      {
         "path": "src/tests/prototypes/measureGraybox.ts",
-        "sha256": "6b20f9aa44960d50a4612fd969a48177d00d1848bb7da781afea6235f51a3a62"
+        "sha256": "d64631b29502901010195aea718d11c768df782e4651f1642c1deafd5fbb968a"
       },
       {
         "path": "src/tests/prototypes/measureNeighborhood.ts",
@@ -1749,7 +1753,7 @@
       },
       {
         "path": "src/tests/prototypes/neighborhoodGraybox.ts",
-        "sha256": "d10362605f0128bce46b5322e79e4a4f85e64cc758c5ff4e87dfe3d69feb8db0"
+        "sha256": "824e42b35f6be2fd0c60ff2ed3ee202968a702162178481cbe594c6cc1e40212"
       },
       {
         "path": "src/tests/prototypes/rectangularNeighborhood.ts",
@@ -1980,7 +1984,7 @@
         "sha256": "9672b4a18c3ab49392cafd6d98ea28f8203212d3c85c6f9336b07b580d6971dc"
       }
     ],
-    "capturedAt": "2026-10-23T06:43:43.908Z"
+    "capturedAt": "2026-10-26T01:06:14.057Z"
   },
   "scope": "Offline review layout only; no scene activation or full runtime/hardware qualification.",
   "coordinateContract": {
@@ -1988,17 +1992,852 @@
     "units": "world metres",
     "anchors": "Current source FLOOR_PLAN_SCALE and actual exterior builders; no copied coordinates."
   },
+  "mainHouse": {
+    "rooms": [
+      {
+        "id": "ground.living_room.room",
+        "floor": "ground",
+        "bounds": {
+          "minX": -22.627416997969522,
+          "maxX": 22.627416997969522,
+          "minZ": -22.627416997969522,
+          "maxZ": -5.656854249492381
+        }
+      },
+      {
+        "id": "ground.studio.room",
+        "floor": "ground",
+        "bounds": {
+          "minX": -2.8284271247461903,
+          "maxX": 22.627416997969522,
+          "minZ": -5.656854249492381,
+          "maxZ": 11.313708498984761
+        }
+      },
+      {
+        "id": "ground.kitchen.room",
+        "floor": "ground",
+        "bounds": {
+          "minX": -22.627416997969522,
+          "maxX": -2.8284271247461903,
+          "minZ": -5.656854249492381,
+          "maxZ": 11.313708498984761
+        }
+      },
+      {
+        "id": "ground.garage.room",
+        "floor": "ground",
+        "bounds": {
+          "minX": 22.627416997969522,
+          "maxX": 35.35533905932738,
+          "minZ": -5.656854249492381,
+          "maxZ": 11.313708498984761
+        }
+      },
+      {
+        "id": "upper.upper_landing.room",
+        "floor": "upper",
+        "bounds": {
+          "minX": 2.8284271247461903,
+          "maxX": 14.70782104868019,
+          "minZ": -22.627416997969522,
+          "maxZ": -11.313708498984761
+        }
+      },
+      {
+        "id": "upper.creators_studio.room",
+        "floor": "upper",
+        "bounds": {
+          "minX": -14.142135623730951,
+          "maxX": 2.8284271247461903,
+          "minZ": -22.627416997969522,
+          "maxZ": 0
+        }
+      },
+      {
+        "id": "upper.loft_library.room",
+        "floor": "upper",
+        "bounds": {
+          "minX": 2.8284271247461903,
+          "maxX": 16.970562748477143,
+          "minZ": -11.313708498984761,
+          "maxZ": 8.485281374238571
+        }
+      },
+      {
+        "id": "upper.focus_pods.room",
+        "floor": "upper",
+        "bounds": {
+          "minX": -14.142135623730951,
+          "maxX": 16.970562748477143,
+          "minZ": 8.485281374238571,
+          "maxZ": 19.79898987322333
+        }
+      }
+    ],
+    "wallSourceIds": [
+      "ground.living_room.north_wall",
+      "ground.garage.southWall",
+      "ground.backyard.south_wall",
+      "ground.garage.northWall",
+      "ground.living_room.south_wall",
+      "ground.garage.eastWall",
+      "ground.living_room.east_wall",
+      "ground.studio.east_wall",
+      "ground.living_room.west_wall",
+      "ground.kitchen.west_wall",
+      "ground.kitchen_studio.wall",
+      "upper.creators_studio.south_wall",
+      "upper.upper_landing.south_wall",
+      "upper.creators_studio.north_wall",
+      "upper.focus_pods.south_wall",
+      "upper.loft_library_to_focus_pods.wall",
+      "upper.upper_landing_to_loft_library.wall",
+      "upper.focus_pods.north_wall",
+      "upper.creators_studio.west_wall",
+      "upper.focus_pods.west_wall",
+      "upper.creators_studio_to_upper_landing.wall",
+      "upper.loft_library.west_wall",
+      "upper.upper_landing.east_wall",
+      "upper.loft_library.east_wall",
+      "upper.focus_pods.east_wall"
+    ],
+    "wallBounds": [
+      {
+        "id": "ground.living_room.north_wall",
+        "bounds": {
+          "minX": -22.752416997969522,
+          "maxX": -13.802922061357858,
+          "minZ": -5.907,
+          "maxZ": -5.407
+        }
+      },
+      {
+        "id": "ground.living_room.north_wall",
+        "bounds": {
+          "minX": -11.652922061357856,
+          "maxX": -2.70342712474619,
+          "minZ": -5.907,
+          "maxZ": -5.407
+        }
+      },
+      {
+        "id": "ground.living_room.north_wall",
+        "bounds": {
+          "minX": -2.95342712474619,
+          "maxX": 9.531601717798214,
+          "minZ": -5.907,
+          "maxZ": -5.407
+        }
+      },
+      {
+        "id": "ground.living_room.north_wall",
+        "bounds": {
+          "minX": 11.681601717798213,
+          "maxX": 16.74200935788387,
+          "minZ": -5.907,
+          "maxZ": -5.407
+        }
+      },
+      {
+        "id": "ground.living_room.north_wall",
+        "bounds": {
+          "minX": 20.734650045003153,
+          "maxX": 22.752416997969522,
+          "minZ": -5.907,
+          "maxZ": -5.407
+        }
+      },
+      {
+        "id": "ground.garage.southWall",
+        "bounds": {
+          "minX": 22.50241699796952,
+          "maxX": 35.48033905932738,
+          "minZ": -5.907,
+          "maxZ": -5.407
+        }
+      },
+      {
+        "id": "ground.backyard.south_wall",
+        "bounds": {
+          "minX": -22.752416997969522,
+          "maxX": -13.802922061357858,
+          "minZ": 11.064,
+          "maxZ": 11.564
+        }
+      },
+      {
+        "id": "ground.backyard.south_wall",
+        "bounds": {
+          "minX": -11.652922061357856,
+          "maxX": -2.70342712474619,
+          "minZ": 11.064,
+          "maxZ": 11.564
+        }
+      },
+      {
+        "id": "ground.backyard.south_wall",
+        "bounds": {
+          "minX": -2.95342712474619,
+          "maxX": 9.531601717798214,
+          "minZ": 11.064,
+          "maxZ": 11.564
+        }
+      },
+      {
+        "id": "ground.backyard.south_wall",
+        "bounds": {
+          "minX": 11.681601717798213,
+          "maxX": 22.752416997969522,
+          "minZ": 11.064,
+          "maxZ": 11.564
+        }
+      },
+      {
+        "id": "ground.garage.northWall",
+        "bounds": {
+          "minX": 22.37741699796952,
+          "maxX": 35.60533905932738,
+          "minZ": 11.314,
+          "maxZ": 11.814
+        }
+      },
+      {
+        "id": "ground.living_room.south_wall",
+        "bounds": {
+          "minX": -22.877416997969522,
+          "maxX": 22.877416997969522,
+          "minZ": -23.127,
+          "maxZ": -22.627
+        }
+      },
+      {
+        "id": "ground.garage.eastWall",
+        "bounds": {
+          "minX": 35.105,
+          "maxX": 35.605,
+          "minZ": -5.781854249492381,
+          "maxZ": 0.45342712474618896
+        }
+      },
+      {
+        "id": "ground.garage.eastWall",
+        "bounds": {
+          "minX": 35.105,
+          "maxX": 35.605,
+          "minZ": 5.20342712474619,
+          "maxZ": 11.438708498984761
+        }
+      },
+      {
+        "id": "ground.living_room.east_wall",
+        "bounds": {
+          "minX": 22.377,
+          "maxX": 22.877,
+          "minZ": -22.752416997969522,
+          "maxZ": -11.681601717798213
+        }
+      },
+      {
+        "id": "ground.living_room.east_wall",
+        "bounds": {
+          "minX": 22.377,
+          "maxX": 22.877,
+          "minZ": -9.531601717798214,
+          "maxZ": -5.53185424949238
+        }
+      },
+      {
+        "id": "ground.studio.east_wall",
+        "bounds": {
+          "minX": 22.377,
+          "maxX": 22.877,
+          "minZ": -5.78185424949238,
+          "maxZ": -2.489213562373095
+        }
+      },
+      {
+        "id": "ground.studio.east_wall",
+        "bounds": {
+          "minX": 22.377,
+          "maxX": 22.877,
+          "minZ": -0.33921356237309475,
+          "maxZ": 11.438708498984761
+        }
+      },
+      {
+        "id": "ground.living_room.west_wall",
+        "bounds": {
+          "minX": -23.127,
+          "maxX": -22.627,
+          "minZ": -22.877416997969522,
+          "maxZ": -5.40685424949238
+        }
+      },
+      {
+        "id": "ground.kitchen.west_wall",
+        "bounds": {
+          "minX": -23.127,
+          "maxX": -22.627,
+          "minZ": -5.906854249492381,
+          "maxZ": 11.563708498984763
+        }
+      },
+      {
+        "id": "ground.kitchen_studio.wall",
+        "bounds": {
+          "minX": -3.078,
+          "maxX": -2.578,
+          "minZ": -5.781854249492381,
+          "maxZ": 1.7534271247461906
+        }
+      },
+      {
+        "id": "ground.kitchen_studio.wall",
+        "bounds": {
+          "minX": -3.078,
+          "maxX": -2.578,
+          "minZ": 3.9034271247461896,
+          "maxZ": 11.438708498984761
+        }
+      },
+      {
+        "id": "upper.creators_studio.south_wall",
+        "bounds": {
+          "minX": -14.392135623730951,
+          "maxX": 3.0784271247461907,
+          "minZ": -23.127,
+          "maxZ": -22.627
+        }
+      },
+      {
+        "id": "upper.upper_landing.south_wall",
+        "bounds": {
+          "minX": 2.5784271247461907,
+          "maxX": 14.957821048680188,
+          "minZ": -23.127,
+          "maxZ": -22.627
+        }
+      },
+      {
+        "id": "upper.creators_studio.north_wall",
+        "bounds": {
+          "minX": -14.392135623730951,
+          "maxX": 3.0784271247461907,
+          "minZ": 0,
+          "maxZ": 0.5
+        }
+      },
+      {
+        "id": "upper.focus_pods.south_wall",
+        "bounds": {
+          "minX": -14.392135623730951,
+          "maxX": 3.0784271247461907,
+          "minZ": 7.984999999999999,
+          "maxZ": 8.485
+        }
+      },
+      {
+        "id": "upper.loft_library_to_focus_pods.wall",
+        "bounds": {
+          "minX": 2.7034271247461916,
+          "maxX": 4.58185424949238,
+          "minZ": 8.235,
+          "maxZ": 8.735
+        }
+      },
+      {
+        "id": "upper.loft_library_to_focus_pods.wall",
+        "bounds": {
+          "minX": 6.73185424949238,
+          "maxX": 17.095562748477143,
+          "minZ": 8.235,
+          "maxZ": 8.735
+        }
+      },
+      {
+        "id": "upper.upper_landing_to_loft_library.wall",
+        "bounds": {
+          "minX": 2.7034271247461907,
+          "maxX": 4.864696961967,
+          "minZ": -11.564,
+          "maxZ": -11.064
+        }
+      },
+      {
+        "id": "upper.upper_landing_to_loft_library.wall",
+        "bounds": {
+          "minX": 7.014696961966999,
+          "maxX": 14.83282104868019,
+          "minZ": -11.564,
+          "maxZ": -11.064
+        }
+      },
+      {
+        "id": "upper.upper_landing_to_loft_library.wall",
+        "bounds": {
+          "minX": 14.457821048680188,
+          "maxX": 17.220562748477143,
+          "minZ": -11.814,
+          "maxZ": -11.314
+        }
+      },
+      {
+        "id": "upper.focus_pods.north_wall",
+        "bounds": {
+          "minX": -14.392135623730951,
+          "maxX": 17.220562748477143,
+          "minZ": 19.799,
+          "maxZ": 20.299
+        }
+      },
+      {
+        "id": "upper.creators_studio.west_wall",
+        "bounds": {
+          "minX": -14.642,
+          "maxX": -14.142,
+          "minZ": -22.877416997969522,
+          "maxZ": 0.25
+        }
+      },
+      {
+        "id": "upper.focus_pods.west_wall",
+        "bounds": {
+          "minX": -14.642,
+          "maxX": -14.142,
+          "minZ": 8.235281374238571,
+          "maxZ": 20.04898987322333
+        }
+      },
+      {
+        "id": "upper.creators_studio_to_upper_landing.wall",
+        "bounds": {
+          "minX": 2.578,
+          "maxX": 3.078,
+          "minZ": -22.752416997969522,
+          "maxZ": -21.630594129092938
+        }
+      },
+      {
+        "id": "upper.creators_studio_to_upper_landing.wall",
+        "bounds": {
+          "minX": 2.578,
+          "maxX": 3.078,
+          "minZ": -19.48059412909294,
+          "maxZ": -11.188708498984763
+        }
+      },
+      {
+        "id": "upper.creators_studio_to_upper_landing.wall",
+        "bounds": {
+          "minX": 2.578,
+          "maxX": 3.078,
+          "minZ": -11.438708498984761,
+          "maxZ": -6.731854249492381
+        }
+      },
+      {
+        "id": "upper.creators_studio_to_upper_landing.wall",
+        "bounds": {
+          "minX": 2.578,
+          "maxX": 3.078,
+          "minZ": -4.58185424949238,
+          "maxZ": 0.125
+        }
+      },
+      {
+        "id": "upper.loft_library.west_wall",
+        "bounds": {
+          "minX": 2.328,
+          "maxX": 2.828,
+          "minZ": -0.25,
+          "maxZ": 8.735281374238571
+        }
+      },
+      {
+        "id": "upper.upper_landing.east_wall",
+        "bounds": {
+          "minX": 14.708,
+          "maxX": 15.208,
+          "minZ": -22.877416997969522,
+          "maxZ": -11.063708498984763
+        }
+      },
+      {
+        "id": "upper.loft_library.east_wall",
+        "bounds": {
+          "minX": 16.971,
+          "maxX": 17.471,
+          "minZ": -11.563708498984763,
+          "maxZ": 8.735281374238571
+        }
+      },
+      {
+        "id": "upper.focus_pods.east_wall",
+        "bounds": {
+          "minX": 16.971,
+          "maxX": 17.471,
+          "minZ": 8.235281374238571,
+          "maxZ": 20.04898987322333
+        }
+      }
+    ],
+    "bounds": {
+      "minX": -23.127,
+      "maxX": 35.60533905932738,
+      "minZ": -23.127,
+      "maxZ": 20.299
+    },
+    "width": 58.73233905932737,
+    "depth": 43.426,
+    "roomArea": 2016.0000000000002,
+    "groundRoomArea": 1752.0000000000005,
+    "builtArea": 2100.1769254193177,
+    "method": "Projected union of ground and upper interior rooms (including garage and upper overhang) plus actual generated wall bounds. Excludes underground basement, exterior yards, driveway, sidewalk, street and fences. Union area is not bounding area or summed floor area."
+  },
+  "siting": {
+    "parcelWidth": 68.49337763637129,
+    "parcelDepth": 51.7705382848608,
+    "frontageSpacing": 57.7705382848608,
+    "frontageOffset": 40.246688818185646,
+    "halfLength": 229.5958861020443
+  },
+  "siteExtent": {
+    "bounds": {
+      "minX": -35.60250467111118,
+      "maxX": 316.60502459014174,
+      "minZ": -232.5958861020443,
+      "maxZ": 232.5958861020443
+    },
+    "width": 352.20752926125294,
+    "depth": 465.1917722040886,
+    "boundingArea": 163844.04472066564
+  },
+  "footprintComparability": [
+    {
+      "id": "lot-01",
+      "width": 50.09790092281981,
+      "depth": 40.9824149209955,
+      "footprintArea": 2053.1329622899248,
+      "areaRatioToBuiltHouse": 0.9775999999999999,
+      "widthRatioToBuiltBounds": 0.8529866462872244,
+      "depthRatioToBuiltBounds": 0.9437299065305462
+    },
+    {
+      "id": "lot-02",
+      "width": 53.29563927959555,
+      "depth": 39.406168193264904,
+      "footprintArea": 2100.1769254193177,
+      "areaRatioToBuiltHouse": 1,
+      "widthRatioToBuiltBounds": 0.9074326024332175,
+      "depthRatioToBuiltBounds": 0.9074326024332174
+    },
+    {
+      "id": "lot-03",
+      "width": 56.493377636371285,
+      "depth": 37.829921465534305,
+      "footprintArea": 2137.140039306698,
+      "areaRatioToBuiltHouse": 1.0176,
+      "widthRatioToBuiltBounds": 0.9618785585792107,
+      "depthRatioToBuiltBounds": 0.8711352983358888
+    },
+    {
+      "id": "lot-04",
+      "width": 52.229726494003636,
+      "depth": 41.7705382848608,
+      "footprintArea": 2181.663790125587,
+      "areaRatioToBuiltHouse": 1.0388,
+      "widthRatioToBuiltBounds": 0.8892839503845531,
+      "depthRatioToBuiltBounds": 0.9618785585792106
+    },
+    {
+      "id": "lot-05",
+      "width": 55.42746485077937,
+      "depth": 40.1942915571302,
+      "footprintArea": 2227.867682484812,
+      "areaRatioToBuiltHouse": 1.0608,
+      "widthRatioToBuiltBounds": 0.9437299065305462,
+      "depthRatioToBuiltBounds": 0.9255812544818818
+    },
+    {
+      "id": "lot-06",
+      "width": 54.36155206518746,
+      "depth": 37.04179810166901,
+      "footprintArea": 2013.6496360920419,
+      "areaRatioToBuiltHouse": 0.9588,
+      "widthRatioToBuiltBounds": 0.9255812544818819,
+      "depthRatioToBuiltBounds": 0.8529866462872244
+    },
+    {
+      "id": "lot-07",
+      "width": 53.29563927959555,
+      "depth": 39.406168193264904,
+      "footprintArea": 2100.1769254193177,
+      "areaRatioToBuiltHouse": 1,
+      "widthRatioToBuiltBounds": 0.9074326024332175,
+      "depthRatioToBuiltBounds": 0.9074326024332174
+    },
+    {
+      "id": "lot-08",
+      "width": 56.493377636371285,
+      "depth": 37.829921465534305,
+      "footprintArea": 2137.140039306698,
+      "areaRatioToBuiltHouse": 1.0176,
+      "widthRatioToBuiltBounds": 0.9618785585792107,
+      "depthRatioToBuiltBounds": 0.8711352983358888
+    },
+    {
+      "id": "lot-09",
+      "width": 52.229726494003636,
+      "depth": 41.7705382848608,
+      "footprintArea": 2181.663790125587,
+      "areaRatioToBuiltHouse": 1.0388,
+      "widthRatioToBuiltBounds": 0.8892839503845531,
+      "depthRatioToBuiltBounds": 0.9618785585792106
+    },
+    {
+      "id": "lot-10",
+      "width": 55.42746485077937,
+      "depth": 40.1942915571302,
+      "footprintArea": 2227.867682484812,
+      "areaRatioToBuiltHouse": 1.0608,
+      "widthRatioToBuiltBounds": 0.9437299065305462,
+      "depthRatioToBuiltBounds": 0.9255812544818818
+    },
+    {
+      "id": "lot-11",
+      "width": 54.36155206518746,
+      "depth": 37.04179810166901,
+      "footprintArea": 2013.6496360920419,
+      "areaRatioToBuiltHouse": 0.9588,
+      "widthRatioToBuiltBounds": 0.9255812544818819,
+      "depthRatioToBuiltBounds": 0.8529866462872244
+    },
+    {
+      "id": "lot-12",
+      "width": 50.09790092281981,
+      "depth": 40.9824149209955,
+      "footprintArea": 2053.1329622899248,
+      "areaRatioToBuiltHouse": 0.9775999999999999,
+      "widthRatioToBuiltBounds": 0.8529866462872244,
+      "depthRatioToBuiltBounds": 0.9437299065305462
+    },
+    {
+      "id": "lot-13",
+      "width": 56.493377636371285,
+      "depth": 37.829921465534305,
+      "footprintArea": 2137.140039306698,
+      "areaRatioToBuiltHouse": 1.0176,
+      "widthRatioToBuiltBounds": 0.9618785585792107,
+      "depthRatioToBuiltBounds": 0.8711352983358888
+    },
+    {
+      "id": "lot-14",
+      "width": 52.229726494003636,
+      "depth": 41.7705382848608,
+      "footprintArea": 2181.663790125587,
+      "areaRatioToBuiltHouse": 1.0388,
+      "widthRatioToBuiltBounds": 0.8892839503845531,
+      "depthRatioToBuiltBounds": 0.9618785585792106
+    },
+    {
+      "id": "lot-15",
+      "width": 55.42746485077937,
+      "depth": 40.1942915571302,
+      "footprintArea": 2227.867682484812,
+      "areaRatioToBuiltHouse": 1.0608,
+      "widthRatioToBuiltBounds": 0.9437299065305462,
+      "depthRatioToBuiltBounds": 0.9255812544818818
+    },
+    {
+      "id": "lot-16",
+      "width": 54.36155206518746,
+      "depth": 37.04179810166901,
+      "footprintArea": 2013.6496360920419,
+      "areaRatioToBuiltHouse": 0.9588,
+      "widthRatioToBuiltBounds": 0.9255812544818819,
+      "depthRatioToBuiltBounds": 0.8529866462872244
+    },
+    {
+      "id": "lot-17",
+      "width": 50.09790092281981,
+      "depth": 40.9824149209955,
+      "footprintArea": 2053.1329622899248,
+      "areaRatioToBuiltHouse": 0.9775999999999999,
+      "widthRatioToBuiltBounds": 0.8529866462872244,
+      "depthRatioToBuiltBounds": 0.9437299065305462
+    },
+    {
+      "id": "lot-18",
+      "width": 53.29563927959555,
+      "depth": 39.406168193264904,
+      "footprintArea": 2100.1769254193177,
+      "areaRatioToBuiltHouse": 1,
+      "widthRatioToBuiltBounds": 0.9074326024332175,
+      "depthRatioToBuiltBounds": 0.9074326024332174
+    },
+    {
+      "id": "lot-19",
+      "width": 52.229726494003636,
+      "depth": 41.7705382848608,
+      "footprintArea": 2181.663790125587,
+      "areaRatioToBuiltHouse": 1.0388,
+      "widthRatioToBuiltBounds": 0.8892839503845531,
+      "depthRatioToBuiltBounds": 0.9618785585792106
+    },
+    {
+      "id": "lot-20",
+      "width": 55.42746485077937,
+      "depth": 40.1942915571302,
+      "footprintArea": 2227.867682484812,
+      "areaRatioToBuiltHouse": 1.0608,
+      "widthRatioToBuiltBounds": 0.9437299065305462,
+      "depthRatioToBuiltBounds": 0.9255812544818818
+    },
+    {
+      "id": "lot-21",
+      "width": 54.36155206518746,
+      "depth": 37.04179810166901,
+      "footprintArea": 2013.6496360920419,
+      "areaRatioToBuiltHouse": 0.9588,
+      "widthRatioToBuiltBounds": 0.9255812544818819,
+      "depthRatioToBuiltBounds": 0.8529866462872244
+    },
+    {
+      "id": "lot-22",
+      "width": 50.09790092281981,
+      "depth": 40.9824149209955,
+      "footprintArea": 2053.1329622899248,
+      "areaRatioToBuiltHouse": 0.9775999999999999,
+      "widthRatioToBuiltBounds": 0.8529866462872244,
+      "depthRatioToBuiltBounds": 0.9437299065305462
+    },
+    {
+      "id": "lot-23",
+      "width": 53.29563927959555,
+      "depth": 39.406168193264904,
+      "footprintArea": 2100.1769254193177,
+      "areaRatioToBuiltHouse": 1,
+      "widthRatioToBuiltBounds": 0.9074326024332175,
+      "depthRatioToBuiltBounds": 0.9074326024332174
+    },
+    {
+      "id": "lot-24",
+      "width": 56.493377636371285,
+      "depth": 37.829921465534305,
+      "footprintArea": 2137.140039306698,
+      "areaRatioToBuiltHouse": 1.0176,
+      "widthRatioToBuiltBounds": 0.9618785585792107,
+      "depthRatioToBuiltBounds": 0.8711352983358888
+    }
+  ],
+  "exteriorMassing": {
+    "method": "Count actual CPU-created exterior mesh buffers and instance counts. All batches visible, one base pass, no WebGL renderer; excludes parcels, source overlays and existing scene geometry.",
+    "integratedRuntime": false,
+    "batches": [
+      {
+        "name": "house-shells",
+        "instances": 24,
+        "trianglesPerInstance": 16,
+        "submittedTriangles": 384
+      },
+      {
+        "name": "frontage-fences",
+        "instances": 24,
+        "trianglesPerInstance": 12,
+        "submittedTriangles": 288
+      },
+      {
+        "name": "straight-walkways",
+        "instances": 36,
+        "trianglesPerInstance": 2,
+        "submittedTriangles": 72
+      },
+      {
+        "name": "curved-walkways",
+        "instances": 8,
+        "trianglesPerInstance": 180,
+        "submittedTriangles": 1440
+      },
+      {
+        "name": "streets",
+        "instances": 2,
+        "trianglesPerInstance": 2,
+        "submittedTriangles": 4
+      }
+    ],
+    "triangles": 2188,
+    "instancedBasePassDrawCalls": 5,
+    "unbatchedBasePassDrawCalls": 94,
+    "uniqueGeometries": 4,
+    "materials": 5,
+    "textures": 0,
+    "meshSurfaceAreaIncludingBottoms": 161091.04207784843,
+    "houseFootprintArea": 50854.524142873546,
+    "sourceBudgets": {
+      "launch": {
+        "maxDrawCalls": 150,
+        "maxTriangles": 50000,
+        "maxGeometries": 125,
+        "maxTextures": 32,
+        "maxP95FrameMs": 80
+      },
+      "general": {
+        "maxMaterials": 36,
+        "maxDrawCalls": 150,
+        "maxTextureBytes": 25165824
+      }
+    },
+    "staticBaselineScenario": {
+      "warning": "Arithmetic scenario using the source static baseline, not a measured integrated frame.",
+      "baseline": {
+        "drawCalls": 114,
+        "triangles": 32000,
+        "geometries": 86,
+        "textures": 19,
+        "p95FrameMs": 40
+      },
+      "generalBaseline": {
+        "materialCount": 28,
+        "drawCallCount": 132,
+        "textureBytes": 18874368,
+        "capturedAtIso": "2024-05-17T00:00:00.000Z",
+        "notes": "Static press-kit budget baseline captured with Chrome 124 WebGL inspector at launch pose after camera settle. Runtime launch budgets are enforced separately by IMMERSIVE_LAUNCH_PERFORMANCE_BUDGET."
+      },
+      "drawCalls": 119,
+      "unbatchedDrawCalls": 208,
+      "triangles": 34188,
+      "geometries": 90,
+      "textures": 19,
+      "textureBytes": 18874368,
+      "materials": 33,
+      "instancedDrawCallsWithinBudget": true,
+      "unbatchedDrawCallsWithinBudget": false,
+      "trianglesWithinBudget": true,
+      "geometriesWithinBudget": true,
+      "texturesWithinBudget": true,
+      "materialsWithinBudget": true,
+      "textureBytesWithinBudget": true,
+      "frameTimeQualified": false
+    },
+    "remainingGates": [
+      "Global batches can submit all instances when any part is visible; no per-lot culling.",
+      "Larger surfaces can increase fragment work and shadows; no FPS inference.",
+      "Renderer calls, camera routes, LOD, shadows and device frame time remain unmeasured.",
+      "Instantiation is an offline model only, not an implemented production optimization."
+    ]
+  },
   "counts": {
     "lots": 24,
     "closedLoops": 2,
     "existingExteriorSolids": 14,
     "existingGroundWalls": 35,
     "existingGroundNavZones": 21,
-    "proposedHouseRectangles": 2688,
-    "proposedFenceRectangles": 1560,
-    "wholeReviewSolidArray": 4297,
-    "wholeReviewNavArray": 1289,
-    "curvedNavRectangles": 1232,
+    "proposedHouseRectangles": 7616,
+    "proposedFenceRectangles": 4632,
+    "wholeReviewSolidArray": 12297,
+    "wholeReviewNavArray": 1293,
+    "curvedNavRectangles": 1236,
     "straightNavRectangles": 36,
     "scope": "Complete review arrays, including existing ground walls/nav and exterior solids. Dynamic doors, furnishings and stair guards are not a full live runtime capture."
   },
@@ -2015,12 +2854,12 @@
       {
         "id": "north",
         "reverse": false,
-        "points": 1318,
+        "points": 2490,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 3.1776437161565096e-14,
+        "maxError": 4.0194366942304644e-14,
         "lastPosition": {
-          "x": 149.5685424949238,
+          "x": 220.5552977676664,
           "z": -18
         },
         "blocked": 0,
@@ -2029,12 +2868,12 @@
       {
         "id": "north",
         "reverse": true,
-        "points": 1318,
+        "points": 2490,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 3.1776437161565096e-14,
+        "maxError": 4.0194366942304644e-14,
         "lastPosition": {
-          "x": 149.5685424949238,
+          "x": 220.5552977676664,
           "z": -18
         },
         "blocked": 0,
@@ -2043,13 +2882,13 @@
       {
         "id": "south",
         "reverse": false,
-        "points": 1318,
+        "points": 2490,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 3.1776437161565096e-14,
+        "maxError": 4.0194366942304644e-14,
         "lastPosition": {
-          "x": 149.5685424949238,
-          "z": 107
+          "x": 220.5552977676664,
+          "z": 211.5958861020443
         },
         "blocked": 0,
         "qualified": true
@@ -2057,13 +2896,13 @@
       {
         "id": "south",
         "reverse": true,
-        "points": 1318,
+        "points": 2490,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 3.1776437161565096e-14,
+        "maxError": 4.0194366942304644e-14,
         "lastPosition": {
-          "x": 149.5685424949238,
-          "z": 107
+          "x": 220.5552977676664,
+          "z": 211.5958861020443
         },
         "blocked": 0,
         "qualified": true
@@ -2074,13 +2913,13 @@
         "id": "north",
         "offset": -0.85,
         "reverse": true,
-        "points": 165,
+        "points": 312,
         "runSpeed": 4.262820512820513,
         "frameRate": 4,
-        "maxError": 1.2710574864626038e-13,
+        "maxError": 1.6077746776921858e-13,
         "lastPosition": {
-          "x": 150.41854249492377,
-          "z": -19.4983164983165
+          "x": 221.40529776766638,
+          "z": -18.299684034213698
         },
         "blocked": 0,
         "qualified": true
@@ -2089,13 +2928,13 @@
         "id": "north",
         "offset": 0.85,
         "reverse": false,
-        "points": 165,
+        "points": 312,
         "runSpeed": 4.262820512820513,
         "frameRate": 4,
-        "maxError": 1.2710574864626038e-13,
+        "maxError": 1.4210854715202004e-13,
         "lastPosition": {
-          "x": 148.71855097289122,
-          "z": -18.003796376262482
+          "x": 219.70530624506105,
+          "z": -18.00379624802677
         },
         "blocked": 0,
         "qualified": true
@@ -2104,13 +2943,13 @@
         "id": "south",
         "offset": -0.85,
         "reverse": true,
-        "points": 165,
+        "points": 312,
         "runSpeed": 4.262820512820513,
         "frameRate": 4,
-        "maxError": 1.214175959108492e-13,
+        "maxError": 1.6077746776921858e-13,
         "lastPosition": {
-          "x": 150.41854249492377,
-          "z": 105.5016835016835
+          "x": 221.40529776766638,
+          "z": 211.2962020678306
         },
         "blocked": 0,
         "qualified": true
@@ -2119,13 +2958,13 @@
         "id": "south",
         "offset": 0.85,
         "reverse": false,
-        "points": 165,
+        "points": 312,
         "runSpeed": 4.262820512820513,
         "frameRate": 4,
-        "maxError": 1.2710574864626038e-13,
+        "maxError": 1.4210854715202004e-13,
         "lastPosition": {
-          "x": 148.71855097289122,
-          "z": 106.99620362373753
+          "x": 219.70530624506105,
+          "z": 211.59208985401753
         },
         "blocked": 0,
         "qualified": true
@@ -2138,9 +2977,9 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.4495071809506044e-12,
+        "maxError": 5.6843418860808015e-12,
         "lastPosition": {
-          "x": 131.5685424949238,
+          "x": 202.5552977676664,
           "z": 0
         },
         "blocked": 0,
@@ -2154,10 +2993,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.5276668818842154e-13,
+        "maxError": 4.973799150320701e-14,
         "lastPosition": {
-          "x": 25.840872965259962,
-          "z": -92
+          "x": 24.643134608484374,
+          "z": -177.7106169596139
         },
         "blocked": 0,
         "qualified": true
@@ -2168,10 +3007,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.5276668818842154e-13,
+        "maxError": 3.552713678800501e-15,
         "lastPosition": {
-          "x": 25.840872965259962,
-          "z": -68
+          "x": 26.242003786872246,
+          "z": -119.9400786747531
         },
         "blocked": 0,
         "qualified": true
@@ -2182,10 +3021,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.5276668818842154e-13,
+        "maxError": 7.815970093361102e-14,
         "lastPosition": {
-          "x": 25.840872965259962,
-          "z": -44
+          "x": 27.84087296526011,
+          "z": -62.169540389892305
         },
         "blocked": 0,
         "qualified": true
@@ -2196,10 +3035,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.5276668818842154e-13,
+        "maxError": 4.973799150320701e-14,
         "lastPosition": {
-          "x": 25.840872965259962,
-          "z": 44
+          "x": 25.709047394076286,
+          "z": 62.169540389892305
         },
         "blocked": 0,
         "qualified": true
@@ -2210,10 +3049,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.5276668818842154e-13,
+        "maxError": 9.237055564881302e-14,
         "lastPosition": {
-          "x": 25.840872965259962,
-          "z": 68
+          "x": 27.30791657246416,
+          "z": 119.9400786747531
         },
         "blocked": 0,
         "qualified": true
@@ -2224,10 +3063,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.5276668818842154e-13,
+        "maxError": 2.842170943040401e-14,
         "lastPosition": {
-          "x": 25.840872965259962,
-          "z": 92
+          "x": 26.7749601796682,
+          "z": 177.7106169596139
         },
         "blocked": 0,
         "qualified": true
@@ -2238,10 +3077,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 2.4158453015843406e-13,
+        "maxError": 3.979039320256561e-13,
         "lastPosition": {
-          "x": 72.6185424949238,
-          "z": -92
+          "x": 72.21741167331191,
+          "z": -177.7106169596139
         },
         "blocked": 0,
         "qualified": true
@@ -2252,10 +3091,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 2.4158453015843406e-13,
+        "maxError": 7.105427357601002e-14,
         "lastPosition": {
-          "x": 72.6185424949238,
-          "z": -68
+          "x": 70.6185424949238,
+          "z": -119.9400786747531
         },
         "blocked": 0,
         "qualified": true
@@ -2266,10 +3105,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 2.4158453015843406e-13,
+        "maxError": 5.684341886080802e-14,
         "lastPosition": {
-          "x": 72.6185424949238,
-          "z": -44
+          "x": 72.75036806610763,
+          "z": -62.169540389892305
         },
         "blocked": 0,
         "qualified": true
@@ -2280,10 +3119,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 2.4158453015843406e-13,
+        "maxError": 9.947598300641403e-14,
         "lastPosition": {
-          "x": 72.6185424949238,
-          "z": 44
+          "x": 71.15149888771977,
+          "z": 62.169540389892305
         },
         "blocked": 0,
         "qualified": true
@@ -2294,10 +3133,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 2.4158453015843406e-13,
+        "maxError": 2.842170943040401e-14,
         "lastPosition": {
-          "x": 72.6185424949238,
-          "z": 68
+          "x": 71.68445528051572,
+          "z": 119.9400786747531
         },
         "blocked": 0,
         "qualified": true
@@ -2308,10 +3147,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 2.4158453015843406e-13,
+        "maxError": 4.405364961712621e-13,
         "lastPosition": {
-          "x": 72.6185424949238,
-          "z": 92
+          "x": 73.81628085169932,
+          "z": 177.7106169596139
         },
         "blocked": 0,
         "qualified": true
@@ -2322,10 +3161,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 1.0231815394945443e-12,
         "lastPosition": {
-          "x": 136.5185424949238,
-          "z": -92
+          "x": 209.50529776766638,
+          "z": -177.7106169596139
         },
         "blocked": 0,
         "qualified": true
@@ -2336,10 +3175,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 2.842170943040401e-14,
         "lastPosition": {
-          "x": 136.5185424949238,
-          "z": -68
+          "x": 207.37347219648254,
+          "z": -119.9400786747531
         },
         "blocked": 0,
         "qualified": true
@@ -2350,10 +3189,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 1.0516032489249483e-12,
         "lastPosition": {
-          "x": 136.5185424949238,
-          "z": -44
+          "x": 208.9723413748704,
+          "z": -62.169540389892305
         },
         "blocked": 0,
         "qualified": true
@@ -2364,10 +3203,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 2.842170943040401e-14,
         "lastPosition": {
-          "x": 136.5185424949238,
-          "z": 44
+          "x": 208.43938498207447,
+          "z": 62.169540389892305
         },
         "blocked": 0,
         "qualified": true
@@ -2378,10 +3217,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 6.821210263296962e-13,
         "lastPosition": {
-          "x": 136.5185424949238,
-          "z": 68
+          "x": 206.30755941089063,
+          "z": 119.9400786747531
         },
         "blocked": 0,
         "qualified": true
@@ -2392,10 +3231,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 6.252776074688882e-13,
         "lastPosition": {
-          "x": 136.5185424949238,
-          "z": 92
+          "x": 207.9064285892785,
+          "z": 177.7106169596139
         },
         "blocked": 0,
         "qualified": true
@@ -2406,10 +3245,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 5.684341886080802e-14,
         "lastPosition": {
-          "x": 184.17489168102787,
-          "z": -92
+          "x": 255.29347252495427,
+          "z": -177.7106169596139
         },
         "blocked": 0,
         "qualified": true
@@ -2420,10 +3259,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 1.0516032489249483e-12,
         "lastPosition": {
-          "x": 184.17489168102787,
-          "z": -68
+          "x": 253.69460334656642,
+          "z": -119.9400786747531
         },
         "blocked": 0,
         "qualified": true
@@ -2434,10 +3273,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 2.842170943040401e-14,
         "lastPosition": {
-          "x": 184.17489168102787,
-          "z": -44
+          "x": 254.22755973936236,
+          "z": -62.169540389892305
         },
         "blocked": 0,
         "qualified": true
@@ -2448,10 +3287,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 6.821210263296962e-13,
         "lastPosition": {
-          "x": 184.17489168102787,
-          "z": 44
+          "x": 256.3593853105462,
+          "z": 62.169540389892305
         },
         "blocked": 0,
         "qualified": true
@@ -2462,10 +3301,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 6.252776074688882e-13,
         "lastPosition": {
-          "x": 184.17489168102787,
-          "z": 68
+          "x": 254.76051613215833,
+          "z": 119.9400786747531
         },
         "blocked": 0,
         "qualified": true
@@ -2476,10 +3315,10 @@
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 1.0800249583553523e-12,
+        "maxError": 1.0231815394945443e-12,
         "lastPosition": {
-          "x": 184.17489168102787,
-          "z": 92
+          "x": 253.16164695377046,
+          "z": 177.7106169596139
         },
         "blocked": 0,
         "qualified": true
@@ -2487,29 +3326,29 @@
     ],
     "approaches": [
       {
-        "id": "preserved-sidewalk-to--125",
+        "id": "preserved-sidewalk-to--229.5958861020443",
         "reverse": false,
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 100.31275880709003,
+        "maxError": 204.78941614314175,
         "lastPosition": {
           "x": 38.890872965260115,
-          "z": -24.687241192909966
+          "z": -24.80646995890255
         },
         "blocked": 1,
         "qualified": false
       },
       {
-        "id": "preserved-sidewalk-to-125",
+        "id": "preserved-sidewalk-to-229.5958861020443",
         "reverse": false,
         "points": 2,
         "runSpeed": 4.262820512820513,
         "frameRate": 30,
-        "maxError": 97.40304013785418,
+        "maxError": 201.9966802100167,
         "lastPosition": {
           "x": 38.890872965260115,
-          "z": 27.59695986214582
+          "z": 27.59920589202758
         },
         "blocked": 1,
         "qualified": false
@@ -2552,268 +3391,268 @@
       {
         "id": "lot-01",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7479999999999905,
-        "actorCenterWidth": 2.2479999999999905
+        "physicalWidth": 3.6229999999999905,
+        "actorCenterWidth": 2.1229999999999905
       },
       {
         "id": "lot-03",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7480000000000047,
-        "actorCenterWidth": 2.2480000000000047
+        "physicalWidth": 3.6230000000000047,
+        "actorCenterWidth": 2.1230000000000047
       },
       {
         "id": "lot-05",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7479999999999905,
-        "actorCenterWidth": 2.2479999999999905
+        "physicalWidth": 3.6229999999999905,
+        "actorCenterWidth": 2.1229999999999905
       },
       {
         "id": "lot-07",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7479999999999905,
-        "actorCenterWidth": 2.2479999999999905
+        "physicalWidth": 3.6229999999999905,
+        "actorCenterWidth": 2.1229999999999905
       },
       {
         "id": "lot-09",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7480000000000047,
-        "actorCenterWidth": 2.2480000000000047
+        "physicalWidth": 3.6230000000000047,
+        "actorCenterWidth": 2.1230000000000047
       },
       {
         "id": "lot-11",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7479999999999905,
-        "actorCenterWidth": 2.2479999999999905
+        "physicalWidth": 3.6229999999999905,
+        "actorCenterWidth": 2.1229999999999905
       },
       {
         "id": "lot-13",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7479999999999905,
-        "actorCenterWidth": 2.2479999999999905
+        "physicalWidth": 3.6229999999999905,
+        "actorCenterWidth": 2.1229999999999905
       },
       {
         "id": "lot-15",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7480000000000047,
-        "actorCenterWidth": 2.2480000000000047
+        "physicalWidth": 3.6230000000000047,
+        "actorCenterWidth": 2.1230000000000047
       },
       {
         "id": "lot-17",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7479999999999905,
-        "actorCenterWidth": 2.2479999999999905
+        "physicalWidth": 3.6229999999999905,
+        "actorCenterWidth": 2.1229999999999905
       },
       {
         "id": "lot-19",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7479999999999905,
-        "actorCenterWidth": 2.2479999999999905
+        "physicalWidth": 3.6229999999999905,
+        "actorCenterWidth": 2.1229999999999905
       },
       {
         "id": "lot-21",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7480000000000047,
-        "actorCenterWidth": 2.2480000000000047
+        "physicalWidth": 3.6230000000000047,
+        "actorCenterWidth": 2.1230000000000047
       },
       {
         "id": "lot-23",
         "authoredWidth": 3.8,
-        "physicalWidth": 3.7479999999999905,
-        "actorCenterWidth": 2.2479999999999905
+        "physicalWidth": 3.6229999999999905,
+        "actorCenterWidth": 2.1229999999999905
       }
     ],
     "solidDeviations": [
       {
         "id": "lot-01.house",
-        "maximum": 0.11013157485753144
+        "maximum": 0.13551344869857682
       },
       {
         "id": "lot-01.fence.-1",
-        "maximum": 0.049288388284415716
+        "maximum": 0.11921279668361819
       },
       {
         "id": "lot-01.fence.1",
-        "maximum": 0.049288388284415716
+        "maximum": 0.08707660080847897
       },
       {
         "id": "lot-02.house",
-        "maximum": 0.11013157485753144
+        "maximum": 0.16655583846185656
       },
       {
         "id": "lot-03.house",
-        "maximum": 0.1101315748575314
+        "maximum": 0.11768653534337155
       },
       {
         "id": "lot-03.fence.-1",
-        "maximum": 0.04928838828441197
+        "maximum": 0.08259193609419754
       },
       {
         "id": "lot-03.fence.1",
-        "maximum": 0.04928838828441197
+        "maximum": 0.1143983994816197
       },
       {
         "id": "lot-04.house",
-        "maximum": 0.1101315748575314
+        "maximum": 0.13691601338214765
       },
       {
         "id": "lot-05.house",
-        "maximum": 0.11013157485753144
+        "maximum": 0.10959099355075694
       },
       {
         "id": "lot-05.fence.-1",
-        "maximum": 0.049288388284415716
+        "maximum": 0.09558148017194278
       },
       {
         "id": "lot-05.fence.1",
-        "maximum": 0.049288388284415716
+        "maximum": 0.10024305569194313
       },
       {
         "id": "lot-06.house",
-        "maximum": 0.11013157485753144
+        "maximum": 0.11096240115164617
       },
       {
         "id": "lot-07.house",
-        "maximum": 0.06954968440063537
+        "maximum": 0.0974970715469104
       },
       {
         "id": "lot-07.fence.-1",
-        "maximum": 0.09805245201635102
+        "maximum": 0.14627586615663288
       },
       {
         "id": "lot-07.fence.1",
-        "maximum": 0.09805245201635102
+        "maximum": 0.12152066711100089
       },
       {
         "id": "lot-08.house",
-        "maximum": 0.06954968440063537
+        "maximum": 0.07428529796541047
       },
       {
         "id": "lot-09.house",
-        "maximum": 0.06954968440063528
+        "maximum": 0.10440385150526427
       },
       {
         "id": "lot-09.fence.-1",
-        "maximum": 0.09805245201634916
+        "maximum": 0.11834849401040769
       },
       {
         "id": "lot-09.fence.1",
-        "maximum": 0.09805245201634916
+        "maximum": 0.14237953480293344
       },
       {
         "id": "lot-10.house",
-        "maximum": 0.06954968440063528
+        "maximum": 0.14985171253714027
       },
       {
         "id": "lot-11.house",
-        "maximum": 0.06954968440063537
+        "maximum": 0.0463736057266228
       },
       {
         "id": "lot-11.fence.-1",
-        "maximum": 0.09805245201635102
+        "maximum": 0.1277527200438526
       },
       {
         "id": "lot-11.fence.1",
-        "maximum": 0.09805245201635102
+        "maximum": 0.13127683855578448
       },
       {
         "id": "lot-12.house",
-        "maximum": 0.06954968440063537
+        "maximum": 0.09696185000843038
       },
       {
         "id": "lot-13.house",
-        "maximum": 0.06954968440063537
+        "maximum": 0.14397764029674867
       },
       {
         "id": "lot-13.fence.-1",
-        "maximum": 0.09805245201635102
+        "maximum": 0.14702810257597768
       },
       {
         "id": "lot-13.fence.1",
-        "maximum": 0.09805245201635102
+        "maximum": 0.12242510552301648
       },
       {
         "id": "lot-14.house",
-        "maximum": 0.06954968440063537
+        "maximum": 0.09552624883411961
       },
       {
         "id": "lot-15.house",
-        "maximum": 0.06954968440063528
+        "maximum": 0.15064735089034242
       },
       {
         "id": "lot-15.fence.-1",
-        "maximum": 0.09805245201634916
+        "maximum": 0.11927698839990275
       },
       {
         "id": "lot-15.fence.1",
-        "maximum": 0.09805245201634916
+        "maximum": 0.14315224712842886
       },
       {
         "id": "lot-16.house",
-        "maximum": 0.06954968440063528
+        "maximum": 0.06166433313425723
       },
       {
         "id": "lot-17.house",
-        "maximum": 0.06954968440063537
+        "maximum": 0.07710871578991939
       },
       {
         "id": "lot-17.fence.-1",
-        "maximum": 0.09805245201635102
+        "maximum": 0.12861334069925257
       },
       {
         "id": "lot-17.fence.1",
-        "maximum": 0.09805245201635102
+        "maximum": 0.13211450438320743
       },
       {
         "id": "lot-18.house",
-        "maximum": 0.06954968440063537
+        "maximum": 0.09801895854479814
       },
       {
         "id": "lot-19.house",
-        "maximum": 0.12589565263352837
+        "maximum": 0.14178389685584977
       },
       {
         "id": "lot-19.fence.-1",
-        "maximum": 0.03684622530940694
+        "maximum": 0.11835120582824894
       },
       {
         "id": "lot-19.fence.1",
-        "maximum": 0.03684622530940694
+        "maximum": 0.08589325605791215
       },
       {
         "id": "lot-20.house",
-        "maximum": 0.12589565263352837
+        "maximum": 0.10831448806044862
       },
       {
         "id": "lot-21.house",
-        "maximum": 0.1258956526335283
+        "maximum": 0.10591099965568436
       },
       {
         "id": "lot-21.fence.-1",
-        "maximum": 0.036846225309401924
+        "maximum": 0.08134337671660104
       },
       {
         "id": "lot-21.fence.1",
-        "maximum": 0.036846225309401924
+        "maximum": 0.11350026798130085
       },
       {
         "id": "lot-22.house",
-        "maximum": 0.1258956526335283
+        "maximum": 0.1301065738767431
       },
       {
         "id": "lot-23.house",
-        "maximum": 0.12589565263352837
+        "maximum": 0.16471338748426936
       },
       {
         "id": "lot-23.fence.-1",
-        "maximum": 0.03684622530940694
+        "maximum": 0.09450468972347535
       },
       {
         "id": "lot-23.fence.1",
-        "maximum": 0.03684622530940694
+        "maximum": 0.099216869746676
       },
       {
         "id": "lot-24.house",
-        "maximum": 0.12589565263352837
+        "maximum": 0.16858259531228514
       }
     ]
   },
@@ -5467,56 +6306,56 @@
       "house": {
         "sourceId": "lot-01.house",
         "center": {
-          "x": 18.890872965260115,
-          "z": -92
+          "x": -1.3558158529255309,
+          "z": -177.7106169596139
         },
-        "width": 12,
-        "depth": 14,
+        "width": 50.09790092281981,
+        "depth": 40.9824149209955,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-01.fence.-1",
           "center": {
-            "x": 27.890872965260115,
-            "z": -97.95
+            "x": 31.890872965260115,
+            "z": -191.6032515308291
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-01.fence.1",
           "center": {
-            "x": 27.890872965260115,
-            "z": -86.05
+            "x": 31.890872965260115,
+            "z": -163.8179823883987
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 8.890872965260115,
-        "maxX": 28.890872965260115,
-        "minZ": -102,
-        "maxZ": -82
+        "minX": -35.60250467111118,
+        "maxX": 32.890872965260115,
+        "minZ": -203.5958861020443,
+        "maxZ": -151.8253478171835
       },
       "path": {
         "id": "lot-01.path",
         "a": {
-          "x": 24.890872965260115,
-          "z": -92
+          "x": 23.693134608484375,
+          "z": -177.7106169596139
         },
         "b": {
           "x": 38.890872965260115,
-          "z": -92
+          "z": -177.7106169596139
         },
         "width": 3.8
       },
       "door": {
-        "x": 24.890872965260115,
-        "z": -92
+        "x": 23.693134608484375,
+        "z": -177.7106169596139
       },
       "height": 5
     },
@@ -5526,35 +6365,35 @@
       "house": {
         "sourceId": "lot-02.house",
         "center": {
-          "x": 18.890872965260115,
-          "z": -68
+          "x": -1.3558158529255309,
+          "z": -119.9400786747531
         },
-        "width": 12,
-        "depth": 14,
+        "width": 53.29563927959555,
+        "depth": 39.406168193264904,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 8.890872965260115,
-        "maxX": 28.890872965260115,
-        "minZ": -78,
-        "maxZ": -58
+        "minX": -35.60250467111118,
+        "maxX": 32.890872965260115,
+        "minZ": -145.82534781718348,
+        "maxZ": -94.0548095323227
       },
       "path": {
         "id": "lot-02.path",
         "a": {
-          "x": 24.890872965260115,
-          "z": -68
+          "x": 25.292003786872243,
+          "z": -119.9400786747531
         },
         "b": {
           "x": 38.890872965260115,
-          "z": -68
+          "z": -119.9400786747531
         },
         "width": 3.8
       },
       "door": {
-        "x": 24.890872965260115,
-        "z": -68
+        "x": 25.292003786872243,
+        "z": -119.9400786747531
       },
       "height": 5.4
     },
@@ -5564,56 +6403,56 @@
       "house": {
         "sourceId": "lot-03.house",
         "center": {
-          "x": 18.890872965260115,
-          "z": -44
+          "x": -1.3558158529255309,
+          "z": -62.169540389892305
         },
-        "width": 12,
-        "depth": 14,
+        "width": 56.493377636371285,
+        "depth": 37.829921465534305,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-03.fence.-1",
           "center": {
-            "x": 27.890872965260115,
-            "z": -49.95
+            "x": 31.890872965260115,
+            "z": -76.0621749611075
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-03.fence.1",
           "center": {
-            "x": 27.890872965260115,
-            "z": -38.05
+            "x": 31.890872965260115,
+            "z": -48.27690581867711
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 8.890872965260115,
-        "maxX": 28.890872965260115,
-        "minZ": -54,
-        "maxZ": -34
+        "minX": -35.60250467111118,
+        "maxX": 32.890872965260115,
+        "minZ": -88.05480953232271,
+        "maxZ": -36.2842712474619
       },
       "path": {
         "id": "lot-03.path",
         "a": {
-          "x": 24.890872965260115,
-          "z": -44
+          "x": 26.89087296526011,
+          "z": -62.169540389892305
         },
         "b": {
           "x": 38.890872965260115,
-          "z": -44
+          "z": -62.169540389892305
         },
         "width": 3.8
       },
       "door": {
-        "x": 24.890872965260115,
-        "z": -44
+        "x": 26.89087296526011,
+        "z": -62.169540389892305
       },
       "height": 5.8
     },
@@ -5623,35 +6462,35 @@
       "house": {
         "sourceId": "lot-04.house",
         "center": {
-          "x": 18.890872965260115,
-          "z": 44
+          "x": -1.3558158529255309,
+          "z": 62.169540389892305
         },
-        "width": 12,
-        "depth": 14,
+        "width": 52.229726494003636,
+        "depth": 41.7705382848608,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 8.890872965260115,
-        "maxX": 28.890872965260115,
-        "minZ": 34,
-        "maxZ": 54
+        "minX": -35.60250467111118,
+        "maxX": 32.890872965260115,
+        "minZ": 36.2842712474619,
+        "maxZ": 88.05480953232271
       },
       "path": {
         "id": "lot-04.path",
         "a": {
-          "x": 24.890872965260115,
-          "z": 44
+          "x": 24.759047394076287,
+          "z": 62.169540389892305
         },
         "b": {
           "x": 38.890872965260115,
-          "z": 44
+          "z": 62.169540389892305
         },
         "width": 3.8
       },
       "door": {
-        "x": 24.890872965260115,
-        "z": 44
+        "x": 24.759047394076287,
+        "z": 62.169540389892305
       },
       "height": 5
     },
@@ -5661,56 +6500,56 @@
       "house": {
         "sourceId": "lot-05.house",
         "center": {
-          "x": 18.890872965260115,
-          "z": 68
+          "x": -1.3558158529255309,
+          "z": 119.9400786747531
         },
-        "width": 12,
-        "depth": 14,
+        "width": 55.42746485077937,
+        "depth": 40.1942915571302,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-05.fence.-1",
           "center": {
-            "x": 27.890872965260115,
-            "z": 62.05
+            "x": 31.890872965260115,
+            "z": 106.0474441035379
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-05.fence.1",
           "center": {
-            "x": 27.890872965260115,
-            "z": 73.95
+            "x": 31.890872965260115,
+            "z": 133.8327132459683
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 8.890872965260115,
-        "maxX": 28.890872965260115,
-        "minZ": 58,
-        "maxZ": 78
+        "minX": -35.60250467111118,
+        "maxX": 32.890872965260115,
+        "minZ": 94.0548095323227,
+        "maxZ": 145.82534781718348
       },
       "path": {
         "id": "lot-05.path",
         "a": {
-          "x": 24.890872965260115,
-          "z": 68
+          "x": 26.357916572464156,
+          "z": 119.9400786747531
         },
         "b": {
           "x": 38.890872965260115,
-          "z": 68
+          "z": 119.9400786747531
         },
         "width": 3.8
       },
       "door": {
-        "x": 24.890872965260115,
-        "z": 68
+        "x": 26.357916572464156,
+        "z": 119.9400786747531
       },
       "height": 5.4
     },
@@ -5720,35 +6559,35 @@
       "house": {
         "sourceId": "lot-06.house",
         "center": {
-          "x": 18.890872965260115,
-          "z": 92
+          "x": -1.3558158529255309,
+          "z": 177.7106169596139
         },
-        "width": 12,
-        "depth": 14,
+        "width": 54.36155206518746,
+        "depth": 37.04179810166901,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 8.890872965260115,
-        "maxX": 28.890872965260115,
-        "minZ": 82,
-        "maxZ": 102
+        "minX": -35.60250467111118,
+        "maxX": 32.890872965260115,
+        "minZ": 151.8253478171835,
+        "maxZ": 203.5958861020443
       },
       "path": {
         "id": "lot-06.path",
         "a": {
-          "x": 24.890872965260115,
-          "z": 92
+          "x": 25.8249601796682,
+          "z": 177.7106169596139
         },
         "b": {
           "x": 38.890872965260115,
-          "z": 92
+          "z": 177.7106169596139
         },
         "width": 3.8
       },
       "door": {
-        "x": 24.890872965260115,
-        "z": 92
+        "x": 25.8249601796682,
+        "z": 177.7106169596139
       },
       "height": 5.8
     },
@@ -5758,56 +6597,56 @@
       "house": {
         "sourceId": "lot-07.house",
         "center": {
-          "x": 79.5685424949238,
-          "z": -92
+          "x": 99.81523131310945,
+          "z": -177.7106169596139
         },
-        "width": 12,
-        "depth": 14,
+        "width": 53.29563927959555,
+        "depth": 39.406168193264904,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-07.fence.-1",
           "center": {
-            "x": 70.5685424949238,
-            "z": -97.95
+            "x": 66.5685424949238,
+            "z": -191.6032515308291
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-07.fence.1",
           "center": {
-            "x": 70.5685424949238,
-            "z": -86.05
+            "x": 66.5685424949238,
+            "z": -163.8179823883987
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 69.5685424949238,
-        "maxX": 89.5685424949238,
-        "minZ": -102,
-        "maxZ": -82
+        "minX": 65.5685424949238,
+        "maxX": 134.0619201312951,
+        "minZ": -203.5958861020443,
+        "maxZ": -151.8253478171835
       },
       "path": {
         "id": "lot-07.path",
         "a": {
-          "x": 73.5685424949238,
-          "z": -92
+          "x": 73.16741167331168,
+          "z": -177.7106169596139
         },
         "b": {
           "x": 59.568542494923804,
-          "z": -92
+          "z": -177.7106169596139
         },
         "width": 3.8
       },
       "door": {
-        "x": 73.5685424949238,
-        "z": -92
+        "x": 73.16741167331168,
+        "z": -177.7106169596139
       },
       "height": 5
     },
@@ -5817,35 +6656,35 @@
       "house": {
         "sourceId": "lot-08.house",
         "center": {
-          "x": 79.5685424949238,
-          "z": -68
+          "x": 99.81523131310945,
+          "z": -119.9400786747531
         },
-        "width": 12,
-        "depth": 14,
+        "width": 56.493377636371285,
+        "depth": 37.829921465534305,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 69.5685424949238,
-        "maxX": 89.5685424949238,
-        "minZ": -78,
-        "maxZ": -58
+        "minX": 65.5685424949238,
+        "maxX": 134.0619201312951,
+        "minZ": -145.82534781718348,
+        "maxZ": -94.0548095323227
       },
       "path": {
         "id": "lot-08.path",
         "a": {
-          "x": 73.5685424949238,
-          "z": -68
+          "x": 71.5685424949238,
+          "z": -119.9400786747531
         },
         "b": {
           "x": 59.568542494923804,
-          "z": -68
+          "z": -119.9400786747531
         },
         "width": 3.8
       },
       "door": {
-        "x": 73.5685424949238,
-        "z": -68
+        "x": 71.5685424949238,
+        "z": -119.9400786747531
       },
       "height": 5.4
     },
@@ -5855,56 +6694,56 @@
       "house": {
         "sourceId": "lot-09.house",
         "center": {
-          "x": 79.5685424949238,
-          "z": -44
+          "x": 99.81523131310945,
+          "z": -62.169540389892305
         },
-        "width": 12,
-        "depth": 14,
+        "width": 52.229726494003636,
+        "depth": 41.7705382848608,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-09.fence.-1",
           "center": {
-            "x": 70.5685424949238,
-            "z": -49.95
+            "x": 66.5685424949238,
+            "z": -76.0621749611075
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-09.fence.1",
           "center": {
-            "x": 70.5685424949238,
-            "z": -38.05
+            "x": 66.5685424949238,
+            "z": -48.27690581867711
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 69.5685424949238,
-        "maxX": 89.5685424949238,
-        "minZ": -54,
-        "maxZ": -34
+        "minX": 65.5685424949238,
+        "maxX": 134.0619201312951,
+        "minZ": -88.05480953232271,
+        "maxZ": -36.2842712474619
       },
       "path": {
         "id": "lot-09.path",
         "a": {
-          "x": 73.5685424949238,
-          "z": -44
+          "x": 73.70036806610763,
+          "z": -62.169540389892305
         },
         "b": {
           "x": 59.568542494923804,
-          "z": -44
+          "z": -62.169540389892305
         },
         "width": 3.8
       },
       "door": {
-        "x": 73.5685424949238,
-        "z": -44
+        "x": 73.70036806610763,
+        "z": -62.169540389892305
       },
       "height": 5.8
     },
@@ -5914,35 +6753,35 @@
       "house": {
         "sourceId": "lot-10.house",
         "center": {
-          "x": 79.5685424949238,
-          "z": 44
+          "x": 99.81523131310945,
+          "z": 62.169540389892305
         },
-        "width": 12,
-        "depth": 14,
+        "width": 55.42746485077937,
+        "depth": 40.1942915571302,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 69.5685424949238,
-        "maxX": 89.5685424949238,
-        "minZ": 34,
-        "maxZ": 54
+        "minX": 65.5685424949238,
+        "maxX": 134.0619201312951,
+        "minZ": 36.2842712474619,
+        "maxZ": 88.05480953232271
       },
       "path": {
         "id": "lot-10.path",
         "a": {
-          "x": 73.5685424949238,
-          "z": 44
+          "x": 72.10149888771977,
+          "z": 62.169540389892305
         },
         "b": {
           "x": 59.568542494923804,
-          "z": 44
+          "z": 62.169540389892305
         },
         "width": 3.8
       },
       "door": {
-        "x": 73.5685424949238,
-        "z": 44
+        "x": 72.10149888771977,
+        "z": 62.169540389892305
       },
       "height": 5
     },
@@ -5952,56 +6791,56 @@
       "house": {
         "sourceId": "lot-11.house",
         "center": {
-          "x": 79.5685424949238,
-          "z": 68
+          "x": 99.81523131310945,
+          "z": 119.9400786747531
         },
-        "width": 12,
-        "depth": 14,
+        "width": 54.36155206518746,
+        "depth": 37.04179810166901,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-11.fence.-1",
           "center": {
-            "x": 70.5685424949238,
-            "z": 62.05
+            "x": 66.5685424949238,
+            "z": 106.0474441035379
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-11.fence.1",
           "center": {
-            "x": 70.5685424949238,
-            "z": 73.95
+            "x": 66.5685424949238,
+            "z": 133.8327132459683
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 69.5685424949238,
-        "maxX": 89.5685424949238,
-        "minZ": 58,
-        "maxZ": 78
+        "minX": 65.5685424949238,
+        "maxX": 134.0619201312951,
+        "minZ": 94.0548095323227,
+        "maxZ": 145.82534781718348
       },
       "path": {
         "id": "lot-11.path",
         "a": {
-          "x": 73.5685424949238,
-          "z": 68
+          "x": 72.63445528051572,
+          "z": 119.9400786747531
         },
         "b": {
           "x": 59.568542494923804,
-          "z": 68
+          "z": 119.9400786747531
         },
         "width": 3.8
       },
       "door": {
-        "x": 73.5685424949238,
-        "z": 68
+        "x": 72.63445528051572,
+        "z": 119.9400786747531
       },
       "height": 5.4
     },
@@ -6011,35 +6850,35 @@
       "house": {
         "sourceId": "lot-12.house",
         "center": {
-          "x": 79.5685424949238,
-          "z": 92
+          "x": 99.81523131310945,
+          "z": 177.7106169596139
         },
-        "width": 12,
-        "depth": 14,
+        "width": 50.09790092281981,
+        "depth": 40.9824149209955,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 69.5685424949238,
-        "maxX": 89.5685424949238,
-        "minZ": 82,
-        "maxZ": 102
+        "minX": 65.5685424949238,
+        "maxX": 134.0619201312951,
+        "minZ": 151.8253478171835,
+        "maxZ": 203.5958861020443
       },
       "path": {
         "id": "lot-12.path",
         "a": {
-          "x": 73.5685424949238,
-          "z": 92
+          "x": 74.76628085169955,
+          "z": 177.7106169596139
         },
         "b": {
           "x": 59.568542494923804,
-          "z": 92
+          "z": 177.7106169596139
         },
         "width": 3.8
       },
       "door": {
-        "x": 73.5685424949238,
-        "z": 92
+        "x": 74.76628085169955,
+        "z": 177.7106169596139
       },
       "height": 5.8
     },
@@ -6049,56 +6888,56 @@
       "house": {
         "sourceId": "lot-13.house",
         "center": {
-          "x": 129.5685424949238,
-          "z": -92
+          "x": 180.30860894948074,
+          "z": -177.7106169596139
         },
-        "width": 12,
-        "depth": 14,
+        "width": 56.493377636371285,
+        "depth": 37.829921465534305,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-13.fence.-1",
           "center": {
-            "x": 138.5685424949238,
-            "z": -97.95
+            "x": 213.5552977676664,
+            "z": -191.6032515308291
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-13.fence.1",
           "center": {
-            "x": 138.5685424949238,
-            "z": -86.05
+            "x": 213.5552977676664,
+            "z": -163.8179823883987
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 119.5685424949238,
-        "maxX": 139.5685424949238,
-        "minZ": -102,
-        "maxZ": -82
+        "minX": 146.0619201312951,
+        "maxX": 214.5552977676664,
+        "minZ": -203.5958861020443,
+        "maxZ": -151.8253478171835
       },
       "path": {
         "id": "lot-13.path",
         "a": {
-          "x": 135.5685424949238,
-          "z": -92
+          "x": 208.5552977676664,
+          "z": -177.7106169596139
         },
         "b": {
-          "x": 149.5685424949238,
-          "z": -92
+          "x": 220.5552977676664,
+          "z": -177.7106169596139
         },
         "width": 3.8
       },
       "door": {
-        "x": 135.5685424949238,
-        "z": -92
+        "x": 208.5552977676664,
+        "z": -177.7106169596139
       },
       "height": 5
     },
@@ -6108,35 +6947,35 @@
       "house": {
         "sourceId": "lot-14.house",
         "center": {
-          "x": 129.5685424949238,
-          "z": -68
+          "x": 180.30860894948074,
+          "z": -119.9400786747531
         },
-        "width": 12,
-        "depth": 14,
+        "width": 52.229726494003636,
+        "depth": 41.7705382848608,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 119.5685424949238,
-        "maxX": 139.5685424949238,
-        "minZ": -78,
-        "maxZ": -58
+        "minX": 146.0619201312951,
+        "maxX": 214.5552977676664,
+        "minZ": -145.82534781718348,
+        "maxZ": -94.0548095323227
       },
       "path": {
         "id": "lot-14.path",
         "a": {
-          "x": 135.5685424949238,
-          "z": -68
+          "x": 206.42347219648255,
+          "z": -119.9400786747531
         },
         "b": {
-          "x": 149.5685424949238,
-          "z": -68
+          "x": 220.5552977676664,
+          "z": -119.9400786747531
         },
         "width": 3.8
       },
       "door": {
-        "x": 135.5685424949238,
-        "z": -68
+        "x": 206.42347219648255,
+        "z": -119.9400786747531
       },
       "height": 5.4
     },
@@ -6146,56 +6985,56 @@
       "house": {
         "sourceId": "lot-15.house",
         "center": {
-          "x": 129.5685424949238,
-          "z": -44
+          "x": 180.30860894948074,
+          "z": -62.169540389892305
         },
-        "width": 12,
-        "depth": 14,
+        "width": 55.42746485077937,
+        "depth": 40.1942915571302,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-15.fence.-1",
           "center": {
-            "x": 138.5685424949238,
-            "z": -49.95
+            "x": 213.5552977676664,
+            "z": -76.0621749611075
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-15.fence.1",
           "center": {
-            "x": 138.5685424949238,
-            "z": -38.05
+            "x": 213.5552977676664,
+            "z": -48.27690581867711
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 119.5685424949238,
-        "maxX": 139.5685424949238,
-        "minZ": -54,
-        "maxZ": -34
+        "minX": 146.0619201312951,
+        "maxX": 214.5552977676664,
+        "minZ": -88.05480953232271,
+        "maxZ": -36.2842712474619
       },
       "path": {
         "id": "lot-15.path",
         "a": {
-          "x": 135.5685424949238,
-          "z": -44
+          "x": 208.02234137487042,
+          "z": -62.169540389892305
         },
         "b": {
-          "x": 149.5685424949238,
-          "z": -44
+          "x": 220.5552977676664,
+          "z": -62.169540389892305
         },
         "width": 3.8
       },
       "door": {
-        "x": 135.5685424949238,
-        "z": -44
+        "x": 208.02234137487042,
+        "z": -62.169540389892305
       },
       "height": 5.8
     },
@@ -6205,35 +7044,35 @@
       "house": {
         "sourceId": "lot-16.house",
         "center": {
-          "x": 129.5685424949238,
-          "z": 44
+          "x": 180.30860894948074,
+          "z": 62.169540389892305
         },
-        "width": 12,
-        "depth": 14,
+        "width": 54.36155206518746,
+        "depth": 37.04179810166901,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 119.5685424949238,
-        "maxX": 139.5685424949238,
-        "minZ": 34,
-        "maxZ": 54
+        "minX": 146.0619201312951,
+        "maxX": 214.5552977676664,
+        "minZ": 36.2842712474619,
+        "maxZ": 88.05480953232271
       },
       "path": {
         "id": "lot-16.path",
         "a": {
-          "x": 135.5685424949238,
-          "z": 44
+          "x": 207.48938498207448,
+          "z": 62.169540389892305
         },
         "b": {
-          "x": 149.5685424949238,
-          "z": 44
+          "x": 220.5552977676664,
+          "z": 62.169540389892305
         },
         "width": 3.8
       },
       "door": {
-        "x": 135.5685424949238,
-        "z": 44
+        "x": 207.48938498207448,
+        "z": 62.169540389892305
       },
       "height": 5
     },
@@ -6243,56 +7082,56 @@
       "house": {
         "sourceId": "lot-17.house",
         "center": {
-          "x": 129.5685424949238,
-          "z": 68
+          "x": 180.30860894948074,
+          "z": 119.9400786747531
         },
-        "width": 12,
-        "depth": 14,
+        "width": 50.09790092281981,
+        "depth": 40.9824149209955,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-17.fence.-1",
           "center": {
-            "x": 138.5685424949238,
-            "z": 62.05
+            "x": 213.5552977676664,
+            "z": 106.0474441035379
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-17.fence.1",
           "center": {
-            "x": 138.5685424949238,
-            "z": 73.95
+            "x": 213.5552977676664,
+            "z": 133.8327132459683
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 119.5685424949238,
-        "maxX": 139.5685424949238,
-        "minZ": 58,
-        "maxZ": 78
+        "minX": 146.0619201312951,
+        "maxX": 214.5552977676664,
+        "minZ": 94.0548095323227,
+        "maxZ": 145.82534781718348
       },
       "path": {
         "id": "lot-17.path",
         "a": {
-          "x": 135.5685424949238,
-          "z": 68
+          "x": 205.35755941089064,
+          "z": 119.9400786747531
         },
         "b": {
-          "x": 149.5685424949238,
-          "z": 68
+          "x": 220.5552977676664,
+          "z": 119.9400786747531
         },
         "width": 3.8
       },
       "door": {
-        "x": 135.5685424949238,
-        "z": 68
+        "x": 205.35755941089064,
+        "z": 119.9400786747531
       },
       "height": 5.4
     },
@@ -6302,35 +7141,35 @@
       "house": {
         "sourceId": "lot-18.house",
         "center": {
-          "x": 129.5685424949238,
-          "z": 92
+          "x": 180.30860894948074,
+          "z": 177.7106169596139
         },
-        "width": 12,
-        "depth": 14,
+        "width": 53.29563927959555,
+        "depth": 39.406168193264904,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 119.5685424949238,
-        "maxX": 139.5685424949238,
-        "minZ": 82,
-        "maxZ": 102
+        "minX": 146.0619201312951,
+        "maxX": 214.5552977676664,
+        "minZ": 151.8253478171835,
+        "maxZ": 203.5958861020443
       },
       "path": {
         "id": "lot-18.path",
         "a": {
-          "x": 135.5685424949238,
-          "z": 92
+          "x": 206.95642858927852,
+          "z": 177.7106169596139
         },
         "b": {
-          "x": 149.5685424949238,
-          "z": 92
+          "x": 220.5552977676664,
+          "z": 177.7106169596139
         },
         "width": 3.8
       },
       "door": {
-        "x": 135.5685424949238,
-        "z": 92
+        "x": 206.95642858927852,
+        "z": 177.7106169596139
       },
       "height": 5.8
     },
@@ -6340,56 +7179,56 @@
       "house": {
         "sourceId": "lot-19.house",
         "center": {
-          "x": 191.12489168102786,
-          "z": -92
+          "x": 282.3583357719561,
+          "z": -177.7106169596139
         },
-        "width": 12,
-        "depth": 14,
+        "width": 52.229726494003636,
+        "depth": 41.7705382848608,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-19.fence.-1",
           "center": {
-            "x": 182.12489168102786,
-            "z": -97.95
+            "x": 249.11164695377045,
+            "z": -191.6032515308291
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-19.fence.1",
           "center": {
-            "x": 182.12489168102786,
-            "z": -86.05
+            "x": 249.11164695377045,
+            "z": -163.8179823883987
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 181.12489168102786,
-        "maxX": 201.12489168102786,
-        "minZ": -102,
-        "maxZ": -82
+        "minX": 248.11164695377045,
+        "maxX": 316.60502459014174,
+        "minZ": -203.5958861020443,
+        "maxZ": -151.8253478171835
       },
       "path": {
         "id": "lot-19.path",
         "a": {
-          "x": 185.12489168102786,
-          "z": -92
+          "x": 256.24347252495426,
+          "z": -177.7106169596139
         },
         "b": {
-          "x": 171.12489168102786,
-          "z": -92
+          "x": 242.11164695377045,
+          "z": -177.7106169596139
         },
         "width": 3.8
       },
       "door": {
-        "x": 185.12489168102786,
-        "z": -92
+        "x": 256.24347252495426,
+        "z": -177.7106169596139
       },
       "height": 5
     },
@@ -6399,35 +7238,35 @@
       "house": {
         "sourceId": "lot-20.house",
         "center": {
-          "x": 191.12489168102786,
-          "z": -68
+          "x": 282.3583357719561,
+          "z": -119.9400786747531
         },
-        "width": 12,
-        "depth": 14,
+        "width": 55.42746485077937,
+        "depth": 40.1942915571302,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 181.12489168102786,
-        "maxX": 201.12489168102786,
-        "minZ": -78,
-        "maxZ": -58
+        "minX": 248.11164695377045,
+        "maxX": 316.60502459014174,
+        "minZ": -145.82534781718348,
+        "maxZ": -94.0548095323227
       },
       "path": {
         "id": "lot-20.path",
         "a": {
-          "x": 185.12489168102786,
-          "z": -68
+          "x": 254.6446033465664,
+          "z": -119.9400786747531
         },
         "b": {
-          "x": 171.12489168102786,
-          "z": -68
+          "x": 242.11164695377045,
+          "z": -119.9400786747531
         },
         "width": 3.8
       },
       "door": {
-        "x": 185.12489168102786,
-        "z": -68
+        "x": 254.6446033465664,
+        "z": -119.9400786747531
       },
       "height": 5.4
     },
@@ -6437,56 +7276,56 @@
       "house": {
         "sourceId": "lot-21.house",
         "center": {
-          "x": 191.12489168102786,
-          "z": -44
+          "x": 282.3583357719561,
+          "z": -62.169540389892305
         },
-        "width": 12,
-        "depth": 14,
+        "width": 54.36155206518746,
+        "depth": 37.04179810166901,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-21.fence.-1",
           "center": {
-            "x": 182.12489168102786,
-            "z": -49.95
+            "x": 249.11164695377045,
+            "z": -76.0621749611075
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-21.fence.1",
           "center": {
-            "x": 182.12489168102786,
-            "z": -38.05
+            "x": 249.11164695377045,
+            "z": -48.27690581867711
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 181.12489168102786,
-        "maxX": 201.12489168102786,
-        "minZ": -54,
-        "maxZ": -34
+        "minX": 248.11164695377045,
+        "maxX": 316.60502459014174,
+        "minZ": -88.05480953232271,
+        "maxZ": -36.2842712474619
       },
       "path": {
         "id": "lot-21.path",
         "a": {
-          "x": 185.12489168102786,
-          "z": -44
+          "x": 255.17755973936235,
+          "z": -62.169540389892305
         },
         "b": {
-          "x": 171.12489168102786,
-          "z": -44
+          "x": 242.11164695377045,
+          "z": -62.169540389892305
         },
         "width": 3.8
       },
       "door": {
-        "x": 185.12489168102786,
-        "z": -44
+        "x": 255.17755973936235,
+        "z": -62.169540389892305
       },
       "height": 5.8
     },
@@ -6496,35 +7335,35 @@
       "house": {
         "sourceId": "lot-22.house",
         "center": {
-          "x": 191.12489168102786,
-          "z": 44
+          "x": 282.3583357719561,
+          "z": 62.169540389892305
         },
-        "width": 12,
-        "depth": 14,
+        "width": 50.09790092281981,
+        "depth": 40.9824149209955,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 181.12489168102786,
-        "maxX": 201.12489168102786,
-        "minZ": 34,
-        "maxZ": 54
+        "minX": 248.11164695377045,
+        "maxX": 316.60502459014174,
+        "minZ": 36.2842712474619,
+        "maxZ": 88.05480953232271
       },
       "path": {
         "id": "lot-22.path",
         "a": {
-          "x": 185.12489168102786,
-          "z": 44
+          "x": 257.3093853105462,
+          "z": 62.169540389892305
         },
         "b": {
-          "x": 171.12489168102786,
-          "z": 44
+          "x": 242.11164695377045,
+          "z": 62.169540389892305
         },
         "width": 3.8
       },
       "door": {
-        "x": 185.12489168102786,
-        "z": 44
+        "x": 257.3093853105462,
+        "z": 62.169540389892305
       },
       "height": 5
     },
@@ -6534,56 +7373,56 @@
       "house": {
         "sourceId": "lot-23.house",
         "center": {
-          "x": 191.12489168102786,
-          "z": 68
+          "x": 282.3583357719561,
+          "z": 119.9400786747531
         },
-        "width": 12,
-        "depth": 14,
+        "width": 53.29563927959555,
+        "depth": 39.406168193264904,
         "angle": 0
       },
       "fences": [
         {
           "sourceId": "lot-23.fence.-1",
           "center": {
-            "x": 182.12489168102786,
-            "z": 62.05
+            "x": 249.11164695377045,
+            "z": 106.0474441035379
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         },
         {
           "sourceId": "lot-23.fence.1",
           "center": {
-            "x": 182.12489168102786,
-            "z": 73.95
+            "x": 249.11164695377045,
+            "z": 133.8327132459683
           },
           "width": 0.2,
-          "depth": 8.1,
+          "depth": 23.9852691424304,
           "angle": 0
         }
       ],
       "parcel": {
-        "minX": 181.12489168102786,
-        "maxX": 201.12489168102786,
-        "minZ": 58,
-        "maxZ": 78
+        "minX": 248.11164695377045,
+        "maxX": 316.60502459014174,
+        "minZ": 94.0548095323227,
+        "maxZ": 145.82534781718348
       },
       "path": {
         "id": "lot-23.path",
         "a": {
-          "x": 185.12489168102786,
-          "z": 68
+          "x": 255.71051613215832,
+          "z": 119.9400786747531
         },
         "b": {
-          "x": 171.12489168102786,
-          "z": 68
+          "x": 242.11164695377045,
+          "z": 119.9400786747531
         },
         "width": 3.8
       },
       "door": {
-        "x": 185.12489168102786,
-        "z": 68
+        "x": 255.71051613215832,
+        "z": 119.9400786747531
       },
       "height": 5.4
     },
@@ -6593,35 +7432,35 @@
       "house": {
         "sourceId": "lot-24.house",
         "center": {
-          "x": 191.12489168102786,
-          "z": 92
+          "x": 282.3583357719561,
+          "z": 177.7106169596139
         },
-        "width": 12,
-        "depth": 14,
+        "width": 56.493377636371285,
+        "depth": 37.829921465534305,
         "angle": 0
       },
       "fences": [],
       "parcel": {
-        "minX": 181.12489168102786,
-        "maxX": 201.12489168102786,
-        "minZ": 82,
-        "maxZ": 102
+        "minX": 248.11164695377045,
+        "maxX": 316.60502459014174,
+        "minZ": 151.8253478171835,
+        "maxZ": 203.5958861020443
       },
       "path": {
         "id": "lot-24.path",
         "a": {
-          "x": 185.12489168102786,
-          "z": 92
+          "x": 254.11164695377045,
+          "z": 177.7106169596139
         },
         "b": {
-          "x": 171.12489168102786,
-          "z": 92
+          "x": 242.11164695377045,
+          "z": 177.7106169596139
         },
         "width": 3.8
       },
       "door": {
-        "x": 185.12489168102786,
-        "z": 92
+        "x": 254.11164695377045,
+        "z": 177.7106169596139
       },
       "height": 5.8
     }
@@ -6637,130 +7476,130 @@
     "attempts": [
       {
         "samplesMs": [
-          2.7128999999999905, 2.684600000000046, 2.7105999999998858,
-          2.669199999999819, 2.668899999999894, 2.730199999999968,
-          2.8549000000000433, 2.7731999999998607, 2.7872999999999593,
-          2.701999999999998, 2.6987000000001444, 2.6850999999999203,
-          2.722099999999955, 2.6773000000000593, 2.694300000000112,
-          2.666900000000169, 2.6918000000000575, 2.6781999999998334,
-          2.7066999999999553, 2.686300000000074, 2.6860999999998967,
-          2.6807000000001153, 2.669800000000123, 2.671000000000049,
-          2.7964999999999236, 2.676400000000058, 2.6868000000001757,
-          2.6635000000001128, 2.6760999999999058, 2.691100000000006,
-          2.6820999999999913, 2.6786999999999352, 2.795199999999795,
-          2.6663999999998396, 2.681200000000217, 2.6784000000000106,
-          2.7375999999999294, 2.7477000000001226, 2.7572999999999865,
-          2.7403999999999087, 2.7782999999999447, 2.7492999999999483,
-          2.785000000000082, 2.810699999999997, 2.6024999999999636,
-          2.6667999999999665, 2.6708000000000993, 2.710800000000063,
-          2.7198000000000775, 2.692600000000084, 2.6689000000001215,
-          2.700900000000047, 2.6911999999999807, 2.6729999999997744,
-          2.6685999999999694, 2.9121000000000095, 2.6732999999999265,
-          2.6981000000000677, 2.6674000000002707, 2.68080000000009,
-          2.722700000000259, 2.7256999999999607, 2.821899999999914,
-          1.5025000000000546, 1.4980999999997948, 1.5228000000001884,
-          1.523200000000088, 1.5374000000001615, 1.5007999999997992,
-          1.6691000000000713, 1.515100000000075, 1.5244000000002416,
-          1.5617999999999483, 1.5075999999999112, 1.5273000000001957,
-          1.4956999999999425, 1.5016999999998006, 1.5066000000001623,
-          1.510899999999765, 1.6505999999999403, 1.5927999999998974,
-          1.5664000000001579, 1.513800000000174, 1.756199999999808,
-          1.6597999999999047, 1.5002999999996973, 1.550000000000182,
-          1.5248000000001412, 1.50649999999996, 1.511000000000422,
-          1.585099999999784, 1.5416000000000167, 1.5506000000000313,
-          1.5540000000000873, 1.540899999999965, 1.5075000000001637,
-          1.4998999999997977, 1.4976999999998952, 1.4944000000000415,
-          1.4996000000001004
+          13.168999999999869, 13.556899999999587, 13.322400000000926,
+          13.93630000000121, 13.201499999999214, 13.079900000000634,
+          12.920600000001286, 12.999499999999898, 12.779899999999543,
+          13.070299999999406, 14.426800000001094, 14.154999999998836,
+          13.841500000000451, 13.399700000001758, 13.752699999999095,
+          13.500899999999092, 13.240299999999479, 13.28440000000046,
+          16.610900000001493, 13.052899999998772, 12.935199999999895,
+          13.255600000000413, 13.462400000000343, 12.912099999999555,
+          12.874299999999494, 12.92029999999977, 12.966699999999037,
+          13.486100000000079, 13.365099999999074, 12.866700000000492,
+          13.018200000000434, 12.9367000000002, 12.957400000001144,
+          12.907400000000052, 13.041799999999057, 12.764100000000326,
+          13.087900000000445, 13.157100000000355, 12.9971000000005,
+          13.126800000000003, 13.103800000000774, 13.071400000000722,
+          12.922500000000582, 12.848500000000058, 13.156199999999444,
+          13.356499999999869, 13.094699999999648, 13.139500000001135,
+          13.284999999999854, 13.084700000001249, 13.234300000000076,
+          12.885099999999511, 13.217899999999645, 12.809799999999086,
+          12.973599999999351, 12.867400000000998, 13.076999999999316,
+          13.251299999999901, 12.876900000001115, 13.31210000000101,
+          13.012900000001537, 13.826100000000224, 15.649699999999939,
+          8.916699999999764, 10.325800000000527, 8.735500000000684,
+          8.835299999998824, 9.016999999999825, 8.821899999999005,
+          8.77480000000105, 9.034600000000864, 8.255600000000413,
+          8.589599999999336, 9.692600000000311, 8.407900000000154,
+          8.303899999998976, 8.681399999999485, 8.296800000000076,
+          8.425999999999476, 10.549399999999878, 9.2541999999994,
+          8.941100000000006, 8.516700000000128, 8.64719999999943,
+          8.647100000000137, 8.275699999998324, 8.87749999999869,
+          8.5575000000008, 9.006400000000212, 8.418400000000474,
+          8.697799999999916, 8.35570000000007, 8.606599999999162,
+          8.604799999999159, 8.689800000000105, 8.689400000001115,
+          8.638500000000931, 8.684500000001208, 8.438700000000608,
+          8.681100000001607
         ],
-        "p50": 2.671000000000049,
-        "p95": 2.795199999999795,
-        "p99": 2.8549000000000433,
-        "max": 2.9121000000000095,
+        "p50": 12.920600000001286,
+        "p95": 13.841500000000451,
+        "p99": 15.649699999999939,
+        "max": 16.610900000001493,
         "hits": 0
       },
       {
         "samplesMs": [
-          1.56899999999996, 1.529399999999896, 1.4890000000000327,
-          1.5852999999997337, 1.596900000000005, 1.5927000000001499,
-          1.600800000000163, 1.5871000000001914, 1.5920999999998457,
-          1.5910000000003492, 1.6404999999999745, 1.6008999999999105,
-          1.5988999999999578, 1.7144000000002961, 1.7702999999996791,
-          1.684400000000096, 1.5358000000001084, 1.5426000000002205,
-          1.5688000000000102, 1.5127999999999702, 1.542699999999968,
-          1.524199999999837, 1.5546000000003914, 1.5536000000001877,
-          1.590099999999893, 1.5333999999998014, 1.5065999999997075,
-          1.5037999999999556, 1.5192999999999302, 1.5261999999997897,
-          1.5187000000000808, 1.5183999999999287, 1.5118000000002212,
-          1.5034999999998035, 1.5037999999999556, 1.5102999999999156,
-          1.5031999999996515, 1.5033000000003085, 1.4962000000000444,
-          1.4965000000001965, 1.505800000000363, 1.5047999999997046,
-          1.501299999999901, 1.5045999999997548, 1.5023000000001048,
-          1.5055999999999585, 1.5673999999999069, 1.5419000000001688,
-          1.5605000000000473, 1.5386999999996078, 1.5248000000001412,
-          1.5833000000002357, 1.6457000000000335, 1.5938999999998487,
-          1.590400000000045, 1.5966000000003078, 1.6002000000003136,
-          1.677599999999984, 1.5934000000002015, 1.6176000000000386,
-          1.5972999999999047, 1.612800000000334, 1.6251999999999498,
-          1.6096999999999753, 1.6565999999997985, 1.522899999999936,
-          1.505699999999706, 1.8382999999998901, 1.680699999999888,
-          1.595299999999952, 1.5859000000000378, 1.585399999999936,
-          1.5858000000002903, 1.581499999999778, 1.5898000000001957,
-          1.5889000000001943, 1.6006999999999607, 1.702600000000075,
-          1.6541999999999462, 1.6119000000003325, 1.6347000000000662,
-          1.6394999999997708, 1.637300000000323, 1.7091999999997824,
-          1.6158000000000357, 1.6070999999997184, 1.6003999999998086,
-          1.7460999999998421, 1.6396999999997206, 1.5900000000001455,
-          1.6376000000000204, 1.6017000000001644, 1.5997000000002117,
-          1.589600000000246, 1.5916999999999462, 1.5936000000001513,
-          1.602100000000064, 1.6925999999998567, 1.6305999999999585,
-          1.5918000000001484
+          8.670000000000073, 8.58599999999933, 8.578199999999924,
+          8.884700000000521, 8.777500000000146, 8.366099999999278,
+          8.482500000000073, 8.467899999999645, 8.480899999998655,
+          8.370600000000195, 8.461299999999028, 8.270500000000538,
+          8.684699999999793, 8.374799999999595, 8.42909999999938,
+          8.437299999999595, 8.659100000000763, 8.624499999999898,
+          8.581200000000536, 8.595100000000457, 8.324299999998402,
+          8.854799999999159, 8.54700000000048, 8.517499999999927,
+          8.522800000000643, 8.526200000000244, 8.489999999999782,
+          8.598399999998946, 8.707500000000437, 8.626099999999497,
+          8.71429999999964, 8.40769999999975, 8.407099999998536,
+          8.402200000000448, 8.332800000000134, 8.365200000000186,
+          8.804399999999077, 8.46730000000025, 8.38799999999901,
+          8.497699999999895, 8.681799999998475, 8.63550000000032,
+          8.784700000000157, 8.644399999999223, 8.286499999998341,
+          8.344199999999546, 8.259299999999712, 8.769099999999526,
+          8.614999999999782, 8.566200000001118, 8.406300000000556,
+          8.68499999999949, 8.614599999998973, 8.480599999998958,
+          8.67149999999856, 8.525499999999738, 8.368100000001505,
+          8.240499999999884, 8.678899999998976, 8.75550000000112,
+          8.663500000000568, 8.590799999999945, 8.271899999999732,
+          8.53690000000097, 8.289899999999761, 8.711900000000242,
+          8.636500000000524, 8.63090000000011, 8.554200000000492,
+          8.59059999999954, 8.568600000000515, 8.697299999999814,
+          8.62840000000142, 8.73240000000078, 8.746100000000297,
+          8.377300000000105, 8.492899999999281, 8.61739999999918,
+          8.553400000000693, 8.618099999999686, 9.581200000000536,
+          8.881799999999203, 8.717000000000553, 8.875, 8.758900000000722,
+          8.814699999998993, 8.304000000000087, 8.658500000001368,
+          8.351000000000568, 9.535100000000966, 8.36540000000059,
+          8.391099999998914, 8.390299999999115, 8.26299999999901,
+          8.400400000000445, 8.231400000000576, 8.44919999999911,
+          8.359999999998763, 8.337499999999636, 8.237699999999677
         ],
-        "p50": 1.5900000000001455,
-        "p95": 1.702600000000075,
-        "p99": 1.7702999999996791,
-        "max": 1.8382999999998901,
+        "p50": 8.553400000000693,
+        "p95": 8.854799999999159,
+        "p99": 9.535100000000966,
+        "max": 9.581200000000536,
         "hits": 0
       },
       {
         "samplesMs": [
-          1.6044999999999163, 1.5958999999998014, 1.5959000000002561,
-          1.6727000000000771, 1.7247000000002117, 1.6730999999999767,
-          1.6033000000002176, 1.6392000000000735, 1.8123000000000502,
-          1.6516999999998916, 1.5990999999999076, 1.6000000000003638,
-          1.6183000000000902, 1.7911999999996624, 1.633900000000267,
-          1.593499999999949, 1.5886999999997897, 1.5909999999998945,
-          1.7701999999999316, 1.5920999999998457, 1.4918000000002394,
-          1.4959999999996398, 1.4912999999996828, 1.521900000000187,
-          1.49350000000004, 1.4976000000001477, 1.4981000000002496,
-          1.5025000000000546, 1.51299999999992, 1.6966999999999643,
-          1.653899999999794, 1.590099999999893, 1.5877000000000407,
-          1.6001000000001113, 1.5645000000004075, 1.535899999999856,
-          1.5273999999999432, 1.5291999999999462, 1.5203000000001339,
-          1.584599999999682, 1.5323999999995976, 1.5052999999998065,
-          1.5009000000000015, 1.53899999999976, 1.4965000000001965,
-          1.5063000000000102, 1.5030000000001564, 1.4983000000001994,
-          1.4978000000000975, 1.5572000000001935, 1.5684999999998581,
-          1.4983000000001994, 1.5295999999998457, 1.4939000000003944,
-          1.493199999999888, 1.4915000000000873, 1.4944000000000415,
-          1.4922999999998865, 1.4949000000001433, 1.5743999999999687,
-          1.6348000000002685, 1.7082000000000335, 1.7604000000001179, 1.5625,
-          1.5075999999999112, 1.5284999999998945, 1.4929000000001906,
-          1.5190999999999804, 1.496599999999944, 1.5378000000000611,
-          1.498199999999997, 1.498700000000099, 1.5744999999997162,
-          1.5451999999995678, 1.5529999999998836, 1.6406999999999243,
-          1.5967000000000553, 1.534400000000005, 1.5258000000003449,
-          1.5167999999998756, 1.557299999999941, 1.4951000000000931,
-          1.5389000000000124, 1.4975000000004002, 1.4980999999997948,
-          1.496599999999944, 1.4963000000002467, 1.4944000000000415,
-          1.5049999999996544, 1.4941000000003442, 1.5462000000002263,
-          1.4933999999998377, 1.5187000000000808, 1.5005999999998494,
-          1.500800000000254, 1.4994999999998981, 1.4976999999998952,
-          1.4945000000002437, 1.5015000000003056, 1.4954000000002452
+          8.325900000001639, 8.337399999998524, 8.36909999999989,
+          8.281600000000253, 8.70339999999851, 8.329899999998815,
+          8.382599999999002, 8.531200000001263, 8.570400000000518,
+          8.592999999998938, 8.272300000000541, 8.493000000000393,
+          8.535099999999147, 8.52350000000115, 8.482899999999063,
+          8.555200000000696, 8.398999999999432, 9.02559999999903,
+          8.703100000000632, 9.089799999999741, 8.754100000000108,
+          8.316899999999805, 8.478499999999258, 8.88720000000103,
+          12.455700000000434, 9.875299999999697, 8.385200000000623,
+          8.829499999999825, 8.581599999999526, 8.676500000001397,
+          8.59860000000117, 8.77349999999933, 8.617100000001301,
+          8.534500000001572, 8.552499999999782, 8.298899999999776,
+          8.409999999999854, 8.438399999999092, 8.598500000000058,
+          8.546500000000378, 8.693599999998696, 8.481999999999971,
+          8.377200000000812, 8.883500000001732, 8.38510000000133,
+          8.546700000002602, 8.253600000000006, 8.346799999999348,
+          8.560800000002928, 8.40020000000004, 8.439399999999296,
+          8.421000000002095, 8.743900000001304, 8.593500000002678,
+          8.38550000000032, 8.6903999999995, 8.633900000000722,
+          8.752700000000914, 8.492300000001705, 8.35109999999986,
+          8.506999999997788, 8.294600000001083, 8.4333000000006,
+          8.277899999997317, 8.713900000002468, 8.605400000000373,
+          8.350500000000466, 8.790899999999965, 8.530500000000757,
+          8.599699999998847, 8.59939999999915, 8.628600000000006,
+          8.388999999999214, 8.730400000000373, 8.864900000000489,
+          8.324599999999919, 9.60059999999794, 8.56460000000152,
+          8.520800000002055, 8.392199999998411, 9.154099999999744,
+          8.336800000000949, 8.782200000001467, 8.601699999999255,
+          8.544200000000274, 8.690700000002835, 8.548099999999977,
+          8.61200000000099, 8.62329999999929, 8.657200000001467,
+          8.823600000003353, 8.542500000003201, 8.370199999997567,
+          8.22950000000128, 8.686399999998685, 8.617000000002008,
+          8.61449999999968, 8.369999999998981, 8.339599999999336,
+          8.434100000002218
         ],
-        "p50": 1.5273999999999432,
-        "p95": 1.7082000000000335,
-        "p99": 1.7911999999996624,
-        "max": 1.8123000000000502,
+        "p50": 8.546500000000378,
+        "p95": 9.02559999999903,
+        "p99": 9.875299999999697,
+        "max": 12.455700000000434,
         "hits": 0
       }
     ]
