@@ -1,18 +1,123 @@
+import { Vector3 } from 'three';
 import { describe, expect, it, vi } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../../assets/floorPlan';
-import { withStableCapture, type CaptureIdentity } from '../measureGraybox';
+import { PORTFOLIO_LEVEL } from '../../../scene/level/portfolioLevel';
+import { houseShellGeometry, measureExteriorMassing } from '../grayboxMassing';
+import {
+  renderGraybox,
+  withStableCapture,
+  type CaptureIdentity,
+} from '../measureGraybox';
 import { maximumSolidDeviation } from '../measureNeighborhood';
 import {
   buildGraybox,
   overlapViolations,
   offsetRoute,
   qualifyRoute,
+  rectangleUnionArea,
 } from '../neighborhoodGraybox';
 
 vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
 const layout = buildGraybox();
 describe('review-only scaled neighborhood', () => {
+  it('uses built rooms and generated walls, not yards or the protected-zone envelope', () => {
+    const interior = PORTFOLIO_LEVEL.floors
+      .filter((f) => f.id === 'ground' || f.id === 'upper')
+      .flatMap((f) => f.rooms.filter((room) => room.category !== 'exterior'));
+    expect(layout.mainHouse.rooms.map((room) => room.id).sort()).toEqual(
+      interior.map((room) => room.sourceId).sort()
+    );
+    expect(
+      layout.mainHouse.rooms.some((room) => room.id === 'ground.garage.room')
+    ).toBe(true);
+    const roomArea = rectangleUnionArea(
+      interior.map((room) => ({
+        minX: room.bounds.minX * FLOOR_PLAN_SCALE,
+        maxX: room.bounds.maxX * FLOOR_PLAN_SCALE,
+        minZ: room.bounds.minZ * FLOOR_PLAN_SCALE,
+        maxZ: room.bounds.maxZ * FLOOR_PLAN_SCALE,
+      }))
+    );
+    expect(layout.mainHouse.roomArea).toBeCloseTo(roomArea);
+    expect(layout.mainHouse.roomArea).toBeGreaterThan(
+      layout.mainHouse.groundRoomArea
+    );
+    expect(
+      layout.mainHouse.rooms.some((room) => room.id === 'upper.focus_pods.room')
+    ).toBe(true);
+    expect(
+      layout.mainHouse.wallSourceIds.some((id) => id.startsWith('upper.'))
+    ).toBe(true);
+    expect(layout.mainHouse.builtArea).toBeGreaterThan(roomArea);
+    const protectedArea = rectangleUnionArea(
+      layout.protectedRooms.map((room) => room.bounds)
+    );
+    expect(layout.mainHouse.builtArea).toBeLessThan(protectedArea * 0.75);
+    expect(layout.mainHouse.bounds.maxX).toBeLessThan(layout.sidewalk.minX);
+    expect(
+      rectangleUnionArea([
+        { minX: 0, maxX: 2, minZ: 0, maxZ: 2 },
+        { minX: 1, maxX: 3, minZ: 1, maxZ: 3 },
+      ])
+    ).toBe(7);
+  });
+  it('keeps every varied exterior footprint comparable to the actual built house', () => {
+    const sizes = new Set<string>();
+    for (const lot of layout.lots) {
+      const areaRatio =
+        (lot.house.width * lot.house.depth) / layout.mainHouse.builtArea;
+      expect(areaRatio).toBeGreaterThanOrEqual(0.9);
+      expect(areaRatio).toBeLessThanOrEqual(1.1);
+      for (const ratio of [
+        lot.house.width / layout.mainHouse.width,
+        lot.house.depth / layout.mainHouse.depth,
+      ]) {
+        expect(ratio).toBeGreaterThanOrEqual(0.85);
+        expect(ratio).toBeLessThanOrEqual(1.15);
+      }
+      sizes.add(`${lot.house.width}:${lot.house.depth}`);
+      expect(lot.house.width).toBeLessThan(lot.parcel.maxX - lot.parcel.minX);
+      expect(lot.house.depth).toBeLessThan(lot.parcel.maxZ - lot.parcel.minZ);
+    }
+    expect(sizes.size).toBe(6);
+  });
+  it('models closed low-poly exterior shells whose triangle count does not scale with footprint', () => {
+    const shell = houseShellGeometry(),
+      positions = shell.getAttribute('position');
+    const indices = shell.index!;
+    expect(indices.count / 3).toBe(16);
+    const edges = new Map<string, number>();
+    let signedVolume = 0;
+    for (let i = 0; i < indices.count; i += 3) {
+      const ids = [indices.getX(i), indices.getX(i + 1), indices.getX(i + 2)];
+      const [a, b, c] = ids.map((id) =>
+        new Vector3().fromBufferAttribute(positions, id)
+      );
+      signedVolume += a.dot(b.cross(c)) / 6;
+      for (let j = 0; j < 3; j++) {
+        const key = [ids[j], ids[(j + 1) % 3]].sort((a, b) => a - b).join(':');
+        edges.set(key, (edges.get(key) ?? 0) + 1);
+      }
+    }
+    expect(signedVolume).toBeCloseTo(1.15);
+    expect([...edges.values()].every((count) => count === 2)).toBe(true);
+    shell.scale(60, 6, 40);
+    expect(shell.index!.count / 3).toBe(16);
+    shell.dispose();
+    const model = measureExteriorMassing(layout);
+    expect(
+      model.batches.find((batch) => batch.name === 'house-shells')
+    ).toMatchObject({
+      instances: 24,
+      trianglesPerInstance: 16,
+      submittedTriangles: 384,
+    });
+    expect(model.staticBaselineScenario.unbatchedDrawCallsWithinBudget).toBe(
+      false
+    );
+    expect(model.staticBaselineScenario.frameTimeQualified).toBe(false);
+  });
   it('derives anchors from current source scale and measured exterior', () => {
     expect(layout.scale).toBe(FLOOR_PLAN_SCALE);
     const sidewalk = layout.audit.reservedRoutes.find(
@@ -29,6 +134,27 @@ describe('review-only scaled neighborhood', () => {
     expect(overlapViolations(layout)).toEqual([]);
     for (let side = 0; side < 4; side++)
       expect(layout.lots.filter((l) => l.side === side)).toHaveLength(6);
+  });
+  it('frames every parcel corner in both review projections after resizing', () => {
+    for (const isometric of [false, true]) {
+      const svg = renderGraybox(layout, isometric);
+      const [x, y, width, height] = svg
+        .match(/viewBox="([^"]+)"/)![1]
+        .split(' ')
+        .map(Number);
+      expect(svg).toContain('built home + garage');
+      for (const lot of layout.lots) {
+        for (const a of [lot.parcel.minX, lot.parcel.maxX])
+          for (const b of [lot.parcel.minZ, lot.parcel.maxZ]) {
+            const px = isometric ? ((a - b) * Math.sqrt(3)) / 2 : a;
+            const py = isometric ? (a + b) / 2 : b;
+            expect(px).toBeGreaterThan(x);
+            expect(px).toBeLessThan(x + width);
+            expect(py).toBeGreaterThan(y);
+            expect(py).toBeLessThan(y + height);
+          }
+      }
+    }
   });
   it('reports all decomposed rectangles, without a misleading global cap', () => {
     expect(layout.solids.length).toBe(
@@ -71,7 +197,7 @@ describe('review-only scaled neighborhood', () => {
     const stop = layout.audit.anchors.find(
       (a) => a.sourceId === 'ground.busStop.shelter'
     )!;
-    for (const z of [-125, 125]) {
+    for (const z of [layout.lines[0].a.z, layout.lines[0].b.z]) {
       expect(
         qualifyRoute(layout, [
           { x, z: stop.world.z },

@@ -9,6 +9,7 @@ import { performance } from 'node:perf_hooks';
 import { AVATAR_COLLISION_RADIUS as R } from '../../scene/units';
 import { collidesWithColliders } from '../../systems/collision';
 
+import { measureExteriorMassing } from './grayboxMassing';
 import { maximumSolidDeviation } from './measureNeighborhood';
 import { navFrom } from './neighborhoodFixtures';
 import {
@@ -22,8 +23,13 @@ import {
   EXTRA_CLEARANCE_TARGET,
   REVIEW_WIDTH,
   REVIEW_RADIUS,
+  APPROACH_WIDTH,
 } from './neighborhoodGraybox';
-import { type Point, type RotatedSolid } from './rectangularNeighborhood';
+import {
+  corners,
+  type Point,
+  type RotatedSolid,
+} from './rectangularNeighborhood';
 
 const hash = (value: string | Buffer) =>
   createHash('sha256').update(value).digest('hex');
@@ -60,6 +66,11 @@ export function probeWholeLayout(layout: Graybox) {
   });
 }
 export function measurement(layout: Graybox) {
+  const siteBounds = extent([
+    ...layout.lots.flatMap((lot) => corners(lot.parcel)),
+    ...layout.physicalLines.flatMap(corners),
+    ...corners(layout.protectedBounds),
+  ]);
   const loops = layout.loops.flatMap((loop) =>
     [false, true].map((reverse) => ({
       id: loop.id,
@@ -99,7 +110,7 @@ export function measurement(layout: Graybox) {
   const stop = layout.audit.anchors.find(
     (a) => a.sourceId === 'ground.busStop.shelter'
   )!;
-  const approaches = [-125, 125].map((z) => ({
+  const approaches = [home.a.z, home.b.z].map((z) => ({
     id: `preserved-sidewalk-to-${z}`,
     ...qualifyRoute(layout, [
       { x: home.a.x, z: stop.world.z },
@@ -117,7 +128,7 @@ export function measurement(layout: Graybox) {
         Math.max(...a.map((p) => p.bounds.maxZ));
       return {
         id: lot.id,
-        authoredWidth: 3.8,
+        authoredWidth: APPROACH_WIDTH,
         physicalWidth,
         actorCenterWidth: physicalWidth - 2 * R,
       };
@@ -140,6 +151,27 @@ export function measurement(layout: Graybox) {
       anchors:
         'Current source FLOOR_PLAN_SCALE and actual exterior builders; no copied coordinates.',
     },
+    mainHouse: layout.mainHouse,
+    siting: layout.siting,
+    siteExtent: {
+      bounds: siteBounds,
+      width: siteBounds.maxX - siteBounds.minX,
+      depth: siteBounds.maxZ - siteBounds.minZ,
+      boundingArea:
+        (siteBounds.maxX - siteBounds.minX) *
+        (siteBounds.maxZ - siteBounds.minZ),
+    },
+    footprintComparability: layout.lots.map((lot) => ({
+      id: lot.id,
+      width: lot.house.width,
+      depth: lot.house.depth,
+      footprintArea: lot.house.width * lot.house.depth,
+      areaRatioToBuiltHouse:
+        (lot.house.width * lot.house.depth) / layout.mainHouse.builtArea,
+      widthRatioToBuiltBounds: lot.house.width / layout.mainHouse.width,
+      depthRatioToBuiltBounds: lot.house.depth / layout.mainHouse.depth,
+    })),
+    exteriorMassing: measureExteriorMassing(layout),
     counts: {
       lots: layout.lots.length,
       closedLoops: layout.loops.length,
@@ -216,12 +248,16 @@ export function renderGraybox(layout: Graybox, isometric = false) {
     isometric
       ? { x: ((p.x - p.z) * Math.sqrt(3)) / 2, z: (p.x + p.z) / 2 - height }
       : p;
-  const all = layout.lots.flatMap((l) => solidCorners(l.house));
+  const all = layout.lots.flatMap((l) => corners(l.parcel));
   all.push(
-    { x: layout.protectedBounds.minX, z: -150 },
-    { x: 220, z: 150 },
-    { x: -20, z: 141 }
+    ...layout.physicalLines.flatMap(corners),
+    ...corners(layout.protectedBounds)
   );
+  const scaleOrigin = {
+    x: Math.min(...all.map((p) => p.x)),
+    z: layout.siting.halfLength + 16,
+  };
+  all.push(scaleOrigin, { x: scaleOrigin.x + 20, z: scaleOrigin.z + 6 });
   const bounds = extent(all.map((p) => project(p)));
   const box = {
     x: bounds.minX - 25,
@@ -283,7 +319,7 @@ export function renderGraybox(layout: Graybox, isometric = false) {
     const face = (ps: Point[], fill: string) =>
       `<polygon points="${projectedPoints(ps)}" ` +
       `fill="${fill}" stroke="#64748b" stroke-width=".25"/>`;
-    const r = ridge.map((p) => project(p, height + (isometric ? 1.5 : 0)));
+    const r = ridge.map((p) => project(p, height * 1.3));
     const e = corners.map((p) => project(p, height));
     return (
       walls +
@@ -312,7 +348,8 @@ export function renderGraybox(layout: Graybox, isometric = false) {
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${box.x} ${box.y} ${box.w} ${box.h}"`,
     ' width="1400" height="1400" role="img" aria-labelledby="title desc">',
     `<title id="title">${title}: 24 proposed lots</title>`,
-    '<desc id="desc">Offline review only. Blue is protected source geometry; gold is the measured',
+    '<desc id="desc">Offline review only. Pale blue is protected land, dark blue is built house',
+    ' footprint including garage; gold is the measured',
     ' bus stop. Green and teal are connected walking loops. ',
     'Labels identify every proposed lot.</desc>',
     `<rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" fill="#f8fafc"/>`,
@@ -320,9 +357,14 @@ export function renderGraybox(layout: Graybox, isometric = false) {
     `<text x="${box.x + 6}" y="${box.y + 9}" font-size="5">${title} · 24 lots</text>`,
     `<text x="${box.x + 6}" y="${box.y + 16}" font-size="3">`,
     'REVIEW ONLY · world metres · no live scene changes</text>',
+    `<text x="${box.x + 6}" y="${box.y + 22}" font-size="3">`,
+    'Dark blue: built home + garage · pale blue: protected land including yards</text>',
     ...layout.protectedRooms.map((r) => rect(r.bounds, '#dbeafe')),
+    ...layout.mainHouse.rooms.map((r) => rect(r.bounds, '#729ac8')),
     ...layout.walls.map((wall) => rect(wall.collider, '#647b9b')),
+    ...layout.mainHouse.wallBounds.map((wall) => rect(wall.bounds, '#647b9b')),
     ...layout.lots.map((l) => rect(l.parcel, '#e5e7eb')),
+    ...layout.proposedStreets.map((b) => rect(b, '#e2e6eb')),
     ...layout.physicalLines.map((b) => rect(b, '#d1d5db')),
     ...layout.loops.flatMap((loop, i) => {
       const color = i ? '#99d6ce' : '#a7d9b4';
@@ -366,7 +408,10 @@ export function renderGraybox(layout: Graybox, isometric = false) {
       )
     ),
     ...layout.lots.map((l) =>
-      text({ x: l.house.center.x - 6, z: l.house.center.z + 12 }, l.id)
+      text(
+        { x: l.parcel.minX + 3, z: l.parcel.maxZ - 1 },
+        `${l.id} · ${Math.round(l.house.width * l.house.depth)} m²`
+      )
     ),
     rect(stopBounds, '#fbbf24'),
     ...layout.boundaryGates.map((wall) => rect(wall.collider, '#dc2626')),
@@ -381,29 +426,41 @@ export function renderGraybox(layout: Graybox, isometric = false) {
       2.5
     ),
     text(
-      { x: layout.protectedBounds.minX, z: layout.protectedBounds.minZ - 4 },
-      'Protected existing home'
+      { x: layout.mainHouse.bounds.minX, z: layout.mainHouse.bounds.minZ - 2 },
+      `Built home + garage: ${Math.round(layout.mainHouse.builtArea)} m²`,
+      2.5
     ),
     text({ x: stopBounds.maxX + 2, z: stopBounds.minZ }, 'Bus stop'),
     text(
-      { x: layout.loops[0].arcs[1].center.x + 10, z: -62 },
+      {
+        x:
+          (layout.loops[0].arcs[0].center.x +
+            layout.loops[0].arcs[1].center.x) /
+            2 -
+          12,
+        z: -layout.siting.halfLength / 2,
+      },
       'Loop A · R18 m',
       3.5
     ),
     text(
-      { x: layout.loops[1].arcs[1].center.x + 10, z: 62 },
+      {
+        x:
+          (layout.loops[1].arcs[0].center.x +
+            layout.loops[1].arcs[1].center.x) /
+            2 -
+          12,
+        z: layout.siting.halfLength / 2,
+      },
       'Loop B · R18 m',
       3.5
     ),
     path(
-      [
-        { x: -20, z: 135 },
-        { x: 0, z: 135 },
-      ],
+      [scaleOrigin, { x: scaleOrigin.x + 20, z: scaleOrigin.z }],
       1,
       '#172554'
     ),
-    text({ x: -20, z: 141 }, '20 m'),
+    text({ x: scaleOrigin.x, z: scaleOrigin.z + 6 }, '20 m'),
     '</g></svg>\n',
   ].join('');
 }
