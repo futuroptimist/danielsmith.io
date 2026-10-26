@@ -134,7 +134,8 @@ then the opened door leaves the displaced player against a jamb. Live blocking
 metadata identifies `ground.living_room.east_wall`. The automatic controller
 tests only the imminent movement segment against the aperture's center lane,
 now just 0.15 m wide. This is an unresolved practical approach regression;
-centered passability must not be reported as comfortable access. The same four closed-door tests pass against the exact baseline commit
+centered passability must not be reported as comfortable access. The same four
+closed-door tests pass against the exact baseline commit
 `6345ce07cab168c94b9b65bf397bb7533290c679`, confirming a regression. The failing
 acceptance tests remain enabled. No sensor, collision or movement behavior was
 changed to make this checkpoint pass.
