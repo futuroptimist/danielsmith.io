@@ -17,7 +17,7 @@ import {
 } from '../scene/graphics/sceneDetailPolicy';
 import { FLOOR_TOP_ELEVATIONS } from '../scene/level/floorElevations';
 import { createSourceSnapshot } from '../scene/miniature/sourceSnapshot';
-import { getPoiDefinitions } from '../scene/poi/registry';
+import { getPoiDefinitions, getPoiRoomBounds } from '../scene/poi/registry';
 import { createGreenhouse } from '../scene/structures/greenhouse';
 import {
   createLowerFloorFurnishings,
@@ -86,6 +86,70 @@ function build() {
 }
 
 describe('source-backed recursive property table', () => {
+  it('doubles the model uniformly while keeping the stand grounded at its existing height', () => {
+    const table = build();
+    const size = table.sourceSnapshot.bounds.getSize(new Vector3());
+    const previousScale = Math.min(1.2 / size.x, 0.7 / size.z, 0.9 / size.y);
+    expect(table.transform.uniformScale).toBeCloseTo(previousScale * 2, 10);
+    expect(table.miniatureWorldRoot.scale.toArray()).toEqual(
+      [1, 1, 1].map(() => previousScale * 2)
+    );
+    expect(table.transform.modelBedOffset.y).toBeCloseTo(1.29);
+    expect(1.29 + size.y * table.transform.uniformScale).toBeLessThan(2.74);
+    const shell = createPortfolioTableShell();
+    const top = new Box3().setFromObject(
+      shell.getObjectByName('PortfolioMiniatureTableTop')!
+    );
+    expect(top.getSize(new Vector3()).x).toBeCloseTo(2.8);
+    expect(top.getSize(new Vector3()).z).toBeCloseTo(1.8);
+    expect(top.max.y).toBeCloseTo(1.25);
+    const base = new Box3().setFromObject(
+      shell.getObjectByName('PortfolioMiniatureTableBase')!
+    );
+    expect(base.min.y).toBeCloseTo(0);
+    expect(base.max.y).toBeCloseTo(1.21);
+    // The finite self shell is authored in world metres, then transformed once.
+    expect(table.selfProxy.scale.toArray()).toEqual([1, 1, 1]);
+    table.group.updateWorldMatrix(true, true);
+    const visibleTop = new Box3().setFromObject(
+      table.group.getObjectByName('PortfolioMiniatureTableTop')!
+    );
+    expect(table.collider.minX).toBeCloseTo(visibleTop.min.x);
+    expect(table.collider.maxX).toBeCloseTo(visibleTop.max.x);
+    expect(table.collider.minZ).toBeCloseTo(visibleTop.min.z);
+    expect(table.collider.maxZ).toBeCloseTo(visibleTop.max.z);
+    table.dispose();
+  });
+
+  it('fits the current kitchen with a clear player-radius approach and reachable interaction', () => {
+    const poi = getPoiDefinitions('en').find(
+      (p) => p.id === 'danielsmith-portfolio-table'
+    )!;
+    const radius = 0.75;
+    const envelope = {
+      minX: poi.position.x - dimensions.width / 2 - radius,
+      maxX: poi.position.x + dimensions.width / 2 + radius,
+      minZ: poi.position.z - dimensions.depth / 2 - radius,
+      maxZ: poi.position.z + dimensions.depth / 2 + radius,
+    };
+    const room = getPoiRoomBounds(poi)!;
+    expect(envelope.minX).toBeGreaterThan(room.minX);
+    expect(envelope.maxX).toBeLessThan(room.maxX);
+    expect(envelope.minZ).toBeGreaterThan(room.minZ);
+    expect(envelope.maxZ).toBeLessThan(room.maxZ);
+    for (const collider of createLowerFloorFurnishings().colliders) {
+      expect(
+        collider.maxX <= envelope.minX ||
+          collider.minX >= envelope.maxX ||
+          collider.maxZ <= envelope.minZ ||
+          collider.minZ >= envelope.maxZ,
+        collider.furnishingId
+      ).toBe(true);
+    }
+    expect(dimensions.width / 2 + radius).toBeLessThan(poi.interactionRadius);
+    expect(dimensions.depth / 2 + radius).toBeLessThan(poi.interactionRadius);
+  });
+
   it('applies the table transform once to a grounded 1.90 metre player marker', () => {
     const table = build();
     table.group.updateWorldMatrix(true, true);

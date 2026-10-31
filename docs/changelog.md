@@ -6,6 +6,11 @@ may replace it in a future release.
 
 ## v0.3.2 - unreleased
 
+- Doubled the portfolio tabletop and miniature while retaining the 1.25 m display
+  surface and grounded stand, with matching collision bounds and kitchen approaches.
+- Registered its model collider before marker-only fallbacks, removing the oversized
+  invisible marker blocker from the table's four approaches.
+
 - Added standard-mapped gamepad movement, camera pan, trigger zoom and nearby interaction,
   with a dedicated Gamepad controls HUD category and safe neutralization after focus loss.
 - Keyboard, pointer, touch and accessible text alternatives remain available.

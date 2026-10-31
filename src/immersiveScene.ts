@@ -3439,8 +3439,6 @@ function buildImmersiveScene(
       window.removeEventListener('focus', suspendAquiloop);
     });
   }
-  registerMarkerOnlyPoiColliders();
-
   // Keep tabletop construction after all POI visual-anchor producers so
   // ground-floor miniature placement can resolve every rendered anchor.
   if (portfolioTablePoi) {
@@ -3550,6 +3548,9 @@ function buildImmersiveScene(
     );
     portfolioMiniatureTable = table;
   }
+  // The table also owns a model-derived collider. Register marker-only fallbacks
+  // after it so its larger decorative marker never blocks the table approaches.
+  registerMarkerOnlyPoiColliders();
 
   if (flywheelShowpiece) {
     const { targets, diagnostics } = resolveFlywheelEnergyTargets();
