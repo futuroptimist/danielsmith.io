@@ -69,6 +69,46 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     const snapshot = await page.evaluate(
       () => window.portfolio!.world!.getMiniatureSnapshot!()!
     );
+    const sourceSize = snapshot.bounds.max.map(
+      (value, axis) => value - snapshot.bounds.min[axis]
+    );
+    const previousScale = Math.min(
+      1.2 / sourceSize[0],
+      0.7 / sourceSize[2],
+      0.9 / sourceSize[1]
+    );
+    expect(snapshot.scale).toBeCloseTo(previousScale * 2, 10);
+    const installationTop = 1.29 + sourceSize[1] * snapshot.scale;
+    expect(installationTop).toBeLessThan(2.0);
+    expect(installationTop).toBeLessThan(2.74);
+    const approaches = await page.evaluate(() => {
+      const api = window.portfolio!.debugColliders!;
+      const table = api
+        .getColliders()
+        .find((c) => c.name === 'PortfolioMiniatureTableCollider')!;
+      const b = table.bounds;
+      const x = (b.minX + b.maxX) / 2,
+        z = (b.minZ + b.maxZ) / 2;
+      return [
+        { x: b.minX - 0.76, z },
+        { x: b.maxX + 0.76, z },
+        { x, z: b.minZ - 0.76 },
+        { x, z: b.maxZ + 0.76 },
+      ].map((point) =>
+        api.getBlockingCollidersAt({ ...point, floorId: 'ground' })
+      );
+    });
+    for (const blockers of approaches) expect(blockers).toEqual([]);
+    await testInfo.attach('miniature-fit', {
+      body: JSON.stringify({
+        sourceSize,
+        previousScale,
+        scale: snapshot.scale,
+        installationTop,
+        ceilingClearance: 2.74 - installationTop,
+      }),
+      contentType: 'application/json',
+    });
     expect(snapshot.triangles).toBeLessThan(40000);
     expect(snapshot.drawCalls).toBeLessThanOrEqual(64);
     expect(snapshot.bounds.max[0]).toBeGreaterThan(75 * Math.SQRT1_2);

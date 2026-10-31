@@ -566,9 +566,9 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 17,
+    syncRevision: 18,
     syncNote:
-      'Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.',
+      'The tabletop and model bed double horizontally at the existing stand height; the finite self shell follows the shared dimensions and world-to-table transform once.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',
