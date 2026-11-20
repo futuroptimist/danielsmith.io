@@ -12,6 +12,24 @@ auto-generated artifacts stay up to date.
 | Smoke build check        | Vite production build output | `npm run smoke`                     | Ensures `npm run build` succeeds, `dist/index.html` exists, and built JS/CSS references resolve in `dist/`; the aggregate `npm run check` gate runs this smoke suite. |
 | Linting & types          | Source TypeScript            | `npm run lint`, `npm run typecheck` | `npm run check` includes linting and type-checking before tests, docs validation, and smoke.                                                                          |
 
+### Pull-request patch coverage
+
+Run `npm run test:ci -- --coverage` to generate `coverage/lcov.info`. The report maps
+to TypeScript sources under `src/`, including untested source files; test and
+declaration files are excluded. This measures the Vitest suite, not Playwright.
+
+The Tests workflow's patch-coverage job measures the exact PR head or main push.
+The normal test job still checks the integration merge. Coverage job failures are
+visible but do not fail existing CI checks. Codecov's changed-line status is
+informational; no overall coverage status or PR comment is configured.
+
+Enable the repository in Codecov's GitHub integration if needed. The workflow
+uploads main and same-repository non-Dependabot coverage only when an Actions
+`CODECOV_TOKEN` secret already exists. Public fork PRs use the official action's
+tokenless path; same-repository Dependabot PRs generate coverage without uploading.
+After the first successful main upload, check the Codecov patch status on a PR
+from that reported base. The onboarding PR may not have a base report yet.
+
 ### Visual diff budgets
 
 Playwright screenshot assertions inherit tolerances from

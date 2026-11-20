@@ -6,6 +6,8 @@ may replace it in a future release.
 
 ## v0.3.2 - unreleased
 
+- Added informational patch coverage to pull requests without changing site behavior.
+
 - Doubled the portfolio tabletop and miniature while retaining the 1.25 m display
   surface and grounded stand, with matching collision bounds and kitchen approaches.
 - Registered its model collider before marker-only fallbacks, removing the oversized

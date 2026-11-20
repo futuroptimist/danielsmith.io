@@ -16,6 +16,16 @@ export default defineConfig({
     ],
     coverage: {
       enabled: false,
+      provider: 'v8',
+      reporter: ['text-summary', 'lcov'],
+      all: true,
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/tests/**',
+        '**/__tests__/**',
+        '**/*.{test,spec}.ts',
+        '**/*.d.ts',
+      ],
     },
   },
 });
