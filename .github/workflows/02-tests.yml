@@ -41,6 +41,59 @@ jobs:
       - name: Smoke test
         run: npm run smoke
 
+  patch-coverage:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact coverage revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Generate source coverage
+        run: npm run test:ci -- --coverage
+      - name: Require LCOV report
+        run: test -s coverage/lcov.info
+      - name: Check trusted upload configuration
+        id: codecov-auth
+        if: github.event_name == 'push' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          if [[ -n "${CODECOV_TOKEN}" ]]; then
+            echo 'configured=true' >> "${GITHUB_OUTPUT}"
+          else
+            echo '::warning::Codecov upload skipped: CODECOV_TOKEN is not configured.'
+          fi
+      - name: Upload trusted coverage to Codecov
+        if: steps.codecov-auth.outputs.configured == 'true'
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          override_commit: ${{ github.event.pull_request.head.sha || github.sha }}
+          files: coverage/lcov.info
+          disable_search: true
+          fail_ci_if_error: true
+      - name: Upload public fork coverage without a token
+        if: github.event_name == 'pull_request' && github.event.repository.visibility == 'public' && github.event.pull_request.head.repo.full_name != github.repository
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          override_commit: ${{ github.event.pull_request.head.sha }}
+          files: coverage/lcov.info
+          disable_search: true
+          fail_ci_if_error: true
+      - name: Note skipped same-repository Dependabot upload
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor == 'dependabot[bot]'
+        run: echo '::notice::Codecov upload skipped for same-repository Dependabot; coverage ran without credentials.'
+
   immersive-traversal:
     runs-on: ubuntu-24.04
     steps:
