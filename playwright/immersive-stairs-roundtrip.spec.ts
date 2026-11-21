@@ -939,7 +939,7 @@ test('upper landing samples preserve intended passage and void behavior', async 
   }
 });
 
-test('upper landing-side passage removes targeted wall and colliders', async ({
+test('upper landing aperture is clear but the library sectional stops passage safely', async ({
   page,
 }) => {
   test.slow();
@@ -1029,6 +1029,9 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
       passageSteps.push(world.stepPlayerForTest(passageStep));
     }
 
+    const stopped = world.getPlayerPosition();
+    const retreat = world.stepPlayerForTest({ dx: 0, dz: -0.1 });
+
     return {
       knownWallSolidCount: knownWallSolids.length,
       knownWallColliderCount: knownWallColliders.length,
@@ -1061,9 +1064,15 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
           .map((collider) => collider.name)
       ),
       passageMovement: {
-        allStepsMoved: passageSteps.every((step) => step.movedZ),
-        blockedBy: passageSteps.flatMap((step) => step.blockedBy ?? []),
-        finalPosition: world.getPlayerPosition(),
+        passageStart,
+        firstStepMoved: passageSteps[0].movedZ,
+        lastStepMoved: passageSteps.at(-1)?.movedZ,
+        floorIds: [...new Set(passageSteps.map((step) => step.activeFloor))],
+        blockedBy: [
+          ...new Set(passageSteps.flatMap((step) => step.blockedBy ?? [])),
+        ],
+        stopped,
+        retreat,
       },
     };
   }, PLAYER_RADIUS);
@@ -1104,9 +1113,20 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
   expect(targetState.passageWallCollidersInOpeningCount).toBe(0);
   expect(targetState.canOccupyOpeningSamples).toEqual([true, true, true]);
   expect(targetState.blockingAtOpeningSamples).toEqual([[], [], []]);
-  expect(targetState.passageMovement.allStepsMoved).toBe(true);
-  expect(targetState.passageMovement.blockedBy).toEqual([]);
-  expect(targetState.passageMovement.finalPosition.z).toBeGreaterThan(-15.35);
+  const movement = targetState.passageMovement;
+  expect(movement.firstStepMoved).toBe(true);
+  expect(movement.lastStepMoved).toBe(false);
+  expect(movement.floorIds).toEqual(['upper']);
+  expect(movement.blockedBy).toEqual([
+    'UpperFloorFurnishingCollider:loft-library-sectional',
+  ]);
+  expect(movement.stopped.x).toBeCloseTo(movement.passageStart.x, 6);
+  expect(movement.stopped.z).toBeGreaterThan(-16 * Math.SQRT1_2);
+  expect(movement.retreat).toMatchObject({
+    movedZ: true,
+    activeFloor: 'upper',
+  });
+  expect(movement.retreat.position.z).toBeCloseTo(movement.stopped.z - 0.1, 6);
 });
 
 test('runtime descent from upper landing mouth reaches the ground', async ({
@@ -1502,7 +1522,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   });
 });
 
-test('upper landing opens west into upstairs rooms and blocks side/back stair entry', async ({
+test('upper landing reaches the studio and keeps library and side/back stair blockers', async ({
   page,
 }) => {
   test.slow();
@@ -1656,7 +1676,14 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
 
   expect(await canOccupyPosition(page, normalLoftSpace)).toBe(true);
   expect(await canOccupyPosition(page, normalLoftEastNudge)).toBe(true);
-  expect(await canOccupyPosition(page, loftDoorway)).toBe(true);
+  expect(await canOccupyPosition(page, loftDoorway)).toBe(false);
+  expect(await getBlockingColliderNames(page, loftDoorway)).toEqual([
+    'UpperFloorFurnishingCollider:loft-library-sectional',
+  ]);
+  await expect(async () => movePlayerTo(page, loftDoorway)).rejects.toThrow(
+    /Cannot occupy/
+  );
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
   expect(await canOccupyPosition(page, westVoidBypass)).toBe(true);
   expect(await canOccupyPosition(page, westLandingMouthClearance)).toBe(true);
   expect(

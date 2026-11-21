@@ -35,15 +35,20 @@ for (const floor of PORTFOLIO_LEVEL.floors.filter((f) => f.id !== 'basement')) {
           expect((gap.end - gap.start) * FLOOR_PLAN_SCALE).toBeGreaterThan(
             2 * AVATAR_COLLISION_RADIUS
           );
-          // Probe angled entries and nonzero lateral offsets separately. These
-          // verify passability; combined steering error is measured below.
-          for (const [degrees, lateral] of [
+          // Combine steering angle with lateral error only at the wider front entry.
+          const crossings = [
             [0, 0],
             [0, -0.05],
             [0, 0.05],
             [-10, 0],
             [10, 0],
-          ]) {
+          ];
+          if (gap.label === 'living-to-front-yard') {
+            for (const degrees of [-10, 10])
+              for (const lateral of [-0.05, 0.05])
+                crossings.push([degrees, lateral]);
+          }
+          for (const [degrees, lateral] of crossings) {
             for (const direction of [-1, 1]) {
               for (let step = 0; step <= 120; step++) {
                 const normal = (-1.5 + step * 0.025) * direction;

@@ -122,7 +122,7 @@ describe('createDoorwayOpenings', () => {
 
 it('leaves factory-owned operable apertures unframed without changing ordinary doorways', () => {
   const owned = [
-    { axis: 'vertical' as const, center: { x: 32, z: -15 }, width: 2.4 },
+    { axis: 'vertical' as const, center: { x: 32, z: -15 }, width: 3.5 },
     { axis: 'vertical' as const, center: { x: 32, z: -2 }, width: 2.4 },
     { axis: 'vertical' as const, center: { x: 50, z: 4 }, width: 5 },
   ];

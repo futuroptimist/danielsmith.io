@@ -38,10 +38,10 @@ export const MINIATURE_SCENE_COMPONENT_COVERAGE = [
       'src/scene/structures/residentialExterior.ts',
     ],
     proxyFiles: ['src/scene/miniature/sourceSnapshot.ts'],
-    syncRevision: 15,
+    syncRevision: 17,
     syncNote:
-      'Door headroom and the shelter vertical assembly follow the enlarged player; ' +
-      'shared source keeps the horizontal footprint unchanged.',
+      'The front aperture preserves clearance for staggered inputs and the panel recesses into ' +
+      'the opposite wall segment without changing the surrounding layout.',
   },
   {
     id: 'level:career-museum-layout',

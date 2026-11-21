@@ -61,6 +61,40 @@ neighborhood activation or horizontal redesign is included. Home connection,
 whole-layout query budgets and neighborhood runtime qualification remain separate
 gates; this change does not claim those gates are complete.
 
+## First release scope
+
+The priority for the first release is the larger, faster player with its full
+2.25 m collision diameter, plus dependable entry and exit through the front
+door. The room footprint, physical collisions, and stair/void guards stay
+intact. The front aperture alone increases from 2.40 m to 3.50 m. The authored
+opening drives the wall gap, panel, trim and door collider together. The 2.25 m
+capsule retains 1.25 m of total straight-line clearance. The panel's longer
+travel recesses into the existing wall away from the garage; the surrounding
+opening center and geometry do not change. The automatic front
+door also anticipates an inbound movement path aimed through the usable
+opening. The prediction does not move the player, disable collision or alter
+stair and garage behavior. Broader furniture and circulation changes are
+separate follow-up work.
+
+The traversal suite separates required travel from the accepted temporary
+obstructions. At the north lounge, east lounge and studio reading chair it
+checks the exact blocked approach without losing gait, free movement or a
+safe quality reload. Controller fixtures still exercise successful seating,
+egress, seated reload and reduced-motion transitions. The house journey
+still walks the basement loop and the reachable upper studio in both
+directions; it reports the loft library and the focus pods beyond it as
+unreachable, not traversed. The loft tests check the clear wall opening,
+the named sectional obstruction and a safe retreat with stair guards intact.
+A sidewalk/solid-sedan pass in a targeted run is not proof that the historical
+stall is resolved.
+
+To restore the deferred journeys, clear the full-radius chair approach and
+egress paths and reinstate the browser sit/stand and seated quality-reload
+journeys. Then clear the library route far enough to traverse the library
+and focus pods in both directions and reinstate their full journey assertions.
+Do not remove the interim blocker assertions as a substitute for restoring
+access.
+
 ## Qualification status
 
 The source changes are not ready for merge. The upper landing bench now moves
@@ -103,7 +137,7 @@ pass. The collider redundancy gate inspects 272 colliders with no failures and
 skip; this is not a hardware frame-rate acceptance result. Full traversal remains
 blocked by the library and chair approaches described above.
 
-## Off-axis access and usability
+## Earlier off-axis access checkpoint at 2.40 m
 
 The production-wall regression samples all 13 authored openings in both
 directions, with 0.025 m spacing: centered, 0.05 m lateral offsets, and
@@ -115,7 +149,7 @@ minimum geometric aperture is
 `2 * 1.125 / cos(10 degrees) + 0.50 * tan(10 degrees) + 2 * 0.05`,
 or 2.4728733671 m: about 0.073 m wider than the current opening. This is a
 wall-only lower bound, not a verified whole-scene widening recommendation.
-No doorway width has changed.
+At this checkpoint no doorway width had changed.
 
 Native keyboard maximum-speed checks pass from both directions at all three
 exterior doors with 0.05 m offsets, including reduced-motion variants (12 tests).

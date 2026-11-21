@@ -167,7 +167,7 @@ export function createResidentialExterior(
         'slate',
         d.center.x,
         d.height / 2,
-        d.center.z + d.width + 0.22 + pocketClearance,
+        d.center.z + d.travel + Math.sign(d.travel) * pocketClearance,
         d.depth + 0.14 - pocketClearance * 2,
         d.height + pocketClearance * 2,
         d.width + 0.44,

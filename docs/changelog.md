@@ -10,7 +10,15 @@ may replace it in a future release.
   by 50%, preserving their stride playback ratios. Raised doorways, room ceilings,
   storeys and the bus shelter vertically while retaining horizontal room layouts.
 - Kept rendered doorway trim and wall seam overlap outside authored openings, and
-  made stair descent admission honor the full player radius. Added clearance regressions.
+  made stair descent admission honor the full player radius. Widened only the front
+  aperture to 3.50 m and anticipated angled arrivals without changing collision checks.
+
+- Added informational patch coverage to pull requests without changing site behavior.
+
+- Doubled the portfolio tabletop and miniature while retaining the 1.25 m display
+  surface and grounded stand, with matching collision bounds and kitchen approaches.
+- Registered its model collider before marker-only fallbacks, removing the oversized
+  invisible marker blocker from the table's four approaches.
 
 - Added standard-mapped gamepad movement, camera pan, trigger zoom and nearby interaction,
   with a dedicated Gamepad controls HUD category and safe neutralization after focus loss.

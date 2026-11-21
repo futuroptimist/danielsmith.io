@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
 
 import { getFloorTopElevation } from '../src/scene/level/floorElevations';
-import { FLOOR_SLAB_THICKNESS } from '../src/scene/units';
+import {
+  AVATAR_COLLISION_RADIUS,
+  FLOOR_SLAB_THICKNESS,
+} from '../src/scene/units';
 
 for (const reducedMotion of ['no-preference', 'reduce'] as const) {
   test(`property table and corner shrub (${reducedMotion})`, async ({
@@ -69,6 +72,47 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     const snapshot = await page.evaluate(
       () => window.portfolio!.world!.getMiniatureSnapshot!()!
     );
+    const sourceSize = snapshot.bounds.max.map(
+      (value, axis) => value - snapshot.bounds.min[axis]
+    );
+    const previousScale = Math.min(
+      1.2 / sourceSize[0],
+      0.7 / sourceSize[2],
+      0.9 / sourceSize[1]
+    );
+    expect(snapshot.scale).toBeCloseTo(previousScale * 2, 10);
+    const installationTop = 1.29 + sourceSize[1] * snapshot.scale;
+    expect(installationTop).toBeLessThan(2.0);
+    expect(installationTop).toBeLessThan(2.74);
+    // Probe every side at the actual capsule radius plus 1 cm, as before.
+    const approaches = await page.evaluate((clearance) => {
+      const api = window.portfolio!.debugColliders!;
+      const table = api
+        .getColliders()
+        .find((c) => c.name === 'PortfolioMiniatureTableCollider')!;
+      const b = table.bounds;
+      const x = (b.minX + b.maxX) / 2,
+        z = (b.minZ + b.maxZ) / 2;
+      return [
+        { x: b.minX - clearance, z },
+        { x: b.maxX + clearance, z },
+        { x, z: b.minZ - clearance },
+        { x, z: b.maxZ + clearance },
+      ].map((point) =>
+        api.getBlockingCollidersAt({ ...point, floorId: 'ground' })
+      );
+    }, AVATAR_COLLISION_RADIUS + 0.01);
+    for (const blockers of approaches) expect(blockers).toEqual([]);
+    await testInfo.attach('miniature-fit', {
+      body: JSON.stringify({
+        sourceSize,
+        previousScale,
+        scale: snapshot.scale,
+        installationTop,
+        ceilingClearance: 2.74 - installationTop,
+      }),
+      contentType: 'application/json',
+    });
     expect(snapshot.triangles).toBeLessThan(40000);
     expect(snapshot.drawCalls).toBeLessThanOrEqual(64);
     expect(snapshot.bounds.max[0]).toBeGreaterThan(75 * Math.SQRT1_2);

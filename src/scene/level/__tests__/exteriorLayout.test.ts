@@ -73,7 +73,10 @@ describe('front entry declarative topology', () => {
     expect(door.center.x).toBeCloseTo(32 * Math.SQRT1_2);
     expect(door.center.z).toBeCloseTo(-15 * Math.SQRT1_2);
     expect(door.height).toBeCloseTo(3.15);
-    expect(door.width).toBeCloseTo(2.4);
+    expect(door.width).toBeCloseTo(3.5);
+    expect(door.blockingBounds.maxZ - door.blockingBounds.minZ).toBeCloseTo(
+      door.width
+    );
   });
   it('provides continuous navigable path and a clear planter-free threshold', () => {
     const nav = createNavMesh(FLOOR_PLAN);

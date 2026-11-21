@@ -514,11 +514,11 @@
         "src/scene/structures/residentialStreet.ts"
       ],
       "proxyFiles": ["src/scene/miniature/sourceSnapshot.ts"],
-      "syncRevision": 15,
-      "syncNote": "Door headroom and the shelter vertical assembly follow the enlarged player; shared source keeps the horizontal footprint unchanged.",
-      "sourceFingerprint": "da973742fa69c15b058b61f8a2cb200805fb4965b29c63dc309d0c9a4a169cc5",
+      "syncRevision": 17,
+      "syncNote": "The front aperture preserves clearance for staggered inputs and the panel recesses into the opposite wall segment without changing the surrounding layout.",
+      "sourceFingerprint": "4215b67dcf888f5cf1b9ee1f5842cfbecb22939dfb61e0caa6a09a443103f9ba",
       "proxyFingerprint": "44b0295c6f90f4e3889f210571c535bef268b9ed255cf844957a3e01c7e64f52",
-      "metadataFingerprint": "971c305f35f7c8d8c82206f0647b23b8f3d2cf5a9ef859eb968c99b5ebbf6bd5"
+      "metadataFingerprint": "961c13091ed29f4944eec6cc2e8f150f2f653d7a0fb480c1f19b75ea1ad8f461"
     },
     {
       "id": "level:basement-stairs",
@@ -616,7 +616,7 @@
       "syncRevision": 5,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "70c8d724ae81e49646eb6b5b5f3e596b376a100964a317c8ba9c46355c6ce735",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "ba32027b72bb3ad96df10c1cc0a486f6e84582ccd243fadd214673cbec5ae613"
     },
     {
@@ -631,7 +631,7 @@
       "syncRevision": 12,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "b579d47c44ad9449114a1c8d8ae57c74f993a229a4ed62d26c8c7bde5728a748",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "dfd83605df0c1572dc3e27c83f2dbb4bbe8586a8127ea3efee0aed5e016d8e71"
     },
     {
@@ -649,11 +649,11 @@
         "src/scene/miniature/sourceSnapshot.ts",
         "src/scene/structures/portfolioMiniatureTable.ts"
       ],
-      "syncRevision": 18,
-      "syncNote": "Shared source adds radius-aware stair admission; table proxy dimensions and the recursion boundary remain unchanged.",
-      "sourceFingerprint": "a6fb72995bc49985889b4d97bde0888ce051cfc05802d4b5261277e66d32721f",
-      "proxyFingerprint": "08288a7d8d2320dd8c6ff7cfe26c5bb959b848c8018caff8695e1fc22f462793",
-      "metadataFingerprint": "1c9883be44496ab03d79a31c57d0237037b1ec1bd850fe287ec10ff90d7b4e21"
+      "syncRevision": 19,
+      "syncNote": "The doubled tabletop and model retain the grounded stand and finite self shell. Shared source adds radius-aware stair admission without changing the recursion boundary.",
+      "sourceFingerprint": "f4a166a50524325b88d8dbb9c113f70c60831f38dbeb5daa9284a17829a5824d",
+      "proxyFingerprint": "3f043518279d8e39df69a3a186b2fdde33842a9b0cf84a89ff7ddae32e6fa8a2",
+      "metadataFingerprint": "a90d2a7fdd645bc41bc9e0d33b418c38499a2ae31dafd217ffbea7ca2ff0aeea"
     },
     {
       "id": "poi:dspace-backyard-rocket",
@@ -667,7 +667,7 @@
       "syncRevision": 14,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "3f08d63722c5e9102987590bde504fc8bb406d8a989f328b0f8ade09371e3eb5",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "8028d1ffb74f752a83ad4e56b0613ae6277eaedb6841e7b844b3b7e7cf149c66"
     },
     {
@@ -682,7 +682,7 @@
       "syncRevision": 14,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "b55304c409134079b6d6f118a48efdf81d432b4ffc77888667ec050d18cc260c",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "ef56b3bddbbec1d84459c12a9e9f0b95bddae277baf990c84a2453ab1b8745fb"
     },
     {
@@ -699,7 +699,7 @@
       "syncRevision": 35,
       "syncNote": "Runtime energy-packet connectors and equal-opacity node pairs use instanced draws with unchanged geometry and transfer semantics; the static miniature proxy is unchanged.",
       "sourceFingerprint": "a1fc04f9c489d1b07c78e363af2d61b3117f0eedab8e2e077abfc2aea75056fa",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "757bdc031c5561428928d55f17a12a5d312f467a324176339b93fff33e6f4261"
     },
     {
@@ -714,7 +714,7 @@
       "syncRevision": 13,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "38dfbd3008f4a67ffab010ed72cb6e52acfb795b3bd83f3594e41e59f399333d",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "776fb200daaa1ccdb4e78e714f9661843e3cc1b19fe1a9b16b6f48e77b158696"
     },
     {
@@ -729,7 +729,7 @@
       "syncRevision": 15,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "1c144031e01a78e200de412ecddc518c030e15204865543fc36d2aa9320777b4",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "bbfca6e19b1e0c740ac9f331774e23c1f3e5fa9de84d11153c4fff00dd3af5ed"
     },
     {
@@ -744,7 +744,7 @@
       "syncRevision": 15,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "f3ec55739fffbdeb10d9194a1f4f73d3c0b1a13452b73eabfb8680b00929a91d",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "81730b92590ddcdad52b6add3eb2f3b01e7dccaccfd697aa6c98724861e8d046"
     },
     {
@@ -759,7 +759,7 @@
       "syncRevision": 12,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "129d28c339cf7abd4fd19125a1e999a0a5fea1ed633a8f66745e3fa827f5d855",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "03021ecf11302fefc89ce5caa2844aea75ac998caaa726d11fc60be6f8b1f833"
     },
     {
@@ -795,7 +795,7 @@
       "syncRevision": 27,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "5309aded2f1f4ad18d5b01a54221a88e5528546af26d9aa0aec2841d7417da2b",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "6ea09bbe24f8e34cd80f4865539dab11c7c84242c7c29ff2ddbe920ae91d2ca2"
     },
     {
@@ -810,7 +810,7 @@
       "syncRevision": 14,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "1545c1277b642f59db56c396742faf697f7c0e4f01f377f22b7a123e96c43023",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "342ea00ac1631470bc3e01d0097fae0ac22087bc64f75ff4a408240949563fdc"
     },
     {
@@ -825,7 +825,7 @@
       "syncRevision": 14,
       "syncNote": "Static same-material Sugarkube parts are batched by source identity without changing visible vertices, physical size or pulsing LEDs; the shared snapshot reads the visible batches.",
       "sourceFingerprint": "5d7c49c64b90ff2199d005f997fa9a768483e7a37e6189043235b9accdd5fe17",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "f890c57a1fe8a463ca49344f52e65906468d15132aa58a21af20466ff0e3a2b5"
     },
     {
@@ -850,7 +850,7 @@
       "syncRevision": 12,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "77c4fc2f79a93b523fef4325c7f95f3743f29b455b7cbbda684fd3f5acaed7b9",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "04e1b7cee8ccafe3b187e06406406b78d51438d4c555d6f99460a9d417d6a21d"
     },
     {
@@ -865,7 +865,7 @@
       "syncRevision": 12,
       "syncNote": "Half-area room positions and fitted furnishings flow through the shared snapshot; physical proxy sizes and recursion boundaries are preserved.",
       "sourceFingerprint": "98067de04d16973e2a3a957287563dfe3c9b245162883518f45661ff9832af0b",
-      "proxyFingerprint": "495ab4dfc20fe41f6279ec929ca9f49b7e170c47e94feadf974d893e54f56ed6",
+      "proxyFingerprint": "7cb7dcccaae5ff8f5aaee95967ed915327c7c89588129ad5c199c9527ee23924",
       "metadataFingerprint": "e2551675a8307d68024845a69258bfbd32e5c5e440a7ffe8aba89d20a461463c"
     },
     {

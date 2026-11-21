@@ -67,7 +67,7 @@ underside was 5.69 m (the old factory default of 0.30 was not the runtime overri
 | Ordinary room openings          | 8 m wide                                          | 2.4 m wide                                          |
 | Workshop bench surface          | about 1.71 m                                      | about 0.855 m                                       |
 | Workshop band saw / drill press | 3.50 / 3.20 m                                     | 1.75 / 1.60 m                                       |
-| Miniature table top             | 4.35 x 3.90 m; centre 1.32 m                      | 1.40 x 0.90 m; finished surface 1.25 m              |
+| Miniature table top             | 4.35 x 3.90 m; centre 1.32 m                      | 2.80 x 1.80 m; finished surface 1.25 m              |
 | Selfie mirror frame             | 3.40 x 4.10 m                                     | 1.70 x 2.05 m                                       |
 
 The upper flight ends at z=-15.414928. Its 6.576093 m level corridor connects the
@@ -182,10 +182,12 @@ within its existing shared wall to clear the preserved-width stair rail.
 
 POI positions and interaction anchors follow the same plan transform. Token.place
 and Sugarkube move an additional 1 m and 3.5 m along Z to keep their current-size
-exhibits accessible. This change does not resize any POI. A 2.8 by 1.8 m future
-portfolio tabletop plus a 0.75 m approach envelope is reserved in the kitchen;
-its separate size change keeps the stand at its existing height while enlarging
-the tabletop and miniature. Recursive miniature
+exhibits accessible. The portfolio tabletop now occupies the reserved 2.8 by 1.8 m
+footprint plus a 0.75 m approach envelope in the kitchen. Its surface remains at
+1.25 m and its stand remains grounded. The 2.4 by 1.4 m model bed doubles the
+current miniature uniformly; the retained 0.9 m height-fit cap is checked against
+the production source bounds so it cannot silently prevent the requested doubling.
+The miniature player uses that same transform once. Recursive miniature
 geometry is rebuilt from the transformed world through its existing fitting path.
 
 The denser launch view exposes more of the unchanged Sugarkube installation.

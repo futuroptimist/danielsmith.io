@@ -75,13 +75,14 @@ describe('metre-scaled room assemblies', () => {
     }
   });
 
-  it('retains authored aperture widths and fits the taller player through doors with physical head clearance', () => {
+  it('keeps the front-entry width exception and fits the taller player through doors with head clearance', () => {
     const doors = [
       ...createExteriorDoorDefinitions(FLOOR_PLAN_SCALE),
       ...createGarageDoorDefinitions(FLOOR_PLAN_SCALE),
     ];
+    const widths = { 'front-door': 3.5, 'garage-door': 5 };
     for (const door of doors) {
-      expect(door.width).toBe(door.id === 'garage-door' ? 5 : 2.4);
+      expect(door.width).toBe(widths[door.id as keyof typeof widths] ?? 2.4);
       expect(AVATAR_COLLISION_RADIUS).toBe(1.125);
       expect(door.height).toBeGreaterThan(TARGET_AVATAR_HEIGHT);
       expect(door.height).toBeLessThan(4.11);
