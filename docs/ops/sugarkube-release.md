@@ -1,5 +1,7 @@
 # Sugarkube GHCR/Helm release runbook for danielsmith.io
 
+For a credential-free build artifact only, see [Main Preview candidate build](main-preview-candidate.md).
+
 Use this runbook to release `danielsmith.io` to Sugarkube without local image builds. The
 application remains a static Vite/Three.js site served by nginx on port `8080`; it exposes
 `/livez` and `/healthz` and does not include any backend, database, API, queue, or compute-node
