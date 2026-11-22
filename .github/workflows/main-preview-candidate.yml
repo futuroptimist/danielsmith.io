@@ -1,0 +1,58 @@
+name: Main Preview candidate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      MAIN_PREVIEW_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out the exact source commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20.20.2'
+      - name: Install dependencies and browser
+        run: |
+          npm ci
+          npx --no-install playwright install --with-deps chromium-headless-shell
+      - name: Validate bundle preparation and rejection cases
+        run: npx --no-install vitest run scripts/__tests__/mainPreviewBundle.test.ts
+      - name: Build and stage the byte-checked candidate
+        run: |
+          test "$(git rev-parse HEAD)" = "$MAIN_PREVIEW_SHA"
+          git diff --quiet HEAD --
+          bundle="$RUNNER_TEMP/main-preview-bundle"
+          npm run smoke
+          git diff --quiet HEAD --
+          node .github/scripts/main-preview-bundle.cjs prepare "$MAIN_PREVIEW_SHA" dist "$bundle"
+          printf 'MAIN_PREVIEW_BUNDLE=%s\nMAIN_PREVIEW_SITE_DIR=%s/site\n' "$bundle" "$bundle" >> "$GITHUB_ENV"
+      - name: Smoke the staged static output
+        run: npx --no-install playwright test --config playwright.main-preview.config.ts
+      - name: Recheck and package exactly the smoked files
+        run: |
+          node .github/scripts/main-preview-bundle.cjs verify "$MAIN_PREVIEW_SHA" "$MAIN_PREVIEW_BUNDLE"
+          archive="$RUNNER_TEMP/main-preview.tar.gz"
+          tar -czf "$archive" -C "$MAIN_PREVIEW_BUNDLE" site SHA256SUMS.json
+          extracted="$(mktemp -d "$RUNNER_TEMP/main-preview-verification.XXXXXXXX")"
+          tar -xzf "$archive" -C "$extracted"
+          node .github/scripts/main-preview-bundle.cjs verify "$MAIN_PREVIEW_SHA" "$extracted"
+      - name: Retain candidate bundle in this CI run only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: main-preview-candidate-${{ env.MAIN_PREVIEW_SHA }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/main-preview.tar.gz
+          if-no-files-found: error
+          retention-days: 14
