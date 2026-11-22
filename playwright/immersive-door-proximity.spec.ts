@@ -86,9 +86,13 @@ for (const door of approaches) {
           });
           await waitForApproachOpen(page, 'house-garage-door');
         }
-        await walkExteriorTo(page, { x: door.x - 3, z: door.z });
+        await walkExteriorTo(page, { x: door.x - 3, z: door.z + side * 0.05 });
         await waitForApproachOpen(page, door.id);
-        if (side > 0) await walkExteriorTo(page, { x: door.x + 3, z: door.z });
+        if (side > 0)
+          await walkExteriorTo(page, {
+            x: door.x + 3,
+            z: door.z + side * 0.05,
+          });
         // Close from a valid approach, then retreat through real movement. The
         // measured crossing starts with a closed door and never uses Interact.
         await page
@@ -99,7 +103,10 @@ for (const door of approaches) {
           await page.screenshot({
             path: test.info().outputPath('garage-closed-panel-cutaway.png'),
           });
-        await walkExteriorTo(page, { x: door.x + side * 6, z: door.z });
+        await walkExteriorTo(page, {
+          x: door.x + side * 6,
+          z: door.z + side * 0.05,
+        });
         await waitDoor(page, door.id, 'closed');
         await page.locator('#app canvas').focus();
         await selectNativeRunGait(page);
@@ -193,5 +200,119 @@ for (const door of approaches) {
         expect(state.floor).toBe('ground');
       });
     }
+  }
+}
+
+for (const side of [-1, 1]) {
+  const keys = side < 0 ? ['KeyS', 'KeyD'] : ['KeyW', 'KeyA'];
+  for (const leadKey of keys) {
+    test(`front-door native chord tolerates one coarse frame with ${leadKey} first from ${side}`, async ({
+      page,
+    }) => {
+      test.setTimeout(120_000);
+      await page.clock.install();
+      await readyExterior(
+        page,
+        '/?mode=immersive&disablePerformanceFailover=1&softwareRendererMode=continuous'
+      );
+      const door = approaches.find(({ id }) => id === 'front-door')!;
+      const trailingKey = keys.find((key) => key !== leadKey)!;
+      const zDirection = leadKey === 'KeyS' || leadKey === 'KeyA' ? 1 : -1;
+      const start = { x: door.x + side * 6, z: door.z + zDirection * 0.05 };
+      // Move to a valid entry side and manually close before retreat, as in
+      // the real-time test. The measured crossing itself is native keys only.
+      await walkExteriorTo(page, { x: door.x - 3, z: start.z });
+      await waitForApproachOpen(page, door.id);
+      if (side > 0) await walkExteriorTo(page, { x: door.x + 3, z: start.z });
+      await page
+        .locator(`[data-exterior-door-control][data-door-id="${door.id}"]`)
+        .click();
+      await waitDoor(page, door.id, 'closed');
+      await walkExteriorTo(page, start);
+      await waitDoor(page, door.id, 'closed');
+      await page.locator('#app canvas').focus();
+      await selectNativeRunGait(page);
+
+      const session = await page.context().newCDPSession(page);
+      const nativeKey = (code: string, type: 'keyDown' | 'keyUp') =>
+        session.send('Input.dispatchKeyEvent', {
+          code,
+          key: code.slice(3).toLowerCase(),
+          windowsVirtualKeyCode: code.charCodeAt(3),
+          type,
+          ...(type === 'keyDown'
+            ? { text: code.slice(3).toLowerCase(), autoRepeat: false }
+            : {}),
+        });
+      const readPose = () =>
+        page.evaluate(() => window.portfolio!.world!.getPlayerPosition());
+      const readClock = await page.evaluate(() => Date.now());
+      await page.clock.pauseAt(readClock + 100);
+      await recordDoorMotion(page, door.id);
+      await page.clock.runFor(48);
+      const frame = await page.evaluate(() => {
+        const samples = window.exteriorDoorMotion!.samples;
+        return {
+          count: samples.length,
+          sinceLast: performance.now() - samples.at(-1)!.time,
+        };
+      });
+      const before = await readPose();
+      expect(before.z).toBeCloseTo(start.z, 5);
+      let lead: Awaited<ReturnType<typeof readPose>>;
+      try {
+        await nativeKey(leadKey, 'keyDown');
+        // Advance one coarse RAF rather than sleeping for an unknown number of
+        // frames. Movement and collision still use the standard app loop.
+        await page.clock.fastForward(100 - Math.round(frame.sinceLast));
+        lead = await readPose();
+        const leadSamples = await page.evaluate(
+          () => window.exteriorDoorMotion!.samples.length
+        );
+        expect(leadSamples).toBe(frame.count + 1);
+        expect((lead.x - before.x) * -side).toBeGreaterThan(0.15);
+        expect((lead.z - before.z) * zDirection).toBeGreaterThan(0.15);
+        await nativeKey(trailingKey, 'keyDown');
+        await page.clock.runFor(runHoldForDistance(12));
+      } finally {
+        try {
+          await Promise.all([
+            nativeKey(leadKey, 'keyUp'),
+            nativeKey(trailingKey, 'keyUp'),
+          ]);
+        } finally {
+          await session.detach();
+        }
+      }
+      const endpoint = await readPose();
+      await page.clock.runFor(1200);
+      const motion = await page.evaluate(() => {
+        const record = window.exteriorDoorMotion!;
+        record.running = false;
+        return record.samples;
+      });
+      const evidencePath = test
+        .info()
+        .outputPath('staggered-front-door-motion.json');
+      writeFileSync(
+        evidencePath,
+        JSON.stringify({
+          side,
+          leadKey,
+          trailingKey,
+          before,
+          lead,
+          endpoint,
+          motion,
+        })
+      );
+      await test.info().attach('staggered-front-door-motion', {
+        path: evidencePath,
+        contentType: 'application/json',
+      });
+      expect(motion[0].door.state).toBe('closed');
+      expect((endpoint.x - door.x) * -side).toBeGreaterThan(3);
+      expect(validateDoorMotion(motion, door, false)).toHaveLength(1);
+    });
   }
 }

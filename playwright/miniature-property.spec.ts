@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
 
 import { getFloorTopElevation } from '../src/scene/level/floorElevations';
-import { FLOOR_SLAB_THICKNESS } from '../src/scene/units';
+import {
+  AVATAR_COLLISION_RADIUS,
+  FLOOR_SLAB_THICKNESS,
+} from '../src/scene/units';
 
 for (const reducedMotion of ['no-preference', 'reduce'] as const) {
   test(`property table and corner shrub (${reducedMotion})`, async ({
@@ -81,7 +84,8 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     const installationTop = 1.29 + sourceSize[1] * snapshot.scale;
     expect(installationTop).toBeLessThan(2.0);
     expect(installationTop).toBeLessThan(2.74);
-    const approaches = await page.evaluate(() => {
+    // Probe every side at the actual capsule radius plus 1 cm, as before.
+    const approaches = await page.evaluate((clearance) => {
       const api = window.portfolio!.debugColliders!;
       const table = api
         .getColliders()
@@ -90,14 +94,14 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       const x = (b.minX + b.maxX) / 2,
         z = (b.minZ + b.maxZ) / 2;
       return [
-        { x: b.minX - 0.76, z },
-        { x: b.maxX + 0.76, z },
-        { x, z: b.minZ - 0.76 },
-        { x, z: b.maxZ + 0.76 },
+        { x: b.minX - clearance, z },
+        { x: b.maxX + clearance, z },
+        { x, z: b.minZ - clearance },
+        { x, z: b.maxZ + clearance },
       ].map((point) =>
         api.getBlockingCollidersAt({ ...point, floorId: 'ground' })
       );
-    });
+    }, AVATAR_COLLISION_RADIUS + 0.01);
     for (const blockers of approaches) expect(blockers).toEqual([]);
     await testInfo.attach('miniature-fit', {
       body: JSON.stringify({

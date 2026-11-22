@@ -79,19 +79,41 @@ function createWallInstance(
     ? (options.interiorExtensionFactor ?? DEFAULT_INTERIOR_EXTENSION)
     : (options.exteriorExtensionFactor ?? DEFAULT_EXTERIOR_EXTENSION);
   const extension = thickness * extensionFactor;
+  const run = segment.sourceWall.run;
+  const runLength = run
+    ? Math.hypot(run.end.x - run.start.x, run.end.z - run.start.z)
+    : 0;
+  const atGapEdge = (point: { x: number; z: number }) =>
+    run &&
+    runLength > 0 &&
+    run.gaps?.some((gap) =>
+      [gap.start, gap.end].some((distance) => {
+        const edge = interpolate(run, distance / runLength);
+        return (
+          Math.abs(point.x - edge.x) < 0.001 &&
+          Math.abs(point.z - edge.z) < 0.001
+        );
+      })
+    );
+  // Preserve corner overlap, but keep rendered and collision wall ends outside
+  // the source aperture. Otherwise overlap silently narrows a 2.4m door to 2.15m.
+  const startExtension = atGapEdge(segment.start) ? 0 : extension / 2;
+  const endExtension = atGapEdge(segment.end) ? 0 : extension / 2;
+  const extendedLength = length + startExtension + endExtension;
+  const centerShift = (endExtension - startExtension) / 2;
 
   const width =
-    segment.orientation === 'horizontal' ? length + extension : thickness;
+    segment.orientation === 'horizontal' ? extendedLength : thickness;
   const depth =
-    segment.orientation === 'horizontal' ? thickness : length + extension;
+    segment.orientation === 'horizontal' ? thickness : extendedLength;
   const baseX =
     segment.orientation === 'horizontal'
-      ? (segment.start.x + segment.end.x) / 2
+      ? (segment.start.x + segment.end.x) / 2 + centerShift
       : segment.start.x;
   const baseZ =
     segment.orientation === 'horizontal'
       ? segment.start.z
-      : (segment.start.z + segment.end.z) / 2;
+      : (segment.start.z + segment.end.z) / 2 + centerShift;
 
   let offsetX = 0;
   let offsetZ = 0;

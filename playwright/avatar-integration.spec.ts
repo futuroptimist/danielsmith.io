@@ -1,7 +1,62 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const url = '/?mode=immersive&disablePerformanceFailover=1';
-test('approved avatar loads, gait toggles and nearby lounge seating exits safely', async ({
+const northLoungeApproach = {
+  x: -28.5 * Math.SQRT1_2 + 0.3 - 1.63,
+  z: -22.8 * Math.SQRT1_2 - 0.9,
+};
+
+async function expectBlockedSeatApproach(
+  page: Page,
+  position: { x: number; z: number },
+  furnishing: string
+) {
+  const target = { ...position, floorId: 'ground' as const };
+  const before = await page.evaluate((p) => {
+    const { world, debugColliders } = window.portfolio!;
+    debugColliders!.setEnabled(true);
+    return {
+      position: world!.getPlayerPosition(),
+      canOccupy: world!.canOccupyPosition(p),
+      blockers: debugColliders!.getBlockingCollidersAt(p).map((c) => c.name),
+    };
+  }, target);
+  expect(before.canOccupy).toBe(false);
+  expect(before.blockers).toContain(
+    `LowerFloorFurnishingCollider:${furnishing}`
+  );
+  await expect(() =>
+    page.evaluate((p) => window.portfolio!.world!.movePlayerTo(p), target)
+  ).rejects.toThrow(/Cannot occupy/);
+  expect(
+    await page.evaluate(() => ({
+      position: window.portfolio!.world!.getPlayerPosition(),
+      floor: window.portfolio!.world!.getActiveFloor(),
+      seating: window.portfolio!.avatar!.getSeatingState!().phase,
+    }))
+  ).toEqual({ position: before.position, floor: 'ground', seating: 'free' });
+}
+
+async function expectFreeGroundMovement(page: Page) {
+  const before = await page.evaluate(() =>
+    window.portfolio!.world!.getPlayerPosition()
+  );
+  await page.keyboard.down('w');
+  try {
+    await expect
+      .poll(() =>
+        page.evaluate((start) => {
+          const p = window.portfolio!.world!.getPlayerPosition();
+          return Math.hypot(p.x - start.x, p.z - start.z);
+        }, before)
+      )
+      .toBeGreaterThan(0.1);
+  } finally {
+    await page.keyboard.up('w');
+  }
+}
+
+test('approved avatar loads, gait toggles and the blocked north lounge approach is rejected', async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -75,41 +130,16 @@ test('approved avatar loads, gait toggles and nearby lounge seating exits safely
     'walk'
   );
   await reportLock(false);
-  await page.evaluate(() =>
-    window.portfolio?.world?.movePlayerTo({
-      x: -28.5 * Math.SQRT1_2 + 0.3 - 1.63,
-      z: -22.8 * Math.SQRT1_2 - 0.9,
-      floorId: 'ground',
-    })
+  await expectBlockedSeatApproach(
+    page,
+    northLoungeApproach,
+    'living-room-tv-pothos-left'
   );
-  const chair = page.locator('[data-avatar-chair-control]');
-  await expect(chair).toBeVisible();
-  await chair.click();
-  await expect
-    .poll(
-      () =>
-        page.evaluate(
-          () => window.portfolio?.avatar?.getSeatingState?.().phase
-        ),
-      { timeout: 15_000 }
-    )
-    .toBe('seated');
-  await page.screenshot({ path: 'test-results/avatar-seated.png' });
-  await chair.click();
-  await expect
-    .poll(
-      () =>
-        page.evaluate(
-          () => window.portfolio?.avatar?.getSeatingState?.().phase
-        ),
-      { timeout: 15_000 }
-    )
-    .toBe('free');
-  await page.screenshot({ path: 'test-results/avatar-standing.png' });
+  await expectFreeGroundMovement(page);
   expect(errors).toEqual([]);
 });
 
-test('changing quality while seated reloads at a clear standing position', async ({
+test('changing quality reloads at a clear standing position while a lounge approach is blocked', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -122,19 +152,11 @@ test('changing quality while seated reloads at a clear standing position', async
     { timeout: 60_000 }
   );
   await page.keyboard.press('Escape');
-  await page.evaluate(() =>
-    window.portfolio!.world!.movePlayerTo({
-      x: -28.5 * Math.SQRT1_2 + 0.3 - 1.63,
-      z: -22.8 * Math.SQRT1_2 - 0.9,
-      floorId: 'ground',
-    })
+  await expectBlockedSeatApproach(
+    page,
+    northLoungeApproach,
+    'living-room-tv-pothos-left'
   );
-  await page.locator('[data-avatar-chair-control]').click();
-  await expect
-    .poll(() =>
-      page.evaluate(() => window.portfolio?.avatar?.getSeatingState?.().phase)
-    )
-    .toBe('seated');
   await Promise.all([
     page.waitForEvent('load'),
     page.evaluate(() => {
@@ -160,22 +182,16 @@ test('changing quality while seated reloads at a clear standing position', async
     )
   ).toBe('free');
   await page.keyboard.press('Escape');
-  const before = await page.evaluate(() =>
-    window.portfolio!.world!.getPlayerPosition()
-  );
-  await page.keyboard.down('w');
-  try {
-    await expect
-      .poll(() =>
-        page.evaluate((start) => {
-          const p = window.portfolio!.world!.getPlayerPosition();
-          return Math.hypot(p.x - start.x, p.z - start.z);
-        }, before)
-      )
-      .toBeGreaterThan(0.1);
-  } finally {
-    await page.keyboard.up('w');
-  }
+  expect(
+    await page.evaluate(() => {
+      const world = window.portfolio!.world!;
+      return world.canOccupyPosition({
+        ...world.getPlayerPosition(),
+        floorId: 'ground',
+      });
+    })
+  ).toBe(true);
+  await expectFreeGroundMovement(page);
 });
 
 test('asset failure keeps the existing mannequin available', async ({
@@ -346,7 +362,7 @@ test('leaving immersive mode during avatar loading does not attach to a disposed
   expect(errors).toEqual([]);
 });
 
-test('reduced motion supports the other lounge and reading chair without trapping movement', async ({
+test('reduced motion retains free movement when the east lounge and reading-chair approaches are blocked', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -357,30 +373,17 @@ test('reduced motion supports the other lounge and reading chair without trappin
         ?.loaded
   );
   await page.keyboard.press('Escape');
-  for (const point of [
+  await expectBlockedSeatApproach(
+    page,
     { x: -26.1 * Math.SQRT1_2 - 1.63, z: -15.9 * Math.SQRT1_2 + 0.55 },
+    'living-room-floor-lamp'
+  );
+  await expectBlockedSeatApproach(
+    page,
     { x: 22.2 * Math.SQRT1_2 - 1.52, z: 12.6 * Math.SQRT1_2 - 1.1 },
-  ]) {
-    await page.evaluate(
-      (p) => window.portfolio?.world?.movePlayerTo({ ...p, floorId: 'ground' }),
-      point
-    );
-    const chair = page.locator('[data-avatar-chair-control]');
-    await expect(chair).toBeVisible();
-    await chair.click();
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.portfolio?.avatar?.getSeatingState?.().phase)
-      )
-      .toBe('seated');
-    await page.keyboard.down('w');
-    await expect
-      .poll(() =>
-        page.evaluate(() => window.portfolio?.avatar?.getSeatingState?.().phase)
-      )
-      .toBe('free');
-    await page.keyboard.up('w');
-  }
+    'studio-round-side-table'
+  );
+  await expectFreeGroundMovement(page);
 });
 
 test('delayed avatar fades in while movement and Caps Lock gait survive the handoff', async ({

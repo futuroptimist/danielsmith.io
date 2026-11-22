@@ -7,10 +7,7 @@ import {
   GARAGE_OBJECTS,
   createGarageDoorDefinitions,
 } from './garageLayout';
-import {
-  HOUSE_HORIZONTAL_SCALE,
-  PLAN_TO_WORLD_SCALE,
-} from './horizontalFootprint';
+import { PLAN_TO_WORLD_SCALE } from './horizontalFootprint';
 import type {
   FloorSurfaceDefinition,
   SceneObjectDefinition,
@@ -32,10 +29,12 @@ export const HOUSE_CAMERA_OUTLINE: Array<[number, number]> = [
   [16, 16],
   [-16, 16],
 ];
+const FRONT_ENTRY_WORLD_WIDTH = 3.5;
 export const FRONT_ENTRY = {
   x: 16,
   z: -7.5,
-  width: 1.2 / HOUSE_HORIZONTAL_SCALE,
+  // Only this aperture grows for angled entry by the full-size capsule.
+  width: FRONT_ENTRY_WORLD_WIDTH / PLAN_TO_WORLD_SCALE,
   height: DOOR_CLEAR_HEIGHT,
 } as const;
 // A distinct interior approach east of the existing solid stair guard.
@@ -184,7 +183,9 @@ export function createExteriorDoorDefinitions(
 ): DoorDefinition[] {
   const x = FRONT_ENTRY.x * scale;
   const z = FRONT_ENTRY.z * scale;
-  const width = FRONT_ENTRY.width * scale;
+  const width = FRONT_ENTRY_WORLD_WIDTH * (scale / PLAN_TO_WORLD_SCALE);
+  // The longer panel parks in the uninterrupted wall away from the garage.
+  const travel = -(width + 0.22);
   const blockingBounds = {
     minX: x - 0.18,
     maxX: x + 0.18,
@@ -201,13 +202,14 @@ export function createExteriorDoorDefinitions(
       width,
       height: FRONT_ENTRY.height,
       depth: 0.36,
-      travel: width + 0.22,
+      travel,
       duration: 0.85,
       clearanceProgress: 1,
       automatic: true,
+      anticipateAngledApproach: true,
       blockingBounds,
       threshold: { ...blockingBounds, minX: x - 1.2, maxX: x + 1.2 },
-      sweep: { ...blockingBounds, maxZ: z + width * 1.5 + 0.22 },
+      sweep: { ...blockingBounds, minZ: blockingBounds.minZ + travel },
     },
     ...createGarageDoorDefinitions(scale),
   ];

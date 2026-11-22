@@ -5,6 +5,7 @@ import { source as axeSource } from 'axe-core';
 
 import { EXTERIOR_LOCALE_COPY } from '../src/assets/i18n/exterior';
 import type { StreetSnapshot } from '../src/scene/structures/residentialStreet';
+import { AVATAR_COLLISION_RADIUS } from '../src/scene/units';
 
 import {
   injectExteriorInitializationFailure,
@@ -241,7 +242,17 @@ test(streetCaseTitle2, async ({ page }) => {
   test.setTimeout(150000);
   await readyExterior(page);
   await exitHouse(page);
-  await walkExteriorTo(page, { x: 61 * Math.SQRT1_2, z: -20 * Math.SQRT1_2 });
+  const carBounds = await page.evaluate(() => {
+    const debug = window.portfolio!.debugColliders!;
+    debug.setEnabled(true);
+    return debug
+      .getColliders()
+      .find((c) => c.name.includes('parked-sedan-body'))!.bounds;
+  });
+  await walkExteriorTo(page, {
+    x: carBounds.minX - AVATAR_COLLISION_RADIUS - 0.5,
+    z: (carBounds.minZ + carBounds.maxZ) / 2,
+  });
   const before = await page.evaluate(() =>
     window.portfolio!.world!.getPlayerPosition()
   );
@@ -252,7 +263,9 @@ test(streetCaseTitle2, async ({ page }) => {
     window.portfolio!.world!.getPlayerPosition()
   );
   expect(stopped.x).toBeGreaterThan(before.x);
-  expect(stopped.x).toBeLessThan(63.05 * Math.SQRT1_2);
+  expect(stopped.x).toBeLessThanOrEqual(
+    carBounds.minX - AVATAR_COLLISION_RADIUS
+  );
   expect(
     await page.evaluate(() =>
       window.portfolio!.world!.canOccupyPosition({
@@ -369,7 +382,16 @@ test('checks street lighting and shelter at normal, minimum and maximum zoom', a
     path: test.info().outputPath('street-maximum-zoom.png'),
   });
   for (let i = 0; i < 9; i++) await page.keyboard.press('Shift+Minus');
-  await walkExteriorTo(page, { x: 50 * Math.SQRT1_2, z: 32 * Math.SQRT1_2 });
+  const shelterBench = await page.evaluate(() => {
+    const debug = window.portfolio!.debugColliders!;
+    debug.setEnabled(true);
+    return debug.getColliders().find((c) => c.name.includes('shelter-bench'))!
+      .bounds;
+  });
+  await walkExteriorTo(page, {
+    x: shelterBench.maxX + AVATAR_COLLISION_RADIUS + 0.15,
+    z: (shelterBench.minZ + shelterBench.maxZ) / 2,
+  });
   await page.screenshot({
     path: test.info().outputPath('shelter-interior-cutaway.png'),
   });

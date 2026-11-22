@@ -6,6 +6,13 @@ may replace it in a future release.
 
 ## v0.3.2 - unreleased
 
+- Enlarged the player uniformly by 50% and increased both walking and running speed
+  by 50%, preserving their stride playback ratios. Raised doorways, room ceilings,
+  storeys and the bus shelter vertically while retaining horizontal room layouts.
+- Kept rendered doorway trim and wall seam overlap outside authored openings, and
+  made stair descent admission honor the full player radius. Widened only the front
+  aperture to 3.50 m and anticipated angled arrivals without changing collision checks.
+
 - Added informational patch coverage to pull requests without changing site behavior.
 
 - Doubled the portfolio tabletop and miniature while retaining the 1.25 m display

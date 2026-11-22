@@ -1553,7 +1553,8 @@ const FURNITURE_FIT_OFFSETS: Record<string, { x: number; z: number }> = {
   'backyard-rock-garden-gravel': { x: 0, z: -0.7 },
   'backyard-planter-west-north': { x: 0, z: -0.9 },
   'backyard-planter-east-north': { x: 0, z: -0.9 },
-  'upper-landing-bench': { x: 0, z: -0.25 },
+  // Preserve the west doorway approach for the enlarged capsule (0.34m south).
+  'upper-landing-bench': { x: 0, z: -0.59 },
   'creators-studio-floor-plant': { x: -1.2, z: 0 },
   'creators-studio-work-cabinet': { x: 0, z: 1.7 },
   'loft-library-reading-lamp': { x: 0, z: 1.6 },

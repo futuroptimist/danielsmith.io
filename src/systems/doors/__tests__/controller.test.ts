@@ -72,7 +72,7 @@ describe('source-backed door controller', () => {
   it.each([
     occupied,
     { ...occupied, x: 32.8 },
-    { ...occupied, z: definition.center.z + definition.width },
+    { ...occupied, z: definition.center.z + definition.travel },
   ])(
     'reopens occupied thresholds and panel sweeps before enabling a collider',
     (person) => {

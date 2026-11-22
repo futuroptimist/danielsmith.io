@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { FLOOR_PLAN_SCALE } from '../../../assets/floorPlan';
 import { PORTFOLIO_LEVEL } from '../../../scene/level/portfolioLevel';
+import { AVATAR_COLLISION_RADIUS } from '../../../scene/units';
 import { houseShellGeometry, measureExteriorMassing } from '../grayboxMassing';
 import {
   renderGraybox,
@@ -232,15 +233,20 @@ describe('review-only scaled neighborhood', () => {
       qualifyRoute({ ...layout, zones: [] }, [line.a, line.b]).qualified
     ).toBe(false);
   });
-  it('keeps the centre and both passing lanes through all 24 lot approaches', () => {
+  it('qualifies single-file approaches but rejects the old passing lanes for the enlarged player', () => {
     for (const lot of layout.lots) {
       const sign = Math.sign(lot.path.b.x - lot.path.a.x);
       for (const offset of [-0.85, 0, 0.85]) {
         const points = [
-          { x: lot.door.x + sign * 0.95, z: lot.door.z + offset },
+          {
+            x: lot.door.x + sign * (AVATAR_COLLISION_RADIUS + 0.2),
+            z: lot.door.z + offset,
+          },
           { ...lot.path.b, z: lot.path.b.z + offset },
         ];
-        expect(qualifyRoute(layout, points, false, 4).qualified).toBe(true);
+        expect(qualifyRoute(layout, points, false, 4).qualified).toBe(
+          offset === 0
+        );
       }
     }
   });

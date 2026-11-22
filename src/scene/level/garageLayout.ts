@@ -1,5 +1,9 @@
 import type { DoorDefinition } from '../../systems/doors/controller';
-import { DOOR_CLEAR_HEIGHT, TARGET_AVATAR_HEIGHT } from '../units';
+import {
+  DOOR_CLEAR_HEIGHT,
+  TARGET_AVATAR_HEIGHT,
+  PLAYER_SIZE_MULTIPLIER,
+} from '../units';
 
 import {
   HOUSE_HORIZONTAL_SCALE,
@@ -23,8 +27,8 @@ export const GARAGE_DOOR = {
   x: 25,
   z: 2,
   width: 2.5 / HOUSE_HORIZONTAL_SCALE,
-  height: 2.4,
-  minimumHeadroom: TARGET_AVATAR_HEIGHT + 0.15,
+  height: 2.4 * PLAYER_SIZE_MULTIPLIER,
+  minimumHeadroom: TARGET_AVATAR_HEIGHT + 0.15 * PLAYER_SIZE_MULTIPLIER,
 } as const;
 export const GARAGE_ROOMS: SemanticRoomDefinition[] = [
   {

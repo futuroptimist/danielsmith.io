@@ -566,9 +566,10 @@ export const MINIATURE_POI_PROXY_REGISTRY = {
     id: 'poi:danielsmith-portfolio-table',
     displayName: 'danielsmith.io recursion boundary table proxy',
     recursionBoundary: true,
-    syncRevision: 18,
+    syncRevision: 19,
     syncNote:
-      'The tabletop and model bed double horizontally at the existing stand height; the finite self shell follows the shared dimensions and world-to-table transform once.',
+      'The doubled tabletop and model retain the grounded stand and finite self shell. ' +
+      'Shared source adds radius-aware stair admission without changing the recursion boundary.',
     sourceFiles: [
       ...baseFiles,
       'src/scene/structures/selfieMirror.ts',

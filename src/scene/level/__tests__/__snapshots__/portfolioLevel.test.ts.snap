@@ -31,8 +31,8 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": undefined,
       "doorways": [
         {
-          "end": -6.651471862576,
-          "start": -8.348528137424,
+          "end": -6.262563132924,
+          "start": -8.737436867076,
           "wall": "east",
         },
         {
@@ -239,8 +239,8 @@ exports[`PORTFOLIO_LEVEL > compiles compatibility room bounds and doorways for t
       "category": "exterior",
       "doorways": [
         {
-          "end": -6.651471862576,
-          "start": -8.348528137424,
+          "end": -6.262563132924,
+          "start": -8.737436867076,
           "wall": "west",
         },
       ],
@@ -882,7 +882,7 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
   {
     "end": {
       "x": 22.627,
-      "z": -9.406601717798011,
+      "z": -8.856601717798862,
     },
     "orientation": "vertical",
     "rooms": [
@@ -890,13 +890,13 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     ],
     "start": {
       "x": 22.627,
-      "z": -11.806601717798415,
+      "z": -12.356601717797565,
     },
   },
   {
     "end": {
       "x": 22.627,
-      "z": -11.806601717798415,
+      "z": -12.356601717797565,
     },
     "orientation": "vertical",
     "rooms": [
@@ -967,7 +967,7 @@ exports[`PORTFOLIO_LEVEL > keeps current generated wall bounds stable for compat
     ],
     "start": {
       "x": 22.627,
-      "z": -9.406601717798011,
+      "z": -8.856601717798862,
     },
   },
   {

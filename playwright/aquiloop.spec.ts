@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 
+import { AQUILOOP_BOUNDS } from '../src/scene/structures/aquiloopAquarium';
+import { AVATAR_COLLISION_RADIUS } from '../src/scene/units';
+
 test('aquarium approach, collision, accessible pause and property budgets', async ({
   page,
 }) => {
@@ -10,8 +13,13 @@ test('aquarium approach, collision, accessible pause and property budgets', asyn
   );
   const safe = page.locator('[data-action="continue-safe-immersive"]');
   if (await safe.isVisible()) await safe.click();
-  await page.evaluate(() =>
-    window.portfolio!.world!.movePlayerTo({ x: -4, z: -28 * Math.SQRT1_2 + 2 })
+  await page.evaluate(
+    ({ radius, halfDepth }) =>
+      window.portfolio!.world!.movePlayerTo({
+        x: -4,
+        z: -28 * Math.SQRT1_2 + halfDepth + radius + 0.15,
+      }),
+    { radius: AVATAR_COLLISION_RADIUS, halfDepth: AQUILOOP_BOUNDS.depth / 2 }
   );
   const route = await page.evaluate(() => {
     const world = window.portfolio!.world!;

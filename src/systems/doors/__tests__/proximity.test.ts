@@ -388,3 +388,74 @@ describe.each(createExteriorDoorDefinitions(2))(
     });
   }
 );
+
+describe('front-door angled anticipation', () => {
+  const definition = createExteriorDoorDefinitions().find(
+    ({ id }) => id === 'front-door'
+  )!;
+
+  it.each([-1, 1])(
+    'clears the full-size player on a ten-degree approach from side %s',
+    (side) => {
+      const door = createDoorController(definition);
+      const angle = Math.PI / 18;
+      const delta = 1 / 60;
+      const gaitSpeed = 6.4;
+      const person = {
+        x: definition.center.x + side * 6,
+        z: definition.center.z + side * 6 * Math.tan(angle),
+        radius: 1.125,
+        floorId: definition.floorId,
+      };
+      const movement = {
+        x: -side * gaitSpeed * Math.cos(angle) * delta,
+        z: -side * gaitSpeed * Math.sin(angle) * delta,
+      };
+      expect(
+        door.update(delta, person, false, { maximumSpeed: gaitSpeed, movement })
+      ).toMatchObject({ target: 1, blocked: true });
+
+      for (let frame = 0; frame < 120; frame++) {
+        person.x += movement.x;
+        person.z += movement.z;
+        const state = door.update(delta, person, false, {
+          maximumSpeed: gaitSpeed,
+          movement,
+        });
+        if (
+          person.x + movement.x + person.radius >= definition.threshold.minX &&
+          person.x + movement.x - person.radius <= definition.threshold.maxX
+        ) {
+          expect(state).toMatchObject({ progress: 1, blocked: false });
+          return;
+        }
+      }
+      expect.fail('approach did not reach the threshold');
+    }
+  );
+
+  it('does not anticipate movement aimed at a jamb, away or across floors', () => {
+    const person = {
+      x: definition.center.x - 6,
+      z: definition.center.z - 1,
+      radius: 1.125,
+      floorId: definition.floorId,
+    };
+    for (const [position, movement] of [
+      [person, { x: 0.1, z: 0 }],
+      [person, { x: -0.1, z: -0.1 / 6 }],
+      [person, { x: 0, z: 0.01 }],
+      [
+        { ...person, floorId: 'basement' },
+        { x: 0.1, z: 0.1 / 6 },
+      ],
+    ] as const) {
+      expect(
+        createDoorController(definition).update(1 / 60, position, false, {
+          maximumSpeed: 6.4,
+          movement,
+        })
+      ).toMatchObject({ target: 0, blocked: true });
+    }
+  });
+});

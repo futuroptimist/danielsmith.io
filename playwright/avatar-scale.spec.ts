@@ -46,7 +46,7 @@ for (const level of ['performance', 'balanced', 'cinematic']) {
             locomotion: { linearState: string; linearSpeed: number };
           }
       );
-    expect((await snapshot()).height).toBeCloseTo(1.9, 6);
+    expect((await snapshot()).height).toBeCloseTo(2.85, 6);
     const gaitButton = page.locator('[data-avatar-gait-control]');
     // Use native browser activation: Enter clicks on keydown, Space on keyup.
     for (const activation of ['Enter', 'Space']) {

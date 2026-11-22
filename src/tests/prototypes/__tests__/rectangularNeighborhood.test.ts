@@ -206,8 +206,9 @@ describe('isolated rectangular neighborhood feasibility', () => {
         Math.min(...projected[1]) - Math.max(...projected[0])
       ).toBeGreaterThanOrEqual(3.0);
       const center = { ...fences[0], center: { x: 60, z: 0 } };
-      // Two actors on parallel lanes (1.5 m center separation), both directions.
-      for (const offset of [-0.75, 0.75])
+      // This unchanged review aperture admits one enlarged actor, not two abreast.
+      expect(4 * R).toBeGreaterThan(3.8);
+      for (const offset of [0])
         for (const direction of [-1, 1]) {
           let p = local(center, offset, -3 * direction);
           for (let i = 1; i <= 60; i++) {
@@ -298,14 +299,15 @@ describe('isolated rectangular neighborhood feasibility', () => {
         expect(p.z).toBeCloseTo(target.z, 8);
       }
     }
-    expect(nav.contains(0.9, 0.9)).toBe(true);
+    expect(nav.contains(0.9, 0.9)).toBe(false);
+    const diagonalOffset = half / 2;
     const diagonal = move(
-      { x: -0.9, z: -0.9 },
-      { x: 1.8, z: 1.8 },
+      { x: -diagonalOffset, z: -diagonalOffset },
+      { x: 2 * diagonalOffset, z: 2 * diagonalOffset },
       nav,
       solids
     );
-    expect(diagonal.x).toBeCloseTo(0.9, 10);
-    expect(diagonal.z).toBeCloseTo(0.9, 10);
+    expect(diagonal.x).toBeCloseTo(diagonalOffset, 10);
+    expect(diagonal.z).toBeCloseTo(diagonalOffset, 10);
   });
 });

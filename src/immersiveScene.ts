@@ -343,6 +343,7 @@ import {
   FENCE_HEIGHT,
   FENCE_THICKNESS,
   STAIRCASE_CONFIG,
+  STAIRCASE_TRANSITION_MARGIN,
   WALL_HEIGHT,
   WALL_THICKNESS,
 } from './scene/structures/portfolioSceneLayout';
@@ -2190,7 +2191,7 @@ function buildImmersiveScene(
   const stairRun = STAIRCASE_CONFIG.step.run;
   const stairBottomZ = STAIRCASE_CONFIG.basePosition.z;
   const stairLandingDepth = STAIRCASE_CONFIG.landing.depth;
-  const stairTransitionMargin = toWorldUnits(0.6);
+  const stairTransitionMargin = STAIRCASE_TRANSITION_MARGIN;
   const stairLandingTriggerMargin = toWorldUnits(0.2);
   const stairwellMarginX = toWorldUnits(0.2);
   const stairwellMarginZ = toWorldUnits(0.4);

@@ -31,6 +31,10 @@ import {
 import { PORTFOLIO_MINIATURE_TABLE_DIMENSIONS as dimensions } from '../scene/structures/portfolioMiniatureTableContract';
 import { STAIRCASE_CONFIG } from '../scene/structures/portfolioSceneLayout';
 import { createStaircase } from '../scene/structures/staircase';
+import {
+  AVATAR_COLLISION_RADIUS,
+  TARGET_ROOM_CLEAR_HEIGHT,
+} from '../scene/units';
 
 function sources() {
   return FLOOR_PLAN_LEVELS.map((level) => {
@@ -95,7 +99,9 @@ describe('source-backed recursive property table', () => {
       [1, 1, 1].map(() => previousScale * 2)
     );
     expect(table.transform.modelBedOffset.y).toBeCloseTo(1.29);
-    expect(1.29 + size.y * table.transform.uniformScale).toBeLessThan(2.74);
+    expect(1.29 + size.y * table.transform.uniformScale).toBeLessThan(
+      TARGET_ROOM_CLEAR_HEIGHT
+    );
     const shell = createPortfolioTableShell();
     const top = new Box3().setFromObject(
       shell.getObjectByName('PortfolioMiniatureTableTop')!
@@ -125,7 +131,7 @@ describe('source-backed recursive property table', () => {
     const poi = getPoiDefinitions('en').find(
       (p) => p.id === 'danielsmith-portfolio-table'
     )!;
-    const radius = 0.75;
+    const radius = AVATAR_COLLISION_RADIUS;
     const envelope = {
       minX: poi.position.x - dimensions.width / 2 - radius,
       maxX: poi.position.x + dimensions.width / 2 + radius,
@@ -150,13 +156,13 @@ describe('source-backed recursive property table', () => {
     expect(dimensions.depth / 2 + radius).toBeLessThan(poi.interactionRadius);
   });
 
-  it('applies the table transform once to a grounded 1.90 metre player marker', () => {
+  it('applies the table transform once to a grounded 2.85 metre player marker', () => {
     const table = build();
     table.group.updateWorldMatrix(true, true);
     const bounds = new Box3().setFromObject(table.miniaturePlayer, true);
     expect(
       bounds.getSize(new Vector3()).y / table.transform.uniformScale
-    ).toBeCloseTo(1.9, 6);
+    ).toBeCloseTo(2.85, 6);
     const feet = table.miniaturePlayer.getWorldPosition(new Vector3());
     expect(bounds.min.y).toBeCloseTo(feet.y, 6);
     table.dispose();

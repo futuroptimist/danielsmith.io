@@ -11,11 +11,14 @@ export interface DoorDefinition {
   width: number;
   height: number;
   depth: number;
+  /** Signed Z travel for sliding panels; overhead panels retract vertically. */
   travel: number;
   duration: number;
   clearanceProgress: number;
   /** Open on approach and close on departure; manual operation remains available. */
   automatic?: boolean;
+  /** Predict inbound crossings of the aperture plane beyond the current frame. */
+  anticipateAngledApproach?: boolean;
   threshold: RectCollider;
   sweep: RectCollider;
   blockingBounds: RectCollider;
@@ -70,6 +73,27 @@ function approachDistance(
   const a = occupant.x + movement.x * start - definition.center.x;
   const b = occupant.x + movement.x * end - definition.center.x;
   return a * b <= 0 ? 0 : Math.min(Math.abs(a), Math.abs(b));
+}
+
+/** Predict only paths aimed into the usable aperture, rather than adjacent walls. */
+function projectedApproachDistance(
+  definition: DoorDefinition,
+  occupant: DoorOccupant,
+  movement: DoorApproach['movement']
+): number {
+  const offsetX = occupant.x - definition.center.x;
+  if (
+    !definition.anticipateAngledApproach ||
+    occupant.floorId !== definition.floorId ||
+    Math.abs(movement.x) < 1e-8 ||
+    offsetX * movement.x >= 0
+  )
+    return Infinity;
+  const crossingZ =
+    occupant.z - definition.center.z - offsetX * (movement.z / movement.x);
+  return Math.abs(crossingZ) <= definition.width / 2 - occupant.radius
+    ? Math.max(0, Math.abs(offsetX) - Math.abs(movement.x))
+    : Infinity;
 }
 
 const interactionDistance = 3.8;
@@ -155,16 +179,20 @@ export function createDoorController(definition: DoorDefinition) {
       }
       let clearanceTime = Infinity;
       if (definition.automatic && approach && approach.maximumSpeed > 0) {
-        const distance = approachDistance(
+        const immediateDistance = approachDistance(
           definition,
           occupant,
           approach.movement
         );
+        const distance = Math.min(
+          immediateDistance,
+          projectedApproachDistance(definition, occupant, approach.movement)
+        );
         // Outside the aperture's approach lane, use a continuous distance to
         // its edge for departure. Stepping sideways across the sensor boundary
         // must not instantly turn a nearby player into an infinitely far one.
-        const departureDistance = Number.isFinite(distance)
-          ? distance
+        const departureDistance = Number.isFinite(immediateDistance)
+          ? immediateDistance
           : occupant.floorId !== definition.floorId
             ? Infinity
             : Math.hypot(

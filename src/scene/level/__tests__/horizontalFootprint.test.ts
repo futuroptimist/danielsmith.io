@@ -30,9 +30,9 @@ describe('half-area house footprint', () => {
       expect(w / d).toBeCloseTo(width / depth, 8);
     }
   );
-  it('preserves vertical human scale and physical stair dimensions', () => {
-    expect(TARGET_ROOM_CLEAR_HEIGHT).toBe(2.74);
-    expect(TARGET_AVATAR_HEIGHT).toBe(1.9);
+  it('retains horizontal stair dimensions with the expanded vertical scale', () => {
+    expect(TARGET_ROOM_CLEAR_HEIGHT).toBeCloseTo(4.11);
+    expect(TARGET_AVATAR_HEIGHT).toBeCloseTo(2.85);
     for (const stair of [STAIRCASE_CONFIG, createBasementStaircase().config]) {
       expect(stair.step.width).toBe(2.4);
       expect(stair.step.run).toBe(0.28);

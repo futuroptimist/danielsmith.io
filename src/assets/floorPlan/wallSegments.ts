@@ -11,6 +11,8 @@ import {
   type RoomWall,
 } from '../floorPlan';
 
+import { getNormalizedDoorways } from './doorways';
+
 export interface WallSegmentInstance {
   segment: CombinedWallSegment;
   /** Stable identifier for correlating generated meshes with the source segment. */
@@ -90,6 +92,7 @@ export function createWallSegmentInstances(
     options.exteriorExtensionFactor ?? DEFAULT_EXTERIOR_EXTENSION;
 
   const segments = getCombinedWallSegments(plan);
+  const doorways = getNormalizedDoorways(plan);
   const instances: WallSegmentInstance[] = [];
 
   segments.forEach((segment) => {
@@ -121,19 +124,38 @@ export function createWallSegmentInstances(
       : exteriorExtension;
     const extension = thickness * extensionFactor;
 
+    // Seam overlap belongs at wall joins, never inside an authored doorway.
+    // Combined wall coordinates are rounded to millimetres; doorway edges are not.
+    const atDoorwayEdge = (point: { x: number; z: number }) =>
+      doorways.some((door) => {
+        if (door.axis !== segment.orientation) return false;
+        const along = door.axis === 'horizontal' ? 'x' : 'z';
+        const across = door.axis === 'horizontal' ? 'z' : 'x';
+        return (
+          Math.abs(point[across] - door.center[across]) < 0.001 &&
+          Math.abs(
+            Math.abs(point[along] - door.center[along]) - door.width / 2
+          ) < 0.001
+        );
+      });
+    const startExtension = atDoorwayEdge(segment.start) ? 0 : extension / 2;
+    const endExtension = atDoorwayEdge(segment.end) ? 0 : extension / 2;
+    const extendedLength = length + startExtension + endExtension;
+    const centerShift = (endExtension - startExtension) / 2;
+
     const width =
-      segment.orientation === 'horizontal' ? length + extension : thickness;
+      segment.orientation === 'horizontal' ? extendedLength : thickness;
     const depth =
-      segment.orientation === 'horizontal' ? thickness : length + extension;
+      segment.orientation === 'horizontal' ? thickness : extendedLength;
 
     const baseX =
       segment.orientation === 'horizontal'
-        ? (segment.start.x + segment.end.x) / 2
+        ? (segment.start.x + segment.end.x) / 2 + centerShift
         : segment.start.x;
     const baseZ =
       segment.orientation === 'horizontal'
         ? segment.start.z
-        : (segment.start.z + segment.end.z) / 2;
+        : (segment.start.z + segment.end.z) / 2 + centerShift;
 
     let offsetX = 0;
     let offsetZ = 0;

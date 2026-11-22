@@ -428,7 +428,7 @@ async function walkStairCenterlineToUpperLanding(page: Page) {
     lowerFloorId: 'ground',
     upperFloorId: 'upper',
     lowerFloorElevation: 0,
-    upperFloorElevation: 3.04,
+    upperFloorElevation: 4.41,
     visible: true,
     adjacent: true,
   });
@@ -796,7 +796,7 @@ test('upper landing samples preserve intended passage and void behavior', async 
     {
       name: 'visible landing east edge',
       target: {
-        x: 12.6 * Math.SQRT1_2,
+        x: 12.4 * Math.SQRT1_2 + (1.2 - PLAYER_RADIUS) * 0.8,
         z: -26.84 * Math.SQRT1_2,
         floorId: 'upper' as const,
       },
@@ -838,7 +838,7 @@ test('upper landing samples preserve intended passage and void behavior', async 
     {
       name: 'physical z=-29 landing east sample',
       target: {
-        x: 12.6 * Math.SQRT1_2,
+        x: 12.4 * Math.SQRT1_2 + (1.2 - PLAYER_RADIUS) * 0.8,
         z: -29 * Math.SQRT1_2,
         floorId: 'upper' as const,
       },
@@ -939,14 +939,14 @@ test('upper landing samples preserve intended passage and void behavior', async 
   }
 });
 
-test('upper landing-side passage removes targeted wall and colliders', async ({
+test('upper landing aperture is clear but the library sectional stops passage safely', async ({
   page,
 }) => {
   test.slow();
   await waitForImmersiveReady(page);
   await walkStairCenterlineToUpperLanding(page);
 
-  const targetState = await page.evaluate(() => {
+  const targetState = await page.evaluate((radius) => {
     const debugSolids = (window as PortfolioWindow).portfolio?.debugSolids;
     const debugColliders = (window as PortfolioWindow).portfolio
       ?.debugColliders;
@@ -1001,7 +1001,7 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
     );
     const openingSamples = [
       {
-        x: 8.4 * Math.SQRT1_2 - 0.25,
+        x: 8.4 * Math.SQRT1_2 - (1.2 - radius) * 0.8,
         z: -16 * Math.SQRT1_2,
         floorId: 'upper' as const,
       },
@@ -1011,7 +1011,7 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
         floorId: 'upper' as const,
       },
       {
-        x: 8.4 * Math.SQRT1_2 + 0.25,
+        x: 8.4 * Math.SQRT1_2 + (1.2 - radius) * 0.8,
         z: -16 * Math.SQRT1_2,
         floorId: 'upper' as const,
       },
@@ -1028,6 +1028,9 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
     for (let index = 0; index < 14; index += 1) {
       passageSteps.push(world.stepPlayerForTest(passageStep));
     }
+
+    const stopped = world.getPlayerPosition();
+    const retreat = world.stepPlayerForTest({ dx: 0, dz: -0.1 });
 
     return {
       knownWallSolidCount: knownWallSolids.length,
@@ -1061,12 +1064,18 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
           .map((collider) => collider.name)
       ),
       passageMovement: {
-        allStepsMoved: passageSteps.every((step) => step.movedZ),
-        blockedBy: passageSteps.flatMap((step) => step.blockedBy ?? []),
-        finalPosition: world.getPlayerPosition(),
+        passageStart,
+        firstStepMoved: passageSteps[0].movedZ,
+        lastStepMoved: passageSteps.at(-1)?.movedZ,
+        floorIds: [...new Set(passageSteps.map((step) => step.activeFloor))],
+        blockedBy: [
+          ...new Set(passageSteps.flatMap((step) => step.blockedBy ?? [])),
+        ],
+        stopped,
+        retreat,
       },
     };
-  });
+  }, PLAYER_RADIUS);
 
   // The page.evaluate() block above enables debugSolids/debugColliders before
   // querying targetState; that browser-side debug API state persists here and
@@ -1104,9 +1113,20 @@ test('upper landing-side passage removes targeted wall and colliders', async ({
   expect(targetState.passageWallCollidersInOpeningCount).toBe(0);
   expect(targetState.canOccupyOpeningSamples).toEqual([true, true, true]);
   expect(targetState.blockingAtOpeningSamples).toEqual([[], [], []]);
-  expect(targetState.passageMovement.allStepsMoved).toBe(true);
-  expect(targetState.passageMovement.blockedBy).toEqual([]);
-  expect(targetState.passageMovement.finalPosition.z).toBeGreaterThan(-15.35);
+  const movement = targetState.passageMovement;
+  expect(movement.firstStepMoved).toBe(true);
+  expect(movement.lastStepMoved).toBe(false);
+  expect(movement.floorIds).toEqual(['upper']);
+  expect(movement.blockedBy).toEqual([
+    'UpperFloorFurnishingCollider:loft-library-sectional',
+  ]);
+  expect(movement.stopped.x).toBeCloseTo(movement.passageStart.x, 6);
+  expect(movement.stopped.z).toBeGreaterThan(-16 * Math.SQRT1_2);
+  expect(movement.retreat).toMatchObject({
+    movedZ: true,
+    activeFloor: 'upper',
+  });
+  expect(movement.retreat.position.z).toBeCloseTo(movement.stopped.z - 0.1, 6);
 });
 
 test('runtime descent from upper landing mouth reaches the ground', async ({
@@ -1222,7 +1242,7 @@ test('blocks coarse displacements through upstairs side and back rails', async (
   const fixtures = [
     {
       floorId: 'upper' as const,
-      x: stairCenterX - 2.6,
+      x: stairCenterX - 2.7,
       z: -19 * Math.SQRT1_2,
       dx: 12,
       dz: 0,
@@ -1230,13 +1250,13 @@ test('blocks coarse displacements through upstairs side and back rails', async (
     {
       floorId: 'upper' as const,
       x: stairCenterX,
-      z: upperLanding.bounds.maxZ + 1.3,
+      z: upperLanding.bounds.maxZ + 0.25 + PLAYER_RADIUS + 0.1,
       dx: 0,
       dz: -12,
     },
     {
       floorId: 'ground' as const,
-      x: stairCenterX + 2.6,
+      x: stairCenterX + 2.7,
       z: -18 * Math.SQRT1_2,
       dx: -12,
       dz: 0,
@@ -1393,9 +1413,11 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
 
   const landingWestEgressLaneX =
     stairCenterX - stairHalfWidth + PLAYER_RADIUS * 0.75;
-  for (const z of [-26.14, -27.5, -29, -30.5, -30.8].map(
-    (z) => z * Math.SQRT1_2
-  )) {
+  for (const z of [
+    ...[-26.14, -27.5, -29].map((z) => z * Math.SQRT1_2),
+    -32 * Math.SQRT1_2 + PLAYER_RADIUS + 0.1,
+    -32 * Math.SQRT1_2 + PLAYER_RADIUS + 0.05,
+  ]) {
     const egressSample = {
       x: landingWestEgressLaneX,
       z,
@@ -1500,7 +1522,7 @@ test('ascend stairs from spawn, roam, return and descend', async ({ page }) => {
   });
 });
 
-test('upper landing opens west into upstairs rooms and blocks side/back stair entry', async ({
+test('upper landing reaches the studio and keeps library and side/back stair blockers', async ({
   page,
 }) => {
   test.slow();
@@ -1522,8 +1544,7 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     floorId: 'upper' as const,
   };
   const normalLoftSpace = {
-    x: 5.5 * Math.SQRT1_2,
-    z: -9 * Math.SQRT1_2,
+    ...getUpperRoomCenter('loftLibrary'),
     floorId: 'upper' as const,
   };
   const normalLoftEastNudge = {
@@ -1626,7 +1647,7 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
     {
       name: 'physical east landing sample',
       target: {
-        x: stairCenterX + PLAYER_RADIUS * 0.5,
+        x: stairCenterX + (stairHalfWidth - PLAYER_RADIUS) * 0.8,
         z: -29 * Math.SQRT1_2,
         floorId: 'upper' as const,
       },
@@ -1655,7 +1676,14 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
 
   expect(await canOccupyPosition(page, normalLoftSpace)).toBe(true);
   expect(await canOccupyPosition(page, normalLoftEastNudge)).toBe(true);
-  expect(await canOccupyPosition(page, loftDoorway)).toBe(true);
+  expect(await canOccupyPosition(page, loftDoorway)).toBe(false);
+  expect(await getBlockingColliderNames(page, loftDoorway)).toEqual([
+    'UpperFloorFurnishingCollider:loft-library-sectional',
+  ]);
+  await expect(async () => movePlayerTo(page, loftDoorway)).rejects.toThrow(
+    /Cannot occupy/
+  );
+  await expect(html).toHaveAttribute('data-active-floor', 'upper');
   expect(await canOccupyPosition(page, westVoidBypass)).toBe(true);
   expect(await canOccupyPosition(page, westLandingMouthClearance)).toBe(true);
   expect(
@@ -1692,7 +1720,7 @@ test('upper landing opens west into upstairs rooms and blocks side/back stair en
   );
   const runtimeWestEntry = await stepRuntimeIntoUpperStairEdge(
     page,
-    { x: stairCenterX - 2.6, z: -19 * Math.SQRT1_2 },
+    { x: stairCenterX - 2.7, z: -19 * Math.SQRT1_2 },
     { dx: 0.12, dz: 0 }
   );
   expect(runtimeWestEntry.movedX).toBe(false);
