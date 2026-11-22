@@ -22,6 +22,7 @@ test('staged preview serves its identity and renders the avatar from a deep link
       ? route.continue()
       : route.abort()
   );
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   const avatar = page.waitForResponse(
     (response) => response.url() === new URL(AVATAR, baseURL).href
   );
@@ -35,12 +36,13 @@ test('staged preview serves its identity and renders the avatar from a deep link
   expect((await model.body()).subarray(0, 4).toString('ascii')).toBe('glTF');
   await expect(page.locator('canvas').first()).toBeVisible();
   await page.waitForFunction(
-    () =>
-      (
-        window.portfolio?.avatar?.getAnimationState?.() as
-          | { loaded?: boolean }
-          | undefined
-      )?.loaded === true,
+    () => {
+      // Loading the model starts its reveal; the real avatar is still transparent then.
+      const state = window.portfolio?.avatar?.getAnimationState?.() as
+        | { loaded?: boolean; presentation?: string }
+        | undefined;
+      return state?.loaded === true && state.presentation === 'ready';
+    },
     undefined,
     { timeout: 45_000 }
   );
