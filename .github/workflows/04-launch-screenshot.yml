@@ -7,6 +7,8 @@ on:
 
 jobs:
   capture:
+    outputs:
+      generated_sha: ${{ steps.commit_asset.outputs.commit_hash }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -69,8 +71,22 @@ jobs:
           path: docs/assets/game-launch.png
 
       - name: Commit refreshed screenshot
+        id: commit_asset
         if: ${{ github.ref == 'refs/heads/main' && steps.screenshot_state.outputs.changed == 'true' }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: '📸 : – Refresh launch screenshot'
           file_pattern: docs/assets/game-launch.png
+
+  preview-generated-commit:
+    needs: capture
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      needs.capture.result == 'success' &&
+      needs.capture.outputs.generated_sha != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-preview-candidate.yml
+    with:
+      source_sha: ${{ needs.capture.outputs.generated_sha }}
+      source_kind: generated

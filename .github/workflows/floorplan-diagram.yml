@@ -12,6 +12,8 @@ on:
 
 jobs:
   render:
+    outputs:
+      generated_sha: ${{ steps.commit_asset.outputs.commit_hash }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,7 +32,21 @@ jobs:
       - name: Generate floor plan diagram
         run: npm run floorplan:diagram
       - name: Commit updated diagram
+        id: commit_asset
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: '🤖 : – Update floor plan diagram'
           file_pattern: docs/assets/floorplan.svg README.md
+
+  preview-generated-commit:
+    needs: render
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      needs.render.result == 'success' &&
+      needs.render.outputs.generated_sha != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-preview-candidate.yml
+    with:
+      source_sha: ${{ needs.render.outputs.generated_sha }}
+      source_kind: generated
