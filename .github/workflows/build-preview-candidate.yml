@@ -1,0 +1,101 @@
+name: Build Main Preview candidate
+
+on:
+  workflow_call:
+    inputs:
+      source_sha:
+        description: Exact source commit to package
+        required: true
+        type: string
+      source_kind:
+        description: One of direct, generated or recovery
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      MAIN_PREVIEW_SHA: ${{ inputs.source_sha }}
+      MAIN_PREVIEW_SOURCE_KIND: ${{ inputs.source_kind }}
+    steps:
+      - name: Validate source request
+        shell: bash
+        run: |
+          [[ "$MAIN_PREVIEW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          case "$MAIN_PREVIEW_SOURCE_KIND" in
+            direct)
+              [[ "$GITHUB_EVENT_NAME" == pull_request || (
+                "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/heads/main
+              ) ]]
+              ;;
+            generated|recovery)
+              [[ "$GITHUB_REPOSITORY" == futuroptimist/danielsmith.io ]]
+              [[ "$GITHUB_REF" == refs/heads/main ]]
+              case "$MAIN_PREVIEW_SOURCE_KIND:$GITHUB_EVENT_NAME:$GITHUB_WORKFLOW_REF" in
+                generated:push:futuroptimist/danielsmith.io/.github/workflows/04-launch-screenshot.yml@refs/heads/main) ;;
+                generated:push:futuroptimist/danielsmith.io/.github/workflows/floorplan-diagram.yml@refs/heads/main | \
+                generated:workflow_dispatch:futuroptimist/danielsmith.io/.github/workflows/floorplan-diagram.yml@refs/heads/main) ;;
+                recovery:workflow_dispatch:futuroptimist/danielsmith.io/.github/workflows/main-preview-candidate.yml@refs/heads/main) ;;
+                *) exit 1 ;;
+              esac
+              ;;
+            *) exit 1 ;;
+          esac
+      - name: Check out the exact source commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: ${{ inputs.source_kind == 'direct' && '1' || '0' }}
+          persist-credentials: false
+      - name: Verify checked-out commit before dependency installation
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$MAIN_PREVIEW_SHA"
+          if [[ "$MAIN_PREVIEW_SOURCE_KIND" != direct ]]; then
+            git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+            # Include earlier main commits if another push completed while this job queued.
+            git rev-list --first-parent refs/remotes/origin/main | grep -Fx "$MAIN_PREVIEW_SHA"
+          fi
+          printf 'Candidate source (%s): `%s`\n\nCaller event SHA: `%s`\n' \
+            "$MAIN_PREVIEW_SOURCE_KIND" "$MAIN_PREVIEW_SHA" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Use Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20.20.2'
+      - name: Install dependencies and browser
+        run: |
+          npm ci
+          npx --no-install playwright install --with-deps chromium-headless-shell
+      - name: Validate bundle preparation and rejection cases
+        run: npx --no-install vitest run scripts/__tests__/mainPreviewBundle.test.ts
+      - name: Build and stage the byte-checked candidate
+        run: |
+          test "$(git rev-parse HEAD)" = "$MAIN_PREVIEW_SHA"
+          git diff --quiet HEAD --
+          bundle="$RUNNER_TEMP/main-preview-bundle"
+          npm run smoke
+          git diff --quiet HEAD --
+          node .github/scripts/main-preview-bundle.cjs prepare "$MAIN_PREVIEW_SHA" dist "$bundle"
+          printf 'MAIN_PREVIEW_BUNDLE=%s\nMAIN_PREVIEW_SITE_DIR=%s/site\n' "$bundle" "$bundle" >> "$GITHUB_ENV"
+      - name: Smoke the staged static output
+        run: npx --no-install playwright test --config playwright.main-preview.config.ts
+      - name: Recheck and package exactly the smoked files
+        run: |
+          node .github/scripts/main-preview-bundle.cjs verify "$MAIN_PREVIEW_SHA" "$MAIN_PREVIEW_BUNDLE"
+          archive="$RUNNER_TEMP/main-preview.tar.gz"
+          tar -czf "$archive" -C "$MAIN_PREVIEW_BUNDLE" site SHA256SUMS.json
+          extracted="$(mktemp -d "$RUNNER_TEMP/main-preview-verification.XXXXXXXX")"
+          tar -xzf "$archive" -C "$extracted"
+          node .github/scripts/main-preview-bundle.cjs verify "$MAIN_PREVIEW_SHA" "$extracted"
+      - name: Retain candidate bundle in this CI run only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: main-preview-candidate-${{ env.MAIN_PREVIEW_SHA }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/main-preview.tar.gz
+          if-no-files-found: error
+          retention-days: 14
